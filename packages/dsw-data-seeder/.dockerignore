@@ -1,0 +1,7 @@
+.gitignore
+CHANGELOG.md
+CONTRIBUTING.md
+SECURITY.md
+docker-compose.yml
+Dockerfile
+LICENSE

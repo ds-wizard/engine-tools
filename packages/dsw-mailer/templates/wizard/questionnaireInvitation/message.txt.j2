@@ -1,0 +1,7 @@
+Hi {{ ctx.invitee.firstName }},
+
+{{ ctx.owner.firstName}} {{ ctx.owner.lastName }} has invited you to the project "{{ ctx.project.name }}":
+
+{{ ctx.project.link }}
+
+{% include '_common/footer.txt.j2' %}
