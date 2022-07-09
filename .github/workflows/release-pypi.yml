@@ -1,0 +1,57 @@
+name: Package release
+
+on:
+  release:
+    types: [released]
+
+jobs:
+  pypi-release:
+    name: "PyPi Release"
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+        - dsw-tdk
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: pip
+        cache-dependency-path: |
+          **/pyproject.toml
+          **/requirements*.txt
+
+    - name: Prepare Python env
+      run: |
+        python -m pip install -U pip setuptools wheel
+
+    - name: Install dependencies
+      run: |
+        cd packages/${{ matrix.package }}
+        pip install -r requirements.txt
+
+    - name: Build package sdist
+      run: |
+        cd packages/${{ matrix.package }}
+        python setup.py sdist
+
+    - name: Build package bdist (wheel)
+      run: |
+        cd packages/${{ matrix.package }}
+        python setup.py bdist_wheel
+
+    - name: Publish to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        user: __token__
+        password: ${{ secrets.PYPI_API_TOKEN }}
+        packages_dir: packages/${{ matrix.package }}/dist
+        print_hash: true
+        verbose: true

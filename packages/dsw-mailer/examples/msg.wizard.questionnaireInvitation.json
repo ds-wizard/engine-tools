@@ -1,0 +1,31 @@
+{
+  "id": "2ff6a64c-b781-4aea-8873-2ccb3e9ee3d7",
+  "type": "questionnaireInvitation",
+  "trigger": "file:msg.wizard.questionnaireInvitation.json",
+  "ctx": {
+    "email": "john.doe@example.com",
+    "invitee": {
+      "uuid": "4b4db197-db13-4bd4-aab8-71c92da0832f",
+      "firstName": "John",
+      "lastName": "Doe",
+      "email": "john.doe@example.com"
+    },
+    "owner": {
+      "uuid": "4b4db197-db13-4bd4-aab8-71c92da0832e",
+      "firstName": "Peter",
+      "lastName": "Pan",
+      "email": "peter.pan@example.com"
+    },
+    "project": {
+      "uuid": "4b4db197-db13-4bd4-aab8-71c92da0832e",
+      "name": "Hypothetical Project",
+      "link": "https://dsw.example.com/projects/4b4db197-db13-4bd4-aab8-71c92da0832e"
+    },
+    "clientUrl": "https://dsw.example.com",
+    "supportEmail": "help@example.com",
+    "appTitle": "My DSW"
+  },
+  "recipients": [
+    "test@example.com"
+  ]
+}

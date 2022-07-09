@@ -1,0 +1,21 @@
+{
+  "name": "example",
+  "description": "Whatever internal information about this data seed set",
+  "db": {
+    "scripts": [
+      "user_seed.sql",
+      "app_config_seed.sql"
+    ],
+    "appIdPlaceholder": "<<|APP-ID|>>"
+  },
+  "s3": {
+    "appDir": "app",
+    "filenameReplace": {
+      ":": "_"
+    }
+  },
+  "uuids": {
+    "count": 3,
+    "placeholder": "{{-UUID[n]-}}"
+  }
+}

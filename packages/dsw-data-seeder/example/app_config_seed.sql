@@ -1,0 +1,1 @@
+UPDATE app_config SET organization = '{"affiliations": [], "name": "Seeded Organization", "organizationId": "seeded.org", "description": "My seeded organization description"}' WHERE uuid = '<<|APP-ID|>>';

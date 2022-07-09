@@ -1,0 +1,17 @@
+database:
+  connectionString: postgresql://postgres:postgres@postgres:5432/engine-wizard
+  connectionTimeout: 30000
+  queueTimeout: 300
+
+s3:
+  url: http://minio:9000
+  username: minio
+  password: minioPassword
+  bucket: engine-wizard
+
+logging:
+  level: INFO
+  globalLevel: WARNING
+
+cloud:
+  enabled: True

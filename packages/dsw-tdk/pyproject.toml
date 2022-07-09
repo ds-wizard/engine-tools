@@ -1,0 +1,62 @@
+[build-system]
+requires = ['setuptools', 'setuptools-scm']
+build-backend = 'setuptools.build_meta'
+
+[project]
+name = 'dsw-tdk'
+description = 'Data Stewardship Wizard Template Development Toolkit'
+readme = 'README.md'
+keywords = ['documents', 'dsw', 'jinja2', 'template', 'toolkit']
+license = { text = 'Apache License 2.0' }
+authors = [
+    { name = 'Marek Suchánek', email = 'marek.suchanek@ds-wizard.org' }
+]
+classifiers = [
+    'Framework :: AsyncIO',
+    'Development Status :: 5 - Production/Stable',
+    'License :: OSI Approved :: Apache Software License',
+    'Programming Language :: Python',
+    'Programming Language :: Python :: 3.8',
+    'Programming Language :: Python :: 3.9',
+    'Programming Language :: Python :: 3.10',
+    'Topic :: Internet :: WWW/HTTP',
+    'Topic :: Utilities',
+]
+requires-python = '>=3.8, <4'
+dependencies = [
+    'aiohttp',
+    'click',
+    'colorama',
+    'humanize',
+    'Jinja2',
+    'multidict',
+    'pathspec',
+    'python-dotenv',
+    'python-slugify',
+    'watchgod',
+]
+dynamic = ['version']
+
+[project.optional-dependencies]
+test = [
+    'pytest',
+]
+
+[project.urls]
+Homepage = 'https://ds-wizard.org'
+Repository = 'https://github.com/ds-wizard/pydsw'
+Documentation = 'https://guide.ds-wizard.org'
+
+[project.scripts]
+dsw-tdk = 'dsw.tdk:main'
+
+[tool.setuptools]
+packages = ['dsw']
+zip-safe = false
+
+[tool.setuptools_scm]
+root = '../..'
+write_to = 'packages/dsw-tdk/dsw/tdk/_version.py'
+
+[tool.distutils.bdist_wheel]
+universal = true

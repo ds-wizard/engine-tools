@@ -1,0 +1,52 @@
+[build-system]
+requires = ['setuptools', 'setuptools-scm']
+build-backend = 'setuptools.build_meta'
+
+[project]
+name = 'dsw-data-seeder'
+description = 'Worker for seeding DSW data'
+readme = 'README.md'
+keywords = ['data', 'database', 'seed', 'storage']
+license = { text = 'Apache License 2.0' }
+authors = [
+    { name = 'Marek Suchánek', email = 'marek.suchanek@ds-wizard.org' }
+]
+classifiers = [
+    'Development Status :: 5 - Production/Stable',
+    'License :: OSI Approved :: Apache Software License',
+    'Programming Language :: Python',
+    'Programming Language :: Python :: 3.9',
+    'Programming Language :: Python :: 3.10',
+    'Topic :: Database',
+    'Topic :: Text Processing',
+    'Topic :: Utilities',
+]
+requires-python = '>=3.9, <4'
+dependencies = [
+    'click',
+    'minio',
+    'psycopg2',
+    'PyYAML',
+    'tenacity',
+]
+dynamic = ['version']
+
+[project.urls]
+Homepage = 'https://ds-wizard.org'
+Repository = 'https://github.com/ds-wizard/pydsw'
+Documentation = 'https://guide.ds-wizard.org'
+
+[project.scripts]
+dsw-data-seeder = 'dsw.data_seeder:main'
+
+[tool.setuptools]
+packages = ['dsw']
+zip-safe = false
+
+[tool.setuptools_scm]
+root = '../..'
+write_to = 'packages/dsw-data-seeder/dsw/data_seeder/_version.py'
+
+[tool.distutils.bdist_wheel]
+universal = true
+

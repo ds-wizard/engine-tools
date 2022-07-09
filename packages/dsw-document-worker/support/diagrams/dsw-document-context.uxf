@@ -1,0 +1,1612 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="14.3.0">
+  <zoom_level>8</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>424</x>
+      <y>176</y>
+      <w>168</w>
+      <h>224</h>
+    </coordinates>
+    <panel_attributes>*DocumentContext*
+--
+config: ContextConfig
+current_phase: Optional[Phase]
+document: Document
+km: KnowledgeModel
+organization: Organization
+package: Package
+questionnaire: Questionnaire
+report: Report
+--
+e: KnowledgeModelEntities
+cfg: ContextConfig
+doc: Document
+qtn: Questionnaire
+org: Organization
+pkg: Package
+replies: RepliesContainer</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>696</x>
+      <y>384</y>
+      <w>176</w>
+      <h>160</h>
+    </coordinates>
+    <panel_attributes>KnowledgeModel
+--
+uuid: str
+chapters: list[Chapter]
+integrations: list[Integration]
+metrics: list[Metric]
+phases: list[Phase]
+tags: list[Tag]
+entities: KnowledgeModelEntities
+annotations: dict[str,str]
+--
+a: dict[str,str]
+e: KnowledgeModelEntities
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1024</x>
+      <y>392</y>
+      <w>152</w>
+      <h>104</h>
+    </coordinates>
+    <panel_attributes>Chapter
+--
+uuid: str
+title: str
+text: Optional[str]
+questions: list[Question]
+reports: list[ReportItem]
+annotations: dict[str,str]</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1312</x>
+      <y>392</y>
+      <w>296</w>
+      <h>256</h>
+    </coordinates>
+    <panel_attributes>/Question/
+--
+uuid: str
+type: str
+title: str
+text: Optional[str]
+experts: list[Expert]
+references: list[Reference]
+tags: list[Tag]
+required_phase: Optional[Phase]
+is_required: bool
+replies: dict[str, Reply]
+parent: Union[Chapter,ListQuestion,Answer]
+annotations: dict[str,str]
+--
+url_references: list[URLReference]
+resource_page_references: list[ResourcePageReference]</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1656</x>
+      <y>400</y>
+      <w>144</w>
+      <h>48</h>
+    </coordinates>
+    <panel_attributes>OptionsQuestion
+--
+answers: list[Answer]</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1656</x>
+      <y>464</y>
+      <w>144</w>
+      <h>48</h>
+    </coordinates>
+    <panel_attributes>ValueQuestion
+--
+value_type: str</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1656</x>
+      <y>336</y>
+      <w>144</w>
+      <h>48</h>
+    </coordinates>
+    <panel_attributes>ListQuestion
+--
+followups: list[Question]</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1656</x>
+      <y>600</y>
+      <w>144</w>
+      <h>48</h>
+    </coordinates>
+    <panel_attributes>MultiChoiceQuestion
+--
+choices: list[Choice]</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1656</x>
+      <y>528</y>
+      <w>144</w>
+      <h>56</h>
+    </coordinates>
+    <panel_attributes>IntegrationQuestion
+--
+integration: Integration
+props: dict[str,str]</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1024</x>
+      <y>504</y>
+      <w>152</w>
+      <h>104</h>
+    </coordinates>
+    <panel_attributes>Phase
+--
+uuid: str
+title: str
+description: Optional[str]
+order: int
+annotations: dict[str,str]</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1016</x>
+      <y>224</y>
+      <w>160</w>
+      <h>88</h>
+    </coordinates>
+    <panel_attributes>Metric
+--
+uuid: str
+title: str
+description: Optional[str]
+abbreviation: str
+annotations: dict[str,str]</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>856</x>
+      <y>776</y>
+      <w>152</w>
+      <h>144</h>
+    </coordinates>
+    <panel_attributes>/Integration/
+--
+uuid: str
+id: str
+name: str
+type: str
+logo: str
+props: dict[str,str]
+item_url: str
+annotations: dict[str,str]
+--
+item(item_id: str) -&gt; str</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1024</x>
+      <y>648</y>
+      <w>152</w>
+      <h>88</h>
+    </coordinates>
+    <panel_attributes>Tag
+--
+uuid: str
+name: str
+description: Optional[str]
+color: str
+annotations: dict[str,str]</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>696</x>
+      <y>176</y>
+      <w>176</w>
+      <h>152</h>
+    </coordinates>
+    <panel_attributes>KnowledgeModelEntities
+--
+answers: dict[str,Answer]
+chapters: dict[str,Chapter]
+choices: dict[str,Choice]
+experts: dict[str,Expert]
+integrations: dict[str,Integration]
+metrics: dict[str,Metric]
+phases: dict[str,Phase]
+questions: dict[str,Question]
+references: dict[str,Reference]
+tags: dict[str,Tag]</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>904</x>
+      <y>1088</y>
+      <w>112</w>
+      <h>72</h>
+    </coordinates>
+    <panel_attributes>AnswerReply
+--
+answer_uuid: str
+answer: Answer
+--
+value: str</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>576</x>
+      <y>920</y>
+      <w>184</w>
+      <h>104</h>
+    </coordinates>
+    <panel_attributes>/Reply/
+--
+path: str
+fragments: list[str]
+reply_type: str
+question: Question
+created_by: Optional[SimpleAuthor]
+created_at: datetime</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>176</x>
+      <y>176</y>
+      <w>128</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>ContextConfig
+--
+client_url: str</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>176</x>
+      <y>240</y>
+      <w>128</w>
+      <h>64</h>
+    </coordinates>
+    <panel_attributes>Document
+--
+uuid: str
+created_at: datetime
+updated_at: datetime</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>176</x>
+      <y>328</y>
+      <w>128</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>Organization
+--
+id: str
+name: str
+description: Optional[str]
+affiliation: list[str]</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>176</x>
+      <y>432</y>
+      <w>128</w>
+      <h>144</h>
+    </coordinates>
+    <panel_attributes>Package
+--
+id: str
+organization_id: str
+km_id: str
+version: str
+versions: list[str]
+name: str
+description: str
+created_at: datetime
+--
+org_id: str</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>120</x>
+      <y>840</y>
+      <w>184</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>QuestionnaireVersion
+--
+uuid: str
+event_uuid: str
+name: str
+description: str
+created_by: Optional[SimpleAuthor]
+created_at: datetime
+updated_at: datetime</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>120</x>
+      <y>632</y>
+      <w>184</w>
+      <h>144</h>
+    </coordinates>
+    <panel_attributes>Questionnaire
+--
+uuid: str
+name: str
+description: str
+project_tags: list[str]
+version: QuestionnaireVersion
+versions: list[QuestionnaireVersion]
+phase: Optional[Phase]
+replies: RepliesContainer
+created_by: User</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>0</x>
+      <y>408</y>
+      <w>136</w>
+      <h>168</h>
+    </coordinates>
+    <panel_attributes>User
+--
+uuid: str
+first_name: str
+last_name: str
+email: str
+role: str
+image_url: Optional[str]
+affiliation: Optional[str]
+permissions: list[str]
+sources: list[str]
+created_at: datetime
+updated_at: datetime</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>312</x>
+      <y>920</y>
+      <w>152</w>
+      <h>104</h>
+    </coordinates>
+    <panel_attributes>SimpleAuthor
+--
+uuid: str
+first_name: str
+last_name: str
+image_url: Optional[str]
+gravatar_hash: Optional[str]</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>456</x>
+      <y>704</y>
+      <w>264</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>RepliesContainer
+--
+replies: dict[str, Reply]
+--
+get(path: str) -&gt; Optional[Reply]
+values(path: str) -&gt; Iterable[Reply]
+keys(path: str) -&gt; Iterable[str]
+items(path: str) -&gt; ItemsView[str,Reply]
+iterate_by_prefix(path_prefix: str): Iterable[Reply]
+iterate_by_suffix(path_suffix: str): Iterable[Reply]</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>576</x>
+      <y>1088</y>
+      <w>128</w>
+      <h>104</h>
+    </coordinates>
+    <panel_attributes>IntegrationReply
+--
+value: str
+item_id: Optional[str]
+is_plain: bool
+is_integration: bool
+--
+id: str
+url: Optional[str]</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>432</x>
+      <y>1088</y>
+      <w>128</w>
+      <h>72</h>
+    </coordinates>
+    <panel_attributes>ItemListReply
+--
+items: list[str]
+--
+value: list[str]</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>288</x>
+      <y>1088</y>
+      <w>128</w>
+      <h>72</h>
+    </coordinates>
+    <panel_attributes>MultiChoiceReply
+--
+choice_uuids: list[str]
+choices: list[Choice]
+--
+value: list[str]</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>720</x>
+      <y>1088</y>
+      <w>168</w>
+      <h>72</h>
+    </coordinates>
+    <panel_attributes>StringReply
+--
+value: str
+--
+as_number: Optional[float]
+as_datetime: Optional[datetime]</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1976</x>
+      <y>184</y>
+      <w>104</w>
+      <h>64</h>
+    </coordinates>
+    <panel_attributes>MetricMeasure
+--
+measure: float
+weight: float
+metric: Metric</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1648</x>
+      <y>712</y>
+      <w>152</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>Choice
+--
+uuid: str
+label: str
+parent: MultiChoiceQuestion
+annotations: dict[str,str]</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1904</x>
+      <y>344</y>
+      <w>200</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>Answer
+--
+uuid: str
+label: str
+advice: Optional[str]
+metric_measures: list[MetricMeasure]
+followups: list[Question]
+parent: OptionsQuestion
+annotations: dict[str,str]</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>424</x>
+      <y>0</y>
+      <w>176</w>
+      <h>88</h>
+    </coordinates>
+    <panel_attributes>Report
+--
+uuid: str
+total_report: ReportItem
+chapter_reports: list[ReportItem]
+created_at: datetime
+updated_at: datetime</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1016</x>
+      <y>88</y>
+      <w>160</w>
+      <h>56</h>
+    </coordinates>
+    <panel_attributes>ReportMetric
+--
+measure: float
+metric: Metric</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1200</x>
+      <y>0</y>
+      <w>152</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>ReportIndication
+--
+indication_type: str
+answered: int
+unanswered: int
+total: int
+percentage: float
+is_for_phase: bool
+is_overall: bool</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>784</x>
+      <y>0</y>
+      <w>176</w>
+      <h>88</h>
+    </coordinates>
+    <panel_attributes>ReportItem
+--
+indications: list[ReportIndication]
+metrics: list[ReportMetric]
+chapter: Optional[Chapter]</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1168</x>
+      <y>640</y>
+      <w>184</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=0..*
+m2=tags
+</panel_attributes>
+    <additional_attributes>10.0;70.0;190.0;70.0;190.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1720</x>
+      <y>640</y>
+      <w>64</w>
+      <h>88</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=0..*
+m2=choices
+
+</panel_attributes>
+    <additional_attributes>10.0;90.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1600</x>
+      <y>488</y>
+      <w>72</w>
+      <h>24</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;70.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1600</x>
+      <y>488</y>
+      <w>72</w>
+      <h>88</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;50.0;10.0;50.0;90.0;70.0;90.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1600</x>
+      <y>352</y>
+      <w>72</w>
+      <h>160</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;180.0;50.0;180.0;50.0;10.0;70.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1600</x>
+      <y>416</y>
+      <w>72</w>
+      <h>96</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;100.0;50.0;100.0;50.0;10.0;70.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1600</x>
+      <y>488</y>
+      <w>72</w>
+      <h>152</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;50.0;10.0;50.0;170.0;70.0;170.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>632</x>
+      <y>1016</y>
+      <w>344</w>
+      <h>88</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;60.0;410.0;60.0;410.0;90.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>632</x>
+      <y>1016</y>
+      <w>184</w>
+      <h>88</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;60.0;210.0;60.0;210.0;90.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>632</x>
+      <y>1016</y>
+      <w>24</w>
+      <h>88</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;90.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>488</x>
+      <y>1016</y>
+      <w>168</w>
+      <h>88</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>190.0;10.0;190.0;60.0;10.0;60.0;10.0;90.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>344</x>
+      <y>1016</y>
+      <w>312</w>
+      <h>88</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>370.0;10.0;370.0;60.0;10.0;60.0;10.0;90.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>456</x>
+      <y>968</y>
+      <w>136</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=0..1
+m2=created_by
+
+</panel_attributes>
+    <additional_attributes>10.0;20.0;150.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>184</x>
+      <y>952</y>
+      <w>144</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=0..1
+m2=created_by
+
+</panel_attributes>
+    <additional_attributes>160.0;70.0;10.0;70.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>184</x>
+      <y>768</y>
+      <w>64</w>
+      <h>88</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=0..*
+m2=versions
+
+</panel_attributes>
+    <additional_attributes>10.0;90.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>32</x>
+      <y>568</y>
+      <w>104</w>
+      <h>176</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=1
+m2=created_by
+
+</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;190.0;110.0;190.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>216</x>
+      <y>392</y>
+      <w>280</w>
+      <h>256</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=1
+m2=qtn
+</panel_attributes>
+    <additional_attributes>10.0;300.0;10.0;260.0;310.0;260.0;310.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>296</x>
+      <y>728</y>
+      <w>176</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=replies
+m2=1
+
+</panel_attributes>
+    <additional_attributes>10.0;20.0;200.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>632</x>
+      <y>816</y>
+      <w>56</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=replies
+m2=0..*
+fg=#357546
+</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;130.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>296</x>
+      <y>392</y>
+      <w>168</w>
+      <h>96</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=pkg
+m2=1
+
+</panel_attributes>
+    <additional_attributes>170.0;10.0;170.0;90.0;10.0;90.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>296</x>
+      <y>352</y>
+      <w>144</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=org
+m2=1
+
+</panel_attributes>
+    <additional_attributes>160.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>296</x>
+      <y>256</y>
+      <w>144</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=doc
+m2=1
+
+</panel_attributes>
+    <additional_attributes>160.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>296</x>
+      <y>184</y>
+      <w>144</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m2=1
+m1=cfg
+
+</panel_attributes>
+    <additional_attributes>160.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>496</x>
+      <y>80</y>
+      <w>56</w>
+      <h>112</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=report
+m2=1
+
+</panel_attributes>
+    <additional_attributes>10.0;120.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>592</x>
+      <y>8</y>
+      <w>208</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=1
+m2=total_report
+
+</panel_attributes>
+    <additional_attributes>240.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>952</x>
+      <y>8</y>
+      <w>264</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=indications
+m2=0..*
+</panel_attributes>
+    <additional_attributes>10.0;20.0;310.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>952</x>
+      <y>40</y>
+      <w>168</w>
+      <h>64</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=metrics
+m2=0..1
+
+</panel_attributes>
+    <additional_attributes>10.0;20.0;170.0;20.0;170.0;60.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>880</x>
+      <y>80</y>
+      <w>216</w>
+      <h>328</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=0..*
+m2=reports
+
+</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;340.0;210.0;340.0;210.0;390.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1080</x>
+      <y>136</y>
+      <w>56</w>
+      <h>104</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=metric
+m2=1
+
+</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;110.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>584</x>
+      <y>336</y>
+      <w>168</w>
+      <h>64</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=km
+m2=1
+
+</panel_attributes>
+    <additional_attributes>10.0;20.0;180.0;20.0;180.0;60.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>864</x>
+      <y>424</y>
+      <w>176</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=0..*
+m2=chapters
+
+</panel_attributes>
+    <additional_attributes>200.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>864</x>
+      <y>256</y>
+      <w>168</w>
+      <h>168</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=0..*
+m2=metrics
+
+</panel_attributes>
+    <additional_attributes>190.0;10.0;100.0;10.0;100.0;180.0;10.0;180.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>864</x>
+      <y>496</y>
+      <w>176</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=0..*
+m2=phases
+
+</panel_attributes>
+    <additional_attributes>200.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>736</x>
+      <y>536</y>
+      <w>136</w>
+      <h>320</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=0..*
+m2=integrations
+
+</panel_attributes>
+    <additional_attributes>150.0;370.0;10.0;370.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>832</x>
+      <y>536</y>
+      <w>208</w>
+      <h>184</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=0..*
+m2=tags
+
+</panel_attributes>
+    <additional_attributes>240.0;200.0;10.0;200.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1168</x>
+      <y>408</y>
+      <w>160</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=0..*
+m2=questions
+
+</panel_attributes>
+    <additional_attributes>180.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1168</x>
+      <y>552</y>
+      <w>160</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=required_phase
+m2=0..1
+
+</panel_attributes>
+    <additional_attributes>180.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1000</x>
+      <y>552</y>
+      <w>888</w>
+      <h>304</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=integration
+m2=1
+
+</panel_attributes>
+    <additional_attributes>1000.0;10.0;1090.0;10.0;1090.0;350.0;10.0;350.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2000</x>
+      <y>240</y>
+      <w>112</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=metric_measures
+m2=0..*
+</panel_attributes>
+    <additional_attributes>10.0;130.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1008</x>
+      <y>456</y>
+      <w>1016</w>
+      <h>688</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=answer
+m2=1
+
+</panel_attributes>
+    <additional_attributes>10.0;830.0;1240.0;830.0;1240.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1896</x>
+      <y>400</y>
+      <w>24</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=-
+
+</panel_attributes>
+    <additional_attributes>10.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1328</x>
+      <y>216</y>
+      <w>680</w>
+      <h>192</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=followups
+m2=0..*
+</panel_attributes>
+    <additional_attributes>770.0;160.0;770.0;20.0;10.0;20.0;10.0;220.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1512</x>
+      <y>264</y>
+      <w>232</w>
+      <h>144</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=followups
+m2=0..*
+</panel_attributes>
+    <additional_attributes>210.0;90.0;210.0;20.0;10.0;20.0;10.0;160.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>344</x>
+      <y>784</y>
+      <w>1416</w>
+      <h>440</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=choices
+m2=0..*
+
+</panel_attributes>
+    <additional_attributes>10.0;470.0;10.0;520.0;1730.0;520.0;1730.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>552</x>
+      <y>392</y>
+      <w>488</w>
+      <h>208</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;..
+fg=blue
+m2=current_phase
+m1=0..1
+</panel_attributes>
+    <additional_attributes>590.0;230.0;10.0;230.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>296</x>
+      <y>584</y>
+      <w>744</w>
+      <h>104</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m2=phase
+m1=0..1
+</panel_attributes>
+    <additional_attributes>910.0;10.0;330.0;10.0;330.0;100.0;10.0;100.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>776</x>
+      <y>320</y>
+      <w>32</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=1
+m2=e
+
+</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;80.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>584</x>
+      <y>248</y>
+      <w>128</w>
+      <h>48</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;..
+fg=blue
+m1=1
+m2=e
+
+
+</panel_attributes>
+    <additional_attributes>140.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>488</x>
+      <y>392</y>
+      <w>56</w>
+      <h>328</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;..
+fg=blue
+m2=replies
+m1=1
+</panel_attributes>
+    <additional_attributes>10.0;390.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>592</x>
+      <y>48</y>
+      <w>208</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=0..*
+m2=chapter_reports
+
+</panel_attributes>
+    <additional_attributes>240.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>752</x>
+      <y>616</y>
+      <w>576</w>
+      <h>392</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=replies
+m2=0..*
+fg=#357546
+</panel_attributes>
+    <additional_attributes>700.0;10.0;50.0;10.0;50.0;460.0;10.0;460.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>912</x>
+      <y>80</y>
+      <w>224</w>
+      <h>328</h>
+    </coordinates>
+    <panel_attributes>lt=..&gt;
+m2=0..1
+m1=chapter
+</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;320.0;240.0;320.0;240.0;390.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1360</x>
+      <y>232</y>
+      <w>584</w>
+      <h>176</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;..
+m1=0..1
+m2=parent
+</panel_attributes>
+    <additional_attributes>690.0;140.0;690.0;20.0;10.0;20.0;10.0;200.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1168</x>
+      <y>440</y>
+      <w>160</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;..
+m1=0..1
+m2=parent
+</panel_attributes>
+    <additional_attributes>10.0;20.0;180.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1464</x>
+      <y>248</y>
+      <w>320</w>
+      <h>160</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;..
+m1=0..1
+m2=parent
+</panel_attributes>
+    <additional_attributes>360.0;110.0;360.0;20.0;10.0;20.0;10.0;180.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1024</x>
+      <y>744</y>
+      <w>152</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>Expert
+--
+uuid: str
+name: str
+email: str
+annotations: dict[str,str]</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1568</x>
+      <y>880</y>
+      <w>136</w>
+      <h>72</h>
+    </coordinates>
+    <panel_attributes>/Reference/
+--
+uuid: str
+type: str
+annotations: dict[str,str]</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1168</x>
+      <y>640</y>
+      <w>240</w>
+      <h>160</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=0..*
+m2=experts
+</panel_attributes>
+    <additional_attributes>10.0;170.0;240.0;170.0;240.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1360</x>
+      <y>880</y>
+      <w>160</w>
+      <h>56</h>
+    </coordinates>
+    <panel_attributes>URLReference
+--
+label: str
+url: str</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1360</x>
+      <y>952</y>
+      <w>160</w>
+      <h>56</h>
+    </coordinates>
+    <panel_attributes>ResourcePageReference
+--
+short_uuid: str</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1512</x>
+      <y>904</y>
+      <w>72</w>
+      <h>24</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>70.0;10.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1512</x>
+      <y>904</y>
+      <w>72</w>
+      <h>96</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>70.0;10.0;30.0;10.0;30.0;100.0;10.0;100.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1432</x>
+      <y>640</y>
+      <w>40</w>
+      <h>256</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;..
+fg=blue
+m2=
+m1=0..*
+</panel_attributes>
+    <additional_attributes>10.0;300.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1320</x>
+      <y>640</y>
+      <w>112</w>
+      <h>368</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;..
+fg=blue
+m2=
+m1=0..*
+</panel_attributes>
+    <additional_attributes>50.0;430.0;10.0;430.0;10.0;270.0;120.0;270.0;120.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1576</x>
+      <y>640</y>
+      <w>72</w>
+      <h>256</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=0..*
+m2=references
+
+</panel_attributes>
+    <additional_attributes>10.0;300.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1048</x>
+      <y>976</y>
+      <w>152</w>
+      <h>136</h>
+    </coordinates>
+    <panel_attributes>ApiIntegration
+--
+rq_url: str
+rq_method: str
+rq_headers: dict[str,str]
+rq_body: str
+rq_empty_search: bool
+rs_list_field: str
+rs_item_id: str
+rs_item_template: str
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>856</x>
+      <y>976</y>
+      <w>152</w>
+      <h>48</h>
+    </coordinates>
+    <panel_attributes>WidgetIntegration
+--
+widget_url: str</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>920</x>
+      <y>912</y>
+      <w>24</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;80.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>920</x>
+      <y>912</y>
+      <w>216</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;50.0;250.0;50.0;250.0;80.0</additional_attributes>
+  </element>
+</diagram>

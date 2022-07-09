@@ -1,0 +1,62 @@
+[build-system]
+requires = ['setuptools', 'setuptools-scm']
+build-backend = 'setuptools.build_meta'
+
+[project]
+name = 'dsw-document-worker'
+description = 'Worker for assembling and transforming documents'
+readme = 'README.md'
+keywords = ['documents', 'generation', 'jinja2', 'pandoc', 'worker']
+license = { text = 'Apache License 2.0' }
+authors = [
+    { name = 'Marek Suchánek', email = 'marek.suchanek@ds-wizard.org' }
+]
+classifiers = [
+    'Development Status :: 5 - Production/Stable',
+    'License :: OSI Approved :: Apache Software License',
+    'Operating System :: POSIX :: Linux',
+    'Programming Language :: Python',
+    'Programming Language :: Python :: 3.9',
+    'Programming Language :: Python :: 3.10',
+    'Topic :: Text Processing',
+]
+requires-python = '>=3.9, <4'
+dependencies = [
+    'click',
+    'jinja2',
+    'Markdown',
+    'MarkupSafe',
+    'mdx-breakless-lists',
+    'minio',
+    'pathvalidate',
+    'pdfrw',
+    'psycopg2',
+    'PyYAML',
+    'rdflib',
+    'rdflib-jsonld',
+    'requests',
+    'python-slugify',
+    'python-dateutil',
+    'sentry-sdk',
+    'tenacity',
+]
+dynamic = ['version']
+
+[project.urls]
+Homepage = 'https://ds-wizard.org'
+Repository = 'https://github.com/ds-wizard/pydsw'
+Documentation = 'https://guide.ds-wizard.org'
+
+[project.scripts]
+dsw-document-worker = 'dsw.document_worker:main'
+
+[tool.setuptools]
+packages = ['dsw']
+zip-safe = false
+
+[tool.setuptools_scm]
+root = '../..'
+write_to = 'packages/dsw-document-worker/dsw/document_worker/_version.py'
+
+[tool.distutils.bdist_wheel]
+universal = true
