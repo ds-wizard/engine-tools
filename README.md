@@ -11,15 +11,30 @@
 
 In this monorepo, we manage the following Python packages (each has its own subdirectory):
 
+### Libraries
+
+*Libraries are currently intended for internal use to support DRYness*
+
+* [Command Queue (dsw-command-queue)](packages/dsw-command-queue)
+* [Config (dsw-config)](packages/dsw-config)
+* [Database (dsw-database)](packages/dsw-database)
+* [Storage (dsw-storage)](packages/dsw-storage)
+
+Libraries are currently kept compatible with Python 3.7 and higher.
+
 ### Utilities
 
 * [Template Development Kit (dsw-tdk)](packages/dsw-tdk)
 
+Utilities are currently kept compatible with **Python 3.7** and higher.
+
 ### Workers
 
-* [Data Seeder](packages/dsw-data-seeder)
-* [Document Worker](packages/dsw-document-worker)
-* [Mailer](packages/dsw-mailer)
+* [Data Seeder (dsw-data-seeder)](packages/dsw-data-seeder)
+* [Document Worker (dsw-document-worker)](packages/dsw-document-worker)
+* [Mailer (dsw-mailer)](packages/dsw-mailer)
+
+Workers are currently kept compatible with **Python 3.9** and higher.
 
 ## License
 

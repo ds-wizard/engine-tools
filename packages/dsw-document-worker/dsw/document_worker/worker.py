@@ -7,12 +7,12 @@ import uuid
 
 from typing import Optional
 
-from .config import DocumentWorkerConfig
-from .connection.command_queue import CommandWorker,\
-    CommandQueue
-from .connection.database import Database,\
+from dsw.command_queue import CommandWorker, CommandQueue
+from dsw.database.database import Database,\
     DBDocument, DBAppConfig, DBAppLimits, PersistentCommand
-from .connection.s3storage import S3Storage
+from dsw.storage import S3Storage
+
+from .config import DocumentWorkerConfig
 from .connection.sentry import SentryReporter
 from .consts import DocumentState, NULL_UUID, Queries
 from .context import Context
@@ -236,7 +236,10 @@ class DocumentWorker(CommandWorker):
             config=self.config,
             workdir=workdir,
             db=Database(cfg=self.config.db),
-            s3=S3Storage(cfg=self.config.s3)
+            s3=S3Storage(
+                cfg=self.config.s3,
+                multi_tenant=self.config.cloud.multi_tenant,
+            ),
         )
         PdfWaterMarker.initialize(
             watermark_filename=self.config.experimental.pdf_watermark,
@@ -269,6 +272,7 @@ class DocumentWorker(CommandWorker):
         Context.logger.info('Preparing command queue')
         queue = CommandQueue(
             worker=self,
+            db=Context.get().app.db,
             listen_query=Queries.LISTEN,
         )
         queue.run()

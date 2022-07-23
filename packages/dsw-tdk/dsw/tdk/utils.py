@@ -8,8 +8,11 @@ from .consts import DEFAULT_ENCODING, DEFAULT_README
 from .model import Template, TemplateFile, Format, Step, PackageFilter
 from .validation import TemplateValidator, FormatValidator, StepValidator
 
+
+TEMPLATES_DIR = pathlib.Path(__file__).parent / 'templates'
+
 j2_env = jinja2.Environment(
-    loader=jinja2.PackageLoader('dsw.tdk'),
+    loader=jinja2.FileSystemLoader(TEMPLATES_DIR),
     extensions=['jinja2.ext.do'],
     autoescape=True,
 )

@@ -9,11 +9,20 @@ RUN apt-get update \
 
 COPY . /app
 
-RUN python -OO -m pip wheel --no-cache-dir --wheel-dir=/root/wheels -r /app/packages/dsw-mailer/requirements.txt \
+RUN python -m pip wheel --no-cache-dir --wheel-dir=/root/wheels -r /app/packages/dsw-config/requirements.txt \
+ && python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/root/wheels /app/packages/dsw-config \
+ && python -m pip install --no-cache --no-index /root/wheels/* \
+ && python -m pip wheel --no-cache-dir --wheel-dir=/root/wheels -r /app/packages/dsw-database/requirements.txt \
+ && python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/root/wheels /app/packages/dsw-database \
+ && python -m pip install --no-cache --no-index /root/wheels/* \
+ && python -m pip wheel --no-cache-dir --wheel-dir=/root/wheels -r /app/packages/dsw-command-queue/requirements.txt \
+ && python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/root/wheels /app/packages/dsw-command-queue \
+ && python -m pip install --no-cache --no-index /root/wheels/* \
+ && python -m pip wheel --no-cache-dir --wheel-dir=/root/wheels -r /app/packages/dsw-mailer/requirements.txt \
  && python -m pip install --no-cache --no-index /root/wheels/*
 
 RUN --mount=source=.git,target=.git,type=bind \
-    python -OO -m pip wheel --no-cache-dir --no-deps --wheel-dir=/root/wheels /app/packages/dsw-mailer
+    python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/root/wheels /app/packages/dsw-mailer
 
 FROM python:3.9-slim-buster
 

@@ -1,9 +1,10 @@
 [build-system]
-requires = ['setuptools', 'setuptools-scm']
+requires = ['setuptools']
 build-backend = 'setuptools.build_meta'
 
 [project]
 name = 'dsw-document-worker'
+version = '3.14.0.dev2'
 description = 'Worker for assembling and transforming documents'
 readme = 'README.md'
 keywords = ['documents', 'generation', 'jinja2', 'pandoc', 'worker']
@@ -31,7 +32,6 @@ dependencies = [
     'pathvalidate',
     'pdfrw',
     'psycopg2',
-    'PyYAML',
     'rdflib',
     'rdflib-jsonld',
     'requests',
@@ -39,8 +39,12 @@ dependencies = [
     'python-dateutil',
     'sentry-sdk',
     'tenacity',
+    # DSW
+    'dsw-command-queue==3.14.0.dev2',
+    'dsw-config==3.14.0.dev2',
+    'dsw-database==3.14.0.dev2',
+    'dsw-storage==3.14.0.dev2',
 ]
-dynamic = ['version']
 
 [project.urls]
 Homepage = 'https://ds-wizard.org'
@@ -51,12 +55,10 @@ Documentation = 'https://guide.ds-wizard.org'
 dsw-document-worker = 'dsw.document_worker:main'
 
 [tool.setuptools]
-packages = ['dsw']
 zip-safe = false
 
-[tool.setuptools_scm]
-root = '../..'
-write_to = 'packages/dsw-document-worker/dsw/document_worker/_version.py'
+[tool.setuptools.packages.find]
+include = ['dsw*']
 
 [tool.distutils.bdist_wheel]
 universal = true

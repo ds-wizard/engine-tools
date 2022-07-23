@@ -1,9 +1,10 @@
 [build-system]
-requires = ['setuptools', 'setuptools-scm']
+requires = ['setuptools']
 build-backend = 'setuptools.build_meta'
 
 [project]
 name = 'dsw-mailer'
+version = '3.14.0.dev2'
 description = 'Worker for sending email notifications'
 readme = 'README.md'
 keywords = ['email', 'jinja2', 'notification', 'template']
@@ -25,12 +26,13 @@ dependencies = [
     'click',
     'jinja2',
     'pathvalidate',
-    'psycopg2',
-    'PyYAML',
     'sentry-sdk',
     'tenacity',
+    # DSW
+    'dsw-command-queue==3.14.0.dev2',
+    'dsw-config==3.14.0.dev2',
+    'dsw-database==3.14.0.dev2',
 ]
-dynamic = ['version']
 
 [project.urls]
 Homepage = 'https://ds-wizard.org'
@@ -41,12 +43,10 @@ Documentation = 'https://guide.ds-wizard.org'
 dsw-mailer = 'dsw.mailer:main'
 
 [tool.setuptools]
-packages = ['dsw']
 zip-safe = false
 
-[tool.setuptools_scm]
-root = '../..'
-write_to = 'packages/dsw-mailer/dsw/mailer/_version.py'
+[tool.setuptools.packages.find]
+include = ['dsw*']
 
 [tool.distutils.bdist_wheel]
 universal = true

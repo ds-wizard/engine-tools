@@ -1,9 +1,11 @@
+import click
 import pathlib
 
-import click  # type: ignore
 from typing import IO
 
-from .config import DocumentWorkerConfig, DocumentWorkerConfigParser, MissingConfigurationError
+from dsw.config.parser import MissingConfigurationError
+
+from .config import DocumentWorkerConfig, DocumentWorkerConfigParser
 from .connection.sentry import SentryReporter
 from .consts import VERSION
 from .worker import DocumentWorker

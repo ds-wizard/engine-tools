@@ -6,8 +6,8 @@ from .logging import LOGGER
 
 if TYPE_CHECKING:
     from .config import SeederConfig
-    from .connection.database import Database
-    from .connection.s3storage import S3Storage
+    from dsw.database import Database
+    from dsw.storage import S3Storage
 
 
 class ContextNotInitializedError(RuntimeError):

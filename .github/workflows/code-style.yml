@@ -14,9 +14,13 @@ jobs:
       fail-fast: false
       matrix:
         package:
+          - dsw-command-queue
+          - dsw-config
           - dsw-data-seeder
+          - dsw-database
           - dsw-document-worker
           - dsw-mailer
+          - dsw-storage
           - dsw-tdk
 
     steps:
@@ -32,11 +36,17 @@ jobs:
           **/pyproject.toml
           **/requirements*.txt
 
+    - name: Create build info
+      run: |
+        bash scripts/build-info.sh
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install flake8
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        cd packages/${{ matrix.package }}
+        pip install -r requirements.txt
+        make local-deps
 
     - name: Install package
       run: |
@@ -56,9 +66,13 @@ jobs:
       fail-fast: false
       matrix:
         package:
+          - dsw-command-queue
+          - dsw-config
           - dsw-data-seeder
+          - dsw-database
           - dsw-document-worker
           - dsw-mailer
+          - dsw-storage
           - dsw-tdk
 
     steps:
@@ -74,11 +88,17 @@ jobs:
           **/pyproject.toml
           **/requirements*.txt
 
+    - name: Create build info
+      run: |
+        bash scripts/build-info.sh
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install mypy
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        cd packages/${{ matrix.package }}
+        pip install -r requirements.txt
+        make local-deps
 
     - name: Install package
       run: |
@@ -88,4 +108,4 @@ jobs:
     - name: Typecheck with mypy
       run: |
         cd packages/${{ matrix.package }}
-        mypy --install-types  --non-interactive dsw
+        mypy --install-types --ignore-missing-imports  --non-interactive dsw

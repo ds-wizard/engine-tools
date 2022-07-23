@@ -5,7 +5,9 @@ import sys
 
 from typing import IO
 
-from .config import MailerConfig, MailerConfigParser, MissingConfigurationError
+from dsw.config.parser import MissingConfigurationError
+
+from .config import MailerConfig, MailerConfigParser
 from .consts import VERSION
 from .mailer import Mailer
 from .model import MessageRequest

@@ -1,9 +1,10 @@
 [build-system]
-requires = ['setuptools', 'setuptools-scm']
+requires = ['setuptools']
 build-backend = 'setuptools.build_meta'
 
 [project]
 name = 'dsw-tdk'
+version = '3.14.0.dev2'
 description = 'Data Stewardship Wizard Template Development Toolkit'
 readme = 'README.md'
 keywords = ['documents', 'dsw', 'jinja2', 'template', 'toolkit']
@@ -16,13 +17,14 @@ classifiers = [
     'Development Status :: 5 - Production/Stable',
     'License :: OSI Approved :: Apache Software License',
     'Programming Language :: Python',
+    'Programming Language :: Python :: 3.7',
     'Programming Language :: Python :: 3.8',
     'Programming Language :: Python :: 3.9',
     'Programming Language :: Python :: 3.10',
     'Topic :: Internet :: WWW/HTTP',
     'Topic :: Utilities',
 ]
-requires-python = '>=3.8, <4'
+requires-python = '>=3.7, <4'
 dependencies = [
     'aiohttp',
     'click',
@@ -35,7 +37,6 @@ dependencies = [
     'python-slugify',
     'watchgod',
 ]
-dynamic = ['version']
 
 [project.optional-dependencies]
 test = [
@@ -51,12 +52,10 @@ Documentation = 'https://guide.ds-wizard.org'
 dsw-tdk = 'dsw.tdk:main'
 
 [tool.setuptools]
-packages = ['dsw']
 zip-safe = false
 
-[tool.setuptools_scm]
-root = '../..'
-write_to = 'packages/dsw-tdk/dsw/tdk/_version.py'
+[tool.setuptools.packages.find]
+include = ['dsw*']
 
 [tool.distutils.bdist_wheel]
 universal = true

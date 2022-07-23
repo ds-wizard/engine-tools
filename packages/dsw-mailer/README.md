@@ -5,6 +5,7 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/datastewardshipwizard/mailer)](https://hub.docker.com/r/datastewardshipwizard/mailer)
 [![GitHub](https://img.shields.io/github/license/ds-wizard/pydsw)](LICENSE)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/4975/badge)](https://bestpractices.coreinfrastructure.org/projects/4975)
+[![Python Version](https://img.shields.io/badge/Python-%E2%89%A5%203.9-blue)](https://python.org)
 
 *Standalone Mailer Service for DS Wizard*
 

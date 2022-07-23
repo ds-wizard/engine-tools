@@ -7,9 +7,11 @@ import uuid
 
 from typing import Optional
 
+from dsw.command_queue import CommandWorker, CommandQueue
+from dsw.database.database import Database, PersistentCommand
+from dsw.storage import S3Storage
+
 from .config import SeederConfig
-from .connection import CommandWorker, CommandQueue, \
-    Database, S3Storage, PersistentCommand
 from .consts import DEFAULT_ENCODING, DEFAULT_MIMETYPE, \
     DEFAULT_PLACEHOLDER, Queries
 from .context import Context
@@ -189,7 +191,10 @@ class DataSeeder(CommandWorker):
             config=self.cfg,
             workdir=workdir,
             db=Database(cfg=self.cfg.db),
-            s3=S3Storage(cfg=self.cfg.s3)
+            s3=S3Storage(
+                cfg=self.cfg.s3,
+                multi_tenant=self.cfg.cloud.multi_tenant,
+            ),
         )
 
     def _prepare_logging(self):
@@ -256,6 +261,7 @@ class DataSeeder(CommandWorker):
         Context.logger.info('Preparing command queue')
         queue = CommandQueue(
             worker=self,
+            db=Context.get().app.db,
             listen_query=Queries.LISTEN,
         )
         queue.run()
