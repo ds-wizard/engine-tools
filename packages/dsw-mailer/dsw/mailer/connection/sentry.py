@@ -1,6 +1,7 @@
 import sentry_sdk
 
-from ..consts import BUILD_INFO
+from ..build_info import BUILD_INFO
+from ..consts import PROG_NAME
 
 
 class SentryReporter:
@@ -10,11 +11,11 @@ class SentryReporter:
         sentry_sdk.init(
             dsn=dsn,
             traces_sample_rate=1.0,
-            release=BUILD_INFO['version'],
+            release=BUILD_INFO.version,
             server_name=server_name,
             environment=environment,
         )
-        sentry_sdk.set_tag('worker', BUILD_INFO['name'])
+        sentry_sdk.set_tag('worker', PROG_NAME)
 
     @staticmethod
     def capture_exception(*args, **kwargs):

@@ -5,7 +5,8 @@ import shutil
 
 from typing import Optional
 
-from ..connection.database import DBTemplate, DBTemplateFile, DBTemplateAsset
+from dsw.database.database import DBTemplate, DBTemplateFile, DBTemplateAsset
+
 from ..consts import FormatField
 from ..context import Context
 from ..documents import DocumentFile

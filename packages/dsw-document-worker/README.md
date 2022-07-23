@@ -3,8 +3,9 @@
 [![User Guide](https://img.shields.io/badge/docs-User%20Guide-informational)](https://guide.ds-wizard.org)
 [![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/ds-wizard/pydsw)](https://github.com/ds-wizard/pydsw/releases)
 [![Docker Pulls](https://img.shields.io/docker/pulls/datastewardshipwizard/document-worker)](https://hub.docker.com/r/datastewardshipwizard/document-worker)
-[![GitHub](https://img.shields.io/github/license/ds-wizard/pydsw)](LICENSE)
+[![LICENSE](https://img.shields.io/github/license/ds-wizard/pydsw)](LICENSE)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/4975/badge)](https://bestpractices.coreinfrastructure.org/projects/4975)
+[![Python Version](https://img.shields.io/badge/Python-%E2%89%A5%203.9-blue)](https://python.org)
 
 *Worker for assembling and transforming documents*
 

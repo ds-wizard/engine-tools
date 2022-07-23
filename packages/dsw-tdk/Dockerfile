@@ -9,11 +9,11 @@ RUN apt-get update \
 
 COPY . /app
 
-RUN python -OO -m pip wheel --no-cache-dir --wheel-dir=/root/wheels -r /app/packages/dsw-tdk/requirements.txt \
-    && python -m pip install --no-cache --no-index /root/wheels/*
+RUN python -m pip wheel --no-cache-dir --wheel-dir=/root/wheels -r /app/packages/dsw-tdk/requirements.txt \
+ && python -m pip install --no-cache --no-index /root/wheels/*
 
 RUN --mount=source=.git,target=.git,type=bind \
-    python -OO -m pip wheel --no-cache-dir --no-deps --wheel-dir=/root/wheels /app/packages/dsw-tdk
+    python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/root/wheels /app/packages/dsw-tdk
 
 FROM python:3.9-slim
 

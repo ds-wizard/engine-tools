@@ -26,6 +26,10 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
+    - name: Create build info
+      run: |
+        bash scripts/build-info.sh
+
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v2
       with:

@@ -134,3 +134,4 @@ dmypy.json
 
 # Setuptools SCM
 _version.py
+build_info.py

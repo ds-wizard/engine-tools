@@ -10,11 +10,16 @@ jobs:
     runs-on: ubuntu-latest
 
     strategy:
+      fail-fast: false
       matrix:
         package:
+        - dsw-command-queue
+        - dsw-config
         - dsw-data-seeder
+        - dsw-database
         - dsw-document-worker
         - dsw-mailer
+        - dsw-storage
         - dsw-tdk
 
     steps:
@@ -34,10 +39,15 @@ jobs:
       run: |
         python -m pip install -U pip setuptools wheel
 
+    - name: Create build info
+      run: |
+        bash scripts/build-info.sh
+
     - name: Install dependencies
       run: |
         cd packages/${{ matrix.package }}
         pip install -r requirements.txt
+        make local-deps
 
     - name: Install package
       run: |
@@ -104,6 +114,10 @@ jobs:
         NAME=$(make docker-image-name)
         echo "::set-output name=NAME::$NAME"
 
+    - name: Create build info
+      run: |
+        bash scripts/build-info.sh
+
     # TEST DOCKER IMAGE BUILD
     - name: Docker meta [test]
       id: meta-test
@@ -149,7 +163,10 @@ jobs:
       with:
         context: ${{ env.DOCKER_META_CONTEXT }}
         file: ${{ env.DOCKER_META_FILE }}
-        platforms: ${{ env.DOCKER_META_PLATFORMS }}
+        # Docker Registry has currently issues with multiarch images and garbage collection
+        # https://github.com/distribution/distribution/issues/3178
+        # platforms: ${{ env.DOCKER_META_PLATFORMS }}
+        platforms: 'linux/amd64'
         push: true
         tags: ${{ steps.meta-private.outputs.tags }}
         labels: ${{ steps.meta-private.outputs.labels }}

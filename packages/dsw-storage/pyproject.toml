@@ -1,0 +1,46 @@
+[build-system]
+requires = ['setuptools']
+build-backend = 'setuptools.build_meta'
+
+[project]
+name = 'dsw-storage'
+version = '3.14.0.dev2'
+description = 'Library for managing DSW S3 storage'
+readme = 'README.md'
+keywords = ['dsw', 's3', 'bucket', 'storage']
+license = { text = 'Apache License 2.0' }
+authors = [
+    { name = 'Marek Suchánek', email = 'marek.suchanek@ds-wizard.org' }
+]
+classifiers = [
+    'Development Status :: 5 - Production/Stable',
+    'License :: OSI Approved :: Apache Software License',
+    'Programming Language :: Python',
+    'Programming Language :: Python :: 3.7',
+    'Programming Language :: Python :: 3.8',
+    'Programming Language :: Python :: 3.9',
+    'Programming Language :: Python :: 3.10',
+    'Topic :: Communications :: File Sharing',
+    'Topic :: Utilities',
+]
+requires-python = '>=3.7, <4'
+dependencies = [
+    'minio',
+    'tenacity',
+    # DSW
+    'dsw-config==3.14.0.dev2',
+]
+
+[project.urls]
+Homepage = 'https://ds-wizard.org'
+Repository = 'https://github.com/ds-wizard/pydsw'
+Documentation = 'https://guide.ds-wizard.org'
+
+[tool.setuptools]
+zip-safe = false
+
+[tool.setuptools.packages.find]
+include = ['dsw*']
+
+[tool.distutils.bdist_wheel]
+universal = true

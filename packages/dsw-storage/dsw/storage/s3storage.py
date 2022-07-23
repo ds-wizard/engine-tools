@@ -1,4 +1,5 @@
 import contextlib
+import io
 import logging
 import minio  # type: ignore
 import minio.error  # type: ignore
@@ -6,10 +7,10 @@ import pathlib
 import tempfile
 import tenacity
 
-from ..config import S3Config
-from ..context import Context
+from dsw.config.model import S3Config
 
-S3_SERVICE_NAME = 's3'
+LOG = logging.getLogger(__name__)
+
 DOCUMENTS_DIR = 'documents'
 
 RETRY_S3_MULTIPLIER = 0.5
@@ -32,11 +33,11 @@ class S3Storage:
         parts = url.split('://', maxsplit=1)
         return parts[0] if len(parts) == 1 else parts[1]
 
-    def __init__(self, cfg: S3Config):
+    def __init__(self, cfg: S3Config, multi_tenant: bool):
         self.cfg = cfg
-        endpoint = self._get_endpoint(self.cfg.url)
+        self.multi_tenant = multi_tenant
         self.client = minio.Minio(
-            endpoint=endpoint,
+            endpoint=self._get_endpoint(self.cfg.url),
             access_key=self.cfg.username,
             secret_key=self.cfg.password,
             secure=self.cfg.url.startswith('https://'),
@@ -51,8 +52,8 @@ class S3Storage:
         reraise=True,
         wait=tenacity.wait_exponential(multiplier=RETRY_S3_MULTIPLIER),
         stop=tenacity.stop_after_attempt(RETRY_S3_TRIES),
-        before=tenacity.before_log(Context.logger, logging.DEBUG),
-        after=tenacity.after_log(Context.logger, logging.DEBUG),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
     )
     def ensure_bucket(self):
         found = self.client.bucket_exists(self.cfg.bucket)
@@ -63,13 +64,13 @@ class S3Storage:
         reraise=True,
         wait=tenacity.wait_exponential(multiplier=RETRY_S3_MULTIPLIER),
         stop=tenacity.stop_after_attempt(RETRY_S3_TRIES),
-        before=tenacity.before_log(Context.logger, logging.DEBUG),
-        after=tenacity.after_log(Context.logger, logging.DEBUG),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
     )
     def store_document(self, app_uuid: str, file_name: str,
                        content_type: str, data: bytes):
         object_name = f'{DOCUMENTS_DIR}/{file_name}'
-        if Context.get().app.cfg.cloud.multi_tenant:
+        if self.multi_tenant:
             object_name = f'{app_uuid}/{object_name}'
         with temp_binary_file(data=data) as file:
             self.client.put_object(
@@ -84,8 +85,8 @@ class S3Storage:
         reraise=True,
         wait=tenacity.wait_exponential(multiplier=RETRY_S3_MULTIPLIER),
         stop=tenacity.stop_after_attempt(RETRY_S3_TRIES),
-        before=tenacity.before_log(Context.logger, logging.DEBUG),
-        after=tenacity.after_log(Context.logger, logging.DEBUG),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
     )
     def download_file(self, file_name: str, target_path: pathlib.Path) -> bool:
         try:
@@ -99,3 +100,23 @@ class S3Storage:
                 raise e
             return False
         return True
+
+    @tenacity.retry(
+        reraise=True,
+        wait=tenacity.wait_exponential(multiplier=RETRY_S3_MULTIPLIER),
+        stop=tenacity.stop_after_attempt(RETRY_S3_TRIES),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
+    )
+    def store_object(self, app_uuid: str, object_name: str,
+                     content_type: str, data: bytes):
+        if self.multi_tenant:
+            object_name = f'{app_uuid}/{object_name}'
+        with io.BytesIO(data) as file:
+            self.client.put_object(
+                bucket_name=self.cfg.bucket,
+                object_name=object_name,
+                data=file,
+                length=len(data),
+                content_type=content_type,
+            )

@@ -3,7 +3,9 @@ import pathlib
 import click  # type: ignore
 from typing import IO
 
-from .config import SeederConfig, SeederConfigParser, MissingConfigurationError
+from dsw.config.parser import MissingConfigurationError
+
+from .config import SeederConfig, SeederConfigParser
 from .consts import PROG_NAME, VERSION, NULL_UUID
 from .seeder import SeedRecipe, DataSeeder
 

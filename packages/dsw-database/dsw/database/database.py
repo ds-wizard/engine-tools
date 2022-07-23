@@ -7,11 +7,13 @@ import psycopg2.extensions  # type: ignore
 import psycopg2.extras  # type: ignore
 import tenacity
 
-from ..config import DatabaseConfig
-from ..consts import DocumentState, NULL_UUID
-from ..context import Context
+from typing import List, Optional, Iterable
 
-from typing import List, Optional
+from dsw.config.model import DatabaseConfig
+
+LOG = logging.getLogger(__name__)
+
+NULL_UUID = '00000000-0000-0000-0000-000000000000'
 
 ISOLATION_DEFAULT = psycopg2.extensions.ISOLATION_LEVEL_DEFAULT
 ISOLATION_AUTOCOMMIT = psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT
@@ -21,6 +23,13 @@ RETRY_QUERY_TRIES = 3
 
 RETRY_CONNECT_MULTIPLIER = 0.2
 RETRY_CONNECT_TRIES = 10
+
+
+class DocumentState:
+    QUEUED = 'QueuedDocumentState'
+    PROCESSING = 'InProgressDocumentState'
+    FAILED = 'ErrorDocumentState'
+    FINISHED = 'DoneDocumentState'
 
 
 @dataclasses.dataclass
@@ -117,8 +126,12 @@ class PersistentCommand:
 
 @dataclasses.dataclass
 class DBAppConfig:
-    app_uuid: str
+    uuid: str
+    look_and_feel: dict
+    privacy_and_support: dict
     feature: dict
+    created_at: datetime.datetime
+    updated_at: datetime.datetime
 
     @property
     def feature_pdf_only(self) -> bool:
@@ -127,6 +140,25 @@ class DBAppConfig:
     @property
     def feature_pdf_watermark(self) -> bool:
         return self.feature.get('pdfWatermarkEnabled', False)
+
+    @property
+    def app_title(self) -> Optional[str]:
+        return self.look_and_feel.get('appTitle', None)
+
+    @property
+    def support_email(self) -> Optional[str]:
+        return self.privacy_and_support.get('supportEmail', None)
+
+    @staticmethod
+    def deserialize(data: dict):
+        return DBAppConfig(
+            uuid=data['uuid'],
+            look_and_feel=data['look_and_feel'],
+            privacy_and_support=data['privacy_and_support'],
+            feature=data['feature'],
+            created_at=data['created_at'],
+            updated_at=data['updated_at'],
+        )
 
 
 @dataclasses.dataclass
@@ -142,7 +174,7 @@ def wrap_json_data(data: dict):
 class Database:
 
     SELECT_DOCUMENT = 'SELECT * FROM document WHERE uuid = %s AND app_uuid = %s LIMIT 1;'
-    SELECT_APP_CONFIG = 'SELECT uuid, feature FROM app_config WHERE uuid = %(app_uuid)s LIMIT 1;'
+    SELECT_APP_CONFIG = 'SELECT * FROM app_config WHERE uuid = %(app_uuid)s LIMIT 1;'
     SELECT_APP_LIMIT = 'SELECT uuid, storage FROM app_limit WHERE uuid = %(app_uuid)s LIMIT 1;'
     UPDATE_DOCUMENT_STATE = 'UPDATE document SET state = %s, worker_log = %s WHERE uuid = %s;'
     UPDATE_DOCUMENT_RETRIEVED = 'UPDATE document SET retrieved_at = %s, state = %s WHERE uuid = %s;'
@@ -161,7 +193,7 @@ class Database:
 
     def __init__(self, cfg: DatabaseConfig):
         self.cfg = cfg
-        Context.logger.info('Preparing PostgreSQL connection for QUERY')
+        LOG.info('Preparing PostgreSQL connection for QUERY')
         self.conn_query = PostgresConnection(
             name='query',
             dsn=self.cfg.connection_string,
@@ -169,7 +201,7 @@ class Database:
             autocommit=False,
         )
         self.conn_query.connect()
-        Context.logger.info('Preparing PostgreSQL connection for QUEUE')
+        LOG.info('Preparing PostgreSQL connection for QUEUE')
         self.conn_queue = PostgresConnection(
             name='queue',
             dsn=self.cfg.connection_string,
@@ -181,13 +213,6 @@ class Database:
     def connect(self):
         self.conn_query.connect()
         self.conn_queue.connect()
-
-    @staticmethod
-    def get_as_app_config(result: dict) -> DBAppConfig:
-        return DBAppConfig(
-            app_uuid=result['uuid'],
-            feature=result['feature'],
-        )
 
     @staticmethod
     def get_as_app_limits(result: dict) -> DBAppLimits:
@@ -263,8 +288,8 @@ class Database:
         reraise=True,
         wait=tenacity.wait_exponential(multiplier=RETRY_QUERY_MULTIPLIER),
         stop=tenacity.stop_after_attempt(RETRY_QUERY_TRIES),
-        before=tenacity.before_log(Context.logger, logging.DEBUG),
-        after=tenacity.after_log(Context.logger, logging.DEBUG),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
     )
     def fetch_document(self, document_uuid: str, app_uuid: str) -> Optional[DBDocument]:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
@@ -281,26 +306,18 @@ class Database:
         reraise=True,
         wait=tenacity.wait_exponential(multiplier=RETRY_QUERY_MULTIPLIER),
         stop=tenacity.stop_after_attempt(RETRY_QUERY_TRIES),
-        before=tenacity.before_log(Context.logger, logging.DEBUG),
-        after=tenacity.after_log(Context.logger, logging.DEBUG),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
     )
     def fetch_app_config(self, app_uuid: str) -> Optional[DBAppConfig]:
-        with self.conn_query.new_cursor(use_dict=True) as cursor:
-            cursor.execute(
-                query=self.SELECT_APP_CONFIG,
-                vars={'app_uuid': app_uuid},
-            )
-            result = cursor.fetchall()
-            if len(result) != 1:
-                return None
-            return self.get_as_app_config(result[0])
+        return self.get_app_config(app_uuid)
 
     @tenacity.retry(
         reraise=True,
         wait=tenacity.wait_exponential(multiplier=RETRY_QUERY_MULTIPLIER),
         stop=tenacity.stop_after_attempt(RETRY_QUERY_TRIES),
-        before=tenacity.before_log(Context.logger, logging.DEBUG),
-        after=tenacity.after_log(Context.logger, logging.DEBUG),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
     )
     def fetch_app_limits(self, app_uuid: str) -> Optional[DBAppLimits]:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
@@ -317,8 +334,8 @@ class Database:
         reraise=True,
         wait=tenacity.wait_exponential(multiplier=RETRY_QUERY_MULTIPLIER),
         stop=tenacity.stop_after_attempt(RETRY_QUERY_TRIES),
-        before=tenacity.before_log(Context.logger, logging.DEBUG),
-        after=tenacity.after_log(Context.logger, logging.DEBUG),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
     )
     def fetch_template(self, template_id: str, app_uuid: str) -> Optional[DBTemplate]:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
@@ -335,8 +352,8 @@ class Database:
         reraise=True,
         wait=tenacity.wait_exponential(multiplier=RETRY_QUERY_MULTIPLIER),
         stop=tenacity.stop_after_attempt(RETRY_QUERY_TRIES),
-        before=tenacity.before_log(Context.logger, logging.DEBUG),
-        after=tenacity.after_log(Context.logger, logging.DEBUG),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
     )
     def fetch_template_files(self, template_id: str, app_uuid: str) -> List[DBTemplateFile]:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
@@ -350,8 +367,8 @@ class Database:
         reraise=True,
         wait=tenacity.wait_exponential(multiplier=RETRY_QUERY_MULTIPLIER),
         stop=tenacity.stop_after_attempt(RETRY_QUERY_TRIES),
-        before=tenacity.before_log(Context.logger, logging.DEBUG),
-        after=tenacity.after_log(Context.logger, logging.DEBUG),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
     )
     def fetch_template_assets(self, template_id: str, app_uuid: str) -> List[DBTemplateAsset]:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
@@ -365,8 +382,8 @@ class Database:
         reraise=True,
         wait=tenacity.wait_exponential(multiplier=RETRY_QUERY_MULTIPLIER),
         stop=tenacity.stop_after_attempt(RETRY_QUERY_TRIES),
-        before=tenacity.before_log(Context.logger, logging.DEBUG),
-        after=tenacity.after_log(Context.logger, logging.DEBUG),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
     )
     def update_document_state(self, document_uuid: str, worker_log: str, state: str) -> bool:
         with self.conn_query.new_cursor() as cursor:
@@ -380,8 +397,8 @@ class Database:
         reraise=True,
         wait=tenacity.wait_exponential(multiplier=RETRY_QUERY_MULTIPLIER),
         stop=tenacity.stop_after_attempt(RETRY_QUERY_TRIES),
-        before=tenacity.before_log(Context.logger, logging.DEBUG),
-        after=tenacity.after_log(Context.logger, logging.DEBUG),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
     )
     def update_document_retrieved(self, retrieved_at: datetime.datetime,
                                   document_uuid: str) -> bool:
@@ -400,8 +417,8 @@ class Database:
         reraise=True,
         wait=tenacity.wait_exponential(multiplier=RETRY_QUERY_MULTIPLIER),
         stop=tenacity.stop_after_attempt(RETRY_QUERY_TRIES),
-        before=tenacity.before_log(Context.logger, logging.DEBUG),
-        after=tenacity.after_log(Context.logger, logging.DEBUG),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
     )
     def update_document_finished(
             self, finished_at: datetime.datetime, file_name: str, file_size: int,
@@ -426,8 +443,8 @@ class Database:
         reraise=True,
         wait=tenacity.wait_exponential(multiplier=RETRY_QUERY_MULTIPLIER),
         stop=tenacity.stop_after_attempt(RETRY_QUERY_TRIES),
-        before=tenacity.before_log(Context.logger, logging.DEBUG),
-        after=tenacity.after_log(Context.logger, logging.DEBUG),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
     )
     def get_currently_used_size(self, app_uuid: str):
         with self.conn_query.new_cursor() as cursor:
@@ -442,8 +459,41 @@ class Database:
         reraise=True,
         wait=tenacity.wait_exponential(multiplier=RETRY_QUERY_MULTIPLIER),
         stop=tenacity.stop_after_attempt(RETRY_QUERY_TRIES),
-        before=tenacity.before_log(Context.logger, logging.DEBUG),
-        after=tenacity.after_log(Context.logger, logging.DEBUG),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
+    )
+    def get_app_config(self, app_uuid: str) -> Optional[DBAppConfig]:
+        with self.conn_query.new_cursor(use_dict=True) as cursor:
+            try:
+                cursor.execute(
+                    query=self.SELECT_APP_CONFIG,
+                    vars={'app_uuid': app_uuid},
+                )
+                result = cursor.fetchone()
+                return DBAppConfig.deserialize(data=result)
+            except Exception as e:
+                LOG.warning(f'Could not retrieve app_config for app'
+                            f' "{app_uuid}": {str(e)}')
+                return None
+
+    @tenacity.retry(
+        reraise=True,
+        wait=tenacity.wait_exponential(multiplier=RETRY_QUERY_MULTIPLIER),
+        stop=tenacity.stop_after_attempt(RETRY_QUERY_TRIES),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
+    )
+    def execute_queries(self, queries: Iterable[str]):
+        with self.conn_query.new_cursor(use_dict=True) as cursor:
+            for query in queries:
+                cursor.execute(query=query)
+
+    @tenacity.retry(
+        reraise=True,
+        wait=tenacity.wait_exponential(multiplier=RETRY_QUERY_MULTIPLIER),
+        stop=tenacity.stop_after_attempt(RETRY_QUERY_TRIES),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
     )
     def execute_query(self, query: str, **kwargs):
         with self.conn_query.new_cursor(use_dict=True) as cursor:
@@ -463,18 +513,18 @@ class PostgresConnection:
         reraise=True,
         wait=tenacity.wait_exponential(multiplier=RETRY_CONNECT_MULTIPLIER),
         stop=tenacity.stop_after_attempt(RETRY_CONNECT_TRIES),
-        before=tenacity.before_log(Context.logger, logging.DEBUG),
-        after=tenacity.after_log(Context.logger, logging.DEBUG),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
     )
     def _connect_db(self):
-        Context.logger.info(f'Creating connection to PostgreSQL database "{self.name}"')
+        LOG.info(f'Creating connection to PostgreSQL database "{self.name}"')
         connection = psycopg2.connect(dsn=self.dsn)
         connection.set_isolation_level(self.isolation)
         # test connection
         cursor = connection.cursor()
         cursor.execute(query='SELECT * FROM persistent_command;')
         result = cursor.fetchall()
-        Context.logger.debug(f'Jobs in queue: {result}')
+        LOG.debug(f'Jobs in queue: {result}')
         cursor.close()
         connection.commit()
         self._connection = connection
@@ -500,6 +550,6 @@ class PostgresConnection:
 
     def close(self):
         if self._connection:
-            Context.logger.info(f'Closing connection to PostgreSQL database "{self.name}"')
+            LOG.info(f'Closing connection to PostgreSQL database "{self.name}"')
             self._connection.close()
         self._connection = None

@@ -1,9 +1,10 @@
 import pathvalidate
 import slugify
 
+from dsw.database.database import DBDocument
+
 from .consts import DEFAULT_ENCODING, DocumentNamingStrategy
 from .context import Context
-from .connection.database import DBDocument
 
 
 class FileFormat:
