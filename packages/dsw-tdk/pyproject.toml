@@ -45,7 +45,7 @@ test = [
 
 [project.urls]
 Homepage = 'https://ds-wizard.org'
-Repository = 'https://github.com/ds-wizard/pydsw'
+Repository = 'https://github.com/ds-wizard/engine-tools'
 Documentation = 'https://guide.ds-wizard.org'
 
 [project.scripts]

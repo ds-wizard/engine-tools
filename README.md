@@ -1,8 +1,8 @@
-# DSW Python Monorepo
+# Data Stewardship Wizard Engine Tools
 
 [![User Guide](https://img.shields.io/badge/docs-User%20Guide-informational)](https://guide.ds-wizard.org)
-[![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/ds-wizard/pydsw)](https://github.com/ds-wizard/pydsw/releases)
-[![LICENSE](https://img.shields.io/github/license/ds-wizard/pydsw)](LICENSE)
+[![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/ds-wizard/engine-tools)](https://github.com/ds-wizard/engine-tools/releases)
+[![LICENSE](https://img.shields.io/github/license/ds-wizard/engine-tools)](LICENSE)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/4975/badge)](https://bestpractices.coreinfrastructure.org/projects/4975)
 
 *All DSW Python components and related libraries together at once place*

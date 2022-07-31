@@ -1,9 +1,9 @@
 # Data Stewardship Wizard: Mailer
 
 [![User Guide](https://img.shields.io/badge/docs-User%20Guide-informational)](https://guide.ds-wizard.org)
-[![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/ds-wizard/pydsw)](https://github.com/ds-wizard/pydsw/releases)
+[![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/ds-wizard/engine-tools)](https://github.com/ds-wizard/engine-tools/releases)
 [![Docker Pulls](https://img.shields.io/docker/pulls/datastewardshipwizard/mailer)](https://hub.docker.com/r/datastewardshipwizard/mailer)
-[![GitHub](https://img.shields.io/github/license/ds-wizard/pydsw)](LICENSE)
+[![GitHub](https://img.shields.io/github/license/ds-wizard/engine-tools)](LICENSE)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/4975/badge)](https://bestpractices.coreinfrastructure.org/projects/4975)
 [![Python Version](https://img.shields.io/badge/Python-%E2%89%A5%203.9-blue)](https://python.org)
 
