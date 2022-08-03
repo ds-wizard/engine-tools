@@ -1,8 +1,8 @@
-name: Package release
+name: Package Release
 
 on:
   release:
-    types: [released]
+    types: [published]
 
 jobs:
   pypi-release:
@@ -58,9 +58,10 @@ jobs:
         packages_dir: packages/${{ matrix.package }}/dist
         print_hash: true
         verbose: true
+        skip_existing: true
 
     - name: Upload release assets
       uses: shogo82148/actions-upload-release-asset@v1
       with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        upload_url: ${{ github.event.release.upload_url }}
         asset_path: packages/${{ matrix.package }}/dist/*
