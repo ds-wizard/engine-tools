@@ -1,0 +1,47 @@
+database:
+  connectionString: postgresql://postgres:postgres@postgres:5432/engine-wizard
+  stripeSize: 1 # used by SE only
+  connectionTimeout: 30000
+  maxConnections: 10 # used by SE only
+  queueTimeout: 500 # used by DW only
+
+s3:
+  url: http://minio:9000
+  username: minio
+  password: minio
+  bucket: engine-wizard
+
+logging:
+  level: INFO
+  globalLevel: WARNING
+
+templates:
+  - ids:
+      - "dsw:"
+    requests:
+      enabled:
+      limit:
+      timeout:
+    secrets:
+      API_TOKEN:
+
+#sentry:
+#  enabled:
+#  workersDsn:
+#general:
+#  environment: Test
+#  clientUrl: http://localhost:3001
+
+#documents:
+#  naming:
+#    strategy: sanitize # uuid|slugify|sanitize
+
+#externals:
+#  pandoc:
+#    executable: pandoc
+#    args: --standalone
+#    timeout:
+#  wkhtmltopdf:
+#    executable: wkhtmltopdf
+#    args:
+#    timeout:

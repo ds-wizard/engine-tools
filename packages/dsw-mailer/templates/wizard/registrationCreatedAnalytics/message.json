@@ -1,0 +1,15 @@
+{
+  "id": "registrationCreatedAnalytics",
+  "subject": "New User Registered",
+  "parts": [
+    {
+      "type": "html",
+      "file": "message.html.j2"
+    },
+    {
+      "type": "plain",
+      "file": "message.txt.j2"
+    }
+  ],
+  "modes": ["wizard"]
+}

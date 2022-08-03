@@ -1,0 +1,19 @@
+{
+  "id": "2ff6a64c-b781-4aea-8873-2ccb3e9ee3d7",
+  "type": "resetToken",
+  "trigger": "file:msg.registry.resetToken.json",
+  "ctx": {
+    "email": "john.doe@example.com",
+    "organization": {
+      "name": "ACME untld.",
+      "id": "acme",
+      "email": "acme@example.com"
+    },
+    "clientUrl": "https://registry.example.com",
+    "hash": "testHash",
+    "resetLink": "https://registry.example.com/activate/testHash"
+  },
+  "recipients": [
+    "test@example.com"
+  ]
+}

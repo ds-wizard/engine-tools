@@ -131,3 +131,7 @@ dmypy.json
 # IDE
 .idea/
 .vscode/
+
+# Setuptools SCM
+_version.py
+build_info.py

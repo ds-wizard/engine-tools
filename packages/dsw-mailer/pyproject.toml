@@ -1,0 +1,53 @@
+[build-system]
+requires = ['setuptools']
+build-backend = 'setuptools.build_meta'
+
+[project]
+name = 'dsw-mailer'
+version = '3.14.0rc1'
+description = 'Worker for sending email notifications'
+readme = 'README.md'
+keywords = ['email', 'jinja2', 'notification', 'template']
+license = { text = 'Apache License 2.0' }
+authors = [
+    { name = 'Marek Suchánek', email = 'marek.suchanek@ds-wizard.org' }
+]
+classifiers = [
+    'Development Status :: 5 - Production/Stable',
+    'License :: OSI Approved :: Apache Software License',
+    'Programming Language :: Python',
+    'Programming Language :: Python :: 3.9',
+    'Programming Language :: Python :: 3.10',
+    'Topic :: Communications :: Email',
+    'Topic :: Text Processing',
+]
+requires-python = '>=3.9, <4'
+dependencies = [
+    'click',
+    'jinja2',
+    'pathvalidate',
+    'sentry-sdk',
+    'tenacity',
+    # DSW
+    'dsw-command-queue==3.14.0rc1',
+    'dsw-config==3.14.0rc1',
+    'dsw-database==3.14.0rc1',
+]
+
+[project.urls]
+Homepage = 'https://ds-wizard.org'
+Repository = 'https://github.com/ds-wizard/engine-tools'
+Documentation = 'https://guide.ds-wizard.org'
+
+[project.scripts]
+dsw-mailer = 'dsw.mailer:main'
+
+[tool.setuptools]
+zip-safe = false
+
+[tool.setuptools.packages.find]
+include = ['dsw*']
+
+[tool.distutils.bdist_wheel]
+universal = true
+

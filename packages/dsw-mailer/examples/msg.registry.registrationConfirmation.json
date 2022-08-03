@@ -1,0 +1,20 @@
+{
+  "id": "2ff6a64c-b781-4aea-8873-2ccb3e9ee3d7",
+  "type": "registrationConfirmation",
+  "trigger": "file:msg.registry.registrationConfirmation.json",
+  "ctx": {
+    "email": "john.doe@example.com",
+    "organization": {
+      "name": "ACME untld.",
+      "id": "acme",
+      "email": "acme@example.com"
+    },
+    "clientUrl": "https://registry.example.com",
+    "hash": "testHash",
+    "supportEmail": "help@example.com",
+    "activationLink": "https://registry.example.com/activate/testHash"
+  },
+  "recipients": [
+    "test@example.com"
+  ]
+}
