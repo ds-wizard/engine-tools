@@ -11,21 +11,13 @@ RUN apt-get update \
 
 COPY . /app
 
-RUN python -m pip wheel --no-cache-dir --wheel-dir=/root/wheels -r /app/packages/dsw-config/requirements.txt \
- && python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/root/wheels /app/packages/dsw-config \
- && python -m pip install --no-cache --no-index /root/wheels/* \
- && python -m pip wheel --no-cache-dir --wheel-dir=/root/wheels -r /app/packages/dsw-database/requirements.txt \
- && python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/root/wheels /app/packages/dsw-database \
- && python -m pip install --no-cache --no-index /root/wheels/* \
- && python -m pip wheel --no-cache-dir --wheel-dir=/root/wheels -r /app/packages/dsw-storage/requirements.txt \
- && python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/root/wheels /app/packages/dsw-storage \
- && python -m pip install --no-cache --no-index /root/wheels/* \
- && python -m pip wheel --no-cache-dir --wheel-dir=/root/wheels -r /app/packages/dsw-command-queue/requirements.txt \
+RUN python -m pip wheel --no-cache-dir --wheel-dir=/root/wheels -r /app/packages/dsw-document-worker/requirements.txt \
  && python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/root/wheels /app/packages/dsw-command-queue \
- && python -m pip install --no-cache --no-index /root/wheels/* \
- && python -m pip wheel --no-cache-dir --wheel-dir=/root/wheels -r /app/packages/dsw-document-worker/requirements.txt \
- && python -m pip install --no-cache --no-index /root/wheels/* \
- && python -m pip wheel --no-cache-dir --wheel-dir=/root/wheels /app/packages/dsw-document-worker/addons/*
+ && python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/root/wheels /app/packages/dsw-config \
+ && python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/root/wheels /app/packages/dsw-database \
+ && python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/root/wheels /app/packages/dsw-storage \
+ && python -m pip wheel --no-cache-dir --wheel-dir=/root/wheels /app/packages/dsw-document-worker/addons/* \
+ && python -m pip install --no-cache --no-index /root/wheels/*
 
 RUN --mount=source=.git,target=.git,type=bind \
     python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/root/wheels /app/packages/dsw-document-worker
@@ -58,6 +50,7 @@ RUN fc-cache
 COPY packages/dsw-document-worker/data /app/data
 
 COPY --from=builder /root/wheels /root/wheels
-RUN python -m pip install --no-cache --no-index /root/wheels/* && rm -rf /root/wheels
+RUN python -m pip install --no-cache --no-index /root/wheels/* \
+ && rm -rf /root/wheels
 
 CMD ["dsw-document-worker"]
