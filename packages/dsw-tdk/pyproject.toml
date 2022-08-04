@@ -4,7 +4,7 @@ build-backend = 'setuptools.build_meta'
 
 [project]
 name = 'dsw-tdk'
-version = '3.14.0'
+version = '3.14.1'
 description = 'Data Stewardship Wizard Template Development Toolkit'
 readme = 'README.md'
 keywords = ['documents', 'dsw', 'jinja2', 'template', 'toolkit']
@@ -56,6 +56,9 @@ zip-safe = false
 
 [tool.setuptools.packages.find]
 include = ['dsw*']
+
+[tool.setuptools.package-data]
+"*" = ["*.j2"]
 
 [tool.distutils.bdist_wheel]
 universal = true

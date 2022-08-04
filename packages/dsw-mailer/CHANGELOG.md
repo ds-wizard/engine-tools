@@ -8,6 +8,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 
+## [3.14.1]
+
+Released for version consistency with other DSW tools.
+
 ## [3.14.0]
 
 ### Changed
@@ -15,5 +19,6 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Moved from [ds-wizard/mailer](https://github.com/ds-wizard/mailer) to the monorepo
 
 
-[Unreleased]: /../../compare/main...develop# Changelog
-
+[Unreleased]: /../../compare/main...develop
+[3.14.0]: /../../tree/v3.14.0
+[3.14.1]: /../../tree/v3.14.1
