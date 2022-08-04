@@ -57,5 +57,8 @@ zip-safe = false
 [tool.setuptools.packages.find]
 include = ['dsw*']
 
+[tool.setuptools.package-data]
+"*" = ["*.j2"]
+
 [tool.distutils.bdist_wheel]
 universal = true
