@@ -6,12 +6,14 @@ on:
 
 jobs:
   pypi-release:
-    name: "PyPi Release"
+    name: "Release"
     runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
       matrix:
+        python-version:
+          - '3.9'
         package:
           - dsw-command-queue
           - dsw-config
