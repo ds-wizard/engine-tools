@@ -24,3 +24,7 @@ class SentryReporter:
     @staticmethod
     def capture_message(*args, **kwargs):
         sentry_sdk.capture_message(*args, **kwargs)
+
+    @staticmethod
+    def set_context(name: str, value):
+        sentry_sdk.set_context(name, value)

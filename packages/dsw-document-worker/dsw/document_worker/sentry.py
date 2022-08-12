@@ -1,7 +1,7 @@
 import sentry_sdk
 
-from ..build_info import BUILD_INFO
-from ..consts import PROG_NAME
+from .build_info import BUILD_INFO
+from .consts import PROG_NAME
 
 
 class SentryReporter:
@@ -24,3 +24,7 @@ class SentryReporter:
     @staticmethod
     def capture_message(*args, **kwargs):
         sentry_sdk.capture_message(*args, **kwargs)
+
+    @staticmethod
+    def set_context(name: str, value):
+        sentry_sdk.set_context(name, value)
