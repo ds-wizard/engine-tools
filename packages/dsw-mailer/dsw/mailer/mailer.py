@@ -6,10 +6,11 @@ import uuid
 
 from typing import Optional
 
+from dsw.command_queue import CommandWorker, CommandQueue
+from dsw.database.database import Database, DBAppConfig, PersistentCommand
+
 from .config import MailerConfig
-from .connection import Database, SMTPSender, PersistentCommand, \
-    CommandWorker, CommandQueue, SentryReporter
-from .connection.database import DBAppConfig
+from .connection import SMTPSender, SentryReporter
 from .consts import Queries, CMD_COMPONENT
 from .context import Context
 from .logging import prepare_logging
@@ -84,6 +85,9 @@ class Mailer(CommandWorker):
         return True
 
     def _process_command(self, cmd: PersistentCommand):
+        # update Sentry info
+        SentryReporter.set_context('template', '')
+        # work
         app_ctx = Context.get().app
         mc = load_mailer_command(cmd)
         mc.prepare(app_ctx.db)
@@ -91,6 +95,8 @@ class Mailer(CommandWorker):
             msg_id=cmd.uuid,
             trigger='PersistentComment',
         )
+        # update Sentry info
+        SentryReporter.set_context('template', rq.template_name)
         self.send(rq)
         app_ctx.db.execute_query(
             query=Queries.UPDATE_CMD_DONE,
@@ -104,6 +110,7 @@ class Mailer(CommandWorker):
         Context.logger.info('Preparing command queue')
         queue = CommandQueue(
             worker=self,
+            db=Context.get().app.db,
             listen_query=Queries.LISTEN,
         )
         queue.run()

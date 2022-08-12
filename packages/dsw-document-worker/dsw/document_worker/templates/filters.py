@@ -6,6 +6,7 @@ import markdown
 
 from typing import Any, Union, Optional
 
+from ..exceptions import JobException
 from ..model import DocumentContext
 from ..logging import LOGGER
 
@@ -166,7 +167,7 @@ def to_context_obj(ctx, **options) -> DocumentContext:
     return result
 
 
-class TemplateRenderingError(RuntimeError):
+class TemplateRenderingError(JobException):
 
     def __init__(self, title, message):
         self.message = f'{title}\n\n{message}'
