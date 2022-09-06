@@ -10,7 +10,8 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import formataddr
 
-from ..config import MailConfig
+from dsw.config.model import MailConfig
+
 from ..context import Context
 from ..model import MailMessage, MailAttachment
 

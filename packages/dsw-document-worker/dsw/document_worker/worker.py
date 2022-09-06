@@ -13,7 +13,7 @@ from dsw.database.database import Database,\
 from dsw.storage import S3Storage
 
 from .config import DocumentWorkerConfig
-from .connection.sentry import SentryReporter
+from .sentry import SentryReporter
 from .consts import DocumentState, NULL_UUID, Queries
 from .context import Context
 from .documents import DocumentFile, DocumentNameGiver
@@ -61,6 +61,9 @@ class Job:
 
     @handle_job_step('Failed to get document from DB')
     def get_document(self):
+        SentryReporter.set_context('template', '')
+        SentryReporter.set_context('format', '')
+        SentryReporter.set_context('document', '')
         if self.app_uuid != NULL_UUID:
             self.log.info(f'Limiting to app with UUID: {self.app_uuid}')
         self.log.info(f'Getting the document "{self.doc_uuid}" details from DB')
@@ -93,6 +96,10 @@ class Job:
         template_id = self.doc.template_id
         format_uuid = self.doc.format_uuid
         self.log.info(f'Document uses template {template_id} with format {format_uuid}')
+        # update Sentry info
+        SentryReporter.set_context('template', template_id)
+        SentryReporter.set_context('format', format_uuid)
+        SentryReporter.set_context('document', self.doc_uuid)
         # prepare template
         self.template = TemplateRegistry.get().prepare_template(
             app_uuid=self.app_uuid,

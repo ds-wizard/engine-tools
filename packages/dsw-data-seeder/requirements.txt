@@ -5,4 +5,4 @@ minio==7.1.11
 psycopg2==2.9.3
 PyYAML==6.0
 tenacity==8.0.1
-urllib3==1.26.11
+urllib3==1.26.12

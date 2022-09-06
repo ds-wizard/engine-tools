@@ -7,7 +7,8 @@ from .templates import TemplateRegistry
 
 if TYPE_CHECKING:
     from .config import MailerConfig
-    from .connection import Database, SMTPSender
+    from .connection import SMTPSender
+    from dsw.database import Database
 
 
 class ContextNotInitializedError(RuntimeError):

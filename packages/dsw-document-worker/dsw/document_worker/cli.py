@@ -6,7 +6,7 @@ from typing import IO
 from dsw.config.parser import MissingConfigurationError
 
 from .config import DocumentWorkerConfig, DocumentWorkerConfigParser
-from .connection.sentry import SentryReporter
+from .sentry import SentryReporter
 from .consts import VERSION
 from .worker import DocumentWorker
 
