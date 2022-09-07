@@ -170,10 +170,11 @@ def to_context_obj(ctx, **options) -> DocumentContext:
 class TemplateRenderingError(JobException):
 
     def __init__(self, title, message):
-        self.message = f'{title}\n\n{message}'
-
-    def __str__(self):
-        return self.message
+        super().__init__(
+            job_id='',
+            msg=f'{title}\n\n{message}',
+            exc=None,
+        )
 
 
 def raise_error(message, title='Document rendering error'):
