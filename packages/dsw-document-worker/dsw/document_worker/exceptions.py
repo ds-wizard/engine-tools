@@ -5,6 +5,9 @@ class JobException(Exception):
         self.msg = msg
         self.exc = exc
 
+    def __str__(self):
+        return self.msg
+
     def log_message(self):
         if self.exc is None:
             return self.msg
