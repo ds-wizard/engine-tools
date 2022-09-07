@@ -71,7 +71,7 @@ class Queries:
           AND attempts < max_attempts
           AND state != '{CommandState.DONE}'
           AND state != '{CommandState.IGNORE}'
-          AND updated_at < (%(now)s - (2 ^ attempts - 1) * INTERVAL '1 min')
+          AND (updated_at AT TIME ZONE 'UTC') < (%(now)s - (2 ^ attempts - 1) * INTERVAL '1 min')
         ORDER BY attempts ASC, updated_at DESC
         LIMIT 1 FOR UPDATE SKIP LOCKED;
     """
