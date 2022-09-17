@@ -522,9 +522,9 @@ class PostgresConnection:
         connection.set_isolation_level(self.isolation)
         # test connection
         cursor = connection.cursor()
-        cursor.execute(query='SELECT * FROM persistent_command;')
-        result = cursor.fetchall()
-        LOG.debug(f'Jobs in queue: {result}')
+        cursor.execute(query='SELECT 1;')
+        result = cursor.fetchone()
+        LOG.debug(f'DB connection verified (result={result[0]})')
         cursor.close()
         connection.commit()
         self._connection = connection

@@ -2,7 +2,6 @@ import datetime
 import functools
 import logging
 import pathlib
-import sys
 import uuid
 
 from typing import Optional
@@ -260,11 +259,6 @@ class DocumentWorker(CommandWorker):
             )
 
     def _prepare_logging(self):
-        logging.basicConfig(
-            stream=sys.stdout,
-            level=self.config.log.global_level,
-            format=self.config.log.message_format
-        )
         Context.logger.set_level(self.config.log.level)
         log_filter = DocWorkerLogFilter()
         logging.getLogger().addFilter(filter=log_filter)
