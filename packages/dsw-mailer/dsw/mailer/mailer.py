@@ -13,7 +13,6 @@ from .config import MailerConfig
 from .connection import SMTPSender, SentryReporter
 from .consts import Queries, CMD_COMPONENT
 from .context import Context
-from .logging import prepare_logging
 from .model import MessageRequest
 
 
@@ -47,7 +46,6 @@ class Mailer(CommandWorker):
             )
 
     def _prepare_logging(self):
-        prepare_logging(cfg=self.cfg)
         Context.logger.set_level(self.cfg.log.level)
 
     def work(self) -> bool:
