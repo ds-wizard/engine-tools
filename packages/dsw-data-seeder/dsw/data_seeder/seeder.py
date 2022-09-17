@@ -15,7 +15,6 @@ from .config import SeederConfig
 from .consts import DEFAULT_ENCODING, DEFAULT_MIMETYPE, \
     DEFAULT_PLACEHOLDER, Queries
 from .context import Context
-from .logging import prepare_logging
 
 
 def _guess_mimetype(filename: str) -> str:
@@ -198,7 +197,6 @@ class DataSeeder(CommandWorker):
         )
 
     def _prepare_logging(self):
-        prepare_logging(cfg=self.cfg)
         Context.logger.set_level(self.cfg.log.level)
 
     def _prepare_recipe(self, recipe_name: str):

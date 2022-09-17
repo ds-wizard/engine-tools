@@ -8,6 +8,13 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 
+## [3.15.3]
+
+### Fixed
+
+- Update of the database dependency to fix on-start query memory leaks
+- Setting of log level to all internal loggers
+
 ## [3.15.2]
 
 ### Fixed
@@ -64,14 +71,15 @@ Released for version consistency with other DSW tools.
 
 
 [Unreleased]: /../../compare/main...develop
-[3.10.0]: https://github.com/ds-wizard/data-seeder/tree/v3.13.0
-[3.11.0]: https://github.com/ds-wizard/data-seeder/tree/v3.13.0
-[3.12.0]: https://github.com/ds-wizard/data-seeder/tree/v3.13.0
-[3.12.1]: https://github.com/ds-wizard/data-seeder/tree/v3.13.0
-[3.12.2]: https://github.com/ds-wizard/data-seeder/tree/v3.13.0
+[3.10.0]: https://github.com/ds-wizard/data-seeder/tree/v3.10.0
+[3.11.0]: https://github.com/ds-wizard/data-seeder/tree/v3.11.0
+[3.12.0]: https://github.com/ds-wizard/data-seeder/tree/v3.12.0
+[3.12.1]: https://github.com/ds-wizard/data-seeder/tree/v3.12.1
+[3.12.2]: https://github.com/ds-wizard/data-seeder/tree/v3.12.2
 [3.13.0]: https://github.com/ds-wizard/data-seeder/tree/v3.13.0
 [3.14.0]: /../../tree/v3.14.0
 [3.14.1]: /../../tree/v3.14.1
 [3.15.0]: /../../tree/v3.15.0
 [3.15.1]: /../../tree/v3.15.1
 [3.15.2]: /../../tree/v3.15.2
+[3.15.3]: /../../tree/v3.15.3

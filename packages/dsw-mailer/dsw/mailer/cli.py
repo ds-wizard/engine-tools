@@ -9,8 +9,8 @@ from dsw.config.parser import MissingConfigurationError
 
 from .config import MailerConfig, MailerConfigParser
 from .consts import VERSION
-from .mailer import Mailer
 from .model import MessageRequest
+from .logging import prepare_logging
 
 
 def validate_config(ctx, param, value: IO):
@@ -58,6 +58,8 @@ def cli(ctx, config: MailerConfig, workdir: str, mode: str):
         click.echo('Mail is set to disabled, why even running mailer?')
         sys.exit(1)
     path_workdir = pathlib.Path(workdir)
+    prepare_logging(cfg=config)
+    from .mailer import Mailer
     ctx.obj['mailer'] = Mailer(config, path_workdir, mode)
 
 
@@ -67,6 +69,7 @@ def cli(ctx, config: MailerConfig, workdir: str, mode: str):
                 callback=extract_message_request)
 def send(ctx, msg_request: MessageRequest):
     """Send message(s) from given file directly"""
+    from .mailer import Mailer
     mailer = ctx.obj['mailer']  # type: Mailer
     mailer.send(rq=msg_request)
 
@@ -75,6 +78,7 @@ def send(ctx, msg_request: MessageRequest):
 @click.pass_context
 def run(ctx):
     """Run mailer worker processing message jobs"""
+    from .mailer import Mailer
     mailer = ctx.obj['mailer']  # type: Mailer
     mailer.run()
 
