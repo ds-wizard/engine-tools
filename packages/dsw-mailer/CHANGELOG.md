@@ -8,6 +8,13 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 
+## [3.15.3]
+
+### Fixed
+
+- Update of the database dependency to fix on-start query memory leaks
+- Setting of log level to all internal loggers
+
 ## [3.15.2]
 
 ### Fixed
@@ -41,3 +48,4 @@ Released for version consistency with other DSW tools.
 [3.15.0]: /../../tree/v3.15.0
 [3.15.1]: /../../tree/v3.15.1
 [3.15.2]: /../../tree/v3.15.2
+[3.15.3]: /../../tree/v3.15.3
