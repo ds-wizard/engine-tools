@@ -109,6 +109,25 @@ class ApiIntegration(Integration):
         self.rs_item_template = rs_item_template  # type: str
 
     @staticmethod
+    def default():
+        return ApiIntegration(
+            uuid=NULL_UUID,
+            name='',
+            logo='',
+            integration_id='',
+            item_url='',
+            props={},
+            rq_body='',
+            rq_method='GET',
+            rq_url='',
+            rq_headers={},
+            rs_list_field='',
+            rs_item_id='',
+            rs_item_template='',
+            annotations={},
+        )
+
+    @staticmethod
     def load(data: dict, **options):
         return ApiIntegration(
             uuid=data['uuid'],
@@ -836,7 +855,10 @@ class IntegrationQuestion(Question):
 
     def _resolve_links(self, ctx):
         super()._resolve_links_parent(ctx)
-        self.integration = ctx.e.integrations[self.integration_uuid]
+        self.integration = ctx.e.integrations.get(
+            self.integration_uuid,
+            ApiIntegration.default(),
+        )
 
     @staticmethod
     def load(data: dict, **options):
