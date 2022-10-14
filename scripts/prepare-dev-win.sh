@@ -14,5 +14,5 @@ echo "Install packages:"
 for PKG in $(ls packages); do
   echo "- $PKG"
   pip install -r packages/$PKG/requirements.txt
-  pip install packages/$PKG
+  pip install -e packages/$PKG
 done

@@ -221,7 +221,7 @@ class DataSeeder(CommandWorker):
 
         command = result[0]
         try:
-            cmd = PersistentCommand.deserialize(command)
+            cmd = PersistentCommand.from_dict_row(command)
             self._process_command(cmd)
         except Exception as e:
             Context.logger.warning(f'Failed: {str(e)}')

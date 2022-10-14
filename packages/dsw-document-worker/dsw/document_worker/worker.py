@@ -289,7 +289,7 @@ class DocumentWorker(CommandWorker):
             Context.logger.debug(f'Fetched {len(result)} jobs')
             return False
 
-        command = PersistentCommand.deserialize(result[0])
+        command = PersistentCommand.from_dict_row(result[0])
         try:
             self._process_command(command)
         except Exception as e:
