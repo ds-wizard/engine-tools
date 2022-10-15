@@ -57,6 +57,10 @@ class Format:
     def is_pdf(self) -> bool:
         return isinstance(self.steps[-1], WkHtmlToPdfStep)
 
+    def requires_via_extras(self, requirement: str) -> bool:
+        return any(step.requires_via_extras(requirement)
+                   for step in self.steps)
+
     def execute(self, context: dict) -> DocumentFile:
         result = self.steps[0].execute_first(context)
         for step in self.steps[1:]:

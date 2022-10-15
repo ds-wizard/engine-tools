@@ -173,9 +173,18 @@ class PersistentCommand:
 @dataclasses.dataclass
 class DBAppConfig:
     uuid: str
-    look_and_feel: dict
+    organization: dict
+    authentication: dict
     privacy_and_support: dict
+    dashboard: dict
+    look_and_feel: dict
+    registry: dict
+    knowledge_model: dict
+    questionnaire: dict
+    template: dict
+    submission: dict
     feature: dict
+    owl: dict
     created_at: datetime.datetime
     updated_at: datetime.datetime
 
@@ -199,9 +208,18 @@ class DBAppConfig:
     def from_dict_row(data: dict):
         return DBAppConfig(
             uuid=str(data['uuid']),
-            look_and_feel=data['look_and_feel'],
+            organization=data['organization'],
+            authentication=data['authentication'],
             privacy_and_support=data['privacy_and_support'],
+            dashboard=data['dashboard'],
+            look_and_feel=data['look_and_feel'],
+            registry=data['registry'],
+            knowledge_model=data['knowledge_model'],
+            questionnaire=data['questionnaire'],
+            template=data['template'],
+            submission=data['submission'],
             feature=data['feature'],
+            owl=data['owl'],
             created_at=data['created_at'],
             updated_at=data['updated_at'],
         )
@@ -218,3 +236,48 @@ class DBAppLimits:
             app_uuid=str(data['uuid']),
             storage=data['storage'],
         )
+
+
+@dataclasses.dataclass
+class DBSubmission:
+    TABLE_NAME = 'submission'
+
+    uuid: str
+    state: str
+    location: str
+    returned_data: str
+    service_id: str
+    document_uuid: str
+    created_by: str
+    created_at: datetime.datetime
+    updated_at: datetime.datetime
+    app_uuid: str
+
+    @staticmethod
+    def from_dict_row(data: dict):
+        return DBSubmission(
+            uuid=str(data['uuid']),
+            state=data['state'],
+            location=data['location'],
+            returned_data=data['returned_data'],
+            service_id=data['service_id'],
+            document_uuid=str(data['document_uuid']),
+            created_by=str(data['created_by']),
+            created_at=data['created_at'],
+            updated_at=data['updated_at'],
+            app_uuid=str(data.get('app_uuid', NULL_UUID)),
+        )
+
+    def to_dict(self) -> dict:
+        return {
+            'uuid': self.uuid,
+            'state': self.state,
+            'location': self.location,
+            'returned_data': self.returned_data,
+            'service_id': self.service_id,
+            'document_uuid': self.document_uuid,
+            'created_by': self.created_by,
+            'created_at': self.created_at.isoformat(timespec='milliseconds'),
+            'updated_at': self.updated_at.isoformat(timespec='milliseconds'),
+            'app_uuid': self.app_uuid,
+        }

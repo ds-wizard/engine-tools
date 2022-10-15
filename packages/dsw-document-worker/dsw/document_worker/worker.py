@@ -7,8 +7,9 @@ import uuid
 from typing import Optional
 
 from dsw.command_queue import CommandWorker, CommandQueue
-from dsw.database.database import Database,\
-    DBDocument, DBAppConfig, DBAppLimits, PersistentCommand
+from dsw.database.database import Database
+from dsw.database.model import DBDocument, DBAppConfig, DBAppLimits, \
+    PersistentCommand
 from dsw.storage import S3Storage
 
 from .config import DocumentWorkerConfig
@@ -50,9 +51,9 @@ class Job:
         self.log = Context.logger
         self.template = None
         self.format = None
-        self.app_uuid = command.app_uuid
-        self.doc_uuid = command.body['uuid']
-        self.doc_context = command.body
+        self.app_uuid = command.app_uuid  # type: str
+        self.doc_uuid = command.body['uuid']  # type: str
+        self.doc_context = command.body  # type: dict
         self.doc = None  # type: Optional[DBDocument]
         self.final_file = None  # type: Optional[DocumentFile]
         self.app_config = None  # type: Optional[DBAppConfig]
@@ -119,11 +120,22 @@ class Job:
     @handle_job_step('Failed to build final document')
     def build_document(self):
         self.log.info('Building document by rendering template with context')
+        # enrich context
+        context = self.doc_context
+        if self.format.requires_via_extras('submissions'):
+            submissions = self.ctx.app.db.fetch_questionnaire_submissions(
+                questionnaire_uuid=self.doc.questionnaire_uuid,
+                app_uuid=self.app_uuid,
+            )
+            context['extras'] = {
+                'submissions': [s.to_dict() for s in submissions],
+            }
+        # render document
         self.final_file = self.template.render(
             format_uuid=self.doc.format_uuid,
-            context=self.doc_context,
+            context=context,
         )
-        # Check limits
+        # check limits
         LimitsEnforcer.check_doc_size(
             job_id=self.doc_uuid,
             doc_size=self.final_file.byte_size,
@@ -136,7 +148,7 @@ class Job:
             used_size=used_size,
             limit_size=limit_size,
         )
-        # Watermark
+        # watermark
         if self.format.is_pdf:
             self.final_file.content = LimitsEnforcer.make_watermark(
                 doc_pdf=self.final_file.content,

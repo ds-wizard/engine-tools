@@ -10,7 +10,7 @@ from typing import List, Iterable, Optional
 from dsw.config.model import DatabaseConfig
 
 from .model import DBTemplate, DBTemplateFile, DBTemplateAsset, DBDocument, \
-    DocumentState, DBAppConfig, DBAppLimits
+    DocumentState, DBAppConfig, DBAppLimits, DBSubmission
 
 LOG = logging.getLogger(__name__)
 
@@ -29,6 +29,10 @@ class Database:
 
     # TODO: refactor queries and models
     SELECT_DOCUMENT = 'SELECT * FROM document WHERE uuid = %s AND app_uuid = %s LIMIT 1;'
+    SELECT_QTN_DOCUMENTS = 'SELECT * FROM document WHERE questionnaire_uuid = %s AND app_uuid = %s;'
+    SELECT_DOCUMENT_SUBMISSIONS = 'SELECT * FROM submission WHERE document_uuid = %s AND app_uuid = %s;'
+    SELECT_QTN_SUBMISSIONS = 'SELECT s.* FROM document d JOIN submission s ON d.uuid = s.document_uuid ' \
+                             'WHERE d.questionnaire_uuid = %s AND d.app_uuid = %s;'
     SELECT_APP_CONFIG = 'SELECT * FROM app_config WHERE uuid = %(app_uuid)s LIMIT 1;'
     SELECT_APP_LIMIT = 'SELECT uuid, storage FROM app_limit WHERE uuid = %(app_uuid)s LIMIT 1;'
     UPDATE_DOCUMENT_STATE = 'UPDATE document SET state = %s, worker_log = %s WHERE uuid = %s;'
@@ -162,6 +166,51 @@ class Database:
                 params=(template_id, app_uuid),
             )
             return [DBTemplateAsset.from_dict_row(x) for x in cursor.fetchall()]
+
+    @tenacity.retry(
+        reraise=True,
+        wait=tenacity.wait_exponential(multiplier=RETRY_QUERY_MULTIPLIER),
+        stop=tenacity.stop_after_attempt(RETRY_QUERY_TRIES),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
+    )
+    def fetch_qtn_documents(self, questionnaire_uuid: str, app_uuid: str) -> List[DBDocument]:
+        with self.conn_query.new_cursor(use_dict=True) as cursor:
+            cursor.execute(
+                query=self.SELECT_QTN_DOCUMENTS,
+                params=(questionnaire_uuid, app_uuid),
+            )
+            return [DBDocument.from_dict_row(x) for x in cursor.fetchall()]
+
+    @tenacity.retry(
+        reraise=True,
+        wait=tenacity.wait_exponential(multiplier=RETRY_QUERY_MULTIPLIER),
+        stop=tenacity.stop_after_attempt(RETRY_QUERY_TRIES),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
+    )
+    def fetch_document_submissions(self, document_uuid: str, app_uuid: str) -> List[DBSubmission]:
+        with self.conn_query.new_cursor(use_dict=True) as cursor:
+            cursor.execute(
+                query=self.SELECT_DOCUMENT_SUBMISSIONS,
+                params=(document_uuid, app_uuid),
+            )
+            return [DBSubmission.from_dict_row(x) for x in cursor.fetchall()]
+
+    @tenacity.retry(
+        reraise=True,
+        wait=tenacity.wait_exponential(multiplier=RETRY_QUERY_MULTIPLIER),
+        stop=tenacity.stop_after_attempt(RETRY_QUERY_TRIES),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
+    )
+    def fetch_questionnaire_submissions(self, questionnaire_uuid: str, app_uuid: str) -> List[DBSubmission]:
+        with self.conn_query.new_cursor(use_dict=True) as cursor:
+            cursor.execute(
+                query=self.SELECT_QTN_SUBMISSIONS,
+                params=(questionnaire_uuid, app_uuid),
+            )
+            return [DBSubmission.from_dict_row(x) for x in cursor.fetchall()]
 
     @tenacity.retry(
         reraise=True,
