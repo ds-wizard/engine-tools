@@ -19,10 +19,16 @@ class FormatStepException(Exception):
 
 class Step:
     NAME = ''
+    OPTION_EXTRAS = 'extras'
 
-    def __init__(self, template, options: dict):
+    def __init__(self, template, options: dict[str, str]):
         self.template = template
         self.options = options
+        extras_str = self.options.get(self.OPTION_EXTRAS, '')  # type: str
+        self.extras = set(extras_str.split(','))  # type: set[str]
+
+    def requires_via_extras(self, requirement: str) -> bool:
+        return requirement in self.extras
 
     def execute_first(self, context: dict) -> DocumentFile:
         return self.raise_exc('Called execute_follow on Step class')

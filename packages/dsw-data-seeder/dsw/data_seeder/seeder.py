@@ -8,7 +8,8 @@ import uuid
 from typing import Optional
 
 from dsw.command_queue import CommandWorker, CommandQueue
-from dsw.database.database import Database, PersistentCommand
+from dsw.database.database import Database
+from dsw.database.model import PersistentCommand
 from dsw.storage import S3Storage
 
 from .config import SeederConfig

@@ -7,7 +7,8 @@ import uuid
 from typing import Optional
 
 from dsw.command_queue import CommandWorker, CommandQueue
-from dsw.database.database import Database, DBAppConfig, PersistentCommand
+from dsw.database.database import Database
+from dsw.database.model import DBAppConfig, PersistentCommand
 
 from .config import MailerConfig
 from .connection import SMTPSender, SentryReporter
