@@ -56,6 +56,11 @@ class FileFormats:
     TURTLE = FileFormat('ttl', 'text/turtle', 'ttl')
     TRIG = FileFormat('trig', 'application/trig', 'trig')
     JSONLD = FileFormat('jsonld', 'application/ld+json', 'jsonld')
+    ZIP = FileFormat('zip', 'application/zip', 'zip')
+    TAR = FileFormat('tar', 'application/x-tar', 'tar')
+    TAR_GZIP = FileFormat('gzip', 'application/gzip', 'tar.gz')
+    TAR_BZIP2 = FileFormat('bzip2', 'application/x-bzip2', 'tar.bz2')
+    TAR_LZMA = FileFormat('lzma', 'application/x-lzma', 'tar.xz')
 
     @staticmethod
     def get(name: str):
@@ -84,6 +89,11 @@ class FileFormats:
             'trig': FileFormats.TRIG,
             'json-ld': FileFormats.JSONLD,
             'jsonld': FileFormats.JSONLD,
+            'zip': FileFormats.ZIP,
+            'tar': FileFormats.TAR,
+            'gzip': FileFormats.TAR_GZIP,
+            'bzip2': FileFormats.TAR_BZIP2,
+            'lzma': FileFormats.TAR_LZMA,
         }
         return known_formats.get(name, None)
 
