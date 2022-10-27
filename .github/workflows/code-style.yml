@@ -2,7 +2,6 @@ name: Code Style
 
 on:
   push:
-  pull_request:
 
 jobs:
   # Flake 8 for basic code style checks
