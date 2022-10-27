@@ -37,6 +37,7 @@ dependencies = [
     'python-dateutil',
     'sentry-sdk',
     'tenacity',
+    'XlsxWriter',
     # DSW
     'dsw-command-queue==3.17.0.dev1',
     'dsw-config==3.17.0.dev1',

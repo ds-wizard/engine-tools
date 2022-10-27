@@ -61,6 +61,8 @@ class FileFormats:
     TAR_GZIP = FileFormat('gzip', 'application/gzip', 'tar.gz')
     TAR_BZIP2 = FileFormat('bzip2', 'application/x-bzip2', 'tar.bz2')
     TAR_LZMA = FileFormat('lzma', 'application/x-lzma', 'tar.xz')
+    XLSX = FileFormat('xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'xlsx')
+    XLSM = FileFormat('xlsm', '	application/vnd.ms-excel.sheet.macroEnabled.12', 'xlsm')
 
     @staticmethod
     def get(name: str):
@@ -94,6 +96,8 @@ class FileFormats:
             'gzip': FileFormats.TAR_GZIP,
             'bzip2': FileFormats.TAR_BZIP2,
             'lzma': FileFormats.TAR_LZMA,
+            'xlsx': FileFormats.XLSX,
+            'xlsm': FileFormats.XLSM,
         }
         return known_formats.get(name, None)
 
