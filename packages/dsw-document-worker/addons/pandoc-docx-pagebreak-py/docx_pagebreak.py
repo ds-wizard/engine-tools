@@ -13,8 +13,6 @@ import panflute as pf
 
 class DocxPagebreak(object):
     pagebreak = pf.RawBlock("<w:p><w:r><w:br w:type=\"page\" /></w:r></w:p>", format="openxml")
-    sectionbreak = pf.RawBlock("<w:p><w:pPr><w:sectPr><w:type w:val=\"nextPage\" /></w:sectPr></w:pPr></w:p>",
-                               format="openxml")
     toc = pf.RawBlock(r"""
 <w:sdt>
     <w:sdtContent xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
@@ -31,31 +29,19 @@ class DocxPagebreak(object):
 """, format="openxml")
 
     def action(self, elem, doc):
+        if doc.format != "docx":
+            return elem
         if isinstance(elem, (pf.Para, pf.Plain)):
             for child in elem.content:
                 if isinstance(child, pf.Str) and child.text == r"\newpage":
-                    if (doc.format == "docx"):
-                        pf.debug("Page Break")
-                        elem = self.pagebreak
+                    elem = self.pagebreak
+                elif isinstance(child, pf.Str) and child.text == r"\toc":
+                    elem = self.toc
         if isinstance(elem, pf.RawBlock):
             if elem.text == r"\newpage":
-                if (doc.format == "docx"):
-                    pf.debug("Page Break")
-                    elem = self.pagebreak
-            # elif elem.text == r"\newsection":
-            #     if (doc.format == "docx"):
-            #         pf.debug("Section Break")
-            #         elem = self.sectionbreak
-            #     else:
-            #         elem = []
+                elem = self.pagebreak
             elif elem.text == r"\toc":
-                if doc.format == "docx":
-                    pf.debug("Table of Contents")
-                    para = [pf.Para(pf.Str("Table"), pf.Space(), pf.Str("of"), pf.Space(), pf.Str("Contents"))]
-                    div = pf.Div(*para, attributes={"custom-style": "TOC Heading"})
-                    elem = [div, self.toc]
-                else:
-                    elem = []
+                elem = self.toc
         return elem
 
 
