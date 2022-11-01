@@ -8,7 +8,8 @@ import uuid
 from typing import Optional
 
 from dsw.command_queue import CommandWorker, CommandQueue
-from dsw.database.database import Database, PersistentCommand
+from dsw.database.database import Database
+from dsw.database.model import PersistentCommand
 from dsw.storage import S3Storage
 
 from .config import SeederConfig
@@ -221,7 +222,7 @@ class DataSeeder(CommandWorker):
 
         command = result[0]
         try:
-            cmd = PersistentCommand.deserialize(command)
+            cmd = PersistentCommand.from_dict_row(command)
             self._process_command(cmd)
         except Exception as e:
             Context.logger.warning(f'Failed: {str(e)}')

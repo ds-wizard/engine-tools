@@ -1,22 +1,18 @@
-import dataclasses
 import datetime
-import json
 import logging
-import psycopg2  # type: ignore
-import psycopg2.extensions  # type: ignore
-import psycopg2.extras  # type: ignore
+import psycopg
+import psycopg.rows
+import psycopg.types.json
 import tenacity
 
-from typing import List, Optional, Iterable
+from typing import List, Iterable, Optional
 
 from dsw.config.model import DatabaseConfig
 
+from .model import DBTemplate, DBTemplateFile, DBTemplateAsset, DBDocument, \
+    DocumentState, DBAppConfig, DBAppLimits, DBSubmission
+
 LOG = logging.getLogger(__name__)
-
-NULL_UUID = '00000000-0000-0000-0000-000000000000'
-
-ISOLATION_DEFAULT = psycopg2.extensions.ISOLATION_LEVEL_DEFAULT
-ISOLATION_AUTOCOMMIT = psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT
 
 RETRY_QUERY_MULTIPLIER = 0.5
 RETRY_QUERY_TRIES = 3
@@ -25,155 +21,18 @@ RETRY_CONNECT_MULTIPLIER = 0.2
 RETRY_CONNECT_TRIES = 10
 
 
-class DocumentState:
-    QUEUED = 'QueuedDocumentState'
-    PROCESSING = 'InProgressDocumentState'
-    FAILED = 'ErrorDocumentState'
-    FINISHED = 'DoneDocumentState'
-
-
-@dataclasses.dataclass
-class DBDocument:
-    uuid: str
-    name: str
-    state: str
-    durability: str
-    questionnaire_uuid: str
-    questionnaire_event_uuid: str
-    questionnaire_replies_hash: str
-    template_id: str
-    format_uuid: str
-    file_name: str
-    content_type: str
-    worker_log: str
-    creator_uuid: str
-    retrieved_at: Optional[datetime.datetime]
-    finished_at: Optional[datetime.datetime]
-    created_at: datetime.datetime
-    app_uuid: str
-    file_size: int
-
-
-@dataclasses.dataclass
-class DBTemplate:
-    id: str
-    name: str
-    organization_id: str
-    template_id: str
-    version: str
-    metamodel_version: int
-    description: str
-    readme: str
-    license: str
-    allowed_packages: dict
-    recommended_package_id: str
-    formats: dict
-    created_at: datetime.datetime
-    app_uuid: str
-
-
-@dataclasses.dataclass
-class DBTemplateFile:
-    template_id: str
-    uuid: str
-    file_name: str
-    content: str
-    app_uuid: str
-
-
-@dataclasses.dataclass
-class DBTemplateAsset:
-    template_id: str
-    uuid: str
-    file_name: str
-    content_type: str
-    app_uuid: str
-    file_size: int
-
-
-@dataclasses.dataclass
-class PersistentCommand:
-    uuid: str
-    state: str
-    component: str
-    function: str
-    body: dict
-    last_error_message: Optional[str]
-    attempts: int
-    max_attempts: int
-    app_uuid: str
-    created_by: Optional[str]
-    created_at: datetime.datetime
-    updated_at: datetime.datetime
-
-    @staticmethod
-    def deserialize(data: dict):
-        return PersistentCommand(
-            uuid=data['uuid'],
-            state=data['state'],
-            component=data['component'],
-            function=data['function'],
-            body=json.loads(data['body']),
-            last_error_message=data['last_error_message'],
-            attempts=data['attempts'],
-            max_attempts=data['max_attempts'],
-            created_by=data['created_by'],
-            created_at=data['created_at'],
-            updated_at=data['updated_at'],
-            app_uuid=data.get('app_uuid', NULL_UUID),
-        )
-
-
-@dataclasses.dataclass
-class DBAppConfig:
-    uuid: str
-    look_and_feel: dict
-    privacy_and_support: dict
-    feature: dict
-    created_at: datetime.datetime
-    updated_at: datetime.datetime
-
-    @property
-    def feature_pdf_only(self) -> bool:
-        return self.feature.get('pdfOnlyEnabled', False)
-
-    @property
-    def feature_pdf_watermark(self) -> bool:
-        return self.feature.get('pdfWatermarkEnabled', False)
-
-    @property
-    def app_title(self) -> Optional[str]:
-        return self.look_and_feel.get('appTitle', None)
-
-    @property
-    def support_email(self) -> Optional[str]:
-        return self.privacy_and_support.get('supportEmail', None)
-
-    @staticmethod
-    def deserialize(data: dict):
-        return DBAppConfig(
-            uuid=data['uuid'],
-            look_and_feel=data['look_and_feel'],
-            privacy_and_support=data['privacy_and_support'],
-            feature=data['feature'],
-            created_at=data['created_at'],
-            updated_at=data['updated_at'],
-        )
-
-
-@dataclasses.dataclass
-class DBAppLimits:
-    app_uuid: str
-    storage: Optional[int]
-
-
 def wrap_json_data(data: dict):
-    return psycopg2.extras.Json(data)
+    return psycopg.types.json.Json(data)
 
 
 class Database:
 
+    # TODO: refactor queries and models
     SELECT_DOCUMENT = 'SELECT * FROM document WHERE uuid = %s AND app_uuid = %s LIMIT 1;'
+    SELECT_QTN_DOCUMENTS = 'SELECT * FROM document WHERE questionnaire_uuid = %s AND app_uuid = %s;'
+    SELECT_DOCUMENT_SUBMISSIONS = 'SELECT * FROM submission WHERE document_uuid = %s AND app_uuid = %s;'
+    SELECT_QTN_SUBMISSIONS = 'SELECT s.* FROM document d JOIN submission s ON d.uuid = s.document_uuid ' \
+                             'WHERE d.questionnaire_uuid = %s AND d.app_uuid = %s;'
     SELECT_APP_CONFIG = 'SELECT * FROM app_config WHERE uuid = %(app_uuid)s LIMIT 1;'
     SELECT_APP_LIMIT = 'SELECT uuid, storage FROM app_limit WHERE uuid = %(app_uuid)s LIMIT 1;'
     UPDATE_DOCUMENT_STATE = 'UPDATE document SET state = %s, worker_log = %s WHERE uuid = %s;'
@@ -214,76 +73,6 @@ class Database:
         self.conn_query.connect()
         self.conn_queue.connect()
 
-    @staticmethod
-    def get_as_app_limits(result: dict) -> DBAppLimits:
-        return DBAppLimits(
-            app_uuid=result['uuid'],
-            storage=result['storage'],
-        )
-
-    @staticmethod
-    def get_as_document(result: dict) -> DBDocument:
-        return DBDocument(
-            uuid=result['uuid'],
-            name=result['name'],
-            state=result['state'],
-            durability=result['durability'],
-            questionnaire_uuid=result['questionnaire_uuid'],
-            questionnaire_event_uuid=result['questionnaire_event_uuid'],
-            questionnaire_replies_hash=result['questionnaire_replies_hash'],
-            template_id=result['template_id'],
-            format_uuid=result['format_uuid'],
-            creator_uuid=result['creator_uuid'],
-            retrieved_at=result['retrieved_at'],
-            finished_at=result['finished_at'],
-            created_at=result['created_at'],
-            file_name=result['file_name'],
-            content_type=result['content_type'],
-            worker_log=result['worker_log'],
-            app_uuid=result.get('app_uuid', NULL_UUID),
-            file_size=result['file_size'],
-        )
-
-    @staticmethod
-    def get_as_template(result: dict) -> DBTemplate:
-        return DBTemplate(
-            id=result['id'],
-            name=result['name'],
-            organization_id=result['organization_id'],
-            template_id=result['template_id'],
-            version=result['version'],
-            metamodel_version=result['metamodel_version'],
-            description=result['description'],
-            readme=result['readme'],
-            license=result['license'],
-            allowed_packages=result['allowed_packages'],
-            recommended_package_id=result['recommended_package_id'],
-            formats=result['formats'],
-            created_at=result['created_at'],
-            app_uuid=result.get('app_uuid', NULL_UUID),
-        )
-
-    @staticmethod
-    def get_as_template_file(result: dict) -> DBTemplateFile:
-        return DBTemplateFile(
-            template_id=result['template_id'],
-            uuid=result['uuid'],
-            file_name=result['file_name'],
-            content=result['content'],
-            app_uuid=result.get('app_uuid', NULL_UUID),
-        )
-
-    @staticmethod
-    def get_as_template_asset(result: dict) -> DBTemplateAsset:
-        return DBTemplateAsset(
-            template_id=result['template_id'],
-            uuid=result['uuid'],
-            file_name=result['file_name'],
-            content_type=result['content_type'],
-            app_uuid=result.get('app_uuid', NULL_UUID),
-            file_size=result['file_size'],
-        )
-
     @tenacity.retry(
         reraise=True,
         wait=tenacity.wait_exponential(multiplier=RETRY_QUERY_MULTIPLIER),
@@ -295,12 +84,12 @@ class Database:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
                 query=self.SELECT_DOCUMENT,
-                vars=(document_uuid, app_uuid),
+                params=(document_uuid, app_uuid),
             )
             result = cursor.fetchall()
             if len(result) != 1:
                 return None
-            return self.get_as_document(result[0])
+            return DBDocument.from_dict_row(result[0])
 
     @tenacity.retry(
         reraise=True,
@@ -323,12 +112,12 @@ class Database:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
                 query=self.SELECT_APP_LIMIT,
-                vars={'app_uuid': app_uuid},
+                params={'app_uuid': app_uuid},
             )
             result = cursor.fetchall()
             if len(result) != 1:
                 return None
-            return self.get_as_app_limits(result[0])
+            return DBAppLimits.from_dict_row(result[0])
 
     @tenacity.retry(
         reraise=True,
@@ -341,12 +130,12 @@ class Database:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
                 query=self.SELECT_TEMPLATE,
-                vars=(template_id, app_uuid),
+                params=(template_id, app_uuid),
             )
             result = cursor.fetchall()
             if len(result) != 1:
                 return None
-            return self.get_as_template(result[0])
+            return DBTemplate.from_dict_row(result[0])
 
     @tenacity.retry(
         reraise=True,
@@ -359,9 +148,9 @@ class Database:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
                 query=self.SELECT_TEMPLATE_FILES,
-                vars=(template_id, app_uuid),
+                params=(template_id, app_uuid),
             )
-            return [self.get_as_template_file(x) for x in cursor.fetchall()]
+            return [DBTemplateFile.from_dict_row(x) for x in cursor.fetchall()]
 
     @tenacity.retry(
         reraise=True,
@@ -374,9 +163,54 @@ class Database:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
                 query=self.SELECT_TEMPLATE_ASSETS,
-                vars=(template_id, app_uuid),
+                params=(template_id, app_uuid),
             )
-            return [self.get_as_template_asset(x) for x in cursor.fetchall()]
+            return [DBTemplateAsset.from_dict_row(x) for x in cursor.fetchall()]
+
+    @tenacity.retry(
+        reraise=True,
+        wait=tenacity.wait_exponential(multiplier=RETRY_QUERY_MULTIPLIER),
+        stop=tenacity.stop_after_attempt(RETRY_QUERY_TRIES),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
+    )
+    def fetch_qtn_documents(self, questionnaire_uuid: str, app_uuid: str) -> List[DBDocument]:
+        with self.conn_query.new_cursor(use_dict=True) as cursor:
+            cursor.execute(
+                query=self.SELECT_QTN_DOCUMENTS,
+                params=(questionnaire_uuid, app_uuid),
+            )
+            return [DBDocument.from_dict_row(x) for x in cursor.fetchall()]
+
+    @tenacity.retry(
+        reraise=True,
+        wait=tenacity.wait_exponential(multiplier=RETRY_QUERY_MULTIPLIER),
+        stop=tenacity.stop_after_attempt(RETRY_QUERY_TRIES),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
+    )
+    def fetch_document_submissions(self, document_uuid: str, app_uuid: str) -> List[DBSubmission]:
+        with self.conn_query.new_cursor(use_dict=True) as cursor:
+            cursor.execute(
+                query=self.SELECT_DOCUMENT_SUBMISSIONS,
+                params=(document_uuid, app_uuid),
+            )
+            return [DBSubmission.from_dict_row(x) for x in cursor.fetchall()]
+
+    @tenacity.retry(
+        reraise=True,
+        wait=tenacity.wait_exponential(multiplier=RETRY_QUERY_MULTIPLIER),
+        stop=tenacity.stop_after_attempt(RETRY_QUERY_TRIES),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
+    )
+    def fetch_questionnaire_submissions(self, questionnaire_uuid: str, app_uuid: str) -> List[DBSubmission]:
+        with self.conn_query.new_cursor(use_dict=True) as cursor:
+            cursor.execute(
+                query=self.SELECT_QTN_SUBMISSIONS,
+                params=(questionnaire_uuid, app_uuid),
+            )
+            return [DBSubmission.from_dict_row(x) for x in cursor.fetchall()]
 
     @tenacity.retry(
         reraise=True,
@@ -389,7 +223,7 @@ class Database:
         with self.conn_query.new_cursor() as cursor:
             cursor.execute(
                 query=self.UPDATE_DOCUMENT_STATE,
-                vars=(state, worker_log, document_uuid),
+                params=(state, worker_log, document_uuid),
             )
             return cursor.rowcount == 1
 
@@ -405,7 +239,7 @@ class Database:
         with self.conn_queue.new_cursor() as cursor:
             cursor.execute(
                 query=self.UPDATE_DOCUMENT_RETRIEVED,
-                vars=(
+                params=(
                     retrieved_at,
                     DocumentState.PROCESSING,
                     document_uuid,
@@ -427,7 +261,7 @@ class Database:
         with self.conn_query.new_cursor() as cursor:
             cursor.execute(
                 query=self.UPDATE_DOCUMENT_FINISHED,
-                vars=(
+                params=(
                     finished_at,
                     DocumentState.FINISHED,
                     file_name,
@@ -450,7 +284,7 @@ class Database:
         with self.conn_query.new_cursor() as cursor:
             cursor.execute(
                 query=self.SUM_FILE_SIZES,
-                vars={'app_uuid': app_uuid},
+                params={'app_uuid': app_uuid},
             )
             row = cursor.fetchone()
             return row[0]
@@ -467,10 +301,10 @@ class Database:
             try:
                 cursor.execute(
                     query=self.SELECT_APP_CONFIG,
-                    vars={'app_uuid': app_uuid},
+                    params={'app_uuid': app_uuid},
                 )
                 result = cursor.fetchone()
-                return DBAppConfig.deserialize(data=result)
+                return DBAppConfig.from_dict_row(data=result)
             except Exception as e:
                 LOG.warning(f'Could not retrieve app_config for app'
                             f' "{app_uuid}": {str(e)}')
@@ -497,7 +331,7 @@ class Database:
     )
     def execute_query(self, query: str, **kwargs):
         with self.conn_query.new_cursor(use_dict=True) as cursor:
-            cursor.execute(query=query, vars=kwargs)
+            cursor.execute(query=query, params=kwargs)
 
 
 class PostgresConnection:
@@ -505,8 +339,11 @@ class PostgresConnection:
     def __init__(self, name: str, dsn: str, timeout=30000, autocommit=False):
         self.name = name
         self.listening = False
-        self.dsn = psycopg2.extensions.make_dsn(dsn, connect_timeout=timeout)
-        self.isolation = ISOLATION_AUTOCOMMIT if autocommit else ISOLATION_DEFAULT
+        self.dsn = psycopg.conninfo.make_conninfo(
+            conninfo=dsn,
+            connect_timeout=timeout,
+        )
+        self.autocommit = autocommit
         self._connection = None
 
     @tenacity.retry(
@@ -518,8 +355,7 @@ class PostgresConnection:
     )
     def _connect_db(self):
         LOG.info(f'Creating connection to PostgreSQL database "{self.name}"')
-        connection = psycopg2.connect(dsn=self.dsn)
-        connection.set_isolation_level(self.isolation)
+        connection = psycopg.connect(conninfo=self.dsn, autocommit=self.autocommit)
         # test connection
         cursor = connection.cursor()
         cursor.execute(query='SELECT 1;')
@@ -541,7 +377,7 @@ class PostgresConnection:
 
     def new_cursor(self, use_dict: bool = False):
         return self.connection.cursor(
-            cursor_factory=psycopg2.extras.DictCursor if use_dict else None,
+            row_factory=psycopg.rows.dict_row if use_dict else psycopg.rows.tuple_row,
         )
 
     def reset(self):

@@ -20,13 +20,13 @@ In this monorepo, we manage the following Python packages (each has its own subd
 * [Database (dsw-database)](packages/dsw-database)
 * [Storage (dsw-storage)](packages/dsw-storage)
 
-Libraries are currently kept compatible with Python 3.7 and higher.
+Libraries are currently kept compatible with Python 3.9 and higher.
 
 ### Utilities
 
 * [Template Development Kit (dsw-tdk)](packages/dsw-tdk)
 
-Utilities are currently kept compatible with Python 3.7 and higher.
+Utilities are currently kept compatible with Python 3.8 and higher.
 
 ### Workers
 

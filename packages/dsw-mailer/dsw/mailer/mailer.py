@@ -7,7 +7,8 @@ import uuid
 from typing import Optional
 
 from dsw.command_queue import CommandWorker, CommandQueue
-from dsw.database.database import Database, DBAppConfig, PersistentCommand
+from dsw.database.database import Database
+from dsw.database.model import DBAppConfig, PersistentCommand
 
 from .config import MailerConfig
 from .connection import SMTPSender, SentryReporter
@@ -61,7 +62,7 @@ class Mailer(CommandWorker):
 
         command = result[0]
         try:
-            cmd = PersistentCommand.deserialize(command)
+            cmd = PersistentCommand.from_dict_row(command)
             self._process_command(cmd)
         except Exception as e:
             Context.logger.warning(f'Errored with exception: {str(e)}')
