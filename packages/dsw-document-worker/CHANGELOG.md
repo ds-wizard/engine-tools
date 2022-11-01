@@ -8,9 +8,19 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 
-## [3.16.0]
+## [3.17.0]
 
-Released for version consistency with other DSW tools.
+### Added
+
+- Allow access submissions in document generation
+- Support ZIP/TAR archives (new step)
+- Support ToC in Pandoc for docx
+- Support Excel document format (new step)
+
+### Changed
+
+- Switch to psycopg3
+- Update Pandoc to 2.19.2
 
 ## [3.15.3]
 
@@ -56,3 +66,4 @@ Released for version consistency with other DSW tools.
 [3.15.2]: /../../tree/v3.15.2
 [3.15.3]: /../../tree/v3.15.3
 [3.16.0]: /../../tree/v3.16.0
+[3.17.0]: /../../tree/v3.17.0
