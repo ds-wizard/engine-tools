@@ -59,7 +59,7 @@ def _cell_writer_datetime(worksheet: Worksheet, pos_args, item, cell_format):
         value = datetime.datetime.utcnow()
     worksheet.write_datetime(
         *pos_args,
-        datetime=value,
+        date=value,
         cell_format=cell_format,
     )
 
