@@ -65,9 +65,10 @@ class SeedRecipe:
                 self.s3_objects[s3_object_path] = target_object_name
 
     def _prepare_uuids(self):
-        for i in range(self.uuids_count):
-            key = self.uuids_placeholder.replace('[n]', f'[{i}]')
-            self.uuids_replacement[key] = str(uuid.uuid4())
+        if self.uuids_placeholder is not None:
+            for i in range(self.uuids_count):
+                key = self.uuids_placeholder.replace('[n]', f'[{i}]')
+                self.uuids_replacement[key] = str(uuid.uuid4())
 
     def prepare(self):
         if self.prepared:

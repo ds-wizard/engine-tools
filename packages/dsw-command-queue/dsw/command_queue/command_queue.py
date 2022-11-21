@@ -67,7 +67,7 @@ class CommandQueue:
             queue_conn.listening = True
             LOG.info('Listening for jobs in command queue')
 
-            notifications = list()
+            notifications = list()  # type: list[str]
             timeout = self.db.cfg.queue_timout
 
             LOG.info('Entering working cycle, waiting for notifications')

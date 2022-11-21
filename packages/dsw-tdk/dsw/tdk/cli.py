@@ -248,7 +248,7 @@ def new_template(ctx, template_dir, force):
         ClickPrinter.failure('Exited...')
         exit(1)
     tdk = TDKCore(template=builder.build(), logger=ctx.obj.logger)
-    template_dir = template_dir or dir_from_id(tdk.template.id)
+    template_dir = template_dir or dir_from_id(tdk.safe_template.id)
     tdk.prepare_local(template_dir=template_dir)
     try:
         tdk.store_local(force=force)
@@ -278,12 +278,12 @@ def get_template(ctx, api_server, template_id, template_dir, username, password,
         try:
             await tdk.init_client(api_url=api_server, username=username, password=password)
             await tdk.load_remote(template_id=template_id)
-            await tdk.client.close()
+            await tdk.safe_client.close()
         except DSWCommunicationError as e:
             ClickPrinter.error('Could not get template:', bold=True)
             ClickPrinter.error(f'> {e.reason}\n> {e.message}')
             exit(1)
-        await tdk.client.safe_close()
+        await tdk.safe_client.safe_close()
         tdk.prepare_local(template_dir=template_dir)
         try:
             tdk.store_local(force=force)
@@ -314,7 +314,11 @@ def put_template(ctx, api_server, template_dir, username, password, force, watch
     async def watch_callback(changes):
         changes = list(changes)
         for change in changes:
-            ClickPrinter.watch_change(*change, root=tdk.project.template_dir)
+            ClickPrinter.watch_change(
+                change_type=change[0],
+                filepath=change[1],
+                root=tdk.safe_project.template_dir,
+            )
         if len(changes) > 0:
             await tdk.process_changes(changes, force=force)
 
@@ -323,17 +327,18 @@ def put_template(ctx, api_server, template_dir, username, password, force, watch
         try:
             await tdk.init_client(api_server, username, password)
             await tdk.store_remote(force=force)
-            ClickPrinter.success(f'Template {tdk.project.template.id} uploaded to {api_server}')
+            ClickPrinter.success(f'Template {tdk.safe_project.safe_template.id} '
+                                 f'uploaded to {api_server}')
 
             if watch:
                 ClickPrinter.watch('Entering watch mode... (press Ctrl+C to abort)')
                 await tdk.watch_project(watch_callback)
 
-            await tdk.client.close()
+            await tdk.safe_client.close()
         except TDKProcessingError as e:
             ClickPrinter.failure('Could not upload template')
             ClickPrinter.error(f'> {e.message}\n> {e.hint}')
-            await tdk.client.safe_close()
+            await tdk.safe_client.safe_close()
             exit(1)
         except DSWCommunicationError as e:
             ClickPrinter.failure('Could not upload template')
@@ -341,7 +346,7 @@ def put_template(ctx, api_server, template_dir, username, password, force, watch
             ClickPrinter.error('> Probably incorrect API URL, metamodel version, '
                                'or template already exists...')
             ClickPrinter.error('> Check if you are using the matching version')
-            await tdk.client.safe_close()
+            await tdk.safe_client.safe_close()
             exit(1)
 
     loop = asyncio.get_event_loop()
@@ -389,7 +394,7 @@ def list_templates(ctx, api_server, username, password, output_format):
             ClickPrinter.failure('Failed to get list of templates')
             ClickPrinter.error(f'> {e.reason}\n> {e.message}')
             exit(1)
-        await tdk.client.safe_close()
+        await tdk.safe_client.safe_close()
 
     loop = asyncio.get_event_loop()
     loop.run_until_complete(main_routine())
@@ -404,7 +409,7 @@ def verify_template(ctx, template_dir):
     errors = tdk.verify()
     if len(errors) == 0:
         ClickPrinter.success('The template is valid!')
-        print_template_info(template=tdk.project.template)
+        print_template_info(template=tdk.safe_project.safe_template)
     else:
         ClickPrinter.failure('The template is invalid!')
         click.echo('Found violations:')
