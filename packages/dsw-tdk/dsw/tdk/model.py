@@ -109,7 +109,8 @@ class TDKConfig:
 
     def __init__(self, *, version=None, readme_file=None, files=None):
         self.version = version or VERSION  # type: str
-        self.readme_file = readme_file or self.DEFAULT_README  # type: Optional[pathlib.Path]
+        readme_file_str = readme_file or self.DEFAULT_README  # type: str
+        self.readme_file = pathlib.Path(readme_file_str)  # type: pathlib.Path
         self.files = files or []  # type: List[str]
 
     @classmethod
@@ -138,7 +139,6 @@ class TemplateFile:
         self.remote_id = remote_id  # type: Optional[str]
         self.filename = filename  # type: pathlib.Path
         self.content = content  # type: bytes
-        self.remote_type = remote_type
         self.content_type = content_type or self.guess_type()  # type: str
         self.remote_type = remote_type or self.guess_tfile_type()  # type: TemplateFileType
 

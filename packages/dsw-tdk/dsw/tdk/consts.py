@@ -1,3 +1,4 @@
+import pathlib
 import pathspec  # type: ignore
 import re
 
@@ -13,7 +14,7 @@ REGEX_MIME_TYPE = re.compile(r'^(?![-])(?!.*[-]$)[-\w.]+/[-\w.]+$')
 
 DEFAULT_LIST_FORMAT = '{template.id:<40} {template.name:<30}'
 DEFAULT_ENCODING = 'utf-8'
-DEFAULT_README = 'README.md'
+DEFAULT_README = pathlib.Path('README.md')
 
 TEMPLATE_FILE = 'template.json'
 PATHSPEC_FACTORY = pathspec.patterns.GitWildMatchPattern

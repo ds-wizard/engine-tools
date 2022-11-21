@@ -20,7 +20,7 @@ from .documents import DocumentFile, DocumentNameGiver
 from .exceptions import create_job_exception, JobException
 from .limits import LimitsEnforcer
 from .logging import DocWorkerLogger, DocWorkerLogFilter
-from .templates import TemplateRegistry
+from .templates import TemplateRegistry, Template, Format
 from .utils import timeout, JobTimeoutError,\
     PdfWaterMarker, byte_size_format
 
@@ -49,8 +49,8 @@ class Job:
     def __init__(self, command: PersistentCommand):
         self.ctx = Context.get()
         self.log = Context.logger
-        self.template = None
-        self.format = None
+        self.template = None  # type: Optional[Template]
+        self.format = None  # type: Optional[Format]
         self.app_uuid = command.app_uuid  # type: str
         self.doc_uuid = command.body['uuid']  # type: str
         self.doc_context = command.body  # type: dict
@@ -58,6 +58,30 @@ class Job:
         self.final_file = None  # type: Optional[DocumentFile]
         self.app_config = None  # type: Optional[DBAppConfig]
         self.app_limits = None  # type: Optional[DBAppLimits]
+
+    @property
+    def safe_doc(self) -> DBDocument:
+        if self.doc is None:
+            raise RuntimeError('Document is not set but it should')
+        return self.doc
+
+    @property
+    def safe_final_file(self) -> DocumentFile:
+        if self.final_file is None:
+            raise RuntimeError('Final file is not set but it should')
+        return self.final_file
+
+    @property
+    def safe_template(self) -> Template:
+        if self.template is None:
+            raise RuntimeError('Template is not set but it should')
+        return self.template
+
+    @property
+    def safe_format(self) -> Format:
+        if self.format is None:
+            raise RuntimeError('Format is not set but it should')
+        return self.format
 
     @handle_job_step('Failed to get document from DB')
     def get_document(self):
@@ -93,97 +117,105 @@ class Job:
 
     @handle_job_step('Failed to prepare template')
     def prepare_template(self):
-        template_id = self.doc.template_id
-        format_uuid = self.doc.format_uuid
+        template_id = self.safe_doc.template_id
+        format_uuid = self.safe_doc.format_uuid
         self.log.info(f'Document uses template {template_id} with format {format_uuid}')
         # update Sentry info
         SentryReporter.set_context('template', template_id)
         SentryReporter.set_context('format', format_uuid)
         SentryReporter.set_context('document', self.doc_uuid)
         # prepare template
-        self.template = TemplateRegistry.get().prepare_template(
+        template = TemplateRegistry.get().prepare_template(
             app_uuid=self.app_uuid,
             template_id=template_id,
         )
         # prepare format
-        self.template.prepare_format(format_uuid)
-        self.format = self.template.formats.get(format_uuid)
+        template.prepare_format(format_uuid)
+        self.format = template.formats.get(format_uuid)
         # check limits (PDF-only)
         self.app_config = self.ctx.app.db.fetch_app_config(app_uuid=self.app_uuid)
         self.app_limits = self.ctx.app.db.fetch_app_limits(app_uuid=self.app_uuid)
         LimitsEnforcer.check_format(
             job_id=self.doc_uuid,
-            doc_format=self.format,
+            doc_format=self.safe_format,
             app_config=self.app_config,
         )
+        # finalize
+        self.template = template
 
     @handle_job_step('Failed to build final document')
     def build_document(self):
         self.log.info('Building document by rendering template with context')
+        doc = self.safe_doc
         # enrich context
         context = self.doc_context
-        if self.format.requires_via_extras('submissions'):
+        if self.safe_format.requires_via_extras('submissions'):
             submissions = self.ctx.app.db.fetch_questionnaire_submissions(
-                questionnaire_uuid=self.doc.questionnaire_uuid,
+                questionnaire_uuid=doc.questionnaire_uuid,
                 app_uuid=self.app_uuid,
             )
             context['extras'] = {
                 'submissions': [s.to_dict() for s in submissions],
             }
         # render document
-        self.final_file = self.template.render(
-            format_uuid=self.doc.format_uuid,
+        final_file = self.safe_template.render(
+            format_uuid=doc.format_uuid,
             context=context,
         )
         # check limits
         LimitsEnforcer.check_doc_size(
             job_id=self.doc_uuid,
-            doc_size=self.final_file.byte_size,
+            doc_size=final_file.byte_size,
         )
         limit_size = None if self.app_limits is None else self.app_limits.storage
         used_size = self.ctx.app.db.get_currently_used_size(app_uuid=self.app_uuid)
         LimitsEnforcer.check_size_usage(
             job_id=self.doc_uuid,
-            doc_size=self.final_file.byte_size,
+            doc_size=final_file.byte_size,
             used_size=used_size,
             limit_size=limit_size,
         )
         # watermark
-        if self.format.is_pdf:
-            self.final_file.content = LimitsEnforcer.make_watermark(
-                doc_pdf=self.final_file.content,
+        if self.safe_format.is_pdf:
+            final_file.content = LimitsEnforcer.make_watermark(
+                doc_pdf=final_file.content,
                 app_config=self.app_config,
             )
+        # finalize
+        self.final_file = final_file
 
     @handle_job_step('Failed to store document in S3')
     def store_document(self):
         s3_id = self.ctx.app.s3.identification
+        final_file = self.safe_final_file
         self.log.info(f'Preparing S3 bucket {s3_id}')
         self.ctx.app.s3.ensure_bucket()
         self.log.info(f'Storing document to S3 bucket {s3_id}')
         self.ctx.app.s3.store_document(
             app_uuid=self.app_uuid,
             file_name=self.doc_uuid,
-            content_type=self.final_file.content_type,
-            data=self.final_file.content,
+            content_type=final_file.content_type,
+            data=final_file.content,
         )
         self.log.info(f'Document {self.doc_uuid} stored in S3 bucket {s3_id}')
 
     @handle_job_step('Failed to finalize document generation')
     def finalize(self):
-        file_name = DocumentNameGiver.name_document(self.doc, self.final_file)
-        self.doc.finished_at = datetime.datetime.now()
-        self.doc.file_name = file_name
-        self.doc.content_type = self.final_file.content_type
-        self.doc.file_size = self.final_file.byte_size
+        doc = self.safe_doc
+        final_file = self.safe_final_file
+        file_name = DocumentNameGiver.name_document(doc, final_file)
+        doc.finished_at = datetime.datetime.now()
+        doc.file_name = file_name
+        doc.content_type = final_file.content_type
+        doc.file_size = final_file.byte_size
         self.ctx.app.db.update_document_finished(
-            finished_at=self.doc.finished_at,
-            file_name=self.doc.file_name,
-            content_type=self.doc.content_type,
-            file_size=self.doc.file_size,
+            finished_at=doc.finished_at,
+            file_name=doc.file_name,
+            content_type=doc.content_type,
+            file_size=doc.file_size,
             worker_log=(
                 f'Document "{file_name}" generated successfully '
-                f'({byte_size_format(self.doc.file_size)}).'
+                f'({byte_size_format(doc.file_size)}).'
             ),
             document_uuid=self.doc_uuid,
         )

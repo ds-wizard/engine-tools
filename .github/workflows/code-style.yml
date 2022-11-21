@@ -107,4 +107,4 @@ jobs:
     - name: Typecheck with mypy
       run: |
         cd packages/${{ matrix.package }}
-        mypy --install-types --ignore-missing-imports  --non-interactive dsw
+        mypy --install-types --ignore-missing-imports --check-untyped-defs --non-interactive dsw

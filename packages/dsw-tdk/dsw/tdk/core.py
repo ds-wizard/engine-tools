@@ -109,7 +109,7 @@ class TDKCore:
     def load_local(self, template_dir):
         self.prepare_local(template_dir=template_dir)
         self.logger.info('Loading local template project')
-        self.project.load()
+        self.safe_project.load()
 
     async def load_remote(self, template_id: str):
         self.logger.info(f'Retrieving template {template_id}')
@@ -210,7 +210,7 @@ class TDKCore:
             self.logger.error(f'Failed to store remote {tfile.remote_type.value} {tfile.filename.as_posix()}: {e}')
 
     async def store_remote_files(self):
-        for tfile in self.safe_project.template.files.values():
+        for tfile in self.safe_project.safe_template.files.values():
             tfile.remote_id = None
             tfile.remote_type = TemplateFileType.file if tfile.is_text else TemplateFileType.asset
             await self._create_template_file(tfile=tfile, project_update=True)
@@ -262,18 +262,24 @@ class TDKCore:
 
     async def _update_descriptor(self):
         try:
-            template_exists = await self.client.check_template_exists(template_id=self.safe_project.template.id)
+            template_exists = await self.safe_client.check_template_exists(
+                template_id=self.safe_project.safe_template.id,
+            )
             if template_exists:
-                self.logger.info(f'Updating existing remote template {self.project.template.id}')
-                await self.client.put_template(template=self.project.template)
+                self.logger.info(f'Updating existing remote template'
+                                 f' {self.safe_project.safe_template.id}')
+                await self.safe_client.put_template(template=self.safe_project.safe_template)
             else:
                 # TODO: optimization - reload full template and send it, skip all other changes
-                self.logger.info(f'Template {self.safe_project.template.id} does not exist on remote - full sync')
+                self.logger.info(f'Template {self.safe_project.safe_template.id} '
+                                 f'does not exist on remote - full sync')
                 await self.store_remote(force=False)
         except DSWCommunicationError as e:
-            self.logger.error(f'Failed to update template {self.safe_project.safe_template.id}: {e.message}')
+            self.logger.error(f'Failed to update template'
+                              f' {self.safe_project.safe_template.id}: {e.message}')
         except Exception as e:
-            self.logger.error(f'Failed to update template {self.safe_project.safe_template.id}: {e}')
+            self.logger.error(f'Failed to update template'
+                              f' {self.safe_project.safe_template.id}: {e}')
 
     async def _delete_file(self, filepath: pathlib.Path):
         try:
