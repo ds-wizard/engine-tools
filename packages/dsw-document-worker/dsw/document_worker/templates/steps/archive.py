@@ -130,7 +130,7 @@ class ArchiveStep(Step):
             content=data,
         )
 
-    def execute_follow(self, document: DocumentFile) -> DocumentFile:
+    def execute_follow(self, document: DocumentFile, context: dict) -> DocumentFile:
         # (future) allow multiple files to be archived
         self.input_file_src = document.filename('document')
         if self.input_file_dst == '':
