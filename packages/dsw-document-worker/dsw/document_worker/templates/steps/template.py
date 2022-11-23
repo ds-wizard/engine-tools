@@ -21,7 +21,7 @@ class JSONStep(Step):
             DEFAULT_ENCODING
         )
 
-    def execute_follow(self, document: DocumentFile) -> DocumentFile:
+    def execute_follow(self, document: DocumentFile, context: dict) -> DocumentFile:
         return self.raise_exc(f'Step "{self.NAME}" cannot process other files')
 
 
@@ -98,7 +98,7 @@ class Jinja2Step(Step):
                            f'- {str(e)}')
         return DocumentFile(self.output_format, content, DEFAULT_ENCODING)
 
-    def execute_follow(self, document: DocumentFile) -> DocumentFile:
+    def execute_follow(self, document: DocumentFile, context: dict) -> DocumentFile:
         return self.raise_exc(f'Step "{self.NAME}" cannot process other files')
 
 
