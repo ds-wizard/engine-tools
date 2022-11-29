@@ -378,7 +378,11 @@ class Reply:
         question_uuid = self.fragments[-1]
         if question_uuid in ctx.e.questions.keys():
             self.question = ctx.e.questions[question_uuid]
-            self.question.replies[self.path] = self
+            if self.question is not None:
+                self.question.replies[self.path] = self
+
+    def _resolve_links(self, ctx):
+        pass
 
 
 class AnswerReply(Reply):
@@ -657,6 +661,9 @@ class Question:
             self.required_phase = ctx.e.phases.get(self.required_phase_uuid, PHASE_NEVER)
             self.is_required = ctx.current_phase.order >= self.required_phase.order
 
+    def _resolve_links(self, ctx):
+        pass
+
     @property
     def url_references(self) -> list[URLReference]:
         return [r for r in self.references if isinstance(r, URLReference)]
@@ -789,7 +796,7 @@ class MultiChoiceQuestion(Question):
                         for key in self.choice_uuids
                         if key in ctx.e.choices.keys()]
         for choice in self.choices:
-            choice.question = self
+            choice.parent = self
 
     @staticmethod
     def load(data: dict, **options):
@@ -1300,7 +1307,8 @@ class ReportItem:
             m._resolve_links(ctx)
         if self.chapter_uuid is not None and self.chapter_uuid in ctx.e.chapters.keys():
             self.chapter = ctx.e.chapters[self.chapter_uuid]
-            self.chapter.reports.append(self)
+            if self.chapter is not None:
+                self.chapter.reports.append(self)
 
     @staticmethod
     def load(data: dict, **options):

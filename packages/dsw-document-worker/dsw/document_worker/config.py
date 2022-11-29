@@ -20,7 +20,7 @@ class DocumentsConfig:
 
 class ExperimentalConfig:
 
-    def __init__(self, pdf_only: bool, job_timeout: Optional[float],
+    def __init__(self, pdf_only: bool, job_timeout: Optional[int],
                  max_doc_size: Optional[float],
                  pdf_watermark: str, pdf_watermark_top: bool):
         self.pdf_only = pdf_only

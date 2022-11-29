@@ -31,7 +31,7 @@ class Step:
     def execute_first(self, context: dict) -> DocumentFile:
         return self.raise_exc('Called execute_follow on Step class')
 
-    def execute_follow(self, document: DocumentFile) -> DocumentFile:
+    def execute_follow(self, document: DocumentFile, context: dict) -> DocumentFile:
         return self.raise_exc('Called execute_follow on Step class')
 
     def raise_exc(self, message: str):

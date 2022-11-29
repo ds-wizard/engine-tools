@@ -59,7 +59,7 @@ def _cell_writer_datetime(worksheet: Worksheet, pos_args, item, cell_format):
         value = datetime.datetime.utcnow()
     worksheet.write_datetime(
         *pos_args,
-        datetime=value,
+        date=value,
         cell_format=cell_format,
     )
 
@@ -920,7 +920,7 @@ class ExcelStep(Step):
             self.raise_exc(f'Failed to parse JSON for Excel: {str(e)}')
         return data
 
-    def execute_follow(self, document: DocumentFile) -> DocumentFile:
+    def execute_follow(self, document: DocumentFile, context: dict) -> DocumentFile:
         input_data = self._get_data(document)
         is_xlsm = WorkbookBuilder.is_xlsm(input_data)
         file_format = FileFormats.XLSX

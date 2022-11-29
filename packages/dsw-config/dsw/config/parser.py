@@ -1,6 +1,6 @@
 import yaml
 
-from typing import List
+from typing import List, Any
 
 from .model import GeneralConfig, SentryConfig, S3Config, \
     DatabaseConfig, LoggingConfig, CloudConfig, MailConfig
@@ -98,13 +98,13 @@ class DSWConfigParser:
         return True
 
     def _get_default(self, *path):
-        x = self.DEFAULTS
+        x = self.DEFAULTS  # type: Any
         for p in path:
             x = x[p]
         return x
 
     def get_or_default(self, *path):
-        x = self.cfg
+        x = self.cfg  # type: Any
         for p in path:
             if not hasattr(x, 'keys') or p not in x.keys():
                 return self._get_default(*path)
