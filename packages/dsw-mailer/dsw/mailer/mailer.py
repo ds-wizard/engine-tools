@@ -1,3 +1,4 @@
+import abc
 import datetime
 import math
 import pathlib
@@ -166,14 +167,16 @@ def _app_config_to_context(app_config: Optional[DBAppConfig]) -> dict:
     }
 
 
-class MailerCommand:
+class MailerCommand(abc.ABC):
 
     FUNCTION_NAME = 'unknown'
     TEMPLATE_NAME = ''
 
+    @abc.abstractmethod
     def to_context(self) -> dict:
         pass
 
+    @abc.abstractmethod
     def to_request(self, msg_id: str, trigger: str) -> MessageRequest:
         pass
 
@@ -185,6 +188,7 @@ class MailerCommand:
         return cls.FUNCTION_NAME == cmd.function
 
     @staticmethod
+    @abc.abstractmethod
     def create_from(cmd: PersistentCommand) -> 'MailerCommand':
         pass
 

@@ -344,7 +344,7 @@ class PostgresConnection:
             connect_timeout=timeout,
         )
         self.autocommit = autocommit
-        self._connection = None
+        self._connection = None  # type: Optional[psycopg.Connection]
 
     @tenacity.retry(
         reraise=True,
@@ -356,10 +356,14 @@ class PostgresConnection:
     def _connect_db(self):
         LOG.info(f'Creating connection to PostgreSQL database "{self.name}"')
         connection = psycopg.connect(conninfo=self.dsn, autocommit=self.autocommit)
+        if connection is None:
+            raise RuntimeError('Failed to init DB connection')
         # test connection
         cursor = connection.cursor()
         cursor.execute(query='SELECT 1;')
         result = cursor.fetchone()
+        if result is None:
+            raise RuntimeError('Failed to verify DB connection')
         LOG.debug(f'DB connection verified (result={result[0]})')
         cursor.close()
         connection.commit()

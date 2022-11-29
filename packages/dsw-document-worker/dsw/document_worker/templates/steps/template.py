@@ -2,6 +2,8 @@ import jinja2
 import jinja2.exceptions
 import json
 
+from typing import Any
+
 from ...consts import DEFAULT_ENCODING
 from ...context import Context
 from ...documents import DocumentFile, FileFormat, FileFormats
@@ -19,7 +21,7 @@ class JSONStep(Step):
             DEFAULT_ENCODING
         )
 
-    def execute_follow(self, document: DocumentFile) -> DocumentFile:
+    def execute_follow(self, document: DocumentFile, context: dict) -> DocumentFile:
         return self.raise_exc(f'Step "{self.NAME}" cannot process other files')
 
 
@@ -69,7 +71,7 @@ class Jinja2Step(Step):
             self.template.template_id,
         )
         if template_cfg is not None:
-            global_vars = {'secrets': template_cfg.secrets}
+            global_vars = {'secrets': template_cfg.secrets}  # type: dict[str, Any]
             if template_cfg.requests.enabled:
                 global_vars['requests'] = RequestsWrapper(
                     template_cfg=template_cfg,
@@ -96,7 +98,7 @@ class Jinja2Step(Step):
                            f'- {str(e)}')
         return DocumentFile(self.output_format, content, DEFAULT_ENCODING)
 
-    def execute_follow(self, document: DocumentFile) -> DocumentFile:
+    def execute_follow(self, document: DocumentFile, context: dict) -> DocumentFile:
         return self.raise_exc(f'Step "{self.NAME}" cannot process other files')
 
 
