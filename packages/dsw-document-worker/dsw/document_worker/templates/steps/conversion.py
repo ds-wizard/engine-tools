@@ -16,7 +16,7 @@ class WkHtmlToPdfStep(Step):
     def execute_first(self, context: dict) -> DocumentFile:
         return self.raise_exc(f'Step "{self.NAME}" cannot be first')
 
-    def execute_follow(self, document: DocumentFile) -> DocumentFile:
+    def execute_follow(self, document: DocumentFile, context: dict) -> DocumentFile:
         if document.file_format != FileFormats.HTML:
             self.raise_exc(f'WkHtmlToPdf does not support {document.file_format.name} format as input')
         data = self.wkhtmltopdf(
@@ -71,7 +71,7 @@ class PandocStep(Step):
     def execute_first(self, context: dict) -> DocumentFile:
         return self.raise_exc(f'Step "{self.NAME}" cannot be first')
 
-    def execute_follow(self, document: DocumentFile) -> DocumentFile:
+    def execute_follow(self, document: DocumentFile, context: dict) -> DocumentFile:
         if document.file_format != self.input_format:
             self.raise_exc(f'Unexpected input {document.file_format.name} as input for pandoc')
         data = self.pandoc(
@@ -114,7 +114,7 @@ class RdfLibConvertStep(Step):
     def execute_first(self, context: dict) -> DocumentFile:
         return self.raise_exc(f'Step "{self.NAME}" cannot be first')
 
-    def execute_follow(self, document: DocumentFile) -> DocumentFile:
+    def execute_follow(self, document: DocumentFile, context: dict) -> DocumentFile:
         if document.file_format != self.input_format:
             self.raise_exc(f'Unexpected input {document.file_format.name} '
                            f'as input for rdflib-convert '

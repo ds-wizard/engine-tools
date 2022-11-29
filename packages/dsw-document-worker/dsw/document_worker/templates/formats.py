@@ -66,7 +66,7 @@ class Format:
         result = self.steps[0].execute_first(context)
         for step in self.steps[1:]:
             if result is not None:
-                result = step.execute_follow(result)
+                result = step.execute_follow(result, context)
             else:
                 break
         return result
