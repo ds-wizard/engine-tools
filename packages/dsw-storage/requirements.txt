@@ -1,4 +1,4 @@
-certifi==2022.9.24
+certifi==2022.12.7
 minio==7.1.12
 PyYAML==6.0
 tenacity==8.1.0
