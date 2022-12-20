@@ -175,6 +175,7 @@ class WorkbookBuilder:
         for series in series_list:
             chart.add_series(series)
         self._add_chart_axis(chart, data)
+        self._add_chart_basic(chart, data)
         self._add_chart_advanced(chart, data)
         self.charts[name] = chart
 
