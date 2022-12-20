@@ -6,7 +6,7 @@ if [ "$1" == "--clean" ]; then
   rm -rf env
 
   echo "Setup new venv"
-  python3 -m venv env
+  python -m venv env
 fi
 
 . env/Scripts/activate
