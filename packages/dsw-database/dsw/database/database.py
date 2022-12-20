@@ -10,7 +10,7 @@ from typing import List, Iterable, Optional
 from dsw.config.model import DatabaseConfig
 
 from .model import DBTemplate, DBTemplateFile, DBTemplateAsset, DBDocument, \
-    DocumentState, DBAppConfig, DBAppLimits, DBSubmission
+    DocumentState, DBAppConfig, DBAppLimits, DBSubmission, DBInstanceConfigMail
 
 LOG = logging.getLogger(__name__)
 
@@ -43,6 +43,10 @@ class Database:
     SELECT_TEMPLATE = 'SELECT * FROM template WHERE id = %s AND app_uuid = %s LIMIT 1;'
     SELECT_TEMPLATE_FILES = 'SELECT * FROM template_file WHERE template_id = %s AND app_uuid = %s;'
     SELECT_TEMPLATE_ASSETS = 'SELECT * FROM template_asset WHERE template_id = %s AND app_uuid = %s;'
+    SELECT_MAIL_CONFIG = 'SELECT icm.* ' \
+                         'FROM app_config ac JOIN instance_config_mail icm ' \
+                         'ON ac.mail_config_uuid = icm.uuid ' \
+                         'WHERE ac.uuid = %(app_uuid)s;'
 
     SUM_FILE_SIZES = 'SELECT (SELECT COALESCE(SUM(file_size)::bigint, 0) ' \
                      'FROM document WHERE app_uuid = %(app_uuid)s) ' \
@@ -307,6 +311,29 @@ class Database:
                 return DBAppConfig.from_dict_row(data=result)
             except Exception as e:
                 LOG.warning(f'Could not retrieve app_config for app'
+                            f' "{app_uuid}": {str(e)}')
+                return None
+
+    @tenacity.retry(
+        reraise=True,
+        wait=tenacity.wait_exponential(multiplier=RETRY_QUERY_MULTIPLIER),
+        stop=tenacity.stop_after_attempt(RETRY_QUERY_TRIES),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
+    )
+    def get_mail_config(self, app_uuid: str) -> Optional[DBInstanceConfigMail]:
+        with self.conn_query.new_cursor(use_dict=True) as cursor:
+            try:
+                cursor.execute(
+                    query=self.SELECT_MAIL_CONFIG,
+                    params={'app_uuid': app_uuid},
+                )
+                result = cursor.fetchone()
+                if result is None:
+                    return None
+                return DBInstanceConfigMail.from_dict_row(data=result)
+            except Exception as e:
+                LOG.warning(f'Could not retrieve instance_mail_config for app'
                             f' "{app_uuid}": {str(e)}')
                 return None
 
