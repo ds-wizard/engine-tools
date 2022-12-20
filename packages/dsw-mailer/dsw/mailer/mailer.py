@@ -473,7 +473,7 @@ class _MRRegistrationConfirmation(MailerCommand):
         self.callback_url = callback_url
 
     @property
-    def activation_link(self) -> str:
+    def registry_link(self) -> str:
         return f'{self.client_url}/signup/{self.org.id}/{self.code}'
 
     @property
@@ -482,12 +482,19 @@ class _MRRegistrationConfirmation(MailerCommand):
             return None
         return f'{self.client_url}/registry/signup/{self.org.id}/{self.code}'
 
+    @property
+    def activation_link(self) -> Optional[str]:
+        if self.callback_url is None:
+            return self.registry_link
+        return self.callback_link
+
     def to_context(self) -> dict:
         return {
             'organization': self.org.to_context(),
             'hash': self.code,
-            'activationLink': self.activation_link,
+            'registryLink': self.registry_link,
             'callbackLink': self.callback_link,
+            'activationLink': self.activation_link,
             'clientUrl': self.client_url,
         }
 
