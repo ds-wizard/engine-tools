@@ -1,7 +1,6 @@
 import click  # type: ignore
 import json
 import pathlib
-import sys
 
 from typing import IO
 
@@ -54,9 +53,6 @@ def extract_message_request(ctx, param, value: IO):
               default='wizard')
 def cli(ctx, config: MailerConfig, workdir: str, mode: str):
     """Mailer for sending emails from DSW"""
-    if not config.mail.enabled:
-        click.echo('Mail is set to disabled, why even running mailer?')
-        sys.exit(1)
     path_workdir = pathlib.Path(workdir)
     prepare_logging(cfg=config)
     from .mailer import Mailer
@@ -71,7 +67,7 @@ def send(ctx, msg_request: MessageRequest):
     """Send message(s) from given file directly"""
     from .mailer import Mailer
     mailer = ctx.obj['mailer']  # type: Mailer
-    mailer.send(rq=msg_request)
+    mailer.send(rq=msg_request, cfg=None)
 
 
 @cli.command()

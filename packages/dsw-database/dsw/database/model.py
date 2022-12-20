@@ -281,3 +281,38 @@ class DBSubmission:
             'updated_at': self.updated_at.isoformat(timespec='milliseconds'),
             'app_uuid': self.app_uuid,
         }
+
+
+@dataclasses.dataclass
+class DBInstanceConfigMail:
+    TABLE_NAME = 'instance_config_mail'
+
+    uuid: str
+    enabled: bool
+    sender_name: Optional[str]
+    sender_email: Optional[str]
+    host: str
+    port: Optional[int]
+    security: Optional[str]
+    username: Optional[str]
+    password: Optional[str]
+    rate_limit_window: Optional[int]
+    rate_limit_count: Optional[int]
+    timeout: Optional[int]
+
+    @staticmethod
+    def from_dict_row(data: dict):
+        return DBInstanceConfigMail(
+            uuid=str(data['uuid']),
+            enabled=data['enabled'],
+            sender_name=data['sender_name'],
+            sender_email=data['sender_email'],
+            host=data['host'],
+            port=data['port'],
+            security=data['security'],
+            username=data['username'],
+            password=data['password'],
+            rate_limit_window=data['rate_limit_window'],
+            rate_limit_count=data['rate_limit_count'],
+            timeout=data['timeout'],
+        )

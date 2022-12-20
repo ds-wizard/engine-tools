@@ -9,9 +9,10 @@ from typing import Optional
 
 from dsw.command_queue import CommandWorker, CommandQueue
 from dsw.database.database import Database
-from dsw.database.model import DBAppConfig, PersistentCommand
+from dsw.database.model import DBAppConfig, PersistentCommand, \
+    DBInstanceConfigMail
 
-from .config import MailerConfig
+from .config import MailerConfig, MailConfig
 from .connection import SMTPSender, SentryReporter
 from .consts import Queries, CMD_COMPONENT
 from .context import Context
@@ -95,9 +96,14 @@ class Mailer(CommandWorker):
             msg_id=cmd.uuid,
             trigger='PersistentComment',
         )
+        # get mailer config from DB
+        cfg = _transform_mail_config(
+            cfg=app_ctx.db.get_mail_config(app_uuid=cmd.app_uuid),
+        )
+        Context.logger.debug(f'Config from DB: {cfg}')
         # update Sentry info
         SentryReporter.set_context('template', rq.template_name)
-        self.send(rq)
+        self.send(rq, cfg)
         app_ctx.db.execute_query(
             query=Queries.UPDATE_CMD_DONE,
             attempts=cmd.attempts + 1,
@@ -115,18 +121,39 @@ class Mailer(CommandWorker):
         )
         queue.run()
 
-    def send(self, rq: MessageRequest):
+    def send(self, rq: MessageRequest, cfg: Optional[MailConfig]):
         Context.logger.info(f'Sending request: {rq.template_name} ({rq.id})')
         # get template
         if not self.ctx.templates.has_template_for(rq):
             raise RuntimeError(f'Template not found: {rq.template_name}')
         # render
         Context.logger.info(f'Rendering message: {rq.template_name}')
-        msg = self.ctx.templates.render(rq)
+        msg = self.ctx.templates.render(rq, cfg)
         # send
         Context.logger.info(f'Sending message: {rq.template_name}')
-        self.ctx.app.sender.send(msg)
+        self.ctx.app.sender.send(msg, cfg)
         Context.logger.info('Message sent successfully')
+
+
+def _transform_mail_config(cfg: Optional[DBInstanceConfigMail]) -> Optional[MailConfig]:
+    if cfg is None:
+        return None
+    return MailConfig(
+        enabled=cfg.enabled,
+        name=cfg.sender_name,
+        email=cfg.sender_email,
+        host=cfg.host,
+        port=cfg.port,
+        security=cfg.security,
+        username=cfg.username,
+        password=cfg.password,
+        rate_limit_window=cfg.rate_limit_window,
+        rate_limit_count=cfg.rate_limit_count,
+        timeout=cfg.timeout,
+        ssl=None,
+        auth=None,
+    )
+
 
 #########################################################################################
 # Commands and their logic

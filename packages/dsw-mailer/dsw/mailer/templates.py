@@ -4,7 +4,7 @@ import pathlib
 
 from typing import Optional
 
-from .config import MailerConfig
+from .config import MailerConfig, MailConfig
 from .consts import DEFAULT_ENCODING
 from .model import MailMessage, MailAttachment, MessageRequest,\
     TemplateDescriptor, TemplateDescriptorPart
@@ -67,7 +67,8 @@ class TemplateRegistry:
             )
         return None
 
-    def _load_attachment(self, template_path: pathlib.Path,
+    @staticmethod
+    def _load_attachment(template_path: pathlib.Path,
                          part: TemplateDescriptorPart) -> Optional[MailAttachment]:
         file_path = template_path / part.file
         if file_path.exists() and file_path.is_file():
@@ -139,9 +140,10 @@ class TemplateRegistry:
     def has_template_for(self, rq: MessageRequest) -> bool:
         return rq.template_name in self.templates.keys()
 
-    def render(self, rq: MessageRequest) -> MailMessage:
+    def render(self, rq: MessageRequest, cfg: MailConfig) -> MailMessage:
+        used_cfg = cfg or self.cfg.mail
         return self.templates[rq.template_name].render(
             rq=rq,
-            mail_name=self.cfg.mail.name,
-            mail_from=self.cfg.mail.email,
+            mail_name=used_cfg.name,
+            mail_from=used_cfg.email,
         )
