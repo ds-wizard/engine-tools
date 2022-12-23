@@ -1,7 +1,9 @@
+import os
 import yaml
 
 from typing import List, Any
 
+from .keys import ConfigKey, ConfigKeys
 from .model import GeneralConfig, SentryConfig, S3Config, \
     DatabaseConfig, LoggingConfig, CloudConfig, MailConfig
 
@@ -14,66 +16,9 @@ class MissingConfigurationError(Exception):
 
 class DSWConfigParser:
 
-    DB_SECTION = 'database'
-    S3_SECTION = 's3'
-    LOGGING_SECTION = 'logging'
-    CLOUD_SECTION = 'cloud'
-    SENTRY_SECTION = 'sentry'
-    GENERAL_SECTION = 'general'
-    MAIL_SECTION = 'mail'
-
-    DEFAULTS = {
-        DB_SECTION: {
-            'connectionString': 'postgresql://postgres:postgres@postgres:5432/engine-wizard',
-            'connectionTimeout': 30000,
-            'queueTimeout': 120,
-        },
-        S3_SECTION: {
-            'url': 'http://minio:9000',
-            'vhost': 'minio',
-            'queue': 'minio',
-            'bucket': 'engine-wizard',
-            'region': 'eu-central-1',
-        },
-        LOGGING_SECTION: {
-            'level': 'INFO',
-            'globalLevel': 'WARNING',
-            'format': '%(asctime)s | %(levelname)8s | %(name)s: [T:%(traceId)s] %(message)s',
-        },
-        CLOUD_SECTION: {
-            'enabled': False,
-        },
-        SENTRY_SECTION: {
-            'enabled': False,
-            'workersDsn': None
-        },
-        GENERAL_SECTION: {
-            'environment': 'Production',
-            'clientUrl': 'http://localhost:8080',
-        },
-        MAIL_SECTION: {
-            'enabled': True,
-            'name': 'DS Wizard',
-            'email': '',
-            'host': '',
-            'port': None,
-            'ssl': None,
-            'security': None,
-            'authEnabled': False,
-            'username': None,
-            'password': None,
-            'rateLimit': {
-                'window': 0,
-                'count': 0,
-            },
-            'timeout': 5,
-        },
-    }
-
-    REQUIRED = []  # type: List[str]
-
-    def __init__(self):
+    def __init__(self, keys=ConfigKeys):
         self.cfg = dict()
+        self.keys = keys
 
     @staticmethod
     def can_read(content):
@@ -89,100 +34,111 @@ class DSWConfigParser:
     def read_string(self, content):
         self.cfg = yaml.load(content, Loader=yaml.FullLoader)
 
-    def has(self, *path):
+    def has_value_for_path(self, yaml_path: list[str]):
         x = self.cfg
-        for p in path:
+        for p in yaml_path:
             if not hasattr(x, 'keys') or p not in x.keys():
                 return False
             x = x[p]
         return True
 
-    def _get_default(self, *path):
-        x = self.DEFAULTS  # type: Any
-        for p in path:
+    @staticmethod
+    def _prefix_var(var_name: str) -> str:
+        return f'DSW_{var_name}'
+
+    def has_value_for_key(self, key: ConfigKey):
+        if self.has_value_for_path(key.yaml_path):
+            return True
+        for var_name in key.var_names:
+            if var_name in os.environ.keys() or \
+                    self._prefix_var(var_name) in os.environ.keys():
+                return True
+
+    def get_or_default(self, key: ConfigKey):
+        x = self.cfg  # type: Any
+        for p in key.yaml_path:
+            if not hasattr(x, 'keys') or p not in x.keys():
+                return key.default
             x = x[p]
         return x
 
-    def get_or_default(self, *path):
-        x = self.cfg  # type: Any
-        for p in path:
-            if not hasattr(x, 'keys') or p not in x.keys():
-                return self._get_default(*path)
-            x = x[p]
-        return x
+    def get(self, key: ConfigKey):
+        for var_name in key.var_names:
+            if var_name in os.environ.keys():
+                return key.cast(os.environ[var_name])
+            if self._prefix_var(var_name) in os.environ.keys():
+                return key.cast(os.environ[self._prefix_var(var_name)])
+        return key.cast(self.get_or_default(key))
 
     def validate(self):
         missing = []
-        for path in self.REQUIRED:
-            if not self.has(*path):
-                missing.append('.'.join(path))
+        for key in self.keys:
+            if key.required and not self.has_value_for_key(key):
+                missing.append('.'.join(key.yaml_path))
         if len(missing) > 0:
             raise MissingConfigurationError(missing)
 
     @property
     def db(self) -> DatabaseConfig:
         return DatabaseConfig(
-            connection_string=self.get_or_default(self.DB_SECTION, 'connectionString'),
-            connection_timeout=self.get_or_default(self.DB_SECTION, 'connectionTimeout'),
-            queue_timout=self.get_or_default(self.DB_SECTION, 'queueTimeout'),
+            connection_string=self.get(self.keys.database.connection_string),
+            connection_timeout=self.get(self.keys.database.connection_timeout),
+            queue_timout=self.get(self.keys.database.queue_timeout),
         )
 
     @property
     def s3(self) -> S3Config:
         return S3Config(
-            url=self.get_or_default(self.S3_SECTION, 'url'),
-            username=self.get_or_default(self.S3_SECTION, 'username'),
-            password=self.get_or_default(self.S3_SECTION, 'password'),
-            bucket=self.get_or_default(self.S3_SECTION, 'bucket'),
-            region=self.get_or_default(self.S3_SECTION, 'region'),
+            url=self.get(self.keys.s3.url),
+            username=self.get(self.keys.s3.username),
+            password=self.get(self.keys.s3.password),
+            bucket=self.get(self.keys.s3.bucket),
+            region=self.get(self.keys.s3.region),
         )
 
     @property
     def logging(self) -> LoggingConfig:
         return LoggingConfig(
-            level=self.get_or_default(self.LOGGING_SECTION, 'level'),
-            global_level=self.get_or_default(self.LOGGING_SECTION, 'globalLevel'),
-            message_format=self.get_or_default(self.LOGGING_SECTION, 'format'),
+            level=self.get(self.keys.logging.level),
+            global_level=self.get(self.keys.logging.global_level),
+            message_format=self.get(self.keys.logging.format),
         )
 
     @property
     def cloud(self) -> CloudConfig:
         return CloudConfig(
-            multi_tenant=self.get_or_default(self.CLOUD_SECTION, 'enabled'),
+            multi_tenant=self.get(self.keys.cloud.enabled),
         )
 
     @property
     def sentry(self) -> SentryConfig:
         return SentryConfig(
-            enabled=self.get_or_default(self.SENTRY_SECTION, 'enabled'),
-            workers_dsn=self.get_or_default(self.SENTRY_SECTION, 'workersDsn'),
+            enabled=self.get(self.keys.sentry.enabled),
+            workers_dsn=self.get(self.keys.sentry.worker_dsn),
         )
 
     @property
     def general(self) -> GeneralConfig:
         return GeneralConfig(
-            environment=self.get_or_default(self.GENERAL_SECTION, 'environment'),
-            client_url=self.get_or_default(self.GENERAL_SECTION, 'clientUrl'),
+            environment=self.get(self.keys.general.environment),
+            client_url=self.get(self.keys.general.client_url),
+            secret=self.get(self.keys.general.secret),
         )
 
     @property
     def mail(self):
         return MailConfig(
-            enabled=self.get_or_default(self.MAIL_SECTION, 'enabled'),
-            name=self.get_or_default(self.MAIL_SECTION, 'name'),
-            email=self.get_or_default(self.MAIL_SECTION, 'email'),
-            host=self.get_or_default(self.MAIL_SECTION, 'host'),
-            ssl=self.get_or_default(self.MAIL_SECTION, 'ssl'),
-            port=self.get_or_default(self.MAIL_SECTION, 'port'),
-            security=self.get_or_default(self.MAIL_SECTION, 'security'),
-            auth=self.get_or_default(self.MAIL_SECTION, 'authEnabled'),
-            username=self.get_or_default(self.MAIL_SECTION, 'username'),
-            password=self.get_or_default(self.MAIL_SECTION, 'password'),
-            rate_limit_window=self.get_or_default(
-                self.MAIL_SECTION, 'rateLimit', 'window'
-            ),
-            rate_limit_count=self.get_or_default(
-                self.MAIL_SECTION, 'rateLimit', 'count'
-            ),
-            timeout=int(self.get_or_default(self.MAIL_SECTION, 'timeout')),
+            enabled=self.get(self.keys.mail.enabled),
+            name=self.get(self.keys.mail.name),
+            email=self.get(self.keys.mail.email),
+            host=self.get(self.keys.mail.host),
+            ssl=self.get(self.keys.mail.ssl),
+            port=self.get(self.keys.mail.port),
+            security=self.get(self.keys.mail.security),
+            auth=self.get(self.keys.mail.auth_enabled),
+            username=self.get(self.keys.mail.username),
+            password=self.get(self.keys.mail.password),
+            rate_limit_window=int(self.get(self.keys.mail.rate_limit_window)),
+            rate_limit_count=int(self.get(self.keys.mail.rate_limit_count)),
+            timeout=int(self.get(self.keys.mail.timeout)),
         )
