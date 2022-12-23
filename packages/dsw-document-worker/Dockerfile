@@ -1,4 +1,4 @@
-FROM datastewardshipwizard/python-base:3.10-jammy as builder
+FROM datastewardshipwizard/python-base:3.11-jammy as builder
 
 ARG TARGETARCH
 
@@ -15,7 +15,7 @@ RUN python -m pip wheel --no-cache-dir --wheel-dir=/root/wheels -r /app/packages
  && python -m pip install --no-cache --no-index /root/wheels/* \
  && python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/root/wheels /app/packages/dsw-document-worker
 
-FROM datastewardshipwizard/python-base:3.10-jammy-apt
+FROM datastewardshipwizard/python-base:3.11-jammy-apt
 
 ARG TARGETARCH
 ENV DOCWORKER_CONFIG /app/config.yml
