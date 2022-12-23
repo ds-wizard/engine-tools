@@ -1,4 +1,4 @@
-FROM datastewardshipwizard/python-base:3.10-jammy as builder
+FROM datastewardshipwizard/python-base:3.11-jammy as builder
 
 WORKDIR /app
 
@@ -10,7 +10,7 @@ RUN python -m pip wheel --no-cache-dir --wheel-dir=/root/wheels -r /app/packages
  && python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/root/wheels /app/packages/dsw-database \
  && python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/root/wheels /app/packages/dsw-mailer
 
-FROM datastewardshipwizard/python-base:3.10-jammy
+FROM datastewardshipwizard/python-base:3.11-jammy
 
 ENV DSW_CONFIG /app/config.yml
 ENV MAILER_WORKDIR /app/templates
