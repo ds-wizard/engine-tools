@@ -42,11 +42,13 @@ class SMTPSender:
         Context.logger.info(f'Sending via SMTP: {used_cfg.host}:{used_cfg.port}')
         self._send(message, used_cfg)
 
-    def _send(self, mail: MailMessage, cfg: MailConfig):
+    @classmethod
+    def _send(cls, mail: MailMessage, cfg: MailConfig):
         if cfg.is_ssl:
-            return self._send_smtp_ssl(mail=mail, cfg=cfg)
-        return self._send_smtp(mail=mail, cfg=cfg)
+            return cls._send_smtp_ssl(mail=mail, cfg=cfg)
+        return cls._send_smtp(mail=mail, cfg=cfg)
 
+    @classmethod
     def _send_smtp_ssl(cls, mail: MailMessage, cfg: MailConfig):
         context = ssl.create_default_context()
         with smtplib.SMTP_SSL(

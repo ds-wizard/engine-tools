@@ -129,4 +129,5 @@ class MailConfig(ConfigModel):
                f'- security = {self.security}\n' \
                f'- auth = {self.auth}\n' \
                f'- rate_limit_window = {self.rate_limit_window}\n' \
-               f'- rate_limit_count = {self.rate_limit_count}\n'
+               f'- rate_limit_count = {self.rate_limit_count}\n' \
+               f'- timeout = {self.timeout}\n'

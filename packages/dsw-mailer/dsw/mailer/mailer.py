@@ -97,9 +97,11 @@ class Mailer(CommandWorker):
             trigger='PersistentComment',
         )
         # get mailer config from DB
-        cfg = _transform_mail_config(
-            cfg=app_ctx.db.get_mail_config(app_uuid=cmd.app_uuid),
-        )
+        cfg = None
+        if Context.is_wizard_mode():
+            cfg = _transform_mail_config(
+                cfg=app_ctx.db.get_mail_config(app_uuid=cmd.app_uuid),
+            )
         Context.logger.debug(f'Config from DB: {cfg}')
         # update Sentry info
         SentryReporter.set_context('template', rq.template_name)
