@@ -164,7 +164,7 @@ class _DatabaseKeys(ConfigKeysContainer):
     queue_timeout = ConfigKey(
         yaml_path=['database', 'queueTimeout'],
         var_names=['DATABASE_QUEUE_TIMEOUT'],
-        default=300,
+        default=180,
         cast=cast_int,
     )
 
@@ -235,12 +235,12 @@ class _MailKeys(ConfigKeysContainer):
     ssl = ConfigKey(
         yaml_path=['mail', 'ssl'],
         var_names=[],
-        cast=cast_str,
+        cast=cast_optional_str,
     )
     security = ConfigKey(
         yaml_path=['mail', 'security'],
         var_names=['MAIL_SECURITY'],
-        cast=cast_str,
+        cast=cast_optional_str,
     )
     auth_enabled = ConfigKey(
         yaml_path=['mail', 'authEnabled'],
@@ -271,9 +271,9 @@ class _MailKeys(ConfigKeysContainer):
         cast=cast_int,
     )
     timeout = ConfigKey(
-        yaml_path=['mail', 'enabled'],
+        yaml_path=['mail', 'timeout'],
         var_names=['MAIL_TIMEOUT'],
-        default=5,
+        default=10,
         cast=cast_int,
     )
 

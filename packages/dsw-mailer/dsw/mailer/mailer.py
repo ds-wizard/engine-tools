@@ -97,9 +97,11 @@ class Mailer(CommandWorker):
             trigger='PersistentComment',
         )
         # get mailer config from DB
-        cfg = _transform_mail_config(
-            cfg=app_ctx.db.get_mail_config(app_uuid=cmd.app_uuid),
-        )
+        cfg = None
+        if Context.is_wizard_mode():
+            cfg = _transform_mail_config(
+                cfg=app_ctx.db.get_mail_config(app_uuid=cmd.app_uuid),
+            )
         Context.logger.debug(f'Config from DB: {cfg}')
         # update Sentry info
         SentryReporter.set_context('template', rq.template_name)
@@ -507,7 +509,7 @@ class _MRRegistrationConfirmation(MailerCommand):
     def callback_link(self) -> Optional[str]:
         if self.callback_url is None:
             return None
-        return f'{self.client_url}/registry/signup/{self.org.id}/{self.code}'
+        return f'{self.callback_url}/registry/signup/{self.org.id}/{self.code}'
 
     @property
     def activation_link(self) -> Optional[str]:
