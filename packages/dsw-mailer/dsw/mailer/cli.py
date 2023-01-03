@@ -1,9 +1,8 @@
 import click  # type: ignore
 import json
 import pathlib
-import sys
 
-from typing import IO
+from typing import IO, Optional
 
 from dsw.config.parser import MissingConfigurationError
 
@@ -13,8 +12,12 @@ from .model import MessageRequest
 from .logging import prepare_logging
 
 
-def validate_config(ctx, param, value: IO):
-    content = value.read()
+def validate_config(ctx, param, value: Optional[IO]):
+    if value is None:
+        content = ''
+    else:
+        content = value.read()
+        value.close()
     parser = MailerConfigParser()
     if not parser.can_read(content):
         click.echo('Error: Cannot parse config file', err=True)
@@ -45,8 +48,8 @@ def extract_message_request(ctx, param, value: IO):
 @click.pass_context
 @click.version_option(version=VERSION)
 @click.option('-c', '--config', envvar='DSW_CONFIG',
-              type=click.File('r', encoding='utf-8'),
-              callback=validate_config)
+              required=False, callback=validate_config,
+              type=click.File('r', encoding='utf-8'))
 @click.option('-w', '--workdir', envvar='MAILER_WORKDIR',
               type=click.Path(dir_okay=True, exists=True))
 @click.option('-m', '--mode', envvar='MAILER_MODE',
@@ -54,9 +57,6 @@ def extract_message_request(ctx, param, value: IO):
               default='wizard')
 def cli(ctx, config: MailerConfig, workdir: str, mode: str):
     """Mailer for sending emails from DSW"""
-    if not config.mail.enabled:
-        click.echo('Mail is set to disabled, why even running mailer?')
-        sys.exit(1)
     path_workdir = pathlib.Path(workdir)
     prepare_logging(cfg=config)
     from .mailer import Mailer
@@ -71,7 +71,7 @@ def send(ctx, msg_request: MessageRequest):
     """Send message(s) from given file directly"""
     from .mailer import Mailer
     mailer = ctx.obj['mailer']  # type: Mailer
-    mailer.send(rq=msg_request)
+    mailer.send(rq=msg_request, cfg=None)
 
 
 @cli.command()

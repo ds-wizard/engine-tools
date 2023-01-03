@@ -1,24 +1,113 @@
 import shlex
-from typing import List, Optional
+from typing import List, Optional, Type
 
 from dsw.config import DSWConfigParser
+from dsw.config.keys import ConfigKey, ConfigKeys, ConfigKeysContainer,\
+    cast_str, cast_optional_int, cast_bool, cast_optional_str
 from dsw.config.model import GeneralConfig, SentryConfig, DatabaseConfig,\
-    S3Config, LoggingConfig, CloudConfig
+    S3Config, LoggingConfig, CloudConfig, ConfigModel
 
 from .consts import DocumentNamingStrategy
 
 
-class DocumentsConfig:
+class _DocumentsKeys(ConfigKeysContainer):
+    naming_strategy = ConfigKey(
+        yaml_path=['documents', 'naming', 'strategy'],
+        var_names=['DOCUMENTS_NAMING_STRATEGY'],
+        default='sanitize',
+        cast=cast_str,
+    )
+
+
+class _ExperimentalKeys(ConfigKeysContainer):
+    pdf_only = ConfigKey(
+        yaml_path=['experimental', 'pdfOnly'],
+        var_names=['EXPERIMENTAL_PDF_ONLY'],
+        default=False,
+        cast=cast_bool,
+    )
+    job_timeout = ConfigKey(
+        yaml_path=['experimental', 'jobTimeout'],
+        var_names=['EXPERIMENTAL_JOB_TIMEOUT'],
+        default=None,
+        cast=cast_optional_int,
+    )
+    max_doc_size = ConfigKey(
+        yaml_path=['experimental', 'maxDocumentSize'],
+        var_names=['EXPERIMENTAL_MAX_DOCUMENT_SIZE'],
+        default=None,
+        cast=cast_optional_int,
+    )
+    pdf_watermark = ConfigKey(
+        yaml_path=['experimental', 'pdfWatermark'],
+        var_names=['EXPERIMENTAL_PDF_WATERMARK'],
+        default='/app/data/watermark.pdf',
+        cast=cast_optional_str,
+    )
+    pdf_watermark_top = ConfigKey(
+        yaml_path=['experimental', 'pdfWatermarkTop'],
+        var_names=['EXPERIMENTAL_PDF_WATERMARK_TOP'],
+        default=True,
+        cast=cast_bool,
+    )
+
+
+class _CommandPandocKeys(ConfigKeysContainer):
+    executable = ConfigKey(
+        yaml_path=['externals', 'pandoc', 'executable'],
+        var_names=['PANDOC_EXECUTABLE'],
+        default='pandoc',
+        cast=cast_str,
+    )
+    args = ConfigKey(
+        yaml_path=['externals', 'pandoc', 'args'],
+        var_names=['PANDOC_ARGS'],
+        default='--standalone',
+        cast=cast_str,
+    )
+    timeout = ConfigKey(
+        yaml_path=['externals', 'pandoc', 'timeout'],
+        var_names=['PANDOC_TIMEOUT'],
+        default=None,
+        cast=cast_optional_int,
+    )
+
+
+class _CommandWkhtmltopdfKeys(ConfigKeysContainer):
+    executable = ConfigKey(
+        yaml_path=['externals', 'wkhtmltopdf', 'executable'],
+        var_names=['WKHTMLTOPDF_EXECUTABLE'],
+        default='wkhtmltopdf',
+        cast=cast_str,
+    )
+    args = ConfigKey(
+        yaml_path=['externals', 'wkhtmltopdf', 'args'],
+        var_names=['WKHTMLTOPDF_ARGS'],
+        default='',
+        cast=cast_str,
+    )
+    timeout = ConfigKey(
+        yaml_path=['externals', 'wkhtmltopdf', 'timeout'],
+        var_names=['WKHTMLTOPDF_TIMEOUT'],
+        default=None,
+        cast=cast_optional_int,
+    )
+
+
+class DocWorkerConfigKeys(ConfigKeys):
+    documents = _DocumentsKeys
+    experimental = _ExperimentalKeys
+    cmd_pandoc = _CommandPandocKeys
+    cmd_wkhtmltopdf = _CommandWkhtmltopdfKeys
+
+
+class DocumentsConfig(ConfigModel):
 
     def __init__(self, naming_strategy: str):
         self.naming_strategy = DocumentNamingStrategy.get(naming_strategy)
 
-    def __str__(self):
-        return f'DocumentsConfig\n' \
-               f'- naming_strategy = {self.naming_strategy}\n'
 
-
-class ExperimentalConfig:
+class ExperimentalConfig(ConfigModel):
 
     def __init__(self, pdf_only: bool, job_timeout: Optional[int],
                  max_doc_size: Optional[float],
@@ -28,14 +117,6 @@ class ExperimentalConfig:
         self.max_doc_size = max_doc_size
         self.pdf_watermark = pdf_watermark
         self.pdf_watermark_top = pdf_watermark_top
-
-    def __str__(self):
-        return f'ExperimentalConfig\n' \
-               f'- pdf_only = {self.pdf_only}\n' \
-               f'- job_timeout = {self.job_timeout}\n' \
-               f'- max_doc_size = {self.max_doc_size}\n' \
-               f'- pdf_watermark = {self.pdf_watermark}\n' \
-               f'- pdf_watermark_top = {self.pdf_watermark_top}\n'
 
 
 class CommandConfig:
@@ -48,12 +129,6 @@ class CommandConfig:
     @property
     def command(self) -> List[str]:
         return [self.executable] + shlex.split(self.args)
-
-    def __str__(self):
-        return f'CommandConfig\n' \
-               f'- executable = {self.executable} ({type(self.executable)})\n' \
-               f'- args = {self.args} ({type(self.args)})\n' \
-               f'- timeout = {self.timeout} ({type(self.timeout)})\n'
 
 
 class TemplateRequestsConfig:
@@ -82,7 +157,6 @@ class TemplateConfig:
 
     @staticmethod
     def load(data: dict):
-        print(data)
         return TemplateConfig(
             ids=data.get('ids', []),
             requests=TemplateRequestsConfig.load(
@@ -141,80 +215,51 @@ class DocumentWorkerConfig:
 
 class DocumentWorkerConfigParser(DSWConfigParser):
 
-    DOCS_SECTION = 'documents'
-    DOCS_NAMING_SUBSECTION = 'naming'
-    EXTERNAL_SECTION = 'externals'
-    PANDOC_SUBSECTION = 'pandoc'
-    WKHTMLTOPDF_SUBSECTION = 'wkhtmltopdf'
     TEMPLATES_SECTION = 'templates'
-    EXPERIMENTAL_SECTION = 'experimental'
 
-    DEFAULTS = {
-        **DSWConfigParser.DEFAULTS,
-        DOCS_SECTION: {
-            DOCS_NAMING_SUBSECTION: {
-                'strategy': 'sanitize'
-            }
-        },
-        EXTERNAL_SECTION: {
-            PANDOC_SUBSECTION: {
-                'executable': 'pandoc',
-                'args': '--standalone',
-                'timeout': None,
-            },
-            WKHTMLTOPDF_SUBSECTION: {
-                'executable': 'wkhtmltopdf',
-                'args': '',
-                'timeout': None,
-            },
-        },
-        TEMPLATES_SECTION: [],
-        EXPERIMENTAL_SECTION: {
-            'pdfOnly': False,
-            'jobTimeout': None,
-            'maxDocumentSize': None,
-            'pdfWatermark': '/app/data/watermark.pdf',
-            'pdfWatermarkTop': True,
-        },
-    }
+    def __init__(self):
+        super().__init__(keys=DocWorkerConfigKeys)
+        self.keys = DocWorkerConfigKeys  # type: Type[DocWorkerConfigKeys]
 
     @property
     def documents(self) -> DocumentsConfig:
         return DocumentsConfig(
-            naming_strategy=self.get_or_default(self.DOCS_SECTION, self.DOCS_NAMING_SUBSECTION, 'strategy')
-        )
-
-    def _command_config(self, *path: str) -> CommandConfig:
-        return CommandConfig(
-            executable=self.get_or_default(*path, 'executable'),
-            args=self.get_or_default(*path, 'args'),
-            timeout=self.get_or_default(*path, 'timeout'),
+            naming_strategy=self.get(self.keys.documents.naming_strategy)
         )
 
     @property
     def pandoc(self) -> CommandConfig:
-        return self._command_config(self.EXTERNAL_SECTION, self.PANDOC_SUBSECTION)
+        return CommandConfig(
+            executable=self.get(self.keys.cmd_pandoc.executable),
+            args=self.get(self.keys.cmd_pandoc.args),
+            timeout=self.get(self.keys.cmd_pandoc.timeout),
+        )
 
     @property
     def wkhtmltopdf(self) -> CommandConfig:
-        return self._command_config(self.EXTERNAL_SECTION, self.WKHTMLTOPDF_SUBSECTION)
+        return CommandConfig(
+            executable=self.get(self.keys.cmd_wkhtmltopdf.executable),
+            args=self.get(self.keys.cmd_wkhtmltopdf.args),
+            timeout=self.get(self.keys.cmd_wkhtmltopdf.timeout),
+        )
 
     @property
     def templates(self) -> TemplatesConfig:
-        templates_data = self.get_or_default(self.TEMPLATES_SECTION)
-        templates = [TemplateConfig.load(data) for data in templates_data]
         return TemplatesConfig(
-            templates=templates,
+            templates=[
+                TemplateConfig.load(data)
+                for data in self.cfg.get(self.TEMPLATES_SECTION, [])
+            ],
         )
 
     @property
     def experimental(self) -> ExperimentalConfig:
         return ExperimentalConfig(
-            pdf_only=self.get_or_default(self.EXPERIMENTAL_SECTION, 'pdfOnly'),
-            job_timeout=self.get_or_default(self.EXPERIMENTAL_SECTION, 'jobTimeout'),
-            max_doc_size=self.get_or_default(self.EXPERIMENTAL_SECTION, 'maxDocumentSize'),
-            pdf_watermark=self.get_or_default(self.EXPERIMENTAL_SECTION, 'pdfWatermark'),
-            pdf_watermark_top=self.get_or_default(self.EXPERIMENTAL_SECTION, 'pdfWatermarkTop'),
+            pdf_only=self.get(self.keys.experimental.pdf_only),
+            job_timeout=self.get(self.keys.experimental.job_timeout),
+            max_doc_size=self.get(self.keys.experimental.max_doc_size),
+            pdf_watermark=self.get(self.keys.experimental.pdf_watermark),
+            pdf_watermark_top=self.get(self.keys.experimental.pdf_watermark_top),
         )
 
     @property

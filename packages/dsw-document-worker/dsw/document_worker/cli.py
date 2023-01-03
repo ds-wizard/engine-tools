@@ -3,7 +3,7 @@ import pathlib
 import logging
 import sys
 
-from typing import IO
+from typing import IO, Optional
 
 from dsw.config.parser import MissingConfigurationError
 
@@ -12,8 +12,12 @@ from .sentry import SentryReporter
 from .consts import VERSION
 
 
-def validate_config(ctx, param, value: IO):
-    content = value.read()
+def validate_config(ctx, param, value: Optional[IO]):
+    if value is None:
+        content = ''
+    else:
+        content = value.read()
+        value.close()
     parser = DocumentWorkerConfigParser()
     if not parser.can_read(content):
         click.echo('Error: Cannot parse config file', err=True)
@@ -33,8 +37,8 @@ def validate_config(ctx, param, value: IO):
 @click.command(name='docworker')
 @click.version_option(version=VERSION)
 @click.argument('config', envvar='DOCWORKER_CONFIG',
-                type=click.File('r', encoding='utf-8'),
-                callback=validate_config)
+                required=False, callback=validate_config,
+                type=click.File('r', encoding='utf-8'))
 @click.argument('workdir', envvar='DOCWORKER_WORKDIR',
                 type=click.Path(dir_okay=True, exists=True))
 def main(config: DocumentWorkerConfig, workdir: str):

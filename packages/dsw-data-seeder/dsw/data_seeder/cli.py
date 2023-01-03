@@ -1,7 +1,7 @@
+import click  # type: ignore
 import pathlib
 
-import click  # type: ignore
-from typing import IO
+from typing import IO, Optional
 
 from dsw.config.parser import MissingConfigurationError
 
@@ -10,8 +10,12 @@ from .consts import PROG_NAME, VERSION, NULL_UUID
 from .logging import prepare_logging
 
 
-def validate_config(ctx, param, value: IO) -> SeederConfig:
-    content = value.read()
+def validate_config(ctx, param, value: Optional[IO]):
+    if value is None:
+        content = ''
+    else:
+        content = value.read()
+        value.close()
     parser = SeederConfigParser()
     if not parser.can_read(content):
         click.echo('Error: Cannot parse config file', err=True)
@@ -30,8 +34,8 @@ def validate_config(ctx, param, value: IO) -> SeederConfig:
 @click.group(name=PROG_NAME)
 @click.version_option(version=VERSION)
 @click.option('-c', '--config', envvar='DSW_CONFIG',
-              type=click.File('r', encoding='utf-8'),
-              callback=validate_config)
+              required=False, callback=validate_config,
+              type=click.File('r', encoding='utf-8'))
 @click.option('-w', '--workdir', envvar='SEEDER_WORKDIR',
               type=click.Path(dir_okay=True, exists=True))
 @click.pass_context

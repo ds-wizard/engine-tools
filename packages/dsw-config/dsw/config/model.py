@@ -11,38 +11,36 @@ def _config_to_string(config: object):
     return '\n'.join(lines)
 
 
-class GeneralConfig:
-
-    def __init__(self, environment: str, client_url: str):
-        self.environment = environment
-        self.client_url = client_url
+class ConfigModel:
 
     def __str__(self):
         return _config_to_string(self)
 
 
-class SentryConfig:
+class GeneralConfig(ConfigModel):
+
+    def __init__(self, environment: str, client_url: str, secret: str):
+        self.environment = environment
+        self.client_url = client_url
+        self.secret = secret
+
+
+class SentryConfig(ConfigModel):
 
     def __init__(self, enabled: bool, workers_dsn: Optional[str]):
         self.enabled = enabled
         self.workers_dsn = workers_dsn
 
-    def __str__(self):
-        return _config_to_string(self)
 
-
-class DatabaseConfig:
+class DatabaseConfig(ConfigModel):
 
     def __init__(self, connection_string: str, connection_timeout: int, queue_timout: int):
         self.connection_string = connection_string
         self.connection_timeout = connection_timeout
         self.queue_timout = queue_timout
 
-    def __str__(self):
-        return _config_to_string(self)
 
-
-class S3Config:
+class S3Config(ConfigModel):
 
     def __init__(self, url: str, username: str, password: str,
                  bucket: str, region: str):
@@ -52,31 +50,22 @@ class S3Config:
         self.bucket = bucket
         self.region = region
 
-    def __str__(self):
-        return _config_to_string(self)
 
-
-class LoggingConfig:
+class LoggingConfig(ConfigModel):
 
     def __init__(self, level: str, global_level: str, message_format: str):
         self.level = level
         self.global_level = global_level
         self.message_format = message_format
 
-    def __str__(self):
-        return _config_to_string(self)
 
-
-class CloudConfig:
+class CloudConfig(ConfigModel):
 
     def __init__(self, multi_tenant: bool):
         self.multi_tenant = multi_tenant
 
-    def __str__(self):
-        return _config_to_string(self)
 
-
-class MailConfig:
+class MailConfig(ConfigModel):
 
     def __init__(self, enabled: bool, ssl: Optional[bool], name: str, email: str,
                  host: str, port: Optional[int], security: Optional[str],
@@ -140,4 +129,5 @@ class MailConfig:
                f'- security = {self.security}\n' \
                f'- auth = {self.auth}\n' \
                f'- rate_limit_window = {self.rate_limit_window}\n' \
-               f'- rate_limit_count = {self.rate_limit_count}\n'
+               f'- rate_limit_count = {self.rate_limit_count}\n' \
+               f'- timeout = {self.timeout}\n'

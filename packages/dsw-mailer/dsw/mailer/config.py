@@ -1,4 +1,5 @@
 from dsw.config import DSWConfigParser
+from dsw.config.keys import ConfigKeys
 from dsw.config.model import GeneralConfig, SentryConfig, \
     DatabaseConfig, LoggingConfig, MailConfig
 
@@ -27,11 +28,11 @@ class MailerConfig:
 
 class MailerConfigParser(DSWConfigParser):
 
-    REQUIRED = [
-        [DSWConfigParser.MAIL_SECTION, 'email'],
-        [DSWConfigParser.MAIL_SECTION, 'host'],
-        [DSWConfigParser.MAIL_SECTION, 'port'],
-    ]
+    def __init__(self):
+        ConfigKeys.mail.email.required = True
+        ConfigKeys.mail.host.required = True
+        ConfigKeys.mail.port.required = True
+        super().__init__(keys=ConfigKeys)
 
     @property
     def config(self) -> MailerConfig:
