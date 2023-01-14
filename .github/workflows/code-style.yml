@@ -19,6 +19,7 @@ jobs:
           - dsw-database
           - dsw-document-worker
           - dsw-mailer
+          - dsw-models
           - dsw-storage
           - dsw-tdk
 
