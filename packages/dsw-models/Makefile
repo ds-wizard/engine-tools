@@ -1,7 +1,7 @@
 .PHONY: verify
 verify:
-	@echo "Trying to import: dsw.config"
-	python -c 'import dsw.config'
+	@echo "Trying to import: dsw.models"
+	python -c 'import dsw.models'
 
 .PHONY: local-deps
 local-deps:

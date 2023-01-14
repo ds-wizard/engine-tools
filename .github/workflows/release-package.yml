@@ -18,6 +18,7 @@ jobs:
           - dsw-command-queue
           - dsw-config
           - dsw-database
+          - dsw-models
           - dsw-storage
           - dsw-tdk
 
