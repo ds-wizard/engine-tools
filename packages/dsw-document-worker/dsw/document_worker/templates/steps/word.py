@@ -3,7 +3,7 @@ import jinja2
 import shutil
 import zipfile
 
-from typing import Any
+from typing import Any, Optional
 
 from ...consts import DEFAULT_ENCODING
 from ...context import Context
@@ -60,10 +60,14 @@ class EnrichDocxStep(Step):
                 )
             self.j2_env.globals.update(global_vars)
 
-    def _render_rewrite(self, rewrite_template: str, context: dict) -> str:
+    def _render_rewrite(self, rewrite_template: str, context: dict,
+                        existing_content: Optional[str]) -> str:
         try:
             j2_template = self.j2_env.get_template(rewrite_template)
-            return j2_template.render(ctx=context)
+            return j2_template.render(
+                ctx=context,
+                content=existing_content,
+            )
         except jinja2.exceptions.TemplateSyntaxError as e:
             self.raise_exc(self._jinja_exception_msg(e))
         except Exception as e:
@@ -78,11 +82,11 @@ class EnrichDocxStep(Step):
             self.raise_exc(f'Failed loading Jinja2 template: {e}')
         return ''
 
-    def _get_rewrite(self, rewrite: str, context: dict) -> str:
+    def _get_rewrite(self, rewrite: str, context: dict, existing_content: Optional[str]) -> str:
         if rewrite.startswith('static:'):
             return self._static_rewrite(rewrite[7:])
         elif rewrite.startswith('render:'):
-            return self._render_rewrite(rewrite[7:], context)
+            return self._render_rewrite(rewrite[7:], context, existing_content)
         return ''
 
     def execute_first(self, context: dict) -> DocumentFile:
@@ -101,11 +105,16 @@ class EnrichDocxStep(Step):
             source_docx.extractall(docx_dir)
 
         for target_file, rewrite in self.rewrites.items():
-            content = self._get_rewrite(rewrite, context)
             target = docx_dir / target_file
+            existing_content = None
+            if target.is_file() and target.exists():
+                existing_content = target.read_text(encoding=DEFAULT_ENCODING)
+            content = self._get_rewrite(rewrite, context, existing_content)
             target.write_text(content, encoding=DEFAULT_ENCODING)
 
-        with zipfile.ZipFile(new_docx_file, mode='w', compression=zipfile.ZIP_DEFLATED, compresslevel=9) as target_docx:
+        with zipfile.ZipFile(new_docx_file, mode='w',
+                             compression=zipfile.ZIP_DEFLATED,
+                             compresslevel=9) as target_docx:
             for path in docx_dir.rglob('*'):
                 if path.is_file():
                     target_docx.write(path, path.relative_to(docx_dir))

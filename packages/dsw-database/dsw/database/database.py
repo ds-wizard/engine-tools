@@ -10,7 +10,8 @@ from typing import List, Iterable, Optional
 from dsw.config.model import DatabaseConfig
 
 from .model import DBTemplate, DBTemplateFile, DBTemplateAsset, DBDocument, \
-    DocumentState, DBAppConfig, DBAppLimits, DBSubmission, DBInstanceConfigMail
+    DocumentState, DBAppConfig, DBAppLimits, DBSubmission, \
+    DBInstanceConfigMail, DBQuestionnaireSimple
 
 LOG = logging.getLogger(__name__)
 
@@ -33,6 +34,8 @@ class Database:
     SELECT_DOCUMENT_SUBMISSIONS = 'SELECT * FROM submission WHERE document_uuid = %s AND app_uuid = %s;'
     SELECT_QTN_SUBMISSIONS = 'SELECT s.* FROM document d JOIN submission s ON d.uuid = s.document_uuid ' \
                              'WHERE d.questionnaire_uuid = %s AND d.app_uuid = %s;'
+    SELECT_QTN_SIMPLE = 'SELECT qtn.* FROM questionnaire qtn ' \
+                        'WHERE qtn.uuid = %s AND qtn.app_uuid = %s;'
     SELECT_APP_CONFIG = 'SELECT * FROM app_config WHERE uuid = %(app_uuid)s LIMIT 1;'
     SELECT_APP_LIMIT = 'SELECT uuid, storage FROM app_limit WHERE uuid = %(app_uuid)s LIMIT 1;'
     UPDATE_DOCUMENT_STATE = 'UPDATE document SET state = %s, worker_log = %s WHERE uuid = %s;'
@@ -215,6 +218,21 @@ class Database:
                 params=(questionnaire_uuid, app_uuid),
             )
             return [DBSubmission.from_dict_row(x) for x in cursor.fetchall()]
+
+    @tenacity.retry(
+        reraise=True,
+        wait=tenacity.wait_exponential(multiplier=RETRY_QUERY_MULTIPLIER),
+        stop=tenacity.stop_after_attempt(RETRY_QUERY_TRIES),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
+    )
+    def fetch_questionnaire_simple(self, questionnaire_uuid: str, app_uuid: str) -> DBQuestionnaireSimple:
+        with self.conn_query.new_cursor(use_dict=True) as cursor:
+            cursor.execute(
+                query=self.SELECT_QTN_SIMPLE,
+                params=(questionnaire_uuid, app_uuid),
+            )
+            return DBQuestionnaireSimple.from_dict_row(cursor.fetchone())
 
     @tenacity.retry(
         reraise=True,

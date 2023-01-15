@@ -8,6 +8,14 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 
+## [3.19.1]
+
+### Changed
+
+- Allowed more levels of ToC using Pandoc filter
+- Allowed questionnaire in extras
+- Provide original `content` in `enrich-docx` step
+
 ## [3.19.0]
 
 ### Changed
@@ -81,3 +89,4 @@ Released for version consistency with other DSW tools.
 [3.17.0]: /../../tree/v3.17.0
 [3.18.0]: /../../tree/v3.18.0
 [3.19.0]: /../../tree/v3.19.0
+[3.19.1]: /../../tree/v3.19.1

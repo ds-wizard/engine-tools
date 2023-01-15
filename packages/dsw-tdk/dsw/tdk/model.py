@@ -124,7 +124,7 @@ class TDKConfig:
     def serialize(self):
         return {
             'version': self.version,
-            'readmeFile': self.readme_file,
+            'readmeFile': str(self.readme_file),
             'files': self.files,
         }
 
@@ -159,7 +159,9 @@ class TemplateFile:
     @property
     def is_text(self):
         # TODO: custom mapping (also some starting with "application" are textual)
-        return self.remote_type == TemplateFileType.file or self.content_type.startswith('text')
+        if getattr(self, 'remote_type', None) == TemplateFileType.file:
+            return True
+        return self.content_type.startswith('text')
 
     @property
     def has_remote_id(self):

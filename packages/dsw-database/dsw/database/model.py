@@ -284,6 +284,65 @@ class DBSubmission:
 
 
 @dataclasses.dataclass
+class DBQuestionnaireSimple:
+    # without: events, answered_questions, unanswered_questions,
+    #          squashed, versions, selected_question_tag_uuids
+    TABLE_NAME = 'questionnaire'
+
+    uuid: str
+    name: str
+    visibility: str
+    sharing: str
+    package_id: str
+    template_id: str
+    format_uuid: str
+    created_by: str
+    created_at: datetime.datetime
+    updated_at: datetime.datetime
+    description: str
+    is_template: bool
+    project_tags: list[str]
+    app_uuid: str
+
+    @staticmethod
+    def from_dict_row(data: dict):
+        return DBQuestionnaireSimple(
+            uuid=str(data['uuid']),
+            name=data['name'],
+            visibility=data['visibility'],
+            sharing=data['sharing'],
+            package_id=data['package_id'],
+            template_id=data['template_id'],
+            format_uuid=str(data['format_uuid']),
+            created_by=str(data['created_by']),
+            created_at=data['created_at'],
+            updated_at=data['updated_at'],
+            description=data['description'],
+            is_template=data['is_template'],
+            project_tags=data['project_tags'],
+            app_uuid=str(data.get('app_uuid', NULL_UUID)),
+        )
+
+    def to_dict(self) -> dict:
+        return {
+            'uuid': self.uuid,
+            'name': self.name,
+            'visibility': self.visibility,
+            'sharing': self.sharing,
+            'package_id': self.package_id,
+            'template_id': self.template_id,
+            'format_uuid': self.format_uuid,
+            'created_by': self.created_by,
+            'created_at': self.created_at.isoformat(timespec='milliseconds'),
+            'updated_at': self.updated_at.isoformat(timespec='milliseconds'),
+            'description': self.description,
+            'is_template': self.is_template,
+            'project_tags': self.project_tags,
+            'app_uuid': self.app_uuid,
+        }
+
+
+@dataclasses.dataclass
 class DBInstanceConfigMail:
     TABLE_NAME = 'instance_config_mail'
 

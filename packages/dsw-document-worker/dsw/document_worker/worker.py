@@ -143,24 +143,32 @@ class Job:
         # finalize
         self.template = template
 
+    def _enrich_context(self):
+        extras = dict()
+        if self.safe_format.requires_via_extras('submissions'):
+            submissions = self.ctx.app.db.fetch_questionnaire_submissions(
+                questionnaire_uuid=self.safe_doc.questionnaire_uuid,
+                app_uuid=self.app_uuid,
+            )
+            extras['submissions'] = [s.to_dict() for s in submissions]
+        if self.safe_format.requires_via_extras('questionnaire'):
+            questionnaire = self.ctx.app.db.fetch_questionnaire_simple(
+                questionnaire_uuid=self.safe_doc.questionnaire_uuid,
+                app_uuid=self.app_uuid,
+            )
+            extras['questionnaire'] = questionnaire.to_dict()
+        self.doc_context['extras'] = extras
+
     @handle_job_step('Failed to build final document')
     def build_document(self):
         self.log.info('Building document by rendering template with context')
         doc = self.safe_doc
         # enrich context
-        context = self.doc_context
-        if self.safe_format.requires_via_extras('submissions'):
-            submissions = self.ctx.app.db.fetch_questionnaire_submissions(
-                questionnaire_uuid=doc.questionnaire_uuid,
-                app_uuid=self.app_uuid,
-            )
-            context['extras'] = {
-                'submissions': [s.to_dict() for s in submissions],
-            }
+        self._enrich_context()
         # render document
         final_file = self.safe_template.render(
             format_uuid=doc.format_uuid,
-            context=context,
+            context=self.doc_context,
         )
         # check limits
         LimitsEnforcer.check_doc_size(
