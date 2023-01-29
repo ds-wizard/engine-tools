@@ -5,7 +5,8 @@ import shutil
 
 from typing import Optional
 
-from dsw.database.database import DBTemplate, DBTemplateFile, DBTemplateAsset
+from dsw.database.database import DBDocumentTemplate, \
+    DBDocumentTemplateFile, DBDocumentTemplateAsset
 
 from ..consts import FormatField
 from ..context import Context
@@ -45,9 +46,9 @@ class Asset:
 class TemplateComposite:
 
     def __init__(self, db_template, db_files, db_assets):
-        self.template = db_template  # type: DBTemplate
-        self.files = db_files  # type: dict[str, DBTemplateFile]
-        self.assets = db_assets  # type: dict[str, DBTemplateAsset]
+        self.template = db_template  # type: DBDocumentTemplate
+        self.files = db_files  # type: dict[str, DBDocumentTemplateFile]
+        self.assets = db_assets  # type: dict[str, DBDocumentTemplateAsset]
 
 
 class Template:
@@ -88,7 +89,7 @@ class Template:
     def asset_path(self, filename: str) -> str:
         return str(self.template_dir / filename)
 
-    def _store_asset(self, asset: DBTemplateAsset):
+    def _store_asset(self, asset: DBDocumentTemplateAsset):
         Context.logger.debug(f'Storing asset {asset.uuid} ({asset.file_name})')
         remote_path = f'{self.asset_prefix}/{asset.uuid}'
         local_path = self.template_dir / asset.file_name
@@ -97,7 +98,7 @@ class Template:
         if not result:
             Context.logger.error(f'Asset "{local_path.name}" cannot be retrieved')
 
-    def _store_file(self, file: DBTemplateFile):
+    def _store_file(self, file: DBDocumentTemplateFile):
         Context.logger.debug(f'Storing file {file.uuid} ({file.file_name})')
         local_path = self.template_dir / file.file_name
         local_path.parent.mkdir(parents=True, exist_ok=True)
@@ -106,17 +107,17 @@ class Template:
             encoding='utf-8',
         )
 
-    def _delete_asset(self, asset: DBTemplateAsset):
+    def _delete_asset(self, asset: DBDocumentTemplateAsset):
         Context.logger.debug(f'Deleting asset {asset.uuid} ({asset.file_name})')
         local_path = self.template_dir / asset.file_name
         local_path.unlink(missing_ok=True)
 
-    def _delete_file(self, file: DBTemplateFile):
+    def _delete_file(self, file: DBDocumentTemplateFile):
         Context.logger.debug(f'Deleting file {file.uuid} ({file.file_name})')
         local_path = self.template_dir / file.file_name
         local_path.unlink(missing_ok=True)
 
-    def _update_asset(self, asset: DBTemplateAsset):
+    def _update_asset(self, asset: DBDocumentTemplateAsset):
         Context.logger.debug(f'Updating asset {asset.uuid} ({asset.file_name})')
         old_asset = self.db_template.assets[asset.uuid]
         if old_asset.updated_at == asset.updated_at:
@@ -126,7 +127,7 @@ class Template:
         if not local_path.exists():
             self._store_asset(asset)
 
-    def _update_file(self, file: DBTemplateFile):
+    def _update_file(self, file: DBDocumentTemplateFile):
         Context.logger.debug(f'Updating file {file.uuid} ({file.file_name})')
         old_file = self.db_template.files[file.uuid]
         if old_file.updated_at == file.updated_at:
@@ -161,7 +162,7 @@ class Template:
         to_chk = old_keys.intersection(new_keys)
         return to_add, to_del, to_chk
 
-    def update_template_files(self, db_files: dict[str, DBTemplateFile]):
+    def update_template_files(self, db_files: dict[str, DBDocumentTemplateFile]):
         Context.logger.info(f'Updating files of template {self.template_id}')
         to_add, to_del, to_chk = self._resolve_change(
             old_keys=frozenset(self.db_template.files.keys()),
@@ -175,7 +176,7 @@ class Template:
             self._update_file(db_files[file_uuid])
         self.db_template.files = db_files
 
-    def update_template_assets(self, db_assets: dict[str, DBTemplateAsset]):
+    def update_template_assets(self, db_assets: dict[str, DBDocumentTemplateAsset]):
         Context.logger.info(f'Updating assets of template {self.template_id}')
         to_add, to_del, to_chk = self._resolve_change(
             old_keys=frozenset(self.db_template.assets.keys()),

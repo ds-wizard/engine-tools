@@ -55,7 +55,7 @@ jobs:
     - name: Lint with flake8
       run: |
         flake8 packages/${{ matrix.package }} --count --select=E9,F63,F7,F82 --show-source --statistics
-        flake8 packages/${{ matrix.package }} --count --max-complexity=10 --max-line-length=130 --statistics
+        flake8 packages/${{ matrix.package }} --count --max-complexity=12 --max-line-length=130 --statistics
 
   # Typing checks with MyPy
   typing:

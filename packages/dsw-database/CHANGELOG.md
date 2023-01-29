@@ -10,6 +10,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Changed
 
 - Add TemplateFile/TemplateAsset timestamps
+- Rename template-related tables to document_template
+- Add phase to document_template
 
 
 ## [3.19.2]

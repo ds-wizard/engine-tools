@@ -9,7 +9,8 @@ from typing import List, Iterable, Optional
 
 from dsw.config.model import DatabaseConfig
 
-from .model import DBTemplate, DBTemplateFile, DBTemplateAsset, DBDocument, \
+from .model import DBDocumentTemplate, DBDocumentTemplateFile, \
+    DBDocumentTemplateAsset, DBDocument, \
     DocumentState, DBAppConfig, DBAppLimits, DBSubmission, \
     DBInstanceConfigMail, DBQuestionnaireSimple
 
@@ -43,9 +44,11 @@ class Database:
     UPDATE_DOCUMENT_FINISHED = 'UPDATE document SET finished_at = %s, state = %s, ' \
                                'file_name = %s, content_type = %s, worker_log = %s, ' \
                                'file_size = %s WHERE uuid = %s;'
-    SELECT_TEMPLATE = 'SELECT * FROM template WHERE id = %s AND app_uuid = %s LIMIT 1;'
-    SELECT_TEMPLATE_FILES = 'SELECT * FROM template_file WHERE template_id = %s AND app_uuid = %s;'
-    SELECT_TEMPLATE_ASSETS = 'SELECT * FROM template_asset WHERE template_id = %s AND app_uuid = %s;'
+    SELECT_TEMPLATE = 'SELECT * FROM document_template WHERE id = %s AND app_uuid = %s LIMIT 1;'
+    SELECT_TEMPLATE_FILES = 'SELECT * FROM document_template_file ' \
+                            'WHERE document_template_id = %s AND app_uuid = %s;'
+    SELECT_TEMPLATE_ASSETS = 'SELECT * FROM document_template_asset ' \
+                             'WHERE document_template_id = %s AND app_uuid = %s;'
     SELECT_MAIL_CONFIG = 'SELECT icm.* ' \
                          'FROM app_config ac JOIN instance_config_mail icm ' \
                          'ON ac.mail_config_uuid = icm.uuid ' \
@@ -54,7 +57,7 @@ class Database:
     SUM_FILE_SIZES = 'SELECT (SELECT COALESCE(SUM(file_size)::bigint, 0) ' \
                      'FROM document WHERE app_uuid = %(app_uuid)s) ' \
                      '+ (SELECT COALESCE(SUM(file_size)::bigint, 0) ' \
-                     'FROM template_asset WHERE app_uuid = %(app_uuid)s) ' \
+                     'FROM document_template_asset WHERE app_uuid = %(app_uuid)s) ' \
                      'as result;'
 
     def __init__(self, cfg: DatabaseConfig):
@@ -133,7 +136,9 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def fetch_template(self, template_id: str, app_uuid: str) -> Optional[DBTemplate]:
+    def fetch_template(
+            self, template_id: str, app_uuid: str
+    ) -> Optional[DBDocumentTemplate]:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
                 query=self.SELECT_TEMPLATE,
@@ -142,7 +147,7 @@ class Database:
             result = cursor.fetchall()
             if len(result) != 1:
                 return None
-            return DBTemplate.from_dict_row(result[0])
+            return DBDocumentTemplate.from_dict_row(result[0])
 
     @tenacity.retry(
         reraise=True,
@@ -151,13 +156,15 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def fetch_template_files(self, template_id: str, app_uuid: str) -> List[DBTemplateFile]:
+    def fetch_template_files(
+            self, template_id: str, app_uuid: str
+    ) -> List[DBDocumentTemplateFile]:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
                 query=self.SELECT_TEMPLATE_FILES,
                 params=(template_id, app_uuid),
             )
-            return [DBTemplateFile.from_dict_row(x) for x in cursor.fetchall()]
+            return [DBDocumentTemplateFile.from_dict_row(x) for x in cursor.fetchall()]
 
     @tenacity.retry(
         reraise=True,
@@ -166,13 +173,15 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def fetch_template_assets(self, template_id: str, app_uuid: str) -> List[DBTemplateAsset]:
+    def fetch_template_assets(
+            self, template_id: str, app_uuid: str
+    ) -> List[DBDocumentTemplateAsset]:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
                 query=self.SELECT_TEMPLATE_ASSETS,
                 params=(template_id, app_uuid),
             )
-            return [DBTemplateAsset.from_dict_row(x) for x in cursor.fetchall()]
+            return [DBDocumentTemplateAsset.from_dict_row(x) for x in cursor.fetchall()]
 
     @tenacity.retry(
         reraise=True,

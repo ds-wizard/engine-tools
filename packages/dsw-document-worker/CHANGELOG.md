@@ -10,6 +10,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Changed
 
 - Use file/asset timestamps for cache optimization
+- Updated according to DB changes for Template Editor
 
 
 ## [3.19.2]
