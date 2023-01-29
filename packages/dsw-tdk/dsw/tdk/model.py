@@ -68,14 +68,11 @@ class Step:
 class Format:
 
     DEFAULT_ICON = 'fas fa-file'
-    DEFAULT_COLOR = '#f15722'
 
-    def __init__(self, *, uuid=None, name=None, short_name=None, icon=None, color=None):
+    def __init__(self, *, uuid=None, name=None, icon=None):
         self.uuid = uuid  # type: str
         self.name = name  # type: str
-        self.short_name = short_name or name  # type: str
         self.icon = icon or self.DEFAULT_ICON  # type: str
-        self.color = color or self.DEFAULT_COLOR  # type: str
         self.steps = []  # type: List[Step]
 
     @classmethod
@@ -83,9 +80,7 @@ class Format:
         format_spec = Format(
             uuid=data.get('uuid', None),
             name=data.get('name', None),
-            short_name=data.get('shortName', None),
             icon=data.get('icon', None),
-            color=data.get('color', None),
         )
         for s_data in data.get('steps', []):
             format_spec.steps.append(Step.load(s_data))
@@ -95,9 +90,7 @@ class Format:
         return {
             'uuid': self.uuid,
             'name': self.name,
-            'shortName': self.short_name,
             'icon': self.icon,
-            'color': self.color,
             'steps': [step.serialize() for step in self.steps]
         }
 
@@ -171,7 +164,7 @@ class TemplateFile:
 class Template:
 
     def __init__(self, *, template_id=None, organization_id=None, version=None, name=None,
-                 description=None, readme=None, recommended_package_id=None, template_license=None,
+                 description=None, readme=None, template_license=None,
                  metamodel_version=None, tdk_config=None, loaded_json=None):
         self.template_id = template_id  # type: str
         self.organization_id = organization_id  # type: str
@@ -179,7 +172,6 @@ class Template:
         self.name = name  # type: str
         self.description = description  # type: str
         self.readme = readme  # type: str
-        self.recommended_package_id = recommended_package_id  # type: str
         self.license = template_license  # type: str
         self.metamodel_version = metamodel_version or METAMODEL_VERSION  # type: int
         self.allowed_packages = []  # type: List[PackageFilter]
@@ -211,11 +203,10 @@ class Template:
             template_id=tmp_id,
             organization_id=org_id,
             version=version,
-            name=data.get('name', 'Uknown template'),
+            name=data.get('name', 'Unknown template'),
             description=data.get('description', ''),
-            template_license=data.get('license', 'nolicense'),
+            template_license=data.get('license', 'no-license'),
             metamodel_version=data.get('metamodelVersion', METAMODEL_VERSION),
-            recommended_package_id=data.get('recommendedPackageId', ''),
             readme=data.get('readme', ''),
         )
         for ap_data in data.get('allowedPackages', []):
@@ -244,7 +235,6 @@ class Template:
         self.loaded_json['description'] = self.description
         self.loaded_json['license'] = self.license
         self.loaded_json['metamodelVersion'] = self.metamodel_version
-        self.loaded_json['recommendedPackageId'] = self.recommended_package_id
         # self.loaded_json['readme'] = self.readme
         self.loaded_json['allowedPackages'] = [ap.serialize() for ap in self.allowed_packages]
         self.loaded_json['formats'] = [f.serialize() for f in self.formats]
@@ -261,10 +251,24 @@ class Template:
             'description': self.description,
             'license': self.license,
             'metamodelVersion': self.metamodel_version,
-            'recommendedPackageId': self.recommended_package_id,
             'readme': self.readme,
             'allowedPackages': [ap.serialize() for ap in self.allowed_packages],
             'formats': [f.serialize() for f in self.formats],
+            'phase': 'DraftDocumentTemplatePhase',
+        }
+
+    def serialize_local_new(self) -> Dict[str, Any]:
+        return {
+            'templateId': self.template_id,
+            'organizationId': self.organization_id,
+            'version': self.version,
+            'name': self.name,
+            'description': self.description,
+            'license': self.license,
+            'metamodelVersion': self.metamodel_version,
+            'allowedPackages': [ap.serialize() for ap in self.allowed_packages],
+            'formats': [f.serialize() for f in self.formats],
+            '_tdk': self.tdk_config.serialize(),
         }
 
 

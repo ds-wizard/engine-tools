@@ -75,7 +75,6 @@ class FormatSpec:
     @file_extension.setter
     def file_extension(self, value: str):
         self.step.options['extension'] = value
-        self.format.short_name = value
         StepValidator.validate(self.step, 'format')
 
     @property

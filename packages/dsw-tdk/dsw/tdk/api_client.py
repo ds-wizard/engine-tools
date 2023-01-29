@@ -1,7 +1,6 @@
 import aiohttp
 import aiohttp.client_exceptions
 import functools
-import multidict
 import pathlib
 import urllib.parse
 
@@ -94,6 +93,14 @@ class DSWAPIClient:
         self.token = None
         self.session = session or aiohttp.ClientSession(connector=aiohttp.TCPConnector(verify_ssl=False))
 
+    @property
+    def templates_endpoint(self):
+        return f'{self.api_url}/document-templates'
+
+    @property
+    def drafts_endpoint(self):
+        return f'{self.api_url}/document-template-drafts'
+
     async def close(self):
         await self.session.close()
 
@@ -137,7 +144,15 @@ class DSWAPIClient:
 
     @handle_client_errors
     async def check_template_exists(self, template_id: str) -> bool:
-        async with self.session.get(f'{self.api_url}/templates/{template_id}', headers=self._headers()) as r:
+        async with self.session.get(f'{self.templates_endpoint}/{template_id}', headers=self._headers()) as r:
+            if r.status == 404:
+                return False
+            self._check_status(r, expected_status=200)
+            return True
+
+    @handle_client_errors
+    async def check_draft_exists(self, template_id: str) -> bool:
+        async with self.session.get(f'{self.drafts_endpoint}/{template_id}', headers=self._headers()) as r:
             if r.status == 404:
                 return False
             self._check_status(r, expected_status=200)
@@ -145,60 +160,82 @@ class DSWAPIClient:
 
     @handle_client_errors
     async def get_templates(self) -> List[Template]:
-        body = await self._get_json('/templates/all')
+        body = await self._get_json('/document-templates/all')
         return list(map(_load_remote_template, body))
 
     @handle_client_errors
-    async def get_template(self, template_id: str) -> Template:
-        body = await self._get_json(f'/templates/{template_id}')
+    async def get_drafts(self) -> List[Template]:
+        # TODO: better paging
+        body = await self._get_json('/document-template-drafts?size=10000')
+        drafts = body.get('_embedded', {}).get('documentTemplateDrafts', [])
+        return list(map(_load_remote_template, drafts))
+
+    @handle_client_errors
+    async def get_template_bundle(self, template_id: str) -> bytes:
+        async with self.session.get(
+                url=f'{self.api_url}/document-templates/{template_id}/bundle'
+                    f'?Authorization=Bearer%20{self.token}',
+                headers=self._headers(),
+        ) as r:
+            self._check_status(r, expected_status=200)
+            return await r.content.read()
+
+    @handle_client_errors
+    async def get_template_draft(self, template_id: str) -> Template:
+        body = await self._get_json(f'/document-template-drafts/{template_id}')
         return _load_remote_template(body)
 
     @handle_client_errors
-    async def get_template_files(self, template_id: str) -> List[TemplateFile]:
-        body = await self._get_json(f'/templates/{template_id}/files')
-        return list(map(_load_remote_file, body))
-
-    @handle_client_errors
-    async def get_template_file(self, template_id: str, file_id: str) -> TemplateFile:
-        body = await self._get_json(f'/templates/{template_id}/files/{file_id}')
-        return _load_remote_file(body)
-
-    @handle_client_errors
-    async def get_template_assets(self, template_id: str) -> List[TemplateFile]:
-        body = await self._get_json(f'/templates/{template_id}/assets')
+    async def get_template_draft_files(self, template_id: str) -> List[TemplateFile]:
+        body = await self._get_json(f'/document-template-drafts/{template_id}/files')
         result = []
         for file_body in body:
-            asset_id = file_body['uuid']
-            content = await self._get_bytes(f'/templates/{template_id}/assets/{asset_id}/content')
-            result.append(_load_remote_asset(file_body, content))
+            file_id = file_body['uuid']
+            template_file = await self.get_template_draft_file(template_id, file_id)
+            result.append(template_file)
         return result
 
     @handle_client_errors
-    async def get_template_asset(self, template_id: str, asset_id: str) -> TemplateFile:
-        body = await self._get_json(f'/templates/{template_id}/assets/{asset_id}')
-        content = await self._get_bytes(f'/templates/{template_id}/assets/{asset_id}/content')
+    async def get_template_draft_file(self, template_id: str, file_id: str) -> TemplateFile:
+        body = await self._get_json(f'/document-template-drafts/{template_id}/files/{file_id}')
+        return _load_remote_file(body)
+
+    @handle_client_errors
+    async def get_template_draft_assets(self, template_id: str) -> List[TemplateFile]:
+        body = await self._get_json(f'/document-template-drafts/{template_id}/assets')
+        result = []
+        for file_body in body:
+            asset_id = file_body['uuid']
+            template_asset = await self.get_template_draft_asset(template_id, asset_id)
+            result.append(template_asset)
+        return result
+
+    @handle_client_errors
+    async def get_template_draft_asset(self, template_id: str, asset_id: str) -> TemplateFile:
+        body = await self._get_json(f'/document-template-drafts/{template_id}/assets/{asset_id}')
+        content = await self._get_bytes(f'/document-template-drafts/{template_id}/assets/{asset_id}/content')
         return _load_remote_asset(body, content)
 
     @handle_client_errors
-    async def post_template(self, template: Template) -> Template:
+    async def post_template_draft(self, template: Template) -> Template:
         body = await self._post_json(
-            endpoint='/templates',
+            endpoint='/document-template-drafts',
             json=template.serialize_remote(),
         )
         return _load_remote_template(body)
 
     @handle_client_errors
-    async def put_template(self, template: Template) -> Template:
+    async def put_template_draft(self, template: Template) -> Template:
         body = await self._put_json(
-            endpoint=f'/templates/{template.id}',
+            endpoint=f'/document-template-drafts/{template.id}',
             json=template.serialize_remote(),
         )
         return _load_remote_template(body)
 
     @handle_client_errors
-    async def post_template_file(self, template_id: str, tfile: TemplateFile):
+    async def post_template_draft_file(self, template_id: str, tfile: TemplateFile):
         data = await self._post_json(
-            endpoint=f'/templates/{template_id}/files',
+            endpoint=f'/document-template-drafts/{template_id}/files',
             json={
                 'fileName': tfile.filename.as_posix(),
                 'content': tfile.content.decode(DEFAULT_ENCODING)
@@ -207,37 +244,76 @@ class DSWAPIClient:
         return _load_remote_file(data)
 
     @handle_client_errors
-    async def post_template_asset(self, template_id: str, tfile: TemplateFile):
-        headers = multidict.CIMultiDict()  # type: multidict.CIMultiDict
-        headers[aiohttp.hdrs.CONTENT_TYPE] = tfile.content_type
-        headers[aiohttp.hdrs.CONTENT_DISPOSITION] = f'form-data; name="file"; ' \
-                                                    f'filename="{tfile.filename.as_posix()}"'
-        with aiohttp.MultipartWriter('form-data', boundary='tdk-asset-boundary') as mpwriter:
-            mpwriter.append(tfile.content, headers=headers)
+    async def put_template_draft_file_content(self, template_id: str, tfile: TemplateFile):
+        self.session.headers.update(self._headers())
+        async with self.session.put(
+                f'{self.api_url}/document-template-drafts/{template_id}/files/{tfile.remote_id}/content',
+                data=tfile.content,
+                headers={'Content-Type': 'text/plain;charset=UTF-8'},
+        ) as r:
+            self._check_status(r, expected_status=200)
+            body = await r.json()
+            return _load_remote_file(body)
+
+    @handle_client_errors
+    async def post_template_draft_asset(self, template_id: str, tfile: TemplateFile):
+        data = aiohttp.FormData()
+        data.add_field(
+            name='file',
+            value=tfile.content,
+            filename=tfile.filename.as_posix(),
+            content_type=tfile.content_type,
+        )
+        data.add_field(
+            name='fileName',
+            value=tfile.filename.as_posix(),
+        )
         async with self.session.post(
-                f'{self.api_url}/templates/{template_id}/assets',
-                data=mpwriter,
-                headers=self._headers()
+                f'{self.api_url}/document-template-drafts/{template_id}/assets',
+                data=data,
+                headers=self._headers(),
         ) as r:
             self._check_status(r, expected_status=201)
             body = await r.json()
             return _load_remote_asset(body, tfile.content)
 
     @handle_client_errors
-    async def delete_template(self, template_id: str) -> bool:
-        return await self._delete(f'/templates/{template_id}')
+    async def put_template_draft_asset_content(self, template_id: str, tfile: TemplateFile):
+        data = aiohttp.FormData()
+        data.add_field(
+            name='file',
+            value=tfile.content,
+            filename=tfile.filename.as_posix(),
+            content_type=tfile.content_type,
+        )
+        data.add_field(
+            name='fileName',
+            value=tfile.filename.as_posix(),
+        )
+        async with self.session.put(
+                f'{self.api_url}/document-template-drafts/{template_id}/assets/{tfile.remote_id}/content',
+                data=data,
+                headers=self._headers()
+        ) as r:
+            self._check_status(r, expected_status=200)
+            body = await r.json()
+            return _load_remote_asset(body, tfile.content)
 
     @handle_client_errors
-    async def delete_template_file(self, template_id: str, file_id: str) -> bool:
+    async def delete_template_draft(self, template_id: str) -> bool:
+        return await self._delete(f'/document-template-drafts/{template_id}')
+
+    @handle_client_errors
+    async def delete_template_draft_file(self, template_id: str, file_id: str) -> bool:
         if file_id is None:
             raise RuntimeWarning('Tried to delete file without ID (None)')
-        return await self._delete(f'/templates/{template_id}/files/{file_id}')
+        return await self._delete(f'/document-template-drafts/{template_id}/files/{file_id}')
 
     @handle_client_errors
-    async def delete_template_asset(self, template_id: str, asset_id: str) -> bool:
+    async def delete_template_draft_asset(self, template_id: str, asset_id: str) -> bool:
         if asset_id is None:
             raise RuntimeWarning('Tried to delete asset without ID (None)')
-        return await self._delete(f'/templates/{template_id}/assets/{asset_id}')
+        return await self._delete(f'/document-template-drafts/{template_id}/assets/{asset_id}')
 
     @handle_client_errors
     async def get_api_version(self) -> str:

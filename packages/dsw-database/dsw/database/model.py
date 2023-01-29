@@ -15,6 +15,12 @@ class DocumentState:
     FINISHED = 'DoneDocumentState'
 
 
+class DocumentTemplatePhase:
+    RELEASED = 'ReleasedTemplatePhase'
+    DEPRECATED = 'DeprecatedTemplatePhase'
+    DRAFT = 'DraftTemplatePhase'
+
+
 @dataclasses.dataclass
 class DBDocument:
     uuid: str
@@ -24,7 +30,7 @@ class DBDocument:
     questionnaire_uuid: str
     questionnaire_event_uuid: str
     questionnaire_replies_hash: str
-    template_id: str
+    document_template_id: str
     format_uuid: str
     file_name: str
     content_type: str
@@ -46,7 +52,7 @@ class DBDocument:
             questionnaire_uuid=str(data['questionnaire_uuid']),
             questionnaire_event_uuid=str(data['questionnaire_event_uuid']),
             questionnaire_replies_hash=data['questionnaire_replies_hash'],
-            template_id=data['template_id'],
+            document_template_id=data['document_template_id'],
             format_uuid=str(data['format_uuid']),
             creator_uuid=str(data['creator_uuid']),
             retrieved_at=data['retrieved_at'],
@@ -61,7 +67,7 @@ class DBDocument:
 
 
 @dataclasses.dataclass
-class DBTemplate:
+class DBDocumentTemplate:
     id: str
     name: str
     organization_id: str
@@ -72,15 +78,27 @@ class DBTemplate:
     readme: str
     license: str
     allowed_packages: dict
-    recommended_package_id: str
     formats: dict
+    phase: str
     created_at: datetime.datetime
     updated_at: datetime.datetime
     app_uuid: str
 
+    @property
+    def is_draft(self):
+        return self.phase == DocumentTemplatePhase.DRAFT
+
+    @property
+    def is_released(self):
+        return self.phase == DocumentTemplatePhase.RELEASED
+
+    @property
+    def is_deprecated(self):
+        return self.phase == DocumentTemplatePhase.DEPRECATED
+
     @staticmethod
-    def from_dict_row(data: dict):
-        return DBTemplate(
+    def from_dict_row(data: dict) -> 'DBDocumentTemplate':
+        return DBDocumentTemplate(
             id=data['id'],
             name=data['name'],
             organization_id=data['organization_id'],
@@ -91,8 +109,8 @@ class DBTemplate:
             readme=data['readme'],
             license=data['license'],
             allowed_packages=data['allowed_packages'],
-            recommended_package_id=data['recommended_package_id'],
             formats=data['formats'],
+            phase=data['phase'],
             created_at=data['created_at'],
             updated_at=data['updated_at'],
             app_uuid=str(data.get('app_uuid', NULL_UUID)),
@@ -100,8 +118,8 @@ class DBTemplate:
 
 
 @dataclasses.dataclass
-class DBTemplateFile:
-    template_id: str
+class DBDocumentTemplateFile:
+    document_template_id: str
     uuid: str
     file_name: str
     content: str
@@ -110,9 +128,9 @@ class DBTemplateFile:
     app_uuid: str
 
     @staticmethod
-    def from_dict_row(data: dict):
-        return DBTemplateFile(
-            template_id=data['template_id'],
+    def from_dict_row(data: dict) -> 'DBDocumentTemplateFile':
+        return DBDocumentTemplateFile(
+            document_template_id=data['document_template_id'],
             uuid=str(data['uuid']),
             file_name=data['file_name'],
             content=data['content'],
@@ -123,8 +141,8 @@ class DBTemplateFile:
 
 
 @dataclasses.dataclass
-class DBTemplateAsset:
-    template_id: str
+class DBDocumentTemplateAsset:
+    document_template_id: str
     uuid: str
     file_name: str
     content_type: str
@@ -134,9 +152,9 @@ class DBTemplateAsset:
     app_uuid: str
 
     @staticmethod
-    def from_dict_row(data: dict):
-        return DBTemplateAsset(
-            template_id=data['template_id'],
+    def from_dict_row(data: dict) -> 'DBDocumentTemplateAsset':
+        return DBDocumentTemplateAsset(
+            document_template_id=data['document_template_id'],
             uuid=str(data['uuid']),
             file_name=data['file_name'],
             content_type=data['content_type'],
