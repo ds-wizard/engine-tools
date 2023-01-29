@@ -118,17 +118,21 @@ class Template:
 
     def _update_asset(self, asset: DBTemplateAsset):
         Context.logger.debug(f'Updating asset {asset.uuid} ({asset.file_name})')
-        # old_asset = self.db_template.assets[asset.uuid]
+        old_asset = self.db_template.assets[asset.uuid]
+        if old_asset.updated_at == asset.updated_at:
+            Context.logger.debug(f'- Asset {asset.uuid} ({asset.file_name}) did not change')
+            return
         local_path = self.template_dir / asset.file_name
-        # TODO: check if changed while having the same UUID (?)
         if not local_path.exists():
             self._store_asset(asset)
 
     def _update_file(self, file: DBTemplateFile):
         Context.logger.debug(f'Updating file {file.uuid} ({file.file_name})')
-        # old_file = self.db_template.files[file.uuid]
+        old_file = self.db_template.files[file.uuid]
+        if old_file.updated_at == file.updated_at:
+            Context.logger.debug(f'- File {file.uuid} ({file.file_name}) did not change')
+            return
         local_path = self.template_dir / file.file_name
-        # TODO: check if changed while having the same UUID (?)
         if not local_path.exists():
             self._store_file(file)
 

@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- Use file/asset timestamps for cache optimization
+
 
 ## [3.19.2]
 

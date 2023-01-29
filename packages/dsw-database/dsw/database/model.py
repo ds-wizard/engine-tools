@@ -75,6 +75,7 @@ class DBTemplate:
     recommended_package_id: str
     formats: dict
     created_at: datetime.datetime
+    updated_at: datetime.datetime
     app_uuid: str
 
     @staticmethod
@@ -93,6 +94,7 @@ class DBTemplate:
             recommended_package_id=data['recommended_package_id'],
             formats=data['formats'],
             created_at=data['created_at'],
+            updated_at=data['updated_at'],
             app_uuid=str(data.get('app_uuid', NULL_UUID)),
         )
 
@@ -103,6 +105,8 @@ class DBTemplateFile:
     uuid: str
     file_name: str
     content: str
+    created_at: datetime.datetime
+    updated_at: datetime.datetime
     app_uuid: str
 
     @staticmethod
@@ -112,6 +116,8 @@ class DBTemplateFile:
             uuid=str(data['uuid']),
             file_name=data['file_name'],
             content=data['content'],
+            created_at=data['created_at'],
+            updated_at=data['updated_at'],
             app_uuid=str(data.get('app_uuid', NULL_UUID)),
         )
 
@@ -122,8 +128,10 @@ class DBTemplateAsset:
     uuid: str
     file_name: str
     content_type: str
-    app_uuid: str
     file_size: int
+    created_at: datetime.datetime
+    updated_at: datetime.datetime
+    app_uuid: str
 
     @staticmethod
     def from_dict_row(data: dict):
@@ -132,8 +140,10 @@ class DBTemplateAsset:
             uuid=str(data['uuid']),
             file_name=data['file_name'],
             content_type=data['content_type'],
-            app_uuid=str(data.get('app_uuid', NULL_UUID)),
             file_size=data['file_size'],
+            created_at=data['created_at'],
+            updated_at=data['updated_at'],
+            app_uuid=str(data.get('app_uuid', NULL_UUID)),
         )
 
 
