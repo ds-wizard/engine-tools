@@ -13,8 +13,8 @@ jobs:
         os:
         - 'ubuntu-latest'
         python-version:
-        - '3.9'
         - '3.10'
+        - '3.11'
         package:
         - dsw-data-seeder
         - dsw-document-worker
@@ -75,12 +75,13 @@ jobs:
         - 'ubuntu-latest'
         - 'windows-latest'
         python-version:
-        - '3.9'
         - '3.10'
+        - '3.11'
         package:
         - dsw-command-queue
         - dsw-config
         - dsw-database
+        - dsw-models
         - dsw-storage
 
     runs-on: ${{ matrix.os }}
@@ -138,9 +139,9 @@ jobs:
         - 'ubuntu-latest'
         - 'windows-latest'
         python-version:
-        - '3.8'
         - '3.9'
         - '3.10'
+        - '3.11'
         package:
         - dsw-tdk
 

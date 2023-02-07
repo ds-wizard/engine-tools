@@ -1,4 +1,4 @@
-FROM datastewardshipwizard/python-base:3.10-jammy as builder
+FROM datastewardshipwizard/python-base:3.11-jammy as builder
 
 WORKDIR /app
 
@@ -8,7 +8,7 @@ RUN python -m pip wheel --no-cache-dir --wheel-dir=/root/wheels -r /app/packages
  && python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/root/wheels /app/packages/dsw-tdk
 
 
-FROM datastewardshipwizard/python-base:3.10-jammy
+FROM datastewardshipwizard/python-base:3.11-jammy
 
 WORKDIR /app
 

@@ -8,6 +8,13 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 
+## [3.20.0]
+
+### Changed
+
+- Use file/asset timestamps for cache optimization
+- Updated according to DB changes for Template Editor
+
 ## [3.19.2]
 
 ### Fixed
@@ -97,3 +104,4 @@ Released for version consistency with other DSW tools.
 [3.19.0]: /../../tree/v3.19.0
 [3.19.1]: /../../tree/v3.19.1
 [3.19.2]: /../../tree/v3.19.2
+[3.20.0]: /../../tree/v3.20.0

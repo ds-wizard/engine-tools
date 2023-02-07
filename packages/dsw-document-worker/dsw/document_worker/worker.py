@@ -117,7 +117,7 @@ class Job:
 
     @handle_job_step('Failed to prepare template')
     def prepare_template(self):
-        template_id = self.safe_doc.template_id
+        template_id = self.safe_doc.document_template_id
         format_uuid = self.safe_doc.format_uuid
         self.log.info(f'Document uses template {template_id} with format {format_uuid}')
         # update Sentry info

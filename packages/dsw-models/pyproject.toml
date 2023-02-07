@@ -3,32 +3,29 @@ requires = ['setuptools']
 build-backend = 'setuptools.build_meta'
 
 [project]
-name = 'dsw-database'
+name = 'dsw-models'
 version = '3.20.0'
-description = 'Library for managing DSW database'
+description = 'Library with DSW models and basic IO operations'
 readme = 'README.md'
-keywords = ['dsw', 'database']
+keywords = ['dsw', 'config', 'yaml', 'parser']
 license = { text = 'Apache License 2.0' }
 authors = [
     { name = 'Marek Suchánek', email = 'marek.suchanek@ds-wizard.org' }
 ]
 classifiers = [
-    'Development Status :: 5 - Production/Stable',
+    'Development Status :: 4 - Beta',
     'License :: OSI Approved :: Apache Software License',
     'Programming Language :: Python',
     'Programming Language :: Python :: 3.7',
     'Programming Language :: Python :: 3.8',
     'Programming Language :: Python :: 3.9',
     'Programming Language :: Python :: 3.10',
-    'Topic :: Database',
+    'Programming Language :: Python :: 3.11',
+    'Topic :: Text Processing',
     'Topic :: Utilities',
 ]
-requires-python = '>=3.7, <4'
+requires-python = '>=3.8, <4'
 dependencies = [
-    'psycopg[binary]',
-    'tenacity',
-    # DSW
-    'dsw-config==3.20.0',
 ]
 
 [project.urls]

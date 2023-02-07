@@ -1,9 +1,12 @@
 import asyncio
 import datetime
+import io
 import json
 import logging
 import pathlib
 import re
+import shutil
+import tempfile
 import watchgod  # type: ignore
 import zipfile
 
@@ -37,6 +40,7 @@ METAMODEL_VERSION_SUPPORT = {
     8: (3, 8, 0),
     9: (3, 10, 0),
     10: (3, 12, 0),
+    11: (3, 20, 0),
 }
 
 
@@ -112,22 +116,30 @@ class TDKCore:
         self.safe_project.load()
 
     async def load_remote(self, template_id: str):
-        self.logger.info(f'Retrieving template {template_id}')
-        self.template = await self.safe_client.get_template(template_id=template_id)
-        self.logger.debug('Retrieving template files')
-        files = await self.safe_client.get_template_files(template_id=template_id)
+        self.logger.info(f'Retrieving template draft {template_id}')
+        self.template = await self.safe_client.get_template_draft(template_id=template_id)
+        self.logger.debug('Retrieving template draft files')
+        files = await self.safe_client.get_template_draft_files(template_id=template_id)
         self.logger.info(f'Retrieved {len(files)} file(s)')
         for tfile in files:
             self.safe_template.files[tfile.filename.as_posix()] = tfile
-        self.logger.debug('Retrieving template assets')
-        assets = await self.safe_client.get_template_assets(template_id=template_id)
+        self.logger.debug('Retrieving template draft assets')
+        assets = await self.safe_client.get_template_draft_assets(template_id=template_id)
         self.logger.info(f'Retrieved {len(assets)} asset(s)')
         for tfile in assets:
             self.safe_template.files[tfile.filename.as_posix()] = tfile
 
-    async def list_remote(self) -> List[Template]:
-        self.logger.info('Listing remote templates')
+    async def download_bundle(self, template_id: str) -> bytes:
+        self.logger.info(f'Retrieving template {template_id} bundle')
+        return await self.safe_client.get_template_bundle(template_id=template_id)
+
+    async def list_remote_templates(self) -> List[Template]:
+        self.logger.info('Listing remote document templates')
         return await self.safe_client.get_templates()
+
+    async def list_remote_drafts(self) -> List[Template]:
+        self.logger.info('Listing remote document template drafts')
+        return await self.safe_client.get_drafts()
 
     def verify(self) -> List[ValidationError]:
         template = self.template or self.safe_project.template
@@ -149,32 +161,71 @@ class TDKCore:
         template_exists = await self.safe_client.check_template_exists(template_id=template_id)
         if template_exists and force:
             self.logger.warning('Deleting existing remote template (forced)')
-            result = await self.safe_client.delete_template(template_id=template_id)
+            result = await self.safe_client.delete_template_draft(template_id=template_id)
             if not result:
                 self.logger.error('Could not delete template (used by some documents?)')
             template_exists = not result
 
         if template_exists:
+            # TODO: do not remove if not necessary (make diff?)
             self.logger.info('Updating existing remote template')
-            await self.safe_client.put_template(template=self.safe_template)
+            await self.safe_client.put_template_draft(template=self.safe_template)
             self.logger.debug('Retrieving remote assets')
-            remote_assets = await self.safe_client.get_template_assets(template_id=self.safe_template.id)
+            remote_assets = await self.safe_client.get_template_draft_assets(template_id=self.safe_template.id)
             self.logger.debug('Retrieving remote files')
-            remote_files = await self.safe_client.get_template_files(template_id=self.safe_template.id)
+            remote_files = await self.safe_client.get_template_draft_files(template_id=self.safe_template.id)
             await self.cleanup_remote_files(remote_assets=remote_assets, remote_files=remote_files)
         else:
             self.logger.info('Creating remote template')
-            await self.safe_client.post_template(template=self.safe_template)
+            await self.safe_client.post_template_draft(template=self.safe_template)
         await self.store_remote_files()
+
+    async def _update_template_file(self, remote_tfile: TemplateFile, local_tfile: TemplateFile,
+                                    project_update: bool = False):
+        try:
+            self.logger.debug(f'Updating existing remote {remote_tfile.remote_type.value} '
+                              f'{remote_tfile.filename.as_posix()} ({remote_tfile.remote_id}) started')
+            local_tfile.remote_id = remote_tfile.remote_id
+            if remote_tfile.remote_type == TemplateFileType.asset:
+                result = await self.safe_client.put_template_draft_asset_content(
+                    template_id=self.safe_template.id,
+                    tfile=local_tfile,
+                )
+            else:
+                result = await self.safe_client.put_template_draft_file_content(
+                    template_id=self.safe_template.id,
+                    tfile=local_tfile,
+                )
+            self.logger.debug(f'Updating existing remote {remote_tfile.remote_type.value} '
+                              f'{remote_tfile.filename.as_posix()} ({remote_tfile.remote_id}) '
+                              f'finished: {"ok" if result else "failed"}')
+            if project_update and result:
+                self.safe_project.update_template_file(result)
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            try:
+                self.logger.debug(f'Trying to delete/create due to: {str(e)}')
+                await self._delete_template_file(tfile=remote_tfile)
+                await self._create_template_file(tfile=local_tfile, project_update=True)
+            except Exception as e:
+                self.logger.error(f'Failed to update existing remote {remote_tfile.remote_type.value} '
+                                  f'{remote_tfile.filename.as_posix()}: {e}')
 
     async def _delete_template_file(self, tfile: TemplateFile, project_update: bool = False):
         try:
             self.logger.debug(f'Deleting existing remote {tfile.remote_type.value} '
                               f'{tfile.filename.as_posix()} ({tfile.remote_id}) started')
             if tfile.remote_type == TemplateFileType.asset:
-                result = await self.safe_client.delete_template_asset(template_id=self.safe_template.id, asset_id=tfile.remote_id)
+                result = await self.safe_client.delete_template_draft_asset(
+                    template_id=self.safe_template.id,
+                    asset_id=tfile.remote_id,
+                )
             else:
-                result = await self.safe_client.delete_template_file(template_id=self.safe_template.id, file_id=tfile.remote_id)
+                result = await self.safe_client.delete_template_draft_file(
+                    template_id=self.safe_template.id,
+                    file_id=tfile.remote_id,
+                )
             self.logger.debug(f'Deleting existing remote {tfile.remote_type.value} '
                               f'{tfile.filename.as_posix()} ({tfile.remote_id}) '
                               f'finished: {"ok" if result else "failed"}')
@@ -199,9 +250,9 @@ class TDKCore:
             self.logger.debug(f'Storing remote {tfile.remote_type.value} '
                               f'{tfile.filename.as_posix()} started')
             if tfile.remote_type == TemplateFileType.asset:
-                result = await self.safe_client.post_template_asset(template_id=self.safe_template.id, tfile=tfile)
+                result = await self.safe_client.post_template_draft_asset(template_id=self.safe_template.id, tfile=tfile)
             else:
-                result = await self.safe_client.post_template_file(template_id=self.safe_template.id, tfile=tfile)
+                result = await self.safe_client.post_template_draft_file(template_id=self.safe_template.id, tfile=tfile)
             self.logger.debug(f'Storing remote {tfile.remote_type.value} '
                               f'{tfile.filename.as_posix()} finished: {result.remote_id}')
             if project_update and result is not None:
@@ -219,37 +270,88 @@ class TDKCore:
         if output.exists() and not force:
             raise RuntimeError(f'File {output} already exists (not forced)')
         self.logger.debug(f'Opening ZIP file for write: {output}')
-        package = zipfile.ZipFile(output, mode='w', compression=zipfile.ZIP_DEFLATED)
-        descriptor = self.safe_project.safe_template.serialize_remote()
-        files = []
-        assets = []
-        for tfile in self.safe_project.safe_template.files.values():
-            if tfile.is_text:
-                self.logger.info(f'Adding template file {tfile.filename.as_posix()}')
-                files.append({
-                    'uuid': str(UUIDGen.generate()),
-                    'content': tfile.content.decode(encoding=DEFAULT_ENCODING),
-                    'fileName': str(tfile.filename.as_posix()),
-                })
-            else:
-                self.logger.info(f'Adding template asset {tfile.filename.as_posix()}')
-                assets.append({
-                    'uuid': str(UUIDGen.generate()),
-                    'contentType': tfile.content_type,
-                    'fileName': str(tfile.filename.as_posix()),
-                })
-                self.logger.debug(f'Packaging template asset {tfile.filename}')
-                package.writestr(str('template/assets/' + tfile.filename.as_posix()), tfile.content)
-        descriptor['files'] = files
-        descriptor['assets'] = assets
-        timestamp = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
-        descriptor['createdAt'] = timestamp
-        descriptor['updatedAt'] = timestamp
-        self.logger.debug('Packaging template.json file')
-        package.writestr('template/template.json', data=json.dumps(descriptor, indent=4))
-        self.logger.debug('Closing ZIP package')
-        package.close()
+        with zipfile.ZipFile(output, mode='w', compression=zipfile.ZIP_DEFLATED) as pkg:
+            descriptor = self.safe_project.safe_template.serialize_remote()
+            files = []
+            assets = []
+            for tfile in self.safe_project.safe_template.files.values():
+                if tfile.is_text:
+                    self.logger.info(f'Adding template file {tfile.filename.as_posix()}')
+                    files.append({
+                        'uuid': str(UUIDGen.generate()),
+                        'content': tfile.content.decode(encoding=DEFAULT_ENCODING),
+                        'fileName': str(tfile.filename.as_posix()),
+                    })
+                else:
+                    self.logger.info(f'Adding template asset {tfile.filename.as_posix()}')
+                    assets.append({
+                        'uuid': str(UUIDGen.generate()),
+                        'contentType': tfile.content_type,
+                        'fileName': str(tfile.filename.as_posix()),
+                    })
+                    self.logger.debug(f'Packaging template asset {tfile.filename}')
+                    pkg.writestr(f'template/assets/{tfile.filename.as_posix()}', tfile.content)
+            descriptor['files'] = files
+            descriptor['assets'] = assets
+            timestamp = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+            descriptor['createdAt'] = timestamp
+            descriptor['updatedAt'] = timestamp
+            self.logger.debug('Packaging template.json file')
+            pkg.writestr('template/template.json', data=json.dumps(descriptor, indent=4))
         self.logger.debug('ZIP packaging done')
+
+    def extract_package(self, zip_data: bytes, template_dir: Optional[pathlib.Path], force: bool):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            io_zip = io.BytesIO(zip_data)
+            with zipfile.ZipFile(io_zip) as pkg:
+                pkg.extractall(tmp_dir)
+            del io_zip
+            tmp_root = pathlib.Path(tmp_dir) / 'template'
+            template_file = tmp_root / 'template.json'
+            assets_dir = tmp_root / 'assets'
+            self.logger.debug('Extracting template data')
+            if not template_file.exists():
+                raise RuntimeError('Malformed package: missing template.json file')
+            data = json.loads(template_file.read_text(encoding=DEFAULT_ENCODING))
+            template = Template.load_local(data)
+            template.tdk_config.files = ['*', '!.git/', '!.env']
+            self.logger.debug('Preparing template dir')
+            if template_dir is None:
+                template_dir = pathlib.Path.cwd() / template.id.replace(':', '_')
+            if template_dir.exists():
+                if not force:
+                    raise RuntimeError(f'Template directory already exists: '
+                                       f'{template_dir.as_posix()} (use force?)')
+                shutil.rmtree(template_dir, ignore_errors=True)
+            template_dir.mkdir(parents=True)
+            self.logger.debug('Extracting template.json from package')
+            local_template_json = template_dir / 'template.json'
+            local_template_json.write_text(
+                data=json.dumps(template.serialize_local_new(), indent=2),
+                encoding=DEFAULT_ENCODING,
+            )
+            self.logger.debug('Extracting README.md from package')
+            local_template_json = template_dir / 'README.md'
+            local_template_json.write_text(
+                data=data['readme'].replace('\r\n', '\n'),
+                encoding=DEFAULT_ENCODING,
+            )
+            self.logger.debug('Extracting assets from package')
+            for asset_file in assets_dir.rglob('*'):
+                if asset_file.is_file():
+                    target_asset = template_dir / asset_file.relative_to(assets_dir)
+                    target_dir = target_asset.parent
+                    target_dir.mkdir(parents=True, exist_ok=True)
+                    target_asset.write_bytes(asset_file.read_bytes())
+            self.logger.debug('Extracting files from package')
+            for file_item in data.get('files', []):
+                filename = file_item['fileName']
+                content = file_item['content'].replace('\r\n', '\n')
+                target_file = template_dir / filename
+                target_dir = target_file.parent
+                target_dir.mkdir(parents=True, exist_ok=True)
+                target_file.write_text(data=content, encoding=DEFAULT_ENCODING)
+        self.logger.debug('Extracting package done')
 
     async def watch_project(self, callback):
         async for changes in watchgod.awatch(self.safe_project.template_dir):
@@ -268,7 +370,7 @@ class TDKCore:
             if template_exists:
                 self.logger.info(f'Updating existing remote template'
                                  f' {self.safe_project.safe_template.id}')
-                await self.safe_client.put_template(template=self.safe_project.safe_template)
+                await self.safe_client.put_template_draft(template=self.safe_project.safe_template)
             else:
                 # TODO: optimization - reload full template and send it, skip all other changes
                 self.logger.info(f'Template {self.safe_project.safe_template.id} '
@@ -293,13 +395,13 @@ class TDKCore:
             self.logger.error(f'Failed to delete file {filepath.as_posix()}: {e}')
 
     async def _update_file(self, filepath: pathlib.Path):
-        # TODO: optimization - use PUT if possible
         try:
-            tfile = self.safe_project.get_template_file(filepath=filepath)
-            if tfile is not None:
-                await self._delete_template_file(tfile=tfile)
-            tfile = self.safe_project.load_file(filepath=filepath)
-            await self._create_template_file(tfile=tfile, project_update=True)
+            remote_tfile = self.safe_project.get_template_file(filepath=filepath)
+            local_tfile = self.safe_project.load_file(filepath=filepath)
+            if remote_tfile is not None:
+                await self._update_template_file(remote_tfile, local_tfile, project_update=True)
+            else:
+                await self._create_template_file(tfile=local_tfile, project_update=True)
         except Exception as e:
             self.logger.error(f'Failed to update file {filepath.as_posix()}: {e}')
 

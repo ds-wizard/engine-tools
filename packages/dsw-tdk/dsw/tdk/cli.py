@@ -21,6 +21,8 @@ from .validation import ValidationError
 CURRENT_DIR = pathlib.Path.cwd()
 DIR_TYPE = click.Path(exists=True, dir_okay=True, file_okay=False, resolve_path=True,
                       readable=True, writable=True)
+FILE_READ_TYPE = click.Path(exists=True, dir_okay=False, file_okay=True, resolve_path=True,
+                            readable=True)
 NEW_DIR_TYPE = click.Path(dir_okay=True, file_okay=False, resolve_path=True,
                           readable=True, writable=True)
 
@@ -275,22 +277,41 @@ def get_template(ctx, api_server, template_id, template_dir, username, password,
 
     async def main_routine():
         tdk = TDKCore(logger=ctx.obj.logger)
+        template_type = 'unknown'
+        zip_data = None
         try:
             await tdk.init_client(api_url=api_server, username=username, password=password)
-            await tdk.load_remote(template_id=template_id)
+            try:
+                await tdk.load_remote(template_id=template_id)
+                template_type = 'draft'
+            except Exception:
+                zip_data = await tdk.download_bundle(template_id=template_id)
+                template_type = 'bundle'
             await tdk.safe_client.close()
         except DSWCommunicationError as e:
             ClickPrinter.error('Could not get template:', bold=True)
             ClickPrinter.error(f'> {e.reason}\n> {e.message}')
             exit(1)
         await tdk.safe_client.safe_close()
-        tdk.prepare_local(template_dir=template_dir)
-        try:
-            tdk.store_local(force=force)
-            ClickPrinter.success(f'Template {template_id} downloaded to {template_dir}')
-        except Exception as e:
-            ClickPrinter.failure('Could not store template locally')
-            ClickPrinter.error(f'> {e}')
+        if template_type == 'draft':
+            tdk.prepare_local(template_dir=template_dir)
+            try:
+                tdk.store_local(force=force)
+                ClickPrinter.success(f'Template draft {template_id} downloaded to {template_dir}')
+            except Exception as e:
+                ClickPrinter.failure('Could not store template locally')
+                ClickPrinter.error(f'> {e}')
+                exit(1)
+        elif template_type == 'bundle' and zip_data is not None:
+            try:
+                tdk.extract_package(zip_data=zip_data, template_dir=template_dir, force=force)
+                ClickPrinter.success(f'Template {template_id} (released) downloaded to {template_dir}')
+            except Exception as e:
+                ClickPrinter.failure('Could not store template locally')
+                ClickPrinter.error(f'> {e}')
+                exit(1)
+        else:
+            ClickPrinter.failure(f'{template_id} is not released nor draft of a document template')
             exit(1)
 
     loop = asyncio.get_event_loop()
@@ -341,6 +362,8 @@ def put_template(ctx, api_server, template_dir, username, password, force, watch
             await tdk.safe_client.safe_close()
             exit(1)
         except DSWCommunicationError as e:
+            import traceback
+            traceback.print_exc()
             ClickPrinter.failure('Could not upload template')
             ClickPrinter.error(f'> {e.reason}\n> {e.message}')
             ClickPrinter.error('> Probably incorrect API URL, metamodel version, '
@@ -359,7 +382,7 @@ def put_template(ctx, api_server, template_dir, username, password, force, watch
               show_default=True, help='Target package file.')
 @click.option('-f', '--force', is_flag=True, help='Delete package if already exists.')
 @click.pass_context
-def create_package(ctx, template_dir, output, force):
+def create_package(ctx, template_dir, output, force: bool):
     tdk = TDKCore(logger=ctx.obj.logger)
     load_local(tdk, template_dir)
     try:
@@ -372,6 +395,28 @@ def create_package(ctx, template_dir, output, force):
     ClickPrinter.success(f'Package {filename} created')
 
 
+@main.command(help='Extract DSW template from ZIP package', name='unpackage')
+@click.argument('TEMPLATE-PACKAGE', type=FILE_READ_TYPE, required=False)
+@click.option('-o', '--output', type=NEW_DIR_TYPE, default=None, required=False,
+              help='Target package file.')
+@click.option('-f', '--force', is_flag=True, help='Overwrite folder if already exists.')
+@click.pass_context
+def extract_package(ctx, template_package, output, force: bool):
+    tdk = TDKCore(logger=ctx.obj.logger)
+    try:
+        data = pathlib.Path(template_package).read_bytes()
+        tdk.extract_package(
+            zip_data=data,
+            template_dir=output,
+            force=force,
+        )
+    except Exception as e:
+        ClickPrinter.failure('Failed to extract the package')
+        ClickPrinter.error(f'> {e}')
+        exit(1)
+    ClickPrinter.success(f'Package {template_package} extracted')
+
+
 @main.command(help='List templates from DSW via API.', name='list')
 @click.option('-s', '--api-server', metavar='API-URL', envvar='DSW_API', prompt=True,
               help='URL of DSW server API.')
@@ -381,16 +426,36 @@ def create_package(ctx, template_dir, output, force):
               metavar='PASSWORD', help='Admin password for DSW instance.')
 @click.option('--output-format', default=DEFAULT_LIST_FORMAT,
               metavar='FORMAT', help='Entry format string for printing.')
+@click.option('-r', '--released-only', is_flag=True, help='List only released templates')
+@click.option('-d', '--drafts-only', is_flag=True, help='List only template drafts')
 @click.pass_context
-def list_templates(ctx, api_server, username, password, output_format):
+def list_templates(ctx, api_server, username, password, output_format: str,
+                   released_only: bool, drafts_only: bool):
     async def main_routine():
         tdk = TDKCore(logger=ctx.obj.logger)
         try:
             await tdk.init_client(api_server, username, password)
-            templates = await tdk.list_remote()
-            for template in templates:
-                click.echo(output_format.format(template=template))
+            if released_only:
+                templates = await tdk.list_remote_templates()
+                for template in templates:
+                    click.echo(output_format.format(template=template))
+            elif drafts_only:
+                drafts = await tdk.list_remote_drafts()
+                for template in drafts:
+                    click.echo(output_format.format(template=template))
+            else:
+                click.echo('Document Templates (released)')
+                templates = await tdk.list_remote_templates()
+                for template in templates:
+                    click.echo(output_format.format(template=template))
+                click.echo('\nDocument Templates Drafts')
+                drafts = await tdk.list_remote_drafts()
+                for template in drafts:
+                    click.echo(output_format.format(template=template))
+
         except DSWCommunicationError as e:
+            import traceback
+            traceback.print_exc()
             ClickPrinter.failure('Failed to get list of templates')
             ClickPrinter.error(f'> {e.reason}\n> {e.message}')
             exit(1)

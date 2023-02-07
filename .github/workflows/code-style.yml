@@ -19,6 +19,7 @@ jobs:
           - dsw-database
           - dsw-document-worker
           - dsw-mailer
+          - dsw-models
           - dsw-storage
           - dsw-tdk
 
@@ -29,7 +30,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: 3.9
+        python-version: 3.11
         cache: pip
         cache-dependency-path: |
           **/pyproject.toml
@@ -54,7 +55,7 @@ jobs:
     - name: Lint with flake8
       run: |
         flake8 packages/${{ matrix.package }} --count --select=E9,F63,F7,F82 --show-source --statistics
-        flake8 packages/${{ matrix.package }} --count --max-complexity=10 --max-line-length=130 --statistics
+        flake8 packages/${{ matrix.package }} --count --max-complexity=12 --max-line-length=130 --statistics
 
   # Typing checks with MyPy
   typing:
@@ -81,7 +82,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: 3.9
+        python-version: 3.11
         cache: pip
         cache-dependency-path: |
           **/pyproject.toml
