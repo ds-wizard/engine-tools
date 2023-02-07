@@ -7,8 +7,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [3.20.0]
+
 - Initial version of `dsw-models` package
 
 
 [Unreleased]: /../../compare/main...develop
+[3.20.0]: /../../tree/v3.20.0
 

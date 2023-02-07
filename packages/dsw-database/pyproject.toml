@@ -4,7 +4,7 @@ build-backend = 'setuptools.build_meta'
 
 [project]
 name = 'dsw-database'
-version = '3.20.0.dev0'
+version = '3.20.0rc1'
 description = 'Library for managing DSW database'
 readme = 'README.md'
 keywords = ['dsw', 'database']
@@ -28,7 +28,7 @@ dependencies = [
     'psycopg[binary]',
     'tenacity',
     # DSW
-    'dsw-config==3.20.0.dev0',
+    'dsw-config==3.20.0rc1',
 ]
 
 [project.urls]
