@@ -1,6 +1,9 @@
 PROG_NAME = 'dsw-mailer'
 VERSION = '3.21.0'
+<<<<<<< HEAD
 COMPONENT_NAME = 'Mailer'
+=======
+>>>>>>> bae325f (chore: Init 3.21.0 development)
 
 LOGGER_NAME = 'mailer'
 
