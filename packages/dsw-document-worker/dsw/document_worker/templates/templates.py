@@ -120,22 +120,20 @@ class Template:
     def _update_asset(self, asset: DBDocumentTemplateAsset):
         Context.logger.debug(f'Updating asset {asset.uuid} ({asset.file_name})')
         old_asset = self.db_template.assets[asset.uuid]
-        if old_asset.updated_at == asset.updated_at:
+        local_path = self.template_dir / asset.file_name
+        if old_asset.updated_at == asset.updated_at and local_path.exists():
             Context.logger.debug(f'- Asset {asset.uuid} ({asset.file_name}) did not change')
             return
-        local_path = self.template_dir / asset.file_name
-        if not local_path.exists():
-            self._store_asset(asset)
+        self._store_asset(asset)
 
     def _update_file(self, file: DBDocumentTemplateFile):
         Context.logger.debug(f'Updating file {file.uuid} ({file.file_name})')
         old_file = self.db_template.files[file.uuid]
-        if old_file.updated_at == file.updated_at:
+        local_path = self.template_dir / file.file_name
+        if old_file.updated_at == file.updated_at and local_path.exists():
             Context.logger.debug(f'- File {file.uuid} ({file.file_name}) did not change')
             return
-        local_path = self.template_dir / file.file_name
-        if not local_path.exists():
-            self._store_file(file)
+        self._store_file(file)
 
     def prepare_all_template_files(self):
         Context.logger.info(f'Storing all files of template {self.template_id} locally')
