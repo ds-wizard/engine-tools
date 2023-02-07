@@ -7,7 +7,7 @@ Renders requested Jinja2 template with document context from Wizard Server and o
 
 ## Input
 
-*No input from previous step (should be first step)*
+If not used as a first step, then the previous document is available from `document` variable.
 
 ## Output
 

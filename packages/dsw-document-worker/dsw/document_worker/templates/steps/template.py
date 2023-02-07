@@ -96,41 +96,47 @@ class Jinja2Step(Step):
         from ..filters import filters
         from ..tests import tests
         from ...model.http import RequestsWrapper
+        import rdflib
         self.j2_env.filters.update(filters)
         self.j2_env.tests.update(tests)
         template_cfg = Context.get().app.cfg.templates.get_config(
             self.template.template_id,
         )
+        self.j2_env.globals.update({'rdflib': rdflib})
         if template_cfg is not None:
-            global_vars = {'secrets': template_cfg.secrets}  # type: dict[str, Any]
+            global_vars = {'secrets': template_cfg.secrets}  # type: dict[str,Any]
             if template_cfg.requests.enabled:
                 global_vars['requests'] = RequestsWrapper(
                     template_cfg=template_cfg,
                 )
             self.j2_env.globals.update(global_vars)
 
-    def execute_first(self, context: dict) -> DocumentFile:
+    def _execute(self, **jinja_args):
         def asset_fetcher(file_name):
             return self.template.fetch_asset(file_name)
 
         def asset_path(file_name):
             return self.template.asset_path(file_name)
 
+        jinja_args.update({
+            'assets': asset_fetcher,
+            'asset_path': asset_path,
+        })
+
         content = b''
         try:
-            content = self.j2_root_template.render(
-                ctx=context,
-                assets=asset_fetcher,
-                asset_path=asset_path,
-            ).encode(DEFAULT_ENCODING)
+            content = self.j2_root_template.render(**jinja_args).encode(DEFAULT_ENCODING)
         except jinja2.exceptions.TemplateRuntimeError as e:
             self.raise_exc(f'Failed rendering Jinja2 template due to'
                            f' {type(e).__name__}\n'
                            f'- {str(e)}')
         return DocumentFile(self.output_format, content, DEFAULT_ENCODING)
 
+    def execute_first(self, context: dict) -> DocumentFile:
+        return self._execute(ctx=context)
+
     def execute_follow(self, document: DocumentFile, context: dict) -> DocumentFile:
-        return self.raise_exc(f'Step "{self.NAME}" cannot process other files')
+        return self._execute(ctx=context, document=document)
 
 
 register_step(JSONStep.NAME, JSONStep)
