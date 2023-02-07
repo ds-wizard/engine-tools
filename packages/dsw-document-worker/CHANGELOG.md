@@ -10,10 +10,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Added
 
 - `weasyprint` step for PDF generation
+- Provide `rdflib` for use in Jinja templates
 
 ### Changed
 
 - Use Alpine-based Docker image
+- Allow `jinja` to be other than the first step
 
 
 ## [3.21.0]
