@@ -362,8 +362,6 @@ def put_template(ctx, api_server, template_dir, username, password, force, watch
             await tdk.safe_client.safe_close()
             exit(1)
         except DSWCommunicationError as e:
-            import traceback
-            traceback.print_exc()
             ClickPrinter.failure('Could not upload template')
             ClickPrinter.error(f'> {e.reason}\n> {e.message}')
             ClickPrinter.error('> Probably incorrect API URL, metamodel version, '
@@ -454,8 +452,6 @@ def list_templates(ctx, api_server, username, password, output_format: str,
                     click.echo(output_format.format(template=template))
 
         except DSWCommunicationError as e:
-            import traceback
-            traceback.print_exc()
             ClickPrinter.failure('Failed to get list of templates')
             ClickPrinter.error(f'> {e.reason}\n> {e.message}')
             exit(1)
