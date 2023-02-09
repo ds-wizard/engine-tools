@@ -182,8 +182,11 @@ class Template:
         self.loaded_json = loaded_json or OrderedDict()  # type: OrderedDict
 
     @property
-    def id(self):
+    def id(self) -> str:
         return f'{self.organization_id}:{self.template_id}:{self.version}'
+
+    def id_with_org(self, organization_id: str) -> str:
+        return f'{organization_id}:{self.template_id}:{self.version}'
 
     @classmethod
     def _common_load(cls, data):
@@ -255,6 +258,28 @@ class Template:
             'allowedPackages': [ap.serialize() for ap in self.allowed_packages],
             'formats': [f.serialize() for f in self.formats],
             'phase': 'DraftDocumentTemplatePhase',
+        }
+
+    def serialize_for_update(self) -> Dict[str, Any]:
+        return {
+            'templateId': self.template_id,
+            'version': self.version,
+            'name': self.name,
+            'description': self.description,
+            'license': self.license,
+            'metamodelVersion': self.metamodel_version,
+            'readme': self.readme,
+            'allowedPackages': [ap.serialize() for ap in self.allowed_packages],
+            'formats': [f.serialize() for f in self.formats],
+            'phase': 'DraftDocumentTemplatePhase',
+        }
+
+    def serialize_for_create(self, based_on: Optional[str] = None) -> Dict[str, Any]:
+        return {
+            'basedOn': based_on,
+            'name': self.name,
+            'templateId': self.template_id,
+            'version': self.version,
         }
 
     def serialize_local_new(self) -> Dict[str, Any]:

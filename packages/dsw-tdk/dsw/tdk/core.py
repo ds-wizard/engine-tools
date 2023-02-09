@@ -79,6 +79,7 @@ class TDKCore:
         self.logger = logger or logging.getLogger()
         self.loop = asyncio.get_event_loop()
         self.changes_processor = ChangesProcessor(self)
+        self.remote_id = 'unknown'
 
     @property
     def safe_template(self) -> Template:
@@ -117,21 +118,21 @@ class TDKCore:
 
     async def load_remote(self, template_id: str):
         self.logger.info(f'Retrieving template draft {template_id}')
-        self.template = await self.safe_client.get_template_draft(template_id=template_id)
+        self.template = await self.safe_client.get_template_draft(remote_id=template_id)
         self.logger.debug('Retrieving template draft files')
-        files = await self.safe_client.get_template_draft_files(template_id=template_id)
+        files = await self.safe_client.get_template_draft_files(remote_id=template_id)
         self.logger.info(f'Retrieved {len(files)} file(s)')
         for tfile in files:
             self.safe_template.files[tfile.filename.as_posix()] = tfile
         self.logger.debug('Retrieving template draft assets')
-        assets = await self.safe_client.get_template_draft_assets(template_id=template_id)
+        assets = await self.safe_client.get_template_draft_assets(remote_id=template_id)
         self.logger.info(f'Retrieved {len(assets)} asset(s)')
         for tfile in assets:
             self.safe_template.files[tfile.filename.as_posix()] = tfile
 
     async def download_bundle(self, template_id: str) -> bytes:
         self.logger.info(f'Retrieving template {template_id} bundle')
-        return await self.safe_client.get_template_bundle(template_id=template_id)
+        return await self.safe_client.get_template_bundle(remote_id=template_id)
 
     async def list_remote_templates(self) -> List[Template]:
         self.logger.info('Listing remote document templates')
@@ -157,27 +158,31 @@ class TDKCore:
     async def store_remote(self, force: bool):
         self.template = self.safe_project.template
         self._check_metamodel_version()
-        template_id = self.safe_template.id
-        template_exists = await self.safe_client.check_template_exists(template_id=template_id)
+        org_id = await self.safe_client.get_organization_id()
+        if org_id != self.safe_template.organization_id:
+            self.logger.warning(f'There is different organization ID set in the DSW instance'
+                                f' (local: {self.safe_template.organization_id}, remote: {org_id})')
+        self.remote_id = self.safe_template.id_with_org(org_id)
+        template_exists = await self.safe_client.check_draft_exists(remote_id=self.remote_id)
         if template_exists and force:
-            self.logger.warning('Deleting existing remote template (forced)')
-            result = await self.safe_client.delete_template_draft(template_id=template_id)
+            self.logger.warning('Deleting existing remote document template draft (forced)')
+            result = await self.safe_client.delete_template_draft(remote_id=self.remote_id)
             if not result:
-                self.logger.error('Could not delete template (used by some documents?)')
+                self.logger.error('Could not delete document template draft')
             template_exists = not result
 
         if template_exists:
             # TODO: do not remove if not necessary (make diff?)
-            self.logger.info('Updating existing remote template')
-            await self.safe_client.put_template_draft(template=self.safe_template)
+            self.logger.info('Updating existing remote document template draft')
+            await self.safe_client.update_template_draft(template=self.safe_template, remote_id=self.remote_id)
             self.logger.debug('Retrieving remote assets')
-            remote_assets = await self.safe_client.get_template_draft_assets(template_id=self.safe_template.id)
+            remote_assets = await self.safe_client.get_template_draft_assets(remote_id=self.remote_id)
             self.logger.debug('Retrieving remote files')
-            remote_files = await self.safe_client.get_template_draft_files(template_id=self.safe_template.id)
+            remote_files = await self.safe_client.get_template_draft_files(remote_id=self.remote_id)
             await self.cleanup_remote_files(remote_assets=remote_assets, remote_files=remote_files)
         else:
-            self.logger.info('Creating remote template')
-            await self.safe_client.post_template_draft(template=self.safe_template)
+            self.logger.info('Creating remote document template draft')
+            await self.safe_client.create_new_template_draft(template=self.safe_template, remote_id=self.remote_id)
         await self.store_remote_files()
 
     async def _update_template_file(self, remote_tfile: TemplateFile, local_tfile: TemplateFile,
@@ -188,12 +193,12 @@ class TDKCore:
             local_tfile.remote_id = remote_tfile.remote_id
             if remote_tfile.remote_type == TemplateFileType.asset:
                 result = await self.safe_client.put_template_draft_asset_content(
-                    template_id=self.safe_template.id,
+                    remote_id=self.remote_id,
                     tfile=local_tfile,
                 )
             else:
                 result = await self.safe_client.put_template_draft_file_content(
-                    template_id=self.safe_template.id,
+                    remote_id=self.remote_id,
                     tfile=local_tfile,
                 )
             self.logger.debug(f'Updating existing remote {remote_tfile.remote_type.value} '
@@ -202,8 +207,6 @@ class TDKCore:
             if project_update and result:
                 self.safe_project.update_template_file(result)
         except Exception as e:
-            import traceback
-            traceback.print_exc()
             try:
                 self.logger.debug(f'Trying to delete/create due to: {str(e)}')
                 await self._delete_template_file(tfile=remote_tfile)
@@ -218,12 +221,12 @@ class TDKCore:
                               f'{tfile.filename.as_posix()} ({tfile.remote_id}) started')
             if tfile.remote_type == TemplateFileType.asset:
                 result = await self.safe_client.delete_template_draft_asset(
-                    template_id=self.safe_template.id,
+                    remote_id=self.remote_id,
                     asset_id=tfile.remote_id,
                 )
             else:
                 result = await self.safe_client.delete_template_draft_file(
-                    template_id=self.safe_template.id,
+                    remote_id=self.remote_id,
                     file_id=tfile.remote_id,
                 )
             self.logger.debug(f'Deleting existing remote {tfile.remote_type.value} '
@@ -250,9 +253,9 @@ class TDKCore:
             self.logger.debug(f'Storing remote {tfile.remote_type.value} '
                               f'{tfile.filename.as_posix()} started')
             if tfile.remote_type == TemplateFileType.asset:
-                result = await self.safe_client.post_template_draft_asset(template_id=self.safe_template.id, tfile=tfile)
+                result = await self.safe_client.post_template_draft_asset(remote_id=self.remote_id, tfile=tfile)
             else:
-                result = await self.safe_client.post_template_draft_file(template_id=self.safe_template.id, tfile=tfile)
+                result = await self.safe_client.post_template_draft_file(remote_id=self.remote_id, tfile=tfile)
             self.logger.debug(f'Storing remote {tfile.remote_type.value} '
                               f'{tfile.filename.as_posix()} finished: {result.remote_id}')
             if project_update and result is not None:
@@ -364,23 +367,23 @@ class TDKCore:
 
     async def _update_descriptor(self):
         try:
-            template_exists = await self.safe_client.check_template_exists(
-                template_id=self.safe_project.safe_template.id,
+            template_exists = await self.safe_client.check_draft_exists(
+                remote_id=self.remote_id,
             )
             if template_exists:
-                self.logger.info(f'Updating existing remote template'
+                self.logger.info(f'Updating existing remote document template draft'
                                  f' {self.safe_project.safe_template.id}')
-                await self.safe_client.put_template_draft(template=self.safe_project.safe_template)
+                await self.safe_client.update_template_draft(template=self.safe_project.safe_template)
             else:
                 # TODO: optimization - reload full template and send it, skip all other changes
-                self.logger.info(f'Template {self.safe_project.safe_template.id} '
+                self.logger.info(f'Document template draft {self.safe_project.safe_template.id} '
                                  f'does not exist on remote - full sync')
                 await self.store_remote(force=False)
         except DSWCommunicationError as e:
-            self.logger.error(f'Failed to update template'
+            self.logger.error(f'Failed to update document template draft'
                               f' {self.safe_project.safe_template.id}: {e.message}')
         except Exception as e:
-            self.logger.error(f'Failed to update template'
+            self.logger.error(f'Failed to update document template draft'
                               f' {self.safe_project.safe_template.id}: {e}')
 
     async def _delete_file(self, filepath: pathlib.Path):
