@@ -7,6 +7,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+
+## [3.20.1]
+
+Released for version consistency with other DSW tools.
+
 ## [3.20.0]
 
 - Initial version of `dsw-models` package
@@ -14,4 +19,4 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 [Unreleased]: /../../compare/main...develop
 [3.20.0]: /../../tree/v3.20.0
-
+[3.20.1]: /../../tree/v3.20.1
