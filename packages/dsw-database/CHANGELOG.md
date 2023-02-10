@@ -8,6 +8,13 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 
+## [3.20.2]
+
+### Fixed
+
+- Fix retrieving questionnaires
+- Fix retrieving app configs
+
 ## [3.20.1]
 
 Released for version consistency with other DSW tools.
