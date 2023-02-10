@@ -209,10 +209,10 @@ class DBAppConfig:
     registry: dict
     knowledge_model: dict
     questionnaire: dict
-    template: dict
     submission: dict
     feature: dict
     owl: dict
+    mail_config_uuid: Optional[str]
     created_at: datetime.datetime
     updated_at: datetime.datetime
 
@@ -244,10 +244,10 @@ class DBAppConfig:
             registry=data['registry'],
             knowledge_model=data['knowledge_model'],
             questionnaire=data['questionnaire'],
-            template=data['template'],
             submission=data['submission'],
             feature=data['feature'],
             owl=data['owl'],
+            mail_config_uuid=data.get('mail_config_uuid', None),
             created_at=data['created_at'],
             updated_at=data['updated_at'],
         )
@@ -322,7 +322,7 @@ class DBQuestionnaireSimple:
     visibility: str
     sharing: str
     package_id: str
-    template_id: str
+    document_template_id: str
     format_uuid: str
     created_by: str
     created_at: datetime.datetime
@@ -340,7 +340,7 @@ class DBQuestionnaireSimple:
             visibility=data['visibility'],
             sharing=data['sharing'],
             package_id=data['package_id'],
-            template_id=data['template_id'],
+            document_template_id=data['document_template_id'],
             format_uuid=str(data['format_uuid']),
             created_by=str(data['created_by']),
             created_at=data['created_at'],
@@ -358,7 +358,7 @@ class DBQuestionnaireSimple:
             'visibility': self.visibility,
             'sharing': self.sharing,
             'package_id': self.package_id,
-            'template_id': self.template_id,
+            'document_template_id': self.document_template_id,
             'format_uuid': self.format_uuid,
             'created_by': self.created_by,
             'created_at': self.created_at.isoformat(timespec='milliseconds'),
