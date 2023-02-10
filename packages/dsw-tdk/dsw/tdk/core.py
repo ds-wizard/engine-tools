@@ -373,7 +373,10 @@ class TDKCore:
             if template_exists:
                 self.logger.info(f'Updating existing remote document template draft'
                                  f' {self.safe_project.safe_template.id}')
-                await self.safe_client.update_template_draft(template=self.safe_project.safe_template)
+                await self.safe_client.update_template_draft(
+                    template=self.safe_project.safe_template,
+                    remote_id=self.remote_id,
+                )
             else:
                 # TODO: optimization - reload full template and send it, skip all other changes
                 self.logger.info(f'Document template draft {self.safe_project.safe_template.id} '
