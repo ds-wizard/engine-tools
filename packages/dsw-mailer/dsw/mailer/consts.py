@@ -1,5 +1,5 @@
 PROG_NAME = 'dsw-mailer'
-VERSION = '3.20.1'
+VERSION = '3.20.2'
 
 LOGGER_NAME = 'mailer'
 
