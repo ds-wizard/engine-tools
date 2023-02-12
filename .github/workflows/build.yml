@@ -130,7 +130,7 @@ jobs:
         tags: |
           type=sha
 
-    - name: Docker build+push [test]
+    - name: Docker build [test]
       uses: docker/build-push-action@v3
       with:
         context: ${{ env.DOCKER_META_CONTEXT }}
@@ -140,47 +140,37 @@ jobs:
         tags: ${{ steps.meta-test.outputs.tags }}
         labels: ${{ steps.meta-test.outputs.labels }}
 
-    # PRIVATE: DOCKER REGISTRY
-    - name: Docker login [private]
-      if: github.event_name != 'pull_request'
-      uses: docker/login-action@v2
-      with:
-        registry: ${{ secrets.PRIVATE_REGISTRY_URL }}
-        username: ${{ secrets.PRIVATE_REGISTRY_USERNAME }}
-        password: ${{ secrets.PRIVATE_REGISTRY_PASSWORD }}
-
-    - name: Docker meta [private]
-      id: meta-private
-      if: github.event_name != 'pull_request'
-      uses: docker/metadata-action@v4
-      with:
-        images: |
-          ${{ secrets.PRIVATE_REGISTRY_URL }}/${{ steps.docker-image-name.outputs.NAME }}
-        tags: |
-          type=ref,event=branch
-
-    - name: Docker build+push [private]
-      uses: docker/build-push-action@v3
-      if: github.event_name != 'pull_request' && steps.meta-private.outputs.tags != ''
-      with:
-        context: ${{ env.DOCKER_META_CONTEXT }}
-        file: ${{ env.DOCKER_META_FILE }}
-        # Docker Registry has currently issues with multiarch images and garbage collection
-        # https://github.com/distribution/distribution/issues/3178
-        # platforms: ${{ env.DOCKER_META_PLATFORMS }}
-        platforms: 'linux/amd64'
-        push: true
-        tags: ${{ steps.meta-private.outputs.tags }}
-        labels: ${{ steps.meta-private.outputs.labels }}
-
-    # PUBLIC: DOCKER HUB
-    - name: Docker login [public]
+    # PREPARE
+    - name: Docker login [docker.io]
       if: github.event_name != 'pull_request'
       uses: docker/login-action@v2
       with:
         username: ${{ secrets.DOCKER_HUB_USERNAME }}
         password: ${{ secrets.DOCKER_HUB_PASSWORD }}
 
+    # DEVELOPMENT IMAGES
+    - name: Docker meta [dev]
+      id: meta-dev
+      if: github.event_name != 'pull_request'
+      uses: docker/metadata-action@v4
+      with:
+        images: |
+          ${{ secrets.DOCKER_HUB_USERNAME }}/${{ steps.docker-image-name.outputs.NAME }}
+        tags: |
+          type=ref,event=branch
+
+    - name: Docker build+push [dev]
+      uses: docker/build-push-action@v3
+      if: github.event_name != 'pull_request' && steps.meta-dev.outputs.tags != ''
+      with:
+        context: ${{ env.DOCKER_META_CONTEXT }}
+        file: ${{ env.DOCKER_META_FILE }}
+        platforms: ${{ env.DOCKER_META_PLATFORMS }}
+        push: true
+        tags: ${{ steps.meta-dev.outputs.tags }}
+        labels: ${{ steps.meta-dev.outputs.labels }}
+
+    # PUBLIC IMAGES
     - name: Docker meta [public]
       id: meta-public
       if: github.event_name != 'pull_request'
