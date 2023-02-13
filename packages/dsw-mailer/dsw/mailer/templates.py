@@ -13,11 +13,11 @@ from .logging import LOGGER
 
 class MailTemplate:
 
-    def __init__(self, name: str, subject: str,
+    def __init__(self, name: str, descriptor: TemplateDescriptor,
                  html_template: Optional[jinja2.Template],
                  plain_template: Optional[jinja2.Template]):
         self.name = name
-        self.subject = subject
+        self.descriptor = descriptor
         self.html_template = html_template
         self.plain_template = plain_template
         self.attachments = list()  # type: list[MailAttachment]
@@ -30,7 +30,12 @@ class MailTemplate:
         subject_prefix = ctx.get('appTitle', None)
         if subject_prefix is None:
             subject_prefix = mail_name
-        msg.subject = f'{subject_prefix}: {self.subject}'
+        msg.subject = f'{subject_prefix}: {self.descriptor.subject}'
+        msg.msg_id = rq.id
+        msg.msg_domain = rq.domain
+        msg.language = self.descriptor.language
+        msg.importance = self.descriptor.importance
+        msg.priority = self.descriptor.priority
         ctx['msgId'] = rq.id
         ctx['subject'] = msg.subject
         ctx['appTitle'] = subject_prefix
@@ -115,9 +120,9 @@ class TemplateRegistry:
             return None
         template = MailTemplate(
             name=path.name,
-            subject=descriptor.subject,
             html_template=html_template,
             plain_template=plain_template,
+            descriptor=descriptor,
         )
         template.attachments = [a for a in attachments if a is not None]
         template.html_images = [a for a in html_images if a is not None]
