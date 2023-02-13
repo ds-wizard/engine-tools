@@ -3,6 +3,7 @@ import datetime
 import math
 import pathlib
 import time
+import urllib.parse
 import uuid
 
 from typing import Optional
@@ -103,6 +104,9 @@ class Mailer(CommandWorker):
                 cfg=app_ctx.db.get_mail_config(app_uuid=cmd.app_uuid),
             )
         Context.logger.debug(f'Config from DB: {cfg}')
+        # client URL
+        rq.client_url = cmd.body.get('clientUrl', app_ctx.cfg.general.client_url)
+        rq.domain = urllib.parse.urlparse(rq.client_url).hostname
         # update Sentry info
         SentryReporter.set_context('template', rq.template_name)
         self.send(rq, cfg)

@@ -10,6 +10,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Added
 
 - Add 2FA verification email
+- Support for email headers: `date`, `message-id`, `language`, `priority`, `sensitivity`, and `importance`
 
 
 ## [3.20.2]
