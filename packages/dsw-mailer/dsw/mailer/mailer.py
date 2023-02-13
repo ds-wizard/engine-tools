@@ -488,6 +488,53 @@ class _MWResetPassword(MailerWizardCommand):
         )
 
 
+class _MWTwoFactorAuth(MailerWizardCommand):
+
+    FUNCTION_NAME = 'sendTwoFactorAuthMail'
+    TEMPLATE_NAME = 'twoFactorAuth'
+
+    def __init__(self, email: str, user: CmdUser, code: str,
+                 client_url: str, app_uuid: str):
+        super().__init__(app_uuid=app_uuid)
+        self.email = email
+        self.user = user
+        self.code = code
+        self.client_url = client_url
+
+    def to_context(self) -> dict:
+        ctx = {
+            'user': self.user.to_context(),
+            'code': self.code,
+            'clientUrl': self.client_url,
+        }
+        ctx.update(_app_config_to_context(self.app_config))
+        return ctx
+
+    def to_request(self, msg_id: str, trigger: str) -> MessageRequest:
+        return MessageRequest(
+            message_id=msg_id,
+            template_name=self.TEMPLATE_NAME,
+            trigger=trigger,
+            ctx=self.to_context(),
+            recipients=[self.email],
+        )
+
+    @staticmethod
+    def create_from(cmd: PersistentCommand) -> MailerCommand:
+        return _MWTwoFactorAuth(
+            email=cmd.body['email'],
+            user=CmdUser(
+                user_uuid=cmd.body['userUuid'],
+                first_name=cmd.body['userFirstName'],
+                last_name=cmd.body['userLastName'],
+                email=cmd.body['userEmail'],
+            ),
+            code=cmd.body['code'],
+            client_url=cmd.body['clientUrl'],
+            app_uuid=cmd.app_uuid,
+        )
+
+
 class _MRRegistrationConfirmation(MailerCommand):
 
     FUNCTION_NAME = 'sendRegistrationConfirmationMail'
@@ -648,6 +695,7 @@ _MAILER_COMMANDS = [
     _MWResetPassword,
     _MWQuestionnaireInvitation,
     _MWRegistrationCreatedAnalytics,
+    _MWTwoFactorAuth,
     _MRRegistrationConfirmation,
     _MRResetToken,
     _MRRegistrationCreatedAnalytics,
