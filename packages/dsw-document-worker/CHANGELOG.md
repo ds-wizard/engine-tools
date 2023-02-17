@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Support for i18n in templates (Jinja2 extension)
+
 
 ## [3.20.2]
 
