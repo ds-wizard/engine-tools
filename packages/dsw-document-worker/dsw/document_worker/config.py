@@ -41,7 +41,7 @@ class _ExperimentalKeys(ConfigKeysContainer):
     pdf_watermark = ConfigKey(
         yaml_path=['experimental', 'pdfWatermark'],
         var_names=['EXPERIMENTAL_PDF_WATERMARK'],
-        default='/app/data/watermark.pdf',
+        default='/home/user/data/watermark.pdf',
         cast=cast_optional_str,
     )
     pdf_watermark_top = ConfigKey(

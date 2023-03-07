@@ -39,8 +39,7 @@ def validate_config(ctx, param, value: Optional[IO]):
 @click.argument('config', envvar='DOCWORKER_CONFIG',
                 required=False, callback=validate_config,
                 type=click.File('r', encoding='utf-8'))
-@click.argument('workdir', envvar='DOCWORKER_WORKDIR',
-                type=click.Path(dir_okay=True, exists=True))
+@click.argument('workdir', envvar='DOCWORKER_WORKDIR')
 def main(config: DocumentWorkerConfig, workdir: str):
     logging.basicConfig(
         stream=sys.stdout,
@@ -48,8 +47,13 @@ def main(config: DocumentWorkerConfig, workdir: str):
         format=config.log.message_format
     )
     from .worker import DocumentWorker
-    worker = DocumentWorker(config, pathlib.Path(workdir))
+    workdir_path = pathlib.Path(workdir)
+    workdir_path.mkdir(parents=True, exist_ok=True)
+    if not workdir_path.is_dir():
+        click.echo(f'Workdir {workdir_path.as_posix()} is not usable')
+        exit(2)
     try:
+        worker = DocumentWorker(config, workdir_path)
         worker.run()
     except Exception as e:
         SentryReporter.capture_exception(e)

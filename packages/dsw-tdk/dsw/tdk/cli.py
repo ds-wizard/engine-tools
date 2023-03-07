@@ -85,6 +85,10 @@ def print_template_info(template: Template):
         click.echo(f' - {tfile.filename.as_posix()} [{filesize}]')
 
 
+def rectify_url(ctx, param, value) -> str:
+    return value.rstrip('/')
+
+
 class ClickLogger(logging.Logger):
 
     NAME = 'DSW-TDK-CLI'
@@ -265,7 +269,7 @@ def new_template(ctx, template_dir, force):
 @click.argument('TEMPLATE-ID')
 @click.argument('TEMPLATE-DIR', type=NEW_DIR_TYPE, default=None, required=False)
 @click.option('-s', '--api-server', metavar='API-URL', envvar='DSW_API',
-              prompt='URL of DSW API', help='URL of DSW server API.')
+              prompt='URL of DSW API', help='URL of DSW server API.', callback=rectify_url)
 @click.option('-u', '--username', envvar='DSW_USERNAME', prompt='Username', hide_input=False,
               metavar='EMAIL', help='Admin username (email) for DSW instance.')
 @click.option('-p', '--password', envvar='DSW_PASSWORD', prompt='Email', hide_input=True,
@@ -321,7 +325,7 @@ def get_template(ctx, api_server, template_id, template_dir, username, password,
 @main.command(help='Upload template to DSW.', name='put')
 @click.argument('TEMPLATE-DIR', type=DIR_TYPE, default=CURRENT_DIR, required=False)
 @click.option('-s', '--api-server', metavar='API-URL', envvar='DSW_API',
-              prompt='URL of DSW API', help='URL of DSW server API.')
+              prompt='URL of DSW API', help='URL of DSW server API.', callback=rectify_url)
 @click.option('-u', '--username', envvar='DSW_USERNAME', prompt='Username', hide_input=False,
               metavar='USERNAME', help='Admin username (email address) for DSW instance.')
 @click.option('-p', '--password', envvar='DSW_PASSWORD', prompt='Password', hide_input=True,
@@ -416,11 +420,11 @@ def extract_package(ctx, template_package, output, force: bool):
 
 
 @main.command(help='List templates from DSW via API.', name='list')
-@click.option('-s', '--api-server', metavar='API-URL', envvar='DSW_API', prompt=True,
-              help='URL of DSW server API.')
-@click.option('-u', '--username', envvar='DSW_USERNAME', prompt=True, hide_input=False,
-              metavar='EMAIL', help='Admin username (email) for DSW instance.')
-@click.option('-p', '--password', envvar='DSW_PASSWORD', prompt=True, hide_input=True,
+@click.option('-s', '--api-server', metavar='API-URL', envvar='DSW_API',
+              prompt='URL of DSW API', help='URL of DSW server API.', callback=rectify_url)
+@click.option('-u', '--username', envvar='DSW_USERNAME', prompt='Username', hide_input=False,
+              metavar='USERNAME', help='Admin username (email address) for DSW instance.')
+@click.option('-p', '--password', envvar='DSW_PASSWORD', prompt='Password', hide_input=True,
               metavar='PASSWORD', help='Admin password for DSW instance.')
 @click.option('--output-format', default=DEFAULT_LIST_FORMAT,
               metavar='FORMAT', help='Entry format string for printing.')

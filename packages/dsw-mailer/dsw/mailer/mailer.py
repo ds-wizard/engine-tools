@@ -3,6 +3,7 @@ import datetime
 import math
 import pathlib
 import time
+import urllib.parse
 import uuid
 
 from typing import Optional
@@ -103,6 +104,9 @@ class Mailer(CommandWorker):
                 cfg=app_ctx.db.get_mail_config(app_uuid=cmd.app_uuid),
             )
         Context.logger.debug(f'Config from DB: {cfg}')
+        # client URL
+        rq.client_url = cmd.body.get('clientUrl', app_ctx.cfg.general.client_url)
+        rq.domain = urllib.parse.urlparse(rq.client_url).hostname
         # update Sentry info
         SentryReporter.set_context('template', rq.template_name)
         self.send(rq, cfg)
@@ -488,6 +492,53 @@ class _MWResetPassword(MailerWizardCommand):
         )
 
 
+class _MWTwoFactorAuth(MailerWizardCommand):
+
+    FUNCTION_NAME = 'sendTwoFactorAuthMail'
+    TEMPLATE_NAME = 'twoFactorAuth'
+
+    def __init__(self, email: str, user: CmdUser, code: str,
+                 client_url: str, app_uuid: str):
+        super().__init__(app_uuid=app_uuid)
+        self.email = email
+        self.user = user
+        self.code = code
+        self.client_url = client_url
+
+    def to_context(self) -> dict:
+        ctx = {
+            'user': self.user.to_context(),
+            'code': self.code,
+            'clientUrl': self.client_url,
+        }
+        ctx.update(_app_config_to_context(self.app_config))
+        return ctx
+
+    def to_request(self, msg_id: str, trigger: str) -> MessageRequest:
+        return MessageRequest(
+            message_id=msg_id,
+            template_name=self.TEMPLATE_NAME,
+            trigger=trigger,
+            ctx=self.to_context(),
+            recipients=[self.email],
+        )
+
+    @staticmethod
+    def create_from(cmd: PersistentCommand) -> MailerCommand:
+        return _MWTwoFactorAuth(
+            email=cmd.body['email'],
+            user=CmdUser(
+                user_uuid=cmd.body['userUuid'],
+                first_name=cmd.body['userFirstName'],
+                last_name=cmd.body['userLastName'],
+                email=cmd.body['userEmail'],
+            ),
+            code=cmd.body['code'],
+            client_url=cmd.body['clientUrl'],
+            app_uuid=cmd.app_uuid,
+        )
+
+
 class _MRRegistrationConfirmation(MailerCommand):
 
     FUNCTION_NAME = 'sendRegistrationConfirmationMail'
@@ -648,6 +699,7 @@ _MAILER_COMMANDS = [
     _MWResetPassword,
     _MWQuestionnaireInvitation,
     _MWRegistrationCreatedAnalytics,
+    _MWTwoFactorAuth,
     _MRRegistrationConfirmation,
     _MRResetToken,
     _MRRegistrationCreatedAnalytics,

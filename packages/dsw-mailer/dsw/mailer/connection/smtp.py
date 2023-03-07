@@ -1,3 +1,4 @@
+import datetime
 import logging
 import pathvalidate
 import smtplib
@@ -8,7 +9,7 @@ from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from email.utils import formataddr
+from email.utils import formataddr, format_datetime, make_msgid
 from typing import Optional
 
 from dsw.config.model import MailConfig
@@ -151,7 +152,16 @@ class SMTPSender:
             msg.attach(txt)
             for attachment in mail.attachments:
                 msg.attach(cls._convert_attachment(attachment))
-        msg['From'] = formataddr((mail.from_name, mail.from_mail))
-        msg['To'] = ', '.join(mail.recipients)
-        msg['Subject'] = mail.subject
+        msg.add_header('From', formataddr((mail.from_name, mail.from_mail)))
+        msg.add_header('To', ', '.join(mail.recipients))
+        msg.add_header('Subject', mail.subject)
+        msg.add_header('Date', format_datetime(dt=datetime.datetime.utcnow()))
+        msg.add_header('Message-ID', make_msgid(idstring=mail.msg_id, domain=mail.msg_domain))
+        msg.add_header('Language', mail.language)
+        msg.add_header('Importance', mail.importance)
+        msg.add_header('', f'{mail.client_url}/users/edit/current')
+        if mail.sensitivity is not None:
+            msg.add_header('Sensitivity', mail.sensitivity)
+        if mail.priority is not None:
+            msg.add_header('Priority', mail.priority)
         return msg
