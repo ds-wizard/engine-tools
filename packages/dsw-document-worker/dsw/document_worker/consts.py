@@ -5,6 +5,7 @@ PROG_NAME = 'docworker'
 LOGGER_NAME = 'docworker'
 CURRENT_METAMODEL = 11
 NULL_UUID = '00000000-0000-0000-0000-000000000000'
+COMPONENT_NAME = 'Document Worker'
 
 
 class DocumentState:

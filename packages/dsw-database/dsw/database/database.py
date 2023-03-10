@@ -10,7 +10,7 @@ from typing import List, Iterable, Optional
 from dsw.config.model import DatabaseConfig
 
 from .model import DBDocumentTemplate, DBDocumentTemplateFile, \
-    DBDocumentTemplateAsset, DBDocument, \
+    DBDocumentTemplateAsset, DBDocument, DBComponent, \
     DocumentState, DBAppConfig, DBAppLimits, DBSubmission, \
     DBInstanceConfigMail, DBQuestionnaireSimple
 
@@ -53,7 +53,11 @@ class Database:
                          'FROM app_config ac JOIN instance_config_mail icm ' \
                          'ON ac.mail_config_uuid = icm.uuid ' \
                          'WHERE ac.uuid = %(app_uuid)s;'
-
+    UPDATE_COMPONENT_INFO = 'INSERT INTO component (name, version, built_at, created_at, updated_at) ' \
+                            'VALUES (%(name)s, %(version)s, %(built_at)s, %(created_at)s, %(updated_at)s)' \
+                            'ON CONFLICT (name) DO ' \
+                            'UPDATE SET version = %(version)s, built_at = %(built_at)s, updated_at = %(updated_at)s;'
+    SELECT_COMPONENT_INFO = 'SELECT * FROM component WHERE name = %(name)s;'
     SUM_FILE_SIZES = 'SELECT (SELECT COALESCE(SUM(file_size)::bigint, 0) ' \
                      'FROM document WHERE app_uuid = %(app_uuid)s) ' \
                      '+ (SELECT COALESCE(SUM(file_size)::bigint, 0) ' \
@@ -362,6 +366,53 @@ class Database:
             except Exception as e:
                 LOG.warning(f'Could not retrieve instance_mail_config for app'
                             f' "{app_uuid}": {str(e)}')
+                return None
+
+    @tenacity.retry(
+        reraise=True,
+        wait=tenacity.wait_exponential(multiplier=RETRY_QUERY_MULTIPLIER),
+        stop=tenacity.stop_after_attempt(RETRY_QUERY_TRIES),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
+    )
+    def update_component_info(self, name: str, version: str, built_at: datetime.datetime):
+        with self.conn_query.new_cursor(use_dict=True) as cursor:
+            ts_now = datetime.datetime.utcnow()
+            try:
+                cursor.execute(
+                    query=self.UPDATE_COMPONENT_INFO,
+                    params={
+                        'name': name,
+                        'version': version,
+                        'built_at': built_at,
+                        'created_at': ts_now,
+                        'updated_at': ts_now,
+                    },
+                )
+                self.conn_query.connection.commit()
+            except Exception as e:
+                LOG.warning(f'Could not update component info: {str(e)}')
+
+    @tenacity.retry(
+        reraise=True,
+        wait=tenacity.wait_exponential(multiplier=RETRY_QUERY_MULTIPLIER),
+        stop=tenacity.stop_after_attempt(RETRY_QUERY_TRIES),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
+    )
+    def get_component_info(self, name: str) -> Optional[DBComponent]:
+        with self.conn_query.new_cursor(use_dict=True) as cursor:
+            try:
+                cursor.execute(
+                    query=self.SELECT_COMPONENT_INFO,
+                    params={'name': name},
+                )
+                result = cursor.fetchone()
+                if result is None:
+                    return None
+                return DBComponent.from_dict_row(data=result)
+            except Exception as e:
+                LOG.warning(f'Could not get component info: {str(e)}')
                 return None
 
     @tenacity.retry(
