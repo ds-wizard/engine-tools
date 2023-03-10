@@ -1,4 +1,5 @@
 import datetime
+import dkim
 import logging
 import pathvalidate
 import smtplib
@@ -14,6 +15,7 @@ from typing import Optional
 
 from dsw.config.model import MailConfig
 
+from ..consts import DEFAULT_ENCODING
 from ..context import Context
 from ..model import MailMessage, MailAttachment
 
@@ -64,7 +66,7 @@ class SMTPSender:
                     password=cfg.login_password,
                 )
             return server.send_message(
-                msg=cls._convert_email(mail),
+                msg=cls._convert_email(mail, cfg),
                 from_addr=formataddr((mail.from_name, mail.from_mail)),
                 to_addrs=mail.recipients,
             )
@@ -85,7 +87,7 @@ class SMTPSender:
                     password=cfg.login_password,
                 )
             return server.send_message(
-                msg=cls._convert_email(mail),
+                msg=cls._convert_email(mail, cfg),
                 from_addr=formataddr((mail.from_name, mail.from_mail)),
                 to_addrs=mail.recipients,
             )
@@ -144,7 +146,7 @@ class SMTPSender:
         return part
 
     @classmethod
-    def _convert_email(cls, mail: MailMessage) -> MIMEBase:
+    def _convert_email(cls, mail: MailMessage, cfg: MailConfig) -> MIMEBase:
         msg = cls._convert_txt_parts(mail)
         if len(mail.attachments) > 0:
             txt = msg
@@ -152,16 +154,37 @@ class SMTPSender:
             msg.attach(txt)
             for attachment in mail.attachments:
                 msg.attach(cls._convert_attachment(attachment))
-        msg.add_header('From', formataddr((mail.from_name, mail.from_mail)))
-        msg.add_header('To', ', '.join(mail.recipients))
-        msg.add_header('Subject', mail.subject)
-        msg.add_header('Date', format_datetime(dt=datetime.datetime.utcnow()))
-        msg.add_header('Message-ID', make_msgid(idstring=mail.msg_id, domain=mail.msg_domain))
-        msg.add_header('Language', mail.language)
-        msg.add_header('Importance', mail.importance)
-        msg.add_header('', f'{mail.client_url}/users/edit/current')
+
+        headers = []  # type: list[bytes]
+
+        def add_header(name: str, value: str):
+            msg.add_header(name, value)
+            headers.append(name.encode(encoding=DEFAULT_ENCODING))
+
+        add_header('From', formataddr((mail.from_name, mail.from_mail)))
+        add_header('To', ', '.join(mail.recipients))
+        add_header('Subject', mail.subject)
+        add_header('Date', format_datetime(dt=datetime.datetime.utcnow()))
+        add_header('Message-ID', make_msgid(idstring=mail.msg_id, domain=mail.msg_domain))
+        add_header('Language', mail.language)
+        add_header('Importance', mail.importance)
+        add_header('List-Unsubscribe', f'{mail.client_url}/users/edit/current')
         if mail.sensitivity is not None:
-            msg.add_header('Sensitivity', mail.sensitivity)
+            add_header('Sensitivity', mail.sensitivity)
         if mail.priority is not None:
-            msg.add_header('Priority', mail.priority)
+            add_header('Priority', mail.priority)
+
+        if cfg.dkim_selector and cfg.dkim_privkey:
+            sender_domain = mail.from_mail.split('@')[-1]
+            signature = dkim.sign(
+                message=msg.as_bytes(),
+                selector=cfg.dkim_selector.encode(),
+                domain=sender_domain.encode(),
+                privkey=cfg.dkim_privkey,
+                include_headers=headers,
+            ).decode()
+            if signature.startswith('DKIM-Signature: '):
+                signature = signature[len('DKIM-Signature: '):]
+            msg.add_header('DKIM-Signature', signature)
+
         return msg
