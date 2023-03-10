@@ -1,4 +1,5 @@
 import datetime
+import dateutil.parser
 import functools
 import logging
 import pathlib
@@ -12,9 +13,10 @@ from dsw.database.model import DBDocument, DBAppConfig, DBAppLimits, \
     PersistentCommand
 from dsw.storage import S3Storage
 
+from .build_info import BUILD_INFO
 from .config import DocumentWorkerConfig
 from .sentry import SentryReporter
-from .consts import DocumentState, NULL_UUID, Queries
+from .consts import DocumentState, COMPONENT_NAME, NULL_UUID, Queries
 from .context import Context
 from .documents import DocumentFile, DocumentNameGiver
 from .exceptions import create_job_exception, JobException
@@ -322,6 +324,9 @@ class DocumentWorker(CommandWorker):
 
     def run(self):
         Context.get().app.db.connect()
+        # prepare
+        self._update_component_info()
+        # work in queue
         Context.logger.info('Preparing command queue')
         queue = CommandQueue(
             worker=self,
@@ -329,6 +334,17 @@ class DocumentWorker(CommandWorker):
             listen_query=Queries.LISTEN,
         )
         queue.run()
+
+    @staticmethod
+    def _update_component_info():
+        built_at = dateutil.parser.parse(BUILD_INFO.built_at)
+        Context.logger.info(f'Updating component info ({BUILD_INFO.version}, '
+                            f'{built_at.isoformat(timespec="seconds")})')
+        Context.get().app.db.update_component_info(
+            name=COMPONENT_NAME,
+            version=BUILD_INFO.version,
+            built_at=built_at,
+        )
 
     def work(self) -> bool:
         Context.update_trace_id(str(uuid.uuid4()))

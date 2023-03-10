@@ -26,6 +26,7 @@ dependencies = [
     'click',
     'jinja2',
     'pathvalidate',
+    'python-dateutil',
     'sentry-sdk',
     'tenacity',
     # DSW

@@ -1,5 +1,6 @@
 import collections
 import datetime
+import dateutil.parser
 import json
 import mimetypes
 import pathlib
@@ -12,9 +13,10 @@ from dsw.database.database import Database
 from dsw.database.model import PersistentCommand
 from dsw.storage import S3Storage
 
+from .build_info import BUILD_INFO
 from .config import SeederConfig
 from .consts import DEFAULT_ENCODING, DEFAULT_MIMETYPE, \
-    DEFAULT_PLACEHOLDER, Queries
+    DEFAULT_PLACEHOLDER, COMPONENT_NAME, Queries
 from .context import Context
 
 
@@ -257,7 +259,10 @@ class DataSeeder(CommandWorker):
         )
 
     def run(self, recipe_name: str):
+        # prepare
         self._prepare_recipe(recipe_name)
+        self._update_component_info()
+        # work in queue
         Context.logger.info('Preparing command queue')
         queue = CommandQueue(
             worker=self,
@@ -265,6 +270,17 @@ class DataSeeder(CommandWorker):
             listen_query=Queries.LISTEN,
         )
         queue.run()
+
+    @staticmethod
+    def _update_component_info():
+        built_at = dateutil.parser.parse(BUILD_INFO.built_at)
+        Context.logger.info(f'Updating component info ({BUILD_INFO.version}, '
+                            f'{built_at.isoformat(timespec="seconds")})')
+        Context.get().app.db.update_component_info(
+            name=COMPONENT_NAME,
+            version=BUILD_INFO.version,
+            built_at=built_at,
+        )
 
     def seed(self, recipe_name: str, app_uuid: str):
         self._prepare_recipe(recipe_name)
