@@ -1,3 +1,4 @@
+import pathlib
 from typing import Optional
 
 
@@ -71,7 +72,8 @@ class MailConfig(ConfigModel):
                  host: str, port: Optional[int], security: Optional[str],
                  auth: Optional[bool], username: Optional[str],
                  password: Optional[str], rate_limit_window: int,
-                 rate_limit_count: int, timeout: int):
+                 rate_limit_count: int, timeout: int,
+                 dkim_selector: Optional[str], dkim_privkey_file: Optional[str]):
         self.enabled = enabled
         self.name = name
         self.email = email
@@ -88,6 +90,18 @@ class MailConfig(ConfigModel):
         self.rate_limit_window = rate_limit_window
         self.rate_limit_count = rate_limit_count
         self.timeout = timeout
+        self.dkim_selector = dkim_selector
+        self.dkim_privkey_file = dkim_privkey_file
+        self.dkim_privkey = b''
+
+    def load_dkim_privkey(self):
+        if self.dkim_privkey_file is not None:
+            self.dkim_privkey = pathlib.Path(self.dkim_privkey_file).read_bytes()
+            self.dkim_privkey = self.dkim_privkey.replace(b'\r\n', b'\n')
+
+    @property
+    def use_dkim(self):
+        return self.dkim_selector is not None and len(self.dkim_privkey) > 0
 
     @property
     def login_user(self) -> str:
@@ -130,4 +144,6 @@ class MailConfig(ConfigModel):
                f'- auth = {self.auth}\n' \
                f'- rate_limit_window = {self.rate_limit_window}\n' \
                f'- rate_limit_count = {self.rate_limit_count}\n' \
-               f'- timeout = {self.timeout}\n'
+               f'- timeout = {self.timeout}\n' \
+               f'- dkim_selector = {self.dkim_selector}\n' \
+               f'- dkim_privkey_file = {self.dkim_privkey_file}\n'

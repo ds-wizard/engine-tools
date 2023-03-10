@@ -81,6 +81,8 @@ class Mailer(CommandWorker):
             cmd = PersistentCommand.from_dict_row(command)
             self._process_command(cmd)
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             Context.logger.warning(f'Errored with exception: {str(e)}')
             SentryReporter.capture_exception(e)
             ctx.app.db.execute_query(
