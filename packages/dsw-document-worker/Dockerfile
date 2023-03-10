@@ -6,6 +6,9 @@ WORKDIR /app
 
 COPY . /app
 
+RUN apk add -u build-base gcc \
+ && clean
+
 RUN python -m pip wheel --no-cache-dir --wheel-dir=/app/wheels -r /app/packages/dsw-document-worker/requirements.txt \
  && python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/app/wheels /app/packages/dsw-command-queue \
  && python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/app/wheels /app/packages/dsw-config \
