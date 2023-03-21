@@ -172,11 +172,12 @@ class DSWAPIClient:
 
     @handle_client_errors
     async def get_template_bundle(self, remote_id: str) -> bytes:
-        async with self.session.get(
-                url=f'{self.api_url}/document-templates/{remote_id}/bundle'
-                    f'?Authorization=Bearer%20{self.token}',
-                headers=self._headers(),
-        ) as r:
+        remote_file_descriptor = await self._get_json(
+            endpoint=f'/document-templates/{remote_id}/bundle'
+                     f'?Authorization=Bearer%20{self.token}',
+        )
+        s3_url = remote_file_descriptor['url']
+        async with self.session.get(url=s3_url) as r:
             self._check_status(r, expected_status=200)
             return await r.content.read()
 
