@@ -20,6 +20,7 @@ Always results in a PDF file (`application/pdf`) with file extension `.pdf`.
 ## Notes
 
 * For security reasons, `--disable-local-file-access` is enforced (except working directory where the template is stored).
+* We recommend using [`weasyprint`](./weasyprint.md) step instead.
 
 ## Example
 
