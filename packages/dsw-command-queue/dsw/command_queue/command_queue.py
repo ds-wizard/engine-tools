@@ -91,7 +91,7 @@ class CommandQueue:
                     LOG.debug(f'Nothing received in this cycle '
                               f'(timeouted after {timeout} seconds).')
                 else:
-                    queue_conn.connection.poll()
+                    # queue_conn.connection.poll()
                     while queue_conn.connection.notifies:
                         notifications.append(queue_conn.connection.notifies.pop())
                     LOG.info(f'Notifications received ({len(notifications)})')

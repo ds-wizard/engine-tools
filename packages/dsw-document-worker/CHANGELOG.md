@@ -7,6 +7,14 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- `weasyprint` step for PDF generation
+
+### Changed
+
+- Use Alpine-based Docker image
+
 
 ## [3.21.0]
 
