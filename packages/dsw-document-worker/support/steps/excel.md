@@ -1,7 +1,7 @@
 # Step: `excel`
 
-![](https://img.shields.io/badge/status-experimental-orange)
-![](https://img.shields.io/badge/template%20version-%E2%89%A5%20%3F-blue)
+![](https://img.shields.io/badge/status-stable-green)
+![](https://img.shields.io/badge/metamodel%20version-%E2%89%A5%2011-blue)
 
 Step producing Excel spreadsheets from JSON file with instructions.
 

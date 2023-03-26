@@ -42,10 +42,11 @@ STEPS = dict()
 
 
 def register_step(name: str, step_class: type):
-    STEPS[name] = step_class
+    STEPS[name.lower()] = step_class
 
 
 def create_step(template, name: str, options: dict) -> Step:
+    name = name.lower()
     if name not in STEPS:
         raise KeyError(f'Unknown step name "{name}"')
     return STEPS[name](template, options)

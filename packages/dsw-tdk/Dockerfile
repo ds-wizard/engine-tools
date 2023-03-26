@@ -1,4 +1,4 @@
-FROM datastewardshipwizard/python-base:3.11-jammy as builder
+FROM datastewardshipwizard/python-base:3.11-alpine as builder
 
 WORKDIR /app
 
@@ -8,12 +8,11 @@ RUN python -m pip wheel --no-cache-dir --wheel-dir=/app/wheels -r /app/packages/
  && python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/app/wheels /app/packages/dsw-tdk
 
 
-FROM datastewardshipwizard/python-base:3.11-jammy
+FROM datastewardshipwizard/python-base:3.11-alpine
 
 ENV PATH "/home/user/.local/bin:$PATH"
 
 # Setup non-root user
-RUN groupadd -r user && useradd -r -m -g user user
 USER user
 
 # Prepare dirs

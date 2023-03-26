@@ -114,10 +114,10 @@ class RdfLibConvert:
                  data: bytes, metadata: dict) -> bytes:
         g = rdflib.Graph().parse(
             data=data.decode(DEFAULT_ENCODING),
-            format=self.FORMATS.get(source_format)
+            format=self.FORMATS.get(source_format) or 'turtle',
         )
         result = g.serialize(
-            format=self.FORMATS.get(target_format),
+            format=self.FORMATS.get(target_format) or 'turtle',
             encoding=DEFAULT_ENCODING,
         )
         return result
