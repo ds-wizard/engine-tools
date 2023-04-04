@@ -36,10 +36,12 @@ class MailerConfigParser(DSWConfigParser):
 
     @property
     def config(self) -> MailerConfig:
-        return MailerConfig(
+        cfg = MailerConfig(
             db=self.db,
             log=self.logging,
             mail=self.mail,
             sentry=self.sentry,
             general=self.general,
         )
+        cfg.mail.load_dkim_privkey()
+        return cfg

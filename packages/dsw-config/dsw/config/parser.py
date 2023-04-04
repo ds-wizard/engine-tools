@@ -141,4 +141,6 @@ class DSWConfigParser:
             rate_limit_window=int(self.get(self.keys.mail.rate_limit_window)),
             rate_limit_count=int(self.get(self.keys.mail.rate_limit_count)),
             timeout=int(self.get(self.keys.mail.timeout)),
+            dkim_selector=self.get(self.keys.mail.dkim_selector),
+            dkim_privkey_file=self.get(self.keys.mail.dkim_privkey_file),
         )

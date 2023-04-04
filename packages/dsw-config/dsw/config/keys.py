@@ -276,6 +276,18 @@ class _MailKeys(ConfigKeysContainer):
         default=10,
         cast=cast_int,
     )
+    dkim_selector = ConfigKey(
+        yaml_path=['mail', 'dkim', 'selector'],
+        var_names=['MAIL_DKIM_SELECTOR'],
+        default=None,
+        cast=cast_optional_str,
+    )
+    dkim_privkey_file = ConfigKey(
+        yaml_path=['mail', 'dkim', 'privkey_file'],
+        var_names=['MAIL_DKIM_PRIVKEY_FILE'],
+        default=None,
+        cast=cast_optional_str,
+    )
 
 
 class ConfigKeys(ConfigKeysContainer):

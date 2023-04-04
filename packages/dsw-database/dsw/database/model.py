@@ -22,6 +22,25 @@ class DocumentTemplatePhase:
 
 
 @dataclasses.dataclass
+class DBComponent:
+    name: str
+    version: str
+    built_at: datetime.datetime
+    created_at: datetime.datetime
+    updated_at: datetime.datetime
+
+    @staticmethod
+    def from_dict_row(data: dict):
+        return DBComponent(
+            name=data['name'],
+            version=data['version'],
+            built_at=data['built_at'],
+            created_at=data['created_at'],
+            updated_at=data['updated_at'],
+        )
+
+
+@dataclasses.dataclass
 class DBDocument:
     uuid: str
     name: str

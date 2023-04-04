@@ -1,5 +1,6 @@
 import abc
 import datetime
+import dateutil.parser
 import math
 import pathlib
 import time
@@ -13,9 +14,10 @@ from dsw.database.database import Database
 from dsw.database.model import DBAppConfig, PersistentCommand, \
     DBInstanceConfigMail
 
+from .build_info import BUILD_INFO
 from .config import MailerConfig, MailConfig
 from .connection import SMTPSender, SentryReporter
-from .consts import Queries, CMD_COMPONENT
+from .consts import Queries, COMPONENT_NAME, CMD_COMPONENT
 from .context import Context
 from .model import MessageRequest
 
@@ -52,6 +54,17 @@ class Mailer(CommandWorker):
     def _prepare_logging(self):
         Context.logger.set_level(self.cfg.log.level)
 
+    @staticmethod
+    def _update_component_info():
+        built_at = dateutil.parser.parse(BUILD_INFO.built_at)
+        Context.logger.info(f'Updating component info ({BUILD_INFO.version}, '
+                            f'{built_at.isoformat(timespec="seconds")})')
+        Context.get().app.db.update_component_info(
+            name=COMPONENT_NAME,
+            version=BUILD_INFO.version,
+            built_at=built_at,
+        )
+
     def work(self) -> bool:
         Context.update_trace_id(str(uuid.uuid4()))
         ctx = Context.get()
@@ -68,6 +81,8 @@ class Mailer(CommandWorker):
             cmd = PersistentCommand.from_dict_row(command)
             self._process_command(cmd)
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             Context.logger.warning(f'Errored with exception: {str(e)}')
             SentryReporter.capture_exception(e)
             ctx.app.db.execute_query(
@@ -119,6 +134,9 @@ class Mailer(CommandWorker):
 
     def run(self):
         Context.get().app.db.connect()
+        # prepare
+        self._update_component_info()
+        # work in queue
         Context.logger.info('Preparing command queue')
         queue = CommandQueue(
             worker=self,

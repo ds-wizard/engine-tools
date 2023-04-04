@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
+## [3.22.0]
+
+### Changed
+
+- Use Alpine-based Docker image
+
+### Fixed
+
+- Download published document template with `get` command
+
 ## [3.21.0]
 
 ### Changed
@@ -296,3 +306,4 @@ Initial DSW Template Development Kit (versioned as part of the [DSW platform](ht
 [3.20.1]: /../../tree/v3.20.1
 [3.20.2]: /../../tree/v3.20.2
 [3.21.0]: /../../tree/v3.21.0
+[3.22.0]: /../../tree/v3.22.0
