@@ -34,5 +34,5 @@ if __name__ == '__main__':
             f'## [{next_version}]\n\n{INFO}\n\n## [{prev_version}]',
         )
 
-        new_changelog_file = changelog_file.parent / 'CHANGELOG.new.md'
+        new_changelog_file = changelog_file.parent / 'CHANGELOG.md'
         new_changelog_file.write_text(changelog, encoding='utf-8')
