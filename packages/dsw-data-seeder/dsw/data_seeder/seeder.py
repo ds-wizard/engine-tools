@@ -1,5 +1,4 @@
 import collections
-import datetime
 import dateutil.parser
 import json
 import mimetypes
@@ -16,7 +15,7 @@ from dsw.storage import S3Storage
 from .build_info import BUILD_INFO
 from .config import SeederConfig
 from .consts import DEFAULT_ENCODING, DEFAULT_MIMETYPE, \
-    DEFAULT_PLACEHOLDER, COMPONENT_NAME, Queries
+    DEFAULT_PLACEHOLDER, COMPONENT_NAME, CMD_COMPONENT, CMD_CHANNEL
 from .context import Context
 
 
@@ -212,52 +211,6 @@ class DataSeeder(CommandWorker):
         self.recipe = recipes[recipe_name]
         self.recipe.prepare()
 
-    def work(self) -> bool:
-        Context.update_trace_id('-')
-        ctx = Context.get()
-        Context.logger.debug('Trying to fetch a new job')
-        cursor = ctx.app.db.conn_query.new_cursor(use_dict=True)
-        cursor.execute(Queries.SELECT_CMD, {'now': datetime.datetime.utcnow()})
-        result = cursor.fetchall()
-        if len(result) != 1:
-            Context.logger.debug(f'Fetched {len(result)} jobs')
-            return False
-
-        command = result[0]
-        try:
-            cmd = PersistentCommand.from_dict_row(command)
-            self._process_command(cmd)
-        except Exception as e:
-            Context.logger.warning(f'Failed: {str(e)}')
-            ctx.app.db.execute_query(
-                query=Queries.UPDATE_CMD_ERROR,
-                attempts=command.get('attempts', 0) + 1,
-                error_message=f'Failed: {str(e)}',
-                updated_at=datetime.datetime.utcnow(),
-                uuid=command['uuid'],
-            )
-
-        Context.logger.info('Committing transaction')
-        ctx.app.db.conn_query.connection.commit()
-        cursor.close()
-        Context.logger.info('Job processing finished')
-        return True
-
-    def _process_command(self, cmd: PersistentCommand):
-        Context.update_trace_id(cmd.uuid)
-        self.recipe.run_prepare()
-        app_ctx = Context.get().app
-        app_uuid = cmd.body['appUuid']
-        Context.logger.info(f'Seeding recipe "{self.recipe.name}" '
-                            f'to app with UUID "{app_uuid}"')
-        self.execute(app_uuid)
-        app_ctx.db.execute_query(
-            query=Queries.UPDATE_CMD_DONE,
-            attempts=cmd.attempts + 1,
-            updated_at=datetime.datetime.utcnow(),
-            uuid=cmd.uuid,
-        )
-
     def run(self, recipe_name: str):
         # prepare
         self._prepare_recipe(recipe_name)
@@ -267,9 +220,18 @@ class DataSeeder(CommandWorker):
         queue = CommandQueue(
             worker=self,
             db=Context.get().app.db,
-            listen_query=Queries.LISTEN,
+            channel=CMD_CHANNEL,
+            component=CMD_COMPONENT,
         )
         queue.run()
+
+    def work(self, cmd: PersistentCommand):
+        Context.update_trace_id(cmd.uuid)
+        self.recipe.run_prepare()
+        app_uuid = cmd.body['appUuid']
+        Context.logger.info(f'Seeding recipe "{self.recipe.name}" '
+                            f'to app with UUID "{app_uuid}"')
+        self.execute(app_uuid)
 
     @staticmethod
     def _update_component_info():

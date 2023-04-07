@@ -3,7 +3,6 @@ import dateutil.parser
 import functools
 import logging
 import pathlib
-import uuid
 
 from typing import Optional
 
@@ -16,7 +15,8 @@ from dsw.storage import S3Storage
 from .build_info import BUILD_INFO
 from .config import DocumentWorkerConfig
 from .sentry import SentryReporter
-from .consts import DocumentState, COMPONENT_NAME, NULL_UUID, Queries
+from .consts import DocumentState, COMPONENT_NAME, NULL_UUID, \
+    CMD_COMPONENT, CMD_CHANNEL
 from .context import Context
 from .documents import DocumentFile, DocumentNameGiver
 from .exceptions import create_job_exception, JobException
@@ -320,20 +320,13 @@ class DocumentWorker(CommandWorker):
                    for n in logging.root.manager.loggerDict.keys())
         for logger in loggers:
             logger.addFilter(filter=log_filter)
+            logger.setLevel(self.config.log.level)
         logging.setLoggerClass(DocWorkerLogger)
-
-    def run(self):
-        Context.get().app.db.connect()
-        # prepare
-        self._update_component_info()
-        # work in queue
-        Context.logger.info('Preparing command queue')
-        queue = CommandQueue(
-            worker=self,
-            db=Context.get().app.db,
-            listen_query=Queries.LISTEN,
+        import sys
+        logging.basicConfig(
+            stream=sys.stdout,
+            level=self.config.log.level,
         )
-        queue.run()
 
     @staticmethod
     def _update_component_info():
@@ -346,48 +339,25 @@ class DocumentWorker(CommandWorker):
             built_at=built_at,
         )
 
-    def work(self) -> bool:
-        Context.update_trace_id(str(uuid.uuid4()))
-        ctx = Context.get()
-        Context.logger.debug('Trying to fetch a new job')
-        cursor = ctx.app.db.conn_query.new_cursor(use_dict=True)
-        cursor.execute(Queries.SELECT_CMD, {'now': datetime.datetime.utcnow()})
-        result = cursor.fetchall()
-        if len(result) != 1:
-            Context.logger.debug(f'Fetched {len(result)} jobs')
-            return False
+    def run(self):
+        Context.get().app.db.connect()
+        # prepare
+        self._update_component_info()
+        # work in queue
+        Context.logger.info('Preparing command queue')
+        queue = CommandQueue(
+            worker=self,
+            db=Context.get().app.db,
+            channel=CMD_CHANNEL,
+            component=CMD_COMPONENT,
+        )
+        queue.run()
 
-        command = PersistentCommand.from_dict_row(result[0])
-        try:
-            self._process_command(command)
-        except Exception as e:
-            Context.logger.warning(f'Errored with exception: {str(e)} ({type(e).__name__})')
-            SentryReporter.capture_exception(e)
-            ctx.app.db.execute_query(
-                query=Queries.UPDATE_CMD_ERROR,
-                attempts=command.attempts + 1,
-                error_message=f'Failed with exception: {str(e)} ({type(e).__name__})',
-                updated_at=datetime.datetime.utcnow(),
-                uuid=command.uuid,
-            )
-
-        Context.logger.info('Committing transaction')
-        ctx.app.db.conn_query.connection.commit()
-        cursor.close()
-
-        Context.logger.info('Job processing finished')
-        Context.update_trace_id('-')
-        return True
-
-    def _process_command(self, command: PersistentCommand):
-        app_ctx = Context.get().app
+    def work(self, command: PersistentCommand):
         Context.update_document_id(command.body['uuid'])
-        Context.logger.info(f'Fetched job #{command.uuid}')
+        Context.logger.info(f'Running job #{command.uuid}')
         job = Job(command=command)
         job.run()
-        app_ctx.db.execute_query(
-            query=Queries.UPDATE_CMD_DONE,
-            attempts=command.attempts + 1,
-            updated_at=datetime.datetime.utcnow(),
-            uuid=command.uuid,
-        )
+
+    def process_exception(self, e: Exception):
+        SentryReporter.capture_exception(e)
