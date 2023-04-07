@@ -7,6 +7,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- Improved retrieval of persistent commands
+- Moved persistent command handling queries here
+
 
 ## [3.22.0]
 

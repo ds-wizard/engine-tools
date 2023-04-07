@@ -5,7 +5,6 @@ import math
 import pathlib
 import time
 import urllib.parse
-import uuid
 
 from typing import Optional
 
@@ -17,7 +16,7 @@ from dsw.database.model import DBAppConfig, PersistentCommand, \
 from .build_info import BUILD_INFO
 from .config import MailerConfig, MailConfig
 from .connection import SMTPSender, SentryReporter
-from .consts import Queries, COMPONENT_NAME, CMD_COMPONENT
+from .consts import COMPONENT_NAME, CMD_CHANNEL, CMD_COMPONENT
 from .context import Context
 from .model import MessageRequest
 
@@ -65,43 +64,21 @@ class Mailer(CommandWorker):
             built_at=built_at,
         )
 
-    def work(self) -> bool:
-        Context.update_trace_id(str(uuid.uuid4()))
-        ctx = Context.get()
-        Context.logger.debug('Trying to fetch a new job')
-        cursor = ctx.app.db.conn_query.new_cursor(use_dict=True)
-        cursor.execute(Queries.SELECT_CMD, {'now': datetime.datetime.utcnow()})
-        result = cursor.fetchall()
-        if len(result) != 1:
-            Context.logger.debug(f'Fetched {len(result)} jobs')
-            return False
+    def run(self):
+        Context.get().app.db.connect()
+        # prepare
+        self._update_component_info()
+        # work in queue
+        Context.logger.info('Preparing command queue')
+        queue = CommandQueue(
+            worker=self,
+            db=Context.get().app.db,
+            channel=CMD_CHANNEL,
+            component=CMD_COMPONENT,
+        )
+        queue.run()
 
-        command = result[0]
-        try:
-            cmd = PersistentCommand.from_dict_row(command)
-            self._process_command(cmd)
-        except Exception as e:
-            import traceback
-            traceback.print_exc()
-            Context.logger.warning(f'Errored with exception: {str(e)}')
-            SentryReporter.capture_exception(e)
-            ctx.app.db.execute_query(
-                query=Queries.UPDATE_CMD_ERROR,
-                attempts=command.get('attempts', 0) + 1,
-                error_message=f'Failed with exception: {str(e)}',
-                updated_at=datetime.datetime.utcnow(),
-                uuid=command['uuid'],
-            )
-
-        Context.logger.info('Committing transaction')
-        ctx.app.db.conn_query.connection.commit()
-        cursor.close()
-        Context.logger.info('Job processing finished')
-        self.rate_limiter.hit()
-        Context.update_trace_id('-')
-        return True
-
-    def _process_command(self, cmd: PersistentCommand):
+    def work(self, cmd: PersistentCommand):
         # update Sentry info
         SentryReporter.set_context('template', '')
         # work
@@ -125,25 +102,9 @@ class Mailer(CommandWorker):
         # update Sentry info
         SentryReporter.set_context('template', rq.template_name)
         self.send(rq, cfg)
-        app_ctx.db.execute_query(
-            query=Queries.UPDATE_CMD_DONE,
-            attempts=cmd.attempts + 1,
-            updated_at=datetime.datetime.utcnow(),
-            uuid=cmd.uuid,
-        )
 
-    def run(self):
-        Context.get().app.db.connect()
-        # prepare
-        self._update_component_info()
-        # work in queue
-        Context.logger.info('Preparing command queue')
-        queue = CommandQueue(
-            worker=self,
-            db=Context.get().app.db,
-            listen_query=Queries.LISTEN,
-        )
-        queue.run()
+    def process_exception(self, e: Exception):
+        SentryReporter.capture_exception(e)
 
     def send(self, rq: MessageRequest, cfg: Optional[MailConfig]):
         Context.logger.info(f'Sending request: {rq.template_name} ({rq.id})')
