@@ -39,7 +39,7 @@ class Mailer(CommandWorker):
         Context.initialize(
             config=self.cfg,
             workdir=workdir,
-            db=Database(cfg=self.cfg.db),
+            db=Database(cfg=self.cfg.db, connect=False),
             sender=SMTPSender(cfg=self.cfg.mail),
             mode=mode,
         )

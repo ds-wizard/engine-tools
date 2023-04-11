@@ -11,6 +11,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - Improved command queue
 
+### Fixed
+
+- Buttons visual compatibility in templates
+
 
 ## [3.22.0]
 
