@@ -64,7 +64,7 @@ class Database:
                      'FROM document_template_asset WHERE app_uuid = %(app_uuid)s) ' \
                      'as result;'
 
-    def __init__(self, cfg: DatabaseConfig):
+    def __init__(self, cfg: DatabaseConfig, connect: bool = True):
         self.cfg = cfg
         LOG.info('Preparing PostgreSQL connection for QUERY')
         self.conn_query = PostgresConnection(
@@ -73,7 +73,8 @@ class Database:
             timeout=self.cfg.connection_timeout,
             autocommit=False,
         )
-        self.conn_query.connect()
+        if connect:
+            self.conn_query.connect()
         LOG.info('Preparing PostgreSQL connection for QUEUE')
         self.conn_queue = PostgresConnection(
             name='queue',
@@ -81,7 +82,8 @@ class Database:
             timeout=self.cfg.connection_timeout,
             autocommit=True,
         )
-        self.conn_queue.connect()
+        if connect:
+            self.conn_queue.connect()
 
     def connect(self):
         self.conn_query.connect()
