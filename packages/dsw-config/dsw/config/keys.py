@@ -40,6 +40,12 @@ def cast_optional_str(value: Any) -> Optional[str]:
     return str(value)
 
 
+def cast_optional_dict(value: Any) -> Optional[dict]:
+    if not isinstance(value, dict):
+        return None
+    return value
+
+
 class ConfigKey(Generic[T]):
 
     def __init__(self, yaml_path: list[str], cast: Callable[[Any], T],
@@ -122,6 +128,12 @@ class _LoggingKeys(ConfigKeysContainer):
         default='%(asctime)s | %(levelname)8s | %(name)s: [T:%(traceId)s] %(message)s',
         cast=cast_str,
     )
+    dict_config = ConfigKey(
+        yaml_path=['logging', 'dict_config'],
+        var_names=[],
+        default=None,
+        cast=cast_optional_dict,
+    )
 
 
 class _CloudKeys(ConfigKeysContainer):
@@ -142,7 +154,19 @@ class _SentryKeys(ConfigKeysContainer):
     )
     worker_dsn = ConfigKey(
         yaml_path=['sentry', 'workersDsn'],
-        var_names=['SENTRY_WORKER_DSN'],
+        var_names=['SENTRY_WORKER_DSN', 'SENTRY_DSN'],
+        default='',
+        cast=cast_str,
+    )
+    traces_sample_rate = ConfigKey(
+        yaml_path=['sentry', 'tracesSampleRate'],
+        var_names=['SENTRY_TRACES_SAMPLE_RATE'],
+        default='',
+        cast=cast_str,
+    )
+    max_breadcrumbs = ConfigKey(
+        yaml_path=['sentry', 'maxBreadcrumbs'],
+        var_names=['SENTRY_MAX_BREADCRUMBS'],
         default='',
         cast=cast_str,
     )

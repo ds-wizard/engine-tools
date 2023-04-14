@@ -7,6 +7,7 @@ import pathlib
 from typing import Optional
 
 from dsw.command_queue import CommandWorker, CommandQueue
+from dsw.config.sentry import SentryReporter
 from dsw.database.database import Database
 from dsw.database.model import DBDocument, DBAppConfig, DBAppLimits, \
     PersistentCommand
@@ -14,17 +15,18 @@ from dsw.storage import S3Storage
 
 from .build_info import BUILD_INFO
 from .config import DocumentWorkerConfig
-from .sentry import SentryReporter
 from .consts import DocumentState, COMPONENT_NAME, NULL_UUID, \
-    CMD_COMPONENT, CMD_CHANNEL
+    CMD_COMPONENT, CMD_CHANNEL, PROG_NAME
 from .context import Context
 from .documents import DocumentFile, DocumentNameGiver
 from .exceptions import create_job_exception, JobException
 from .limits import LimitsEnforcer
-from .logging import DocWorkerLogger, DocWorkerLogFilter
 from .templates import TemplateRegistry, Template, Format
 from .utils import timeout, JobTimeoutError,\
     PdfWaterMarker, byte_size_format
+
+
+LOG = logging.getLogger(__name__)
 
 
 def handle_job_step(message):
@@ -36,7 +38,7 @@ def handle_job_step(message):
             except JobTimeoutError as e:
                 raise e  # re-raise (need to be cached by context manager)
             except Exception as e:
-                job.log.debug('Handling exception', exc_info=True)
+                LOG.debug('Handling exception', exc_info=True)
                 raise create_job_exception(
                     job_id=job.doc_uuid,
                     message=message,
@@ -50,7 +52,6 @@ class Job:
 
     def __init__(self, command: PersistentCommand):
         self.ctx = Context.get()
-        self.log = Context.logger
         self.template = None  # type: Optional[Template]
         self.format = None  # type: Optional[Format]
         self.app_uuid = command.app_uuid  # type: str
@@ -91,8 +92,8 @@ class Job:
         SentryReporter.set_context('format', '')
         SentryReporter.set_context('document', '')
         if self.app_uuid != NULL_UUID:
-            self.log.info(f'Limiting to app with UUID: {self.app_uuid}')
-        self.log.info(f'Getting the document "{self.doc_uuid}" details from DB')
+            LOG.info(f'Limiting to app with UUID: {self.app_uuid}')
+        LOG.info(f'Getting the document "{self.doc_uuid}" details from DB')
         self.doc = self.ctx.app.db.fetch_document(
             document_uuid=self.doc_uuid,
             app_uuid=self.app_uuid,
@@ -103,10 +104,10 @@ class Job:
                 message='Document record not found in database',
             )
         self.doc.retrieved_at = datetime.datetime.now()
-        self.log.info(f'Job "{self.doc_uuid}" details received')
+        LOG.info(f'Job "{self.doc_uuid}" details received')
         # verify state
         state = self.doc.state
-        self.log.info(f'Original state of job is {state}')
+        LOG.info(f'Original state of job is {state}')
         if state == DocumentState.FINISHED:
             raise create_job_exception(
                 job_id=self.doc_uuid,
@@ -121,7 +122,7 @@ class Job:
     def prepare_template(self):
         template_id = self.safe_doc.document_template_id
         format_uuid = self.safe_doc.format_uuid
-        self.log.info(f'Document uses template {template_id} with format {format_uuid}')
+        LOG.info(f'Document uses template {template_id} with format {format_uuid}')
         # update Sentry info
         SentryReporter.set_context('template', template_id)
         SentryReporter.set_context('format', format_uuid)
@@ -163,7 +164,7 @@ class Job:
 
     @handle_job_step('Failed to build final document')
     def build_document(self):
-        self.log.info('Building document by rendering template with context')
+        LOG.info('Building document by rendering template with context')
         doc = self.safe_doc
         # enrich context
         self._enrich_context()
@@ -198,16 +199,16 @@ class Job:
     def store_document(self):
         s3_id = self.ctx.app.s3.identification
         final_file = self.safe_final_file
-        self.log.info(f'Preparing S3 bucket {s3_id}')
+        LOG.info(f'Preparing S3 bucket {s3_id}')
         self.ctx.app.s3.ensure_bucket()
-        self.log.info(f'Storing document to S3 bucket {s3_id}')
+        LOG.info(f'Storing document to S3 bucket {s3_id}')
         self.ctx.app.s3.store_document(
             app_uuid=self.app_uuid,
             file_name=self.doc_uuid,
             content_type=final_file.content_type,
             data=final_file.content,
         )
-        self.log.info(f'Document {self.doc_uuid} stored in S3 bucket {s3_id}')
+        LOG.info(f'Document {self.doc_uuid} stored in S3 bucket {s3_id}')
 
     @handle_job_step('Failed to finalize document generation')
     def finalize(self):
@@ -229,7 +230,7 @@ class Job:
             ),
             document_uuid=self.doc_uuid,
         )
-        self.log.info(f'Document {self.doc_uuid} record finalized')
+        LOG.info(f'Document {self.doc_uuid} record finalized')
 
     def set_job_state(self, state: str, message: str) -> bool:
         return self.ctx.app.db.update_document_state(
@@ -243,7 +244,7 @@ class Job:
             return self.set_job_state(state, message)
         except Exception as e:
             SentryReporter.capture_exception(e)
-            self.log.warning(f'Tried to set state of {self.doc_uuid} to {state} but failed: {e}')
+            LOG.warning(f'Tried to set state of {self.doc_uuid} to {state} but failed: {e}')
             return False
 
     def _run(self):
@@ -259,15 +260,26 @@ class Job:
             )
         self.finalize()
 
+    def _sentry_job_exception(self) -> bool:
+        if self.doc is None:
+            return False
+        template_id = self.safe_doc.document_template_id
+        template_cfg = self.ctx.app.cfg.templates.get_config(template_id)
+        if template_cfg is None:
+            return False
+        return template_cfg.send_sentry
+
     def run(self):
         try:
             self._run()
         except JobException as e:
-            self.log.error(e.log_message())
+            LOG.warning('Handled job error: %s', e.log_message())
+            if self._sentry_job_exception():
+                SentryReporter.capture_exception(e)
             if self.try_set_job_state(DocumentState.FAILED, e.db_message()):
-                self.log.info(f'Set state to {DocumentState.FAILED}')
+                LOG.info(f'Set state to {DocumentState.FAILED}')
             else:
-                self.log.error(f'Could not set state to {DocumentState.FAILED}')
+                LOG.error(f'Could not set state to {DocumentState.FAILED}')
                 raise RuntimeError(f'Could not set state to {DocumentState.FAILED}')
         except Exception as e:
             SentryReporter.capture_exception(e)
@@ -276,11 +288,12 @@ class Job:
                 message='Failed with unexpected error',
                 exc=e,
             )
-            Context.logger.error(job_exc.log_message())
+            LOG.error(job_exc.log_message())
+            LOG.info('Failed with unexpected error', exc_info=e)
             if self.try_set_job_state(DocumentState.FAILED, job_exc.db_message()):
-                self.log.info(f'Set state to {DocumentState.FAILED}')
+                LOG.info(f'Set state to {DocumentState.FAILED}')
             else:
-                self.log.warning(f'Could not set state to {DocumentState.FAILED}')
+                LOG.warning(f'Could not set state to {DocumentState.FAILED}')
                 raise RuntimeError(f'Could not set state to {DocumentState.FAILED}')
 
 
@@ -288,7 +301,6 @@ class DocumentWorker(CommandWorker):
 
     def __init__(self, config: DocumentWorkerConfig, workdir: pathlib.Path):
         self.config = config
-        self._prepare_logging()
         self._init_context(workdir=workdir)
 
     def _init_context(self, workdir: pathlib.Path):
@@ -301,6 +313,8 @@ class DocumentWorker(CommandWorker):
                 multi_tenant=self.config.cloud.multi_tenant,
             ),
         )
+        Context.get().update_trace_id('-')
+        Context.get().update_document_id('-')
         PdfWaterMarker.initialize(
             watermark_filename=self.config.experimental.pdf_watermark,
             watermark_top=self.config.experimental.pdf_watermark_top,
@@ -310,29 +324,16 @@ class DocumentWorker(CommandWorker):
                 dsn=self.config.sentry.workers_dsn,
                 environment=self.config.general.environment,
                 server_name=self.config.general.client_url,
+                release=BUILD_INFO.version,
+                prog_name=PROG_NAME,
+                config=self.config.sentry,
             )
-
-    def _prepare_logging(self):
-        Context.logger.set_level(self.config.log.level)
-        log_filter = DocWorkerLogFilter()
-        logging.getLogger().addFilter(filter=log_filter)
-        loggers = (logging.getLogger(n)
-                   for n in logging.root.manager.loggerDict.keys())
-        for logger in loggers:
-            logger.addFilter(filter=log_filter)
-            logger.setLevel(self.config.log.level)
-        logging.setLoggerClass(DocWorkerLogger)
-        import sys
-        logging.basicConfig(
-            stream=sys.stdout,
-            level=self.config.log.level,
-        )
 
     @staticmethod
     def _update_component_info():
         built_at = dateutil.parser.parse(BUILD_INFO.built_at)
-        Context.logger.info(f'Updating component info ({BUILD_INFO.version}, '
-                            f'{built_at.isoformat(timespec="seconds")})')
+        LOG.info(f'Updating component info ({BUILD_INFO.version}, '
+                 f'{built_at.isoformat(timespec="seconds")})')
         Context.get().app.db.update_component_info(
             name=COMPONENT_NAME,
             version=BUILD_INFO.version,
@@ -344,7 +345,7 @@ class DocumentWorker(CommandWorker):
         # prepare
         self._update_component_info()
         # work in queue
-        Context.logger.info('Preparing command queue')
+        LOG.info('Preparing command queue')
         queue = CommandQueue(
             worker=self,
             db=Context.get().app.db,
@@ -353,11 +354,15 @@ class DocumentWorker(CommandWorker):
         )
         queue.run()
 
-    def work(self, command: PersistentCommand):
-        Context.update_document_id(command.body['uuid'])
-        Context.logger.info(f'Running job #{command.uuid}')
-        job = Job(command=command)
+    def work(self, cmd: PersistentCommand):
+        Context.get().update_trace_id(cmd.uuid)
+        Context.get().update_document_id(cmd.body['uuid'])
+        SentryReporter.set_context('cmd_uuid', cmd.uuid)
+        LOG.info(f'Running job #{cmd.uuid}')
+        job = Job(command=cmd)
         job.run()
+        Context.get().update_trace_id('-')
+        Context.get().update_document_id('-')
 
     def process_exception(self, e: Exception):
         SentryReporter.capture_exception(e)

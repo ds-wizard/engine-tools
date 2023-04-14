@@ -1,17 +1,20 @@
+import logging
 import rdflib
 import shlex
 import subprocess
 
 from .config import DocumentWorkerConfig
 from .consts import EXIT_SUCCESS, DEFAULT_ENCODING
-from .context import Context
 from .documents import FileFormat, FileFormats
+
+
+LOG = logging.getLogger(__name__)
 
 
 def run_conversion(*, args: list, workdir: str, input_data: bytes, name: str,
                    source_format: FileFormat, target_format: FileFormat, timeout=None) -> bytes:
     command = ' '.join(args)
-    Context.logger.info(f'Calling "{command}" to convert from {source_format} to {target_format}')
+    LOG.info(f'Calling "{command}" to convert from {source_format} to {target_format}')
     p = subprocess.Popen(args,
                          cwd=workdir,
                          stdin=subprocess.PIPE,

@@ -937,8 +937,6 @@ class ExcelStep(Step):
                 content=data,
             )
         except Exception as e:
-            import traceback
-            traceback.print_exc()
             raise FormatStepException(f'Failed to construct Excel document '
                                       f'due to: {str(e)}')
 

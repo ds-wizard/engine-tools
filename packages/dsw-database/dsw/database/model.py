@@ -258,7 +258,7 @@ class DBAppConfig:
             organization=data['organization'],
             authentication=data['authentication'],
             privacy_and_support=data['privacy_and_support'],
-            dashboard=data['dashboard'],
+            dashboard=data['dashboard_and_login_screen'],
             look_and_feel=data['look_and_feel'],
             registry=data['registry'],
             knowledge_model=data['knowledge_model'],
