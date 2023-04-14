@@ -1,6 +1,5 @@
 import abc
 import datetime
-import dateutil.parser
 import logging
 import math
 import pathlib
@@ -8,6 +7,8 @@ import time
 import urllib.parse
 
 from typing import Optional
+
+import dateutil.parser
 
 from dsw.command_queue import CommandWorker, CommandQueue
 from dsw.config.sentry import SentryReporter
@@ -60,8 +61,8 @@ class Mailer(CommandWorker):
     @staticmethod
     def _update_component_info():
         built_at = dateutil.parser.parse(BUILD_INFO.built_at)
-        LOG.info(f'Updating component info ({BUILD_INFO.version}, '
-                 f'{built_at.isoformat(timespec="seconds")})')
+        LOG.info('Updating component info (%s, %s)',
+                 BUILD_INFO.version, built_at.isoformat(timespec='seconds'))
         Context.get().app.db.update_component_info(
             name=COMPONENT_NAME,
             version=BUILD_INFO.version,
@@ -89,9 +90,9 @@ class Mailer(CommandWorker):
         Context.get().update_trace_id(cmd.uuid)
         # work
         app_ctx = Context.get().app
-        mc = load_mailer_command(cmd)
-        mc.prepare(app_ctx.db)
-        rq = mc.to_request(
+        mailer_command = load_mailer_command(cmd)
+        mailer_command.prepare(app_ctx.db)
+        mail_rq = mailer_command.to_request(
             msg_id=cmd.uuid,
             trigger='PersistentComment',
         )
@@ -101,31 +102,31 @@ class Mailer(CommandWorker):
             cfg = _transform_mail_config(
                 cfg=app_ctx.db.get_mail_config(app_uuid=cmd.app_uuid),
             )
-        LOG.debug(f'Config from DB: {cfg}')
+        LOG.debug('Config from DB: %s', cfg)
         # client URL
-        rq.client_url = cmd.body.get('clientUrl', app_ctx.cfg.general.client_url)
-        rq.domain = urllib.parse.urlparse(rq.client_url).hostname
+        mail_rq.client_url = cmd.body.get('clientUrl', app_ctx.cfg.general.client_url)
+        mail_rq.domain = urllib.parse.urlparse(mail_rq.client_url).hostname
         # update Sentry info
-        SentryReporter.set_context('template', rq.template_name)
-        self.send(rq, cfg)
+        SentryReporter.set_context('template', mail_rq.template_name)
+        self.send(mail_rq, cfg)
         SentryReporter.set_context('template', '-')
         SentryReporter.set_context('cmd_uuid', '-')
         Context.get().update_trace_id('-')
 
-    def process_exception(self, e: Exception):
-        LOG.info('Failed with unexpected error', exc_info=e)
-        SentryReporter.capture_exception(e)
+    def process_exception(self, exc: Exception):
+        LOG.info('Failed with unexpected error', exc_info=exc)
+        SentryReporter.capture_exception(exc)
 
-    def send(self, rq: MessageRequest, cfg: Optional[MailConfig]):
-        LOG.info(f'Sending request: {rq.template_name} ({rq.id})')
+    def send(self, mail_rq: MessageRequest, cfg: Optional[MailConfig]):
+        LOG.info('Sending request: %s (%s)', mail_rq.template_name, mail_rq.id)
         # get template
-        if not self.ctx.templates.has_template_for(rq):
-            raise RuntimeError(f'Template not found: {rq.template_name}')
+        if not self.ctx.templates.has_template_for(mail_rq):
+            raise RuntimeError(f'Template not found: {mail_rq.template_name}')
         # render
-        LOG.info(f'Rendering message: {rq.template_name}')
-        msg = self.ctx.templates.render(rq, cfg)
+        LOG.info('Rendering message: %s', mail_rq.template_name)
+        msg = self.ctx.templates.render(mail_rq, cfg)
         # send
-        LOG.info(f'Sending message: {rq.template_name}')
+        LOG.info('Sending message: %s', mail_rq.template_name)
         self.ctx.app.sender.send(msg, cfg)
         LOG.info('Message sent successfully')
 
@@ -178,7 +179,7 @@ class RateLimiter:
             LOG.info('Reached rate limit')
             sleep_time = math.ceil(self.window - now + self.hits[0])
             if sleep_time > 1:
-                LOG.info(f'Will sleep now for {sleep_time} second')
+                LOG.info('Will sleep now for %f second', sleep_time)
                 time.sleep(sleep_time)
 
 

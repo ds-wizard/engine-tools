@@ -1,8 +1,9 @@
-import jinja2  # type: ignore
 import pathlib
 import uuid
 
 from typing import List, Set
+
+import jinja2  # type: ignore
 
 from .consts import DEFAULT_ENCODING, DEFAULT_README
 from .model import Template, TemplateFile, Format, Step, PackageFilter

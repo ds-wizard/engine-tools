@@ -143,10 +143,10 @@ PackageFilterValidator = GenericValidator({
 })
 
 
-def _validate_package_filters(field_name: str, value: List[PackageFilter]) -> List[ValidationError]:
+def _validate_package_filters(field_name: str, values: List[PackageFilter]) -> List[ValidationError]:
     res = []
-    for v in value:
-        res.extend(PackageFilterValidator.collect_errors(v, field_name_prefix=f'{field_name}.'))
+    for value in values:
+        res.extend(PackageFilterValidator.collect_errors(value, field_name_prefix=f'{field_name}.'))
     return res
 
 
@@ -180,14 +180,14 @@ FormatValidator = GenericValidator({
 })
 
 
-def _validate_formats(field_name: str, value: List[Format]) -> List[ValidationError]:
+def _validate_formats(field_name: str, values: List[Format]) -> List[ValidationError]:
     res = []
     uuids = set()
-    for v in value:
-        if v.uuid in uuids:
-            res.append(ValidationError(field_name, f'Duplicate format UUID {v.uuid}'))
-        uuids.add(v.uuid)
-        res.extend(FormatValidator.collect_errors(v, field_name_prefix=f'{field_name}.'))
+    for value in values:
+        if value.uuid in uuids:
+            res.append(ValidationError(field_name, f'Duplicate format UUID {value.uuid}'))
+        uuids.add(value.uuid)
+        res.extend(FormatValidator.collect_errors(value, field_name_prefix=f'{field_name}.'))
     return res
 
 

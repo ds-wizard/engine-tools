@@ -38,7 +38,7 @@ class Step:
         raise FormatStepException(message)
 
 
-STEPS = dict()
+STEPS = {}
 
 
 def register_step(name: str, step_class: type):

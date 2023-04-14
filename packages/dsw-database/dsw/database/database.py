@@ -1,11 +1,12 @@
 import datetime
+
+from typing import List, Iterable, Optional
+
 import logging
 import psycopg
 import psycopg.rows
 import psycopg.types.json
 import tenacity
-
-from typing import List, Iterable, Optional
 
 from dsw.config.model import DatabaseConfig
 
@@ -365,9 +366,9 @@ class Database:
                 if result is None:
                     return None
                 return DBInstanceConfigMail.from_dict_row(data=result)
-            except Exception as e:
-                LOG.warning(f'Could not retrieve instance_mail_config for app'
-                            f' "{app_uuid}": {str(e)}')
+            except Exception as exc:
+                LOG.warning('Could not retrieve instance_mail_config for app "%s": %s',
+                            app_uuid, str(exc))
                 return None
 
     @tenacity.retry(
@@ -392,8 +393,8 @@ class Database:
                     },
                 )
                 self.conn_query.connection.commit()
-            except Exception as e:
-                LOG.warning(f'Could not update component info: {str(e)}')
+            except Exception as exc:
+                LOG.warning('Could not update component info: %s', str(exc))
 
     @tenacity.retry(
         reraise=True,
@@ -413,8 +414,8 @@ class Database:
                 if result is None:
                     return None
                 return DBComponent.from_dict_row(data=result)
-            except Exception as e:
-                LOG.warning(f'Could not get component info: {str(e)}')
+            except Exception as exc:
+                LOG.warning('Could not get component info: %s', str(exc))
                 return None
 
     @tenacity.retry(
@@ -461,7 +462,7 @@ class PostgresConnection:
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
     def _connect_db(self):
-        LOG.info(f'Creating connection to PostgreSQL database "{self.name}"')
+        LOG.info('Creating connection to PostgreSQL database "%s"', self.name)
         connection = psycopg.connect(conninfo=self.dsn, autocommit=self.autocommit)
         if connection is None:
             raise RuntimeError('Failed to init DB connection')
@@ -471,7 +472,7 @@ class PostgresConnection:
         result = cursor.fetchone()
         if result is None:
             raise RuntimeError('Failed to verify DB connection')
-        LOG.debug(f'DB connection verified (result={result[0]})')
+        LOG.debug('DB connection verified (result=%s)', result[0])
         cursor.close()
         connection.commit()
         self._connection = connection
@@ -497,6 +498,6 @@ class PostgresConnection:
 
     def close(self):
         if self._connection:
-            LOG.info(f'Closing connection to PostgreSQL database "{self.name}"')
+            LOG.info('Closing connection to PostgreSQL database "%s"', self.name)
             self._connection.close()
         self._connection = None

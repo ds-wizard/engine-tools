@@ -1,3 +1,5 @@
+import enum
+
 CMD_CHANNEL = 'doc_worker'
 CMD_COMPONENT = 'doc_worker'
 COMPONENT_NAME = 'Document Worker'
@@ -9,26 +11,26 @@ PROG_NAME = 'docworker'
 VERSION = '3.22.0'
 
 
-class DocumentState:
+class DocumentState(enum.Enum):
     QUEUED = 'QueuedDocumentState'
     PROCESSING = 'InProgressDocumentState'
     FAILED = 'ErrorDocumentState'
     FINISHED = 'DoneDocumentState'
 
 
-class TemplateAssetField:
+class TemplateAssetField(enum.Enum):
     UUID = 'uuid'
     FILENAME = 'fileName'
     CONTENT_TYPE = 'contentType'
 
 
-class FormatField:
+class FormatField(enum.Enum):
     UUID = 'uuid'
     NAME = 'name'
     STEPS = 'steps'
 
 
-class StepField:
+class StepField(enum.Enum):
     NAME = 'name'
     OPTIONS = 'options'
 

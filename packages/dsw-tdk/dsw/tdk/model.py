@@ -14,8 +14,8 @@ mimetypes.init()
 
 
 class TemplateFileType(enum.Enum):
-    asset = 'asset'
-    file = 'file'
+    ASSET = 'asset'
+    FILE = 'file'
 
 
 class PackageFilter:
@@ -49,7 +49,7 @@ class Step:
 
     def __init__(self, *, name=None, options=None):
         self.name = name  # type: str
-        self.options = options or dict()  # type: Dict[str, str]
+        self.options = options or {}  # type: Dict[str, str]
 
     @classmethod
     def load(cls, data):
@@ -136,7 +136,7 @@ class TemplateFile:
         self.remote_type = remote_type or self.guess_tfile_type()  # type: TemplateFileType
 
     def guess_tfile_type(self):
-        return TemplateFileType.file if self.is_text else TemplateFileType.asset
+        return TemplateFileType.FILE if self.is_text else TemplateFileType.ASSET
 
     def guess_type(self) -> str:
         # TODO: add own map of file extensions
@@ -152,7 +152,7 @@ class TemplateFile:
     @property
     def is_text(self):
         # TODO: custom mapping (also some starting with "application" are textual)
-        if getattr(self, 'remote_type', None) == TemplateFileType.file:
+        if getattr(self, 'remote_type', None) == TemplateFileType.FILE:
             return True
         return self.content_type.startswith('text')
 
@@ -200,8 +200,8 @@ class Template:
                 org_id = data['organizationId']
                 tmp_id = data['templateId']
                 version = data['version']
-            except KeyError:
-                raise RuntimeError('Cannot retrieve template ID')
+            except KeyError as exc:
+                raise RuntimeError('Cannot retrieve template ID') from exc
         template = Template(
             template_id=tmp_id,
             organization_id=org_id,
@@ -331,8 +331,9 @@ class TemplateProject:
         try:
             content = self.descriptor_path.read_text(encoding=DEFAULT_ENCODING)
             self.template = Template.load_local(self.json_decoder.decode(content))
-        except Exception:
-            raise RuntimeError(f'Unable to load template using {self.descriptor_path}.')
+        except Exception as exc:
+            raise RuntimeError(f'Unable to load template using '
+                               f'{self.descriptor_path}.') from exc
 
     def load_readme(self):
         readme = self.safe_template.tdk_config.readme_file
@@ -340,20 +341,22 @@ class TemplateProject:
             try:
                 self.used_readme = self.template_dir / readme
                 self.safe_template.readme = self.used_readme.read_text(encoding=DEFAULT_ENCODING)
-            except Exception as e:
-                raise RuntimeWarning(f'README file "{readme}" cannot be loaded: {e}')
+            except Exception as exc:
+                raise RuntimeWarning(f'README file "{readme}" cannot '
+                                     f'be loaded: {exc}') from exc
 
     def load_file(self, filepath: pathlib.Path) -> TemplateFile:
         try:
             if filepath.is_absolute():
                 filepath = filepath.relative_to(self.template_dir)
             tfile = TemplateFile(filename=filepath)
-            with open(self.template_dir / filepath, mode='rb') as f:
-                tfile.content = f.read()
+            with open(self.template_dir / filepath, mode='rb') as template_file:
+                tfile.content = template_file.read()
             self.safe_template.files[filepath.as_posix()] = tfile
             return tfile
-        except Exception as e:
-            raise RuntimeWarning(f'Failed to load template file {filepath}: {e}')
+        except Exception as exc:
+            raise RuntimeWarning(f'Failed to load template '
+                                 f'file {filepath}: {exc}') from exc
 
     def load_files(self):
         self.safe_template.files.clear()
@@ -372,12 +375,14 @@ class TemplateProject:
             return list(p for p in files if p != self.used_readme.relative_to(self.template_dir))
         return list(files)
 
-    def _relative_paths_eq(self, filepath1: Optional[pathlib.Path], filepath2: Optional[pathlib.Path]) -> bool:
+    def _relative_paths_eq(self, filepath1: Optional[pathlib.Path],
+                           filepath2: Optional[pathlib.Path]) -> bool:
         if filepath1 is None or filepath2 is None:
             return False
         return filepath1.relative_to(self.template_dir) == filepath2.relative_to(self.template_dir)
 
-    def is_template_file(self, filepath: pathlib.Path, include_descriptor: bool = False, include_readme: bool = False):
+    def is_template_file(self, filepath: pathlib.Path, include_descriptor: bool = False,
+                         include_readme: bool = False):
         if include_readme and self._relative_paths_eq(filepath, self.used_readme):
             return True
         if include_descriptor and self._relative_paths_eq(filepath, self.descriptor_path):
@@ -413,13 +418,19 @@ class TemplateProject:
             filepath.parent.mkdir(parents=True, exist_ok=True)
             filepath.write_bytes(contents)
             self.logger.debug(f'Stored file {filepath}')
-        except Exception as e:
-            self.logger.error(f'Unable to write file {filepath}: {e}')
+        except Exception as exc:
+            self.logger.error(f'Unable to write file {filepath}: {exc}')
 
     def store_descriptor(self, force: bool):
+        contents = json.dumps(
+            self.safe_template.serialize_local(),
+            indent=4,
+        ).encode(
+            encoding=DEFAULT_ENCODING,
+        )
         self._write_file(
             filepath=self.descriptor_path,
-            contents=json.dumps(self.safe_template.serialize_local(), indent=4).encode(encoding=DEFAULT_ENCODING),
+            contents=contents,
             force=force,
         )
 

@@ -1,13 +1,17 @@
 import pathlib
-import jinja2
 import shutil
 import zipfile
 
 from typing import Any, Optional
 
+import jinja2
+
 from ...consts import DEFAULT_ENCODING
 from ...context import Context
 from ...documents import DocumentFile, FileFormats
+from ...model.http import RequestsWrapper
+from ..filters import filters
+from ..tests import tests
 from .base import Step, register_step, TMP_DIR
 
 
@@ -37,16 +41,13 @@ class EnrichDocxStep(Step):
                 extensions=['jinja2.ext.do'],
             )
             self._add_j2_enhancements()
-        except jinja2.exceptions.TemplateSyntaxError as e:
-            self.raise_exc(self._jinja_exception_msg(e))
-        except Exception as e:
-            self.raise_exc(f'Failed loading Jinja2 template: {e}')
+        except jinja2.exceptions.TemplateSyntaxError as exc:
+            self.raise_exc(self._jinja_exception_msg(exc))
+        except Exception as exc:
+            self.raise_exc(f'Failed loading Jinja2 template: {exc}')
 
     def _add_j2_enhancements(self):
         # TODO: shared part with Jinja2Step
-        from ..filters import filters
-        from ..tests import tests
-        from ...model.http import RequestsWrapper
         self.j2_env.filters.update(filters)
         self.j2_env.tests.update(tests)
         template_cfg = Context.get().app.cfg.templates.get_config(
@@ -68,24 +69,24 @@ class EnrichDocxStep(Step):
                 ctx=context,
                 content=existing_content,
             )
-        except jinja2.exceptions.TemplateSyntaxError as e:
-            self.raise_exc(self._jinja_exception_msg(e))
-        except Exception as e:
-            self.raise_exc(f'Failed loading Jinja2 template: {e}')
+        except jinja2.exceptions.TemplateSyntaxError as exc:
+            self.raise_exc(self._jinja_exception_msg(exc))
+        except Exception as exc:
+            self.raise_exc(f'Failed loading Jinja2 template: {exc}')
         return ''
 
     def _static_rewrite(self, rewrite_file: str) -> str:
         try:
             path = self.template.template_dir / rewrite_file  # type: pathlib.Path
             return path.read_text(encoding=DEFAULT_ENCODING)
-        except Exception as e:
-            self.raise_exc(f'Failed loading Jinja2 template: {e}')
+        except Exception as exc:
+            self.raise_exc(f'Failed loading Jinja2 template: {exc}')
         return ''
 
     def _get_rewrite(self, rewrite: str, context: dict, existing_content: Optional[str]) -> str:
         if rewrite.startswith('static:'):
             return self._static_rewrite(rewrite[7:])
-        elif rewrite.startswith('render:'):
+        if rewrite.startswith('render:'):
             return self._render_rewrite(rewrite[7:], context, existing_content)
         return ''
 

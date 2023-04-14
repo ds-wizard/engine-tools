@@ -3,8 +3,9 @@ import datetime
 import logging
 import os
 import platform
-import psycopg
 import signal
+
+import psycopg
 import tenacity
 
 from dsw.database import Database
@@ -19,44 +20,36 @@ RETRY_QUERY_TRIES = 3
 RETRY_QUEUE_MULTIPLIER = 0.5
 RETRY_QUEUE_TRIES = 5
 
-INTERRUPTED = False
-IS_LINUX = platform == 'Linux'
-
-if IS_LINUX:
-    _QUEUE_PIPE_R, _QUEUE_PIPE_W = os.pipe()
-    signal.set_wakeup_fd(_QUEUE_PIPE_W)
-
-
-def signal_handler(recv_signal, frame):
-    global INTERRUPTED
-    LOG.warning(f'Received interrupt signal: {recv_signal}')
-    INTERRUPTED = True
-
-
-signal.signal(signal.SIGINT, signal_handler)
-signal.signal(signal.SIGABRT, signal_handler)
-
 
 class CommandWorker:
 
     @abc.abstractmethod
-    def work(self, payload: PersistentCommand):
+    def work(self, cmd: PersistentCommand):
         pass
 
-    def process_exception(self, e: Exception):
+    def process_exception(self, exc: Exception):
         pass
 
 
 class CommandQueue:
 
+    _INSTANCES = []  # type: list[CommandQueue]
+
+    @classmethod
+    def interrupt_all(cls):
+        for instance in cls._INSTANCES:
+            instance.interrupt()
+
     def __init__(self, worker: CommandWorker, db: Database,
                  channel: str, component: str):
+        CommandQueue._INSTANCES.append(self)
         self.worker = worker
         self.db = db
-        self.queries = CommandQueries(
+        self._queries = CommandQueries(
             channel=channel,
             component=component
         )
+        self._interrupted = False
 
     @tenacity.retry(
         reraise=True,
@@ -72,7 +65,7 @@ class CommandQueue:
         LOG.info('Preparing to listen for jobs in command queue')
         queue_conn = self.db.conn_queue
         queue_conn.connection.execute(
-            query=self.queries.query_listen(),
+            query=self._queries.query_listen(),
         )
         queue_conn.listening = True
         LOG.info('Listening for jobs in command queue')
@@ -81,54 +74,54 @@ class CommandQueue:
             queue_notifications = queue_conn.connection.notifies()
             LOG.info('Entering working cycle, waiting for notifications')
             for notification in queue_notifications:
-                LOG.info(f'Notification received: {notification}')
+                LOG.info('Notification received')
                 while self.accept_notification(payload=notification):
                     pass
 
-                if INTERRUPTED:
+                if self._interrupted:
                     LOG.debug('Interrupt signal received, ending...')
                     queue_notifications.close()
                     running = False
         LOG.debug('Exiting command queue')
 
     def accept_notification(self, payload: psycopg.Notify) -> bool:
-        LOG.debug(f'Accepting notification from channel "{payload.channel}" '
-                  f'(PID = {payload.pid}) {payload.payload}')
+        LOG.debug('Accepting notification from channel "%s" (PID = %s) %s',
+                  payload.channel, payload.pid, payload.payload)
         LOG.debug('Trying to fetch a new job')
         return self.fetch_and_process()
 
     def fetch_and_process(self) -> bool:
         cursor = self.db.conn_query.new_cursor(use_dict=True)
         cursor.execute(
-            query=self.queries.query_get_command(),
+            query=self._queries.query_get_command(),
             params={'now': datetime.datetime.utcnow()},
         )
         result = cursor.fetchall()
         if len(result) != 1:
-            LOG.debug(f'Fetched {len(result)} persistent commands')
+            LOG.debug('Fetched %d persistent commands', len(result))
             return False
 
         command = PersistentCommand.from_dict_row(result[0])
-        LOG.info(f'Retrieved persistent command {command.uuid} for processing')
-        LOG.debug(f'Previous state: {command.state}')
-        LOG.debug(f'Attempts: {command.attempts} / {command.max_attempts}')
-        LOG.debug(f'Last error: {command.last_error_message}')
+        LOG.info('Retrieved persistent command %s for processing', command.uuid)
+        LOG.debug('Previous state: %s', command.state)
+        LOG.debug('Attempts: %d / %d', command.attempts, command.max_attempts)
+        LOG.debug('Last error: %s', command.last_error_message)
 
         try:
             self.worker.work(command)
 
             self.db.execute_query(
-                query=self.queries.query_command_done(),
+                query=self._queries.query_command_done(),
                 attempts=command.attempts + 1,
                 updated_at=datetime.datetime.utcnow(),
                 uuid=command.uuid,
             )
-        except Exception as e:
-            msg = f'Failed with exception: {str(e)} ({type(e).__name__})'
+        except Exception as exc:
+            msg = f'Failed with exception: {str(exc)} ({type(exc).__name__})'
             LOG.warning(msg)
-            self.worker.process_exception(e)
+            self.worker.process_exception(exc)
             self.db.execute_query(
-                query=self.queries.query_command_error(),
+                query=self._queries.query_command_error(),
                 attempts=command.attempts + 1,
                 error_message=msg,
                 updated_at=datetime.datetime.utcnow(),
@@ -140,3 +133,24 @@ class CommandQueue:
         cursor.close()
         LOG.info('Notification processing finished')
         return True
+
+    def interrupt(self):
+        self.db.conn_queue.connection.cancel()
+
+
+# Interruption handling
+IS_LINUX = platform == 'Linux'
+
+if IS_LINUX:
+    _QUEUE_PIPE_R, _QUEUE_PIPE_W = os.pipe()
+    signal.set_wakeup_fd(_QUEUE_PIPE_W)
+
+
+def signal_handler(recv_signal, frame):
+    LOG.warning('Received interrupt signal: %s (frame: %s)',
+                recv_signal, frame)
+    CommandQueue.interrupt_all()
+
+
+signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGABRT, signal_handler)

@@ -1,9 +1,10 @@
-import jinja2
 import json
 import logging
 import pathlib
 
 from typing import Optional
+
+import jinja2
 
 from .config import MailerConfig, MailConfig
 from .consts import DEFAULT_ENCODING
@@ -23,23 +24,24 @@ class MailTemplate:
         self.descriptor = descriptor
         self.html_template = html_template
         self.plain_template = plain_template
-        self.attachments = list()  # type: list[MailAttachment]
-        self.html_images = list()  # type: list[MailAttachment]
+        self.attachments = []  # type: list[MailAttachment]
+        self.html_images = []  # type: list[MailAttachment]
 
-    def render(self, rq: MessageRequest, mail_name: str, mail_from: str) -> MailMessage:
-        ctx = rq.ctx
+    def render(self, mail_rq: MessageRequest, mail_name: str,
+               mail_from: str) -> MailMessage:
+        ctx = mail_rq.ctx
         msg = MailMessage()
-        msg.recipients = rq.recipients
+        msg.recipients = mail_rq.recipients
         subject_prefix = ctx.get('appTitle', None)
         if subject_prefix is None:
             subject_prefix = mail_name
         msg.subject = f'{subject_prefix}: {self.descriptor.subject}'
-        msg.msg_id = rq.id
-        msg.msg_domain = rq.domain
+        msg.msg_id = mail_rq.id
+        msg.msg_domain = mail_rq.domain
         msg.language = self.descriptor.language
         msg.importance = self.descriptor.importance
         msg.priority = self.descriptor.priority
-        ctx['msgId'] = rq.id
+        ctx['msgId'] = mail_rq.id
         ctx['subject'] = msg.subject
         ctx['appTitle'] = subject_prefix
         msg.from_mail = mail_from
@@ -65,7 +67,7 @@ class TemplateRegistry:
             loader=jinja2.FileSystemLoader(searchpath=workdir),
             extensions=['jinja2.ext.do'],
         )
-        self.templates = dict()  # type: dict[str, MailTemplate]
+        self.templates = {}  # type: dict[str, MailTemplate]
         self._load_templates(mode)
 
     def _load_jinja2(self, file_path: pathlib.Path) -> Optional[jinja2.Template]:
@@ -95,17 +97,17 @@ class TemplateRegistry:
         try:
             data = json.loads(path.read_text(encoding=DEFAULT_ENCODING))
             return TemplateDescriptor.load_from_file(data)
-        except Exception as e:
-            LOG.warning(f'Cannot load template descriptor at {str(path)}'
-                        f'due to: {str(e)}')
+        except Exception as exc:
+            LOG.warning('Cannot load template descriptor at %s due to: %s',
+                        str(path), str(exc))
             return None
 
     def _load_template(self, path: pathlib.Path,
                        descriptor: TemplateDescriptor) -> Optional[MailTemplate]:
         html_template = None
         plain_template = None
-        attachments = list()
-        html_images = list()
+        attachments = []
+        html_images = []
         for part in descriptor.parts:
             if part.type == 'html':
                 html_template = self._load_jinja2(path / part.file)
@@ -116,8 +118,8 @@ class TemplateRegistry:
             elif part.type == 'html_image':
                 html_images.append(self._load_attachment(path, part))
         if html_template is None and plain_template is None:
-            LOG.warning(f'Template "{descriptor.id}" from {str(path)}'
-                        f'does not have HTML nor Plain part - skipping')
+            LOG.warning('Template "%s" from %s does not have HTML nor Plain part - skipping',
+                        descriptor.id, str(path))
             return None
         template = MailTemplate(
             name=path.name,
@@ -140,16 +142,16 @@ class TemplateRegistry:
             template = self._load_template(path, descriptor)
             if template is None:
                 continue
-            LOG.info(f'Loaded template "{descriptor.id}" from {str(path)}')
+            LOG.info('Loaded template "%s" from %s', descriptor.id, str(path))
             self.templates[path.name] = template
 
-    def has_template_for(self, rq: MessageRequest) -> bool:
-        return rq.template_name in self.templates.keys()
+    def has_template_for(self, mail_rq: MessageRequest) -> bool:
+        return mail_rq.template_name in self.templates
 
-    def render(self, rq: MessageRequest, cfg: MailConfig) -> MailMessage:
+    def render(self, mail_rq: MessageRequest, cfg: MailConfig) -> MailMessage:
         used_cfg = cfg or self.cfg.mail
-        return self.templates[rq.template_name].render(
-            rq=rq,
+        return self.templates[mail_rq.template_name].render(
+            mail_rq=mail_rq,
             mail_name=used_cfg.name,
             mail_from=used_cfg.email,
         )

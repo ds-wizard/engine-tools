@@ -1,7 +1,8 @@
 import logging
-import rdflib
 import shlex
 import subprocess
+
+import rdflib
 
 from .config import DocumentWorkerConfig
 from .consts import EXIT_SUCCESS, DEFAULT_ENCODING
@@ -14,14 +15,15 @@ LOG = logging.getLogger(__name__)
 def run_conversion(*, args: list, workdir: str, input_data: bytes, name: str,
                    source_format: FileFormat, target_format: FileFormat, timeout=None) -> bytes:
     command = ' '.join(args)
-    LOG.info(f'Calling "{command}" to convert from {source_format} to {target_format}')
-    p = subprocess.Popen(args,
-                         cwd=workdir,
-                         stdin=subprocess.PIPE,
-                         stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE)
-    stdout, stderr = p.communicate(input=input_data, timeout=timeout)
-    exit_code = p.returncode
+    LOG.info('Calling "%s" to convert from %s to %s',
+             command, source_format, target_format)
+    proc = subprocess.Popen(args,
+                            cwd=workdir,
+                            stdin=subprocess.PIPE,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE)
+    stdout, stderr = proc.communicate(input=input_data, timeout=timeout)
+    exit_code = proc.returncode
     if exit_code != EXIT_SUCCESS:
         raise FormatConversionException(
             name, source_format, target_format,
@@ -115,11 +117,11 @@ class RdfLibConvert:
 
     def __call__(self, source_format: FileFormat, target_format: FileFormat,
                  data: bytes, metadata: dict) -> bytes:
-        g = rdflib.Graph().parse(
+        graph = rdflib.Graph().parse(
             data=data.decode(DEFAULT_ENCODING),
             format=self.FORMATS.get(source_format) or 'turtle',
         )
-        result = g.serialize(
+        result = graph.serialize(
             format=self.FORMATS.get(target_format) or 'turtle',
             encoding=DEFAULT_ENCODING,
         )

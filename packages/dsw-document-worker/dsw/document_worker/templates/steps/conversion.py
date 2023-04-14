@@ -1,3 +1,5 @@
+import weasyprint
+
 from ...consts import DEFAULT_ENCODING
 from ...context import Context
 from ...conversions import Pandoc, WkHtmlToPdf, RdfLibConvert
@@ -38,7 +40,8 @@ class WeasyPrintStep(Step):
     def __init__(self, template, options: dict):
         super().__init__(template, options)
         # Render options
-        self.wp_presentational_hints = options.get('render.presentational_hints', 'false').lower() == 'true'
+        self.wp_presentational_hints = options.get('render.presentational_hints',
+                                                   'false').lower() == 'true'
         self.wp_optimize_size = tuple(options.get('render.optimize_size', 'fonts').split(','))
         self.wp_forms = options.get('render.forms', 'false').lower() == 'true'
         # PDF options
@@ -51,9 +54,9 @@ class WeasyPrintStep(Step):
         return self.raise_exc(f'Step "{self.NAME}" cannot be first')
 
     def execute_follow(self, document: DocumentFile, context: dict) -> DocumentFile:
-        import weasyprint
         if document.file_format != FileFormats.HTML:
-            self.raise_exc(f'WeasyPrint does not support {document.file_format.name} format as input')
+            self.raise_exc(f'WeasyPrint does not support '
+                           f'{document.file_format.name} format as input')
         file_uri = self.template.template_dir / '_file.html'
         wp_html = weasyprint.HTML(
             string=document.content.decode(DEFAULT_ENCODING),

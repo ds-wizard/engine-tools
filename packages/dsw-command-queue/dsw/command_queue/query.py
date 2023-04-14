@@ -1,4 +1,7 @@
-class CommandState:
+from enum import Enum
+
+
+class CommandState(Enum):
     NEW = 'NewPersistentCommandState'
     DONE = 'DonePersistentCommandState'
     ERROR = 'ErrorPersistentCommandState'

@@ -1,7 +1,8 @@
 import datetime
-import dateutil.parser as dp
 
 from typing import Optional, Iterable, Union, ItemsView
+
+import dateutil.parser as dp
 
 from ..consts import NULL_UUID
 
@@ -18,7 +19,7 @@ def _load_annotations(annotations: list[dict[str, str]]) -> AnnotationsT:
     for item in annotations:
         key = item.get('key', '')
         value = item.get('value', '')
-        if key in semi_result.keys():
+        if key in semi_result:
             semi_result[key].append(value)
         else:
             semi_result[key] = [value]
@@ -635,7 +636,7 @@ class Question:
         self.experts = list()  # type: list[Expert]
         self.required_phase_uuid = required_phase_uuid  # type: Optional[str]
         self.required_phase = PHASE_NEVER  # type: Phase
-        self.replies = dict()  # type: dict[str, Reply]  # added from replies
+        self.replies = {}  # type: dict[str, Reply]  # added from replies
         self.is_required = None  # type: Optional[bool]
         self.parent = None  # type: Optional[Union[Chapter, ListQuestion, Answer]]
         self.annotations = annotations  # type: AnnotationsT
@@ -822,7 +823,7 @@ class ListQuestion(Question):
                          reference_uuids, expert_uuids, required_phase_uuid,
                          annotations)
         self.followup_uuids = followup_uuids  # type: list[str]
-        self.followups = list()  # type: list[Question]
+        self.followups = []  # type: list[Question]
 
     def _resolve_links(self, ctx):
         super()._resolve_links_parent(ctx)
@@ -890,8 +891,8 @@ class Chapter:
         self.title = title  # type: str
         self.text = text  # type: Optional[str]
         self.question_uuids = question_uuids  # type: list[str]
-        self.questions = list()  # type: list[Question]
-        self.reports = list()  # type: list[ReportItem]
+        self.questions = []  # type: list[Question]
+        self.reports = []  # type: list[ReportItem]
         self.annotations = annotations  # type: AnnotationsT
 
     @property
@@ -967,16 +968,16 @@ def _load_reply(path: str, data: dict, **options):
 class KnowledgeModelEntities:
 
     def __init__(self):
-        self.chapters = dict()  # type: dict[str, Chapter]
-        self.questions = dict()  # type: dict[str, Question]
-        self.answers = dict()  # type: dict[str, Answer]
-        self.choices = dict()  # type: dict[str, Choice]
-        self.references = dict()  # type: dict[str, Reference]
-        self.experts = dict()  # type: dict[str, Expert]
-        self.tags = dict()  # type: dict[str, Tag]
-        self.metrics = dict()  # type: dict[str, Metric]
-        self.phases = dict()  # type: dict[str, Phase]
-        self.integrations = dict()  # type: dict[str, Integration]
+        self.chapters = {}  # type: dict[str, Chapter]
+        self.questions = {}  # type: dict[str, Question]
+        self.answers = {}  # type: dict[str, Answer]
+        self.choices = {}  # type: dict[str, Choice]
+        self.references = {}  # type: dict[str, Reference]
+        self.experts = {}  # type: dict[str, Expert]
+        self.tags = {}  # type: dict[str, Tag]
+        self.metrics = {}  # type: dict[str, Metric]
+        self.phases = {}  # type: dict[str, Phase]
+        self.integrations = {}  # type: dict[str, Integration]
 
     @staticmethod
     def load(data: dict, **options):
@@ -1011,15 +1012,15 @@ class KnowledgeModel:
         self.uuid = uuid  # type: str
         self.entities = entities  # type: KnowledgeModelEntities
         self.chapter_uuids = chapter_uuids  # type: list[str]
-        self.chapters = list()  # type: list[Chapter]
+        self.chapters = []  # type: list[Chapter]
         self.tag_uuids = tag_uuids  # type: list[str]
-        self.tags = list()  # type: list[Tag]
+        self.tags = []  # type: list[Tag]
         self.metric_uuids = metric_uuids  # type: list[str]
-        self.metrics = list()  # type: list[Metric]
+        self.metrics = []  # type: list[Metric]
         self.phase_uuids = phase_uuids  # type: list[str]
-        self.phases = list()  # type: list[Phase]
+        self.phases = []  # type: list[Phase]
         self.integration_uuids = integration_uuids  # type: list[str]
-        self.integrations = list()  # type: list[Integration]
+        self.integrations = []  # type: list[Integration]
         self.annotations = annotations  # type: AnnotationsT
 
     @property
@@ -1177,12 +1178,12 @@ class Questionnaire:
         self.name = name  # type: str
         self.description = description  # type: str
         self.version = None  # type: Optional[QuestionnaireVersion]
-        self.versions = list()  # type: list[QuestionnaireVersion]
+        self.versions = []  # type: list[QuestionnaireVersion]
         self.created_by = created_by  # type: User
         self.phase_uuid = phase_uuid  # type: Optional[str]
         self.phase = PHASE_NEVER  # type: Phase
-        self.project_tags = list()  # type: list[str]
-        self.replies = RepliesContainer(dict())  # type: RepliesContainer
+        self.project_tags = []  # type: list[str]
+        self.replies = RepliesContainer({})  # type: RepliesContainer
 
     def _resolve_links(self, ctx):
         for reply in self.replies.values():
@@ -1195,9 +1196,9 @@ class Questionnaire:
         version = None
         replies = {p: _load_reply(p, d, **options)
                    for p, d in data['questionnaireReplies'].items()}
-        for v in versions:
-            if v.uuid == data['questionnaireVersion']:
-                version = v
+        for ver in versions:
+            if ver.uuid == data['questionnaireVersion']:
+                version = ver
         qtn = Questionnaire(
             uuid=data['questionnaireUuid'],
             name=data['questionnaireName'],
@@ -1303,8 +1304,8 @@ class ReportItem:
         self.chapter = None  # type: Optional[Chapter]
 
     def _resolve_links(self, ctx):
-        for m in self.metrics:
-            m._resolve_links(ctx)
+        for metric in self.metrics:
+            metric._resolve_links(ctx)
         if self.chapter_uuid is not None and self.chapter_uuid in ctx.e.chapters.keys():
             self.chapter = ctx.e.chapters[self.chapter_uuid]
             if self.chapter is not None:

@@ -1,5 +1,8 @@
 import dataclasses
 import datetime
+import enum
+
+import enom
 import json
 
 from typing import Optional
@@ -8,14 +11,14 @@ from typing import Optional
 NULL_UUID = '00000000-0000-0000-0000-000000000000'
 
 
-class DocumentState:
+class DocumentState(enum.Enum):
     QUEUED = 'QueuedDocumentState'
     PROCESSING = 'InProgressDocumentState'
     FAILED = 'ErrorDocumentState'
     FINISHED = 'DoneDocumentState'
 
 
-class DocumentTemplatePhase:
+class DocumentTemplatePhase(enum.Enum):
     RELEASED = 'ReleasedTemplatePhase'
     DEPRECATED = 'DeprecatedTemplatePhase'
     DRAFT = 'DraftTemplatePhase'

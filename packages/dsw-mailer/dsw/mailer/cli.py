@@ -1,13 +1,16 @@
-import click  # type: ignore
 import json
 import pathlib
+import sys
 
 from typing import IO, Optional
+
+import click  # type: ignore
 
 from dsw.config.parser import MissingConfigurationError
 
 from .config import MailerConfig, MailerConfigParser
 from .consts import VERSION
+from .mailer import Mailer
 from .model import MessageRequest
 
 
@@ -20,27 +23,27 @@ def validate_config(ctx, param, value: Optional[IO]):
     parser = MailerConfigParser()
     if not parser.can_read(content):
         click.echo('Error: Cannot parse config file', err=True)
-        exit(1)
+        sys.exit(1)
 
     try:
         parser.read_string(content)
         parser.validate()
         return parser.config
-    except MissingConfigurationError as e:
+    except MissingConfigurationError as exc:
         click.echo('Error: Missing configuration', err=True)
-        for missing_item in e.missing:
+        for missing_item in exc.missing:
             click.echo(f' - {missing_item}', err=True)
-        exit(1)
+        sys.exit(1)
 
 
 def extract_message_request(ctx, param, value: IO):
     data = json.load(value)
     try:
         return MessageRequest.load_from_file(data)
-    except Exception as e:
+    except Exception as exc:
         click.echo('Error: Cannot parse message request', err=True)
-        click.echo(f'{type(e).__name__}: {str(e)}')
-        exit(1)
+        click.echo(f'{type(exc).__name__}: {str(exc)}')
+        sys.exit(1)
 
 
 @click.group(name='dsw-mailer')
@@ -57,7 +60,6 @@ def extract_message_request(ctx, param, value: IO):
 def cli(ctx, config: MailerConfig, workdir: str, mode: str):
     """Mailer for sending emails from DSW"""
     path_workdir = pathlib.Path(workdir)
-    from .mailer import Mailer
     config.log.apply()
     ctx.obj['mailer'] = Mailer(config, path_workdir, mode)
 
@@ -68,7 +70,6 @@ def cli(ctx, config: MailerConfig, workdir: str, mode: str):
                 callback=extract_message_request)
 def send(ctx, msg_request: MessageRequest):
     """Send message(s) from given file directly"""
-    from .mailer import Mailer
     mailer = ctx.obj['mailer']  # type: Mailer
     mailer.send(rq=msg_request, cfg=None)
 
@@ -77,10 +78,10 @@ def send(ctx, msg_request: MessageRequest):
 @click.pass_context
 def run(ctx):
     """Run mailer worker processing message jobs"""
-    from .mailer import Mailer
     mailer = ctx.obj['mailer']  # type: Mailer
     mailer.run()
 
 
-def main():
-    cli(obj={})
+def main(ctx_obj=None):
+    ctx_obj = ctx_obj or {}
+    cli(obj=ctx_obj)

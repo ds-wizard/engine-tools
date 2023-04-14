@@ -1,11 +1,11 @@
+from typing import Optional
+
 from dsw.database.database import DBAppConfig
 
 from .context import Context
 from .exceptions import JobException
 from .templates.formats import Format
 from .utils import byte_size_format, PdfWaterMarker
-
-from typing import Optional
 
 
 class LimitsEnforcer:

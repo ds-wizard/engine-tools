@@ -1,9 +1,10 @@
 import contextlib
-import pdfrw  # type: ignore
 import io
 import signal
 
 from typing import Optional
+
+import pdfrw  # type: ignore
 
 _BYTE_SIZES = ["B", "kB", "MB", "GB", "TB", "PB", "EB", "ZB"]
 
@@ -29,10 +30,10 @@ def _raise_timeout(signum, frame):
 
 
 @contextlib.contextmanager
-def timeout(t: Optional[int]):
-    if t is not None:
+def timeout(timeout_time: Optional[int]):
+    if timeout_time is not None:
         signal.signal(signal.SIGALRM, _raise_timeout)
-        signal.alarm(t)
+        signal.alarm(timeout_time)
     reached_timeout = False
     try:
         yield

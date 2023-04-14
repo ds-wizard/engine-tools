@@ -1,7 +1,9 @@
-import click  # type: ignore
 import pathlib
+import sys
 
 from typing import IO, Optional
+
+import click  # type: ignore
 
 from dsw.config.parser import MissingConfigurationError
 
@@ -10,7 +12,8 @@ from .consts import PROG_NAME, VERSION, NULL_UUID
 from .seeder import DataSeeder, SeedRecipe
 
 
-def validate_config(ctx, param, value: Optional[IO]):
+def validate_config(ctx: click.Context, param: str, value: Optional[IO]):
+    cli_param = ctx.params[param]  # type: click.Parameter
     if value is None:
         content = ''
     else:
@@ -18,17 +21,18 @@ def validate_config(ctx, param, value: Optional[IO]):
         value.close()
     parser = SeederConfigParser()
     if not parser.can_read(content):
-        click.echo('Error: Cannot parse config file', err=True)
-        exit(1)
+        click.echo(f'Error: Cannot parse config file '
+                   f'(passed via {cli_param.name})', err=True)
+        sys.exit(1)
     try:
         parser.read_string(content)
         parser.validate()
-        return parser.config
-    except MissingConfigurationError as e:
+    except MissingConfigurationError as exc:
         click.echo('Error: Missing configuration', err=True)
-        for missing_item in e.missing:
+        for missing_item in exc.missing:
             click.echo(f' - {missing_item}')
-        exit(1)
+        sys.exit(1)
+    return parser.config
 
 
 @click.group(name=PROG_NAME)
@@ -70,7 +74,7 @@ def seed(ctx: click.Context, recipe: str, app_uuid: str):
 
 @cli.command()
 @click.pass_context
-def list(ctx: click.Context):
+def list_recipes(ctx: click.Context):
     """List recipes for data seeding"""
     workdir = ctx.obj['workdir']
     recipes = SeedRecipe.load_from_dir(workdir)
@@ -79,5 +83,6 @@ def list(ctx: click.Context):
         click.echo('-'*40)
 
 
-def main():
-    cli(obj=dict())
+def main(ctx_obj=None):
+    ctx_obj = ctx_obj or {}
+    cli(obj=ctx_obj)  # pylint: disable=no-value-for-parameter

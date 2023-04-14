@@ -1,6 +1,7 @@
 import pathlib
-import pathspec  # type: ignore
 import re
+
+import pathspec  # type: ignore
 
 APP = 'dsw-tdk'
 VERSION = '3.22.0'

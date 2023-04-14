@@ -1,9 +1,10 @@
 import datetime
-import dkim
 import logging
-import pathvalidate
 import smtplib
 import ssl
+
+import dkim
+import pathvalidate
 import tenacity
 
 from email import encoders
@@ -41,7 +42,7 @@ class SMTPSender:
         if not used_cfg.enabled:
             LOG.info('Not actually sending email (enabled=False)')
             return
-        LOG.info(f'Sending via SMTP: {used_cfg.host}:{used_cfg.port}')
+        LOG.info('Sending via SMTP: %s:%d', used_cfg.host, used_cfg.port)
         self._send(message, used_cfg)
 
     @classmethod

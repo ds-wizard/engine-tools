@@ -105,12 +105,12 @@ class MailMessage:
     def __init__(self):
         self.from_mail = ''
         self.from_name = ''
-        self.recipients = list()
+        self.recipients = []
         self.subject = ''
         self.plain_body = None  # type: Optional[str]
         self.html_body = None  # type: Optional[str]
-        self.html_images = list()  # type: list[MailAttachment]
-        self.attachments = list()  # type: list[MailAttachment]
+        self.html_images = []  # type: list[MailAttachment]
+        self.attachments = []  # type: list[MailAttachment]
         self.msg_id = None  # type: Optional[str]
         self.msg_domain = None  # type: Optional[str]
         self.language = 'en'  # type: str

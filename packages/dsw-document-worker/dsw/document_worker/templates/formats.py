@@ -23,7 +23,7 @@ class Format:
         self._verify_metadata(metadata)
         self.uuid = self._trace = metadata[FormatField.UUID]
         self.name = metadata[FormatField.NAME]
-        LOG.info(f'Setting up format "{self.name}" ({self._trace})')
+        LOG.info('Setting up format "%s" (%s)', self.name, self._trace)
         self.steps = self._create_steps(metadata)
         if len(self.steps) < 1:
             self.template.raise_exc(f'Format {self.name} has no steps')
@@ -47,14 +47,14 @@ class Format:
                 steps.append(
                     create_step(self.template, step_name, step_options)
                 )
-            except FormatStepException as e:
+            except FormatStepException as exc:
                 LOG.warning('Handling job exception', exc_info=True)
                 self.template.raise_exc(f'Cannot load step "{step_name}" of format "{self.name}"\n'
-                                        f'- {e.message}')
-            except Exception as e:
+                                        f'- {exc.message}')
+            except Exception as exc:
                 LOG.warning('Handling job exception', exc_info=True)
                 self.template.raise_exc(f'Cannot load step "{step_name}" of format "{self.name}"\n'
-                                        f'- {str(e)}')
+                                        f'- {str(exc)}')
         return steps
 
     @property

@@ -66,8 +66,8 @@ class ArchiveStep(Step):
         return 0
 
     def _load_type(self) -> str:
-        t = self.options.get(self.OPTION_TYPE, '')  # type: str
-        if t.lower().strip() == self.TYPE_TAR:
+        archive_type = self.options.get(self.OPTION_TYPE, '')  # type: str
+        if archive_type.lower().strip() == self.TYPE_TAR:
             return self.TYPE_TAR
         return self.TYPE_ZIP
 
@@ -114,7 +114,7 @@ class ArchiveStep(Step):
         tar_format = self.FORMATS_TAR[self.format]
         tar_file = TMP_DIR / 'result.tar'
         extra_opts = {}
-        if compression == 'gz' or compression == 'bz2':
+        if compression in ('gz', 'bz2'):
             extra_opts['compresslevel'] = self.compression_level
         with tarfile.open(
             name=str(tar_file),

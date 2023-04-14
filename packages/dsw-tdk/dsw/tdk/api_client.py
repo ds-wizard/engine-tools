@@ -1,10 +1,11 @@
-import aiohttp
-import aiohttp.client_exceptions
 import functools
 import pathlib
 import urllib.parse
 
 from typing import List, Optional
+
+import aiohttp
+import aiohttp.client_exceptions
 
 from .consts import DEFAULT_ENCODING, APP, VERSION
 from .model import Template, TemplateFile, TemplateFileType
@@ -29,34 +30,35 @@ def handle_client_errors(func):
     async def handled_client_call(job, *args, **kwargs):
         try:
             return await func(job, *args, **kwargs)
-        except DSWCommunicationError as e:
+        except DSWCommunicationError as exc:
             # Already DSWCommunicationError (re-raise)
-            raise e
-        except aiohttp.client_exceptions.ContentTypeError as e:
+            raise exc
+        except aiohttp.client_exceptions.ContentTypeError as exc:
             raise DSWCommunicationError(
                 reason='Unexpected response type',
-                message=e.message
-            )
-        except aiohttp.client_exceptions.ClientResponseError as e:
+                message=exc.message
+            ) from exc
+        except aiohttp.client_exceptions.ClientResponseError as exc:
             raise DSWCommunicationError(
                 reason='Error response status',
-                message=f'Server responded with error HTTP status {e.status}: {e.message}'
-            )
-        except aiohttp.client_exceptions.InvalidURL as e:
+                message=f'Server responded with error HTTP status '
+                        f'{exc.status}: {exc.message}'
+            ) from exc
+        except aiohttp.client_exceptions.InvalidURL as exc:
             raise DSWCommunicationError(
                 reason='Invalid URL',
-                message=f'Provided API URL seems invalid: {e.url}'
-            )
-        except aiohttp.client_exceptions.ClientConnectorError as e:
+                message=f'Provided API URL seems invalid: {exc.url}'
+            ) from exc
+        except aiohttp.client_exceptions.ClientConnectorError as exc:
             raise DSWCommunicationError(
                 reason='Server unreachable',
-                message=f'Desired server is not reachable (errno {e.os_error.errno})'
-            )
-        except Exception as e:
+                message=f'Desired server is not reachable (errno {exc.os_error.errno})'
+            ) from exc
+        except Exception as exc:
             raise DSWCommunicationError(
                 reason='Communication error',
-                message=f'Communication with server failed ({e})'
-            )
+                message=f'Communication with server failed ({exc})'
+            ) from exc
     return handled_client_call
 
 
@@ -72,13 +74,13 @@ class DSWAPIClient:
         return headers
 
     @staticmethod
-    def _check_status(r: aiohttp.ClientResponse, expected_status):
-        r.raise_for_status()
-        if r.status != expected_status:
+    def _check_status(response: aiohttp.ClientResponse, expected_status):
+        response.raise_for_status()
+        if response.status != expected_status:
             raise DSWCommunicationError(
                 reason='Unexpected response status',
-                message=f'Server responded with unexpected HTTP status {r.status}: '
-                        f'{r.reason} (expecting {expected_status})'
+                message=f'Server responded with unexpected HTTP status {response.status}: '
+                        f'{response.reason} (expecting {expected_status})'
             )
 
     def __init__(self, api_url: str, session=None):
@@ -91,7 +93,9 @@ class DSWAPIClient:
         """
         self.api_url = api_url
         self.token = None
-        self.session = session or aiohttp.ClientSession(connector=aiohttp.TCPConnector(verify_ssl=False))
+        self.session = session or aiohttp.ClientSession(
+            connector=aiohttp.TCPConnector(verify_ssl=False),
+        )
 
     @property
     def templates_endpoint(self):
@@ -148,18 +152,20 @@ class DSWAPIClient:
 
     @handle_client_errors
     async def check_template_exists(self, remote_id: str) -> bool:
-        async with self.session.get(f'{self.templates_endpoint}/{remote_id}', headers=self._headers()) as r:
-            if r.status == 404:
+        async with self.session.get(f'{self.templates_endpoint}/{remote_id}',
+                                    headers=self._headers()) as response:
+            if response.status == 404:
                 return False
-            self._check_status(r, expected_status=200)
+            self._check_status(response, expected_status=200)
             return True
 
     @handle_client_errors
     async def check_draft_exists(self, remote_id: str) -> bool:
-        async with self.session.get(f'{self.drafts_endpoint}/{remote_id}', headers=self._headers()) as r:
+        async with self.session.get(f'{self.drafts_endpoint}/{remote_id}',
+                                    headers=self._headers()) as response:
             if r.status == 404:
                 return False
-            self._check_status(r, expected_status=200)
+            self._check_status(response, expected_status=200)
             return True
 
     @handle_client_errors
@@ -217,8 +223,10 @@ class DSWAPIClient:
 
     @handle_client_errors
     async def get_template_draft_asset(self, remote_id: str, asset_id: str) -> TemplateFile:
-        body = await self._get_json(f'/document-template-drafts/{remote_id}/assets/{asset_id}')
-        content = await self._get_bytes(f'/document-template-drafts/{remote_id}/assets/{asset_id}/content')
+        body = await self._get_json(f'/document-template-drafts/{remote_id}'
+                                    f'/assets/{asset_id}')
+        content = await self._get_bytes(f'/document-template-drafts/{remote_id}'
+                                        f'/assets/{asset_id}/content')
         return _load_remote_asset(body, content)
 
     @handle_client_errors
@@ -258,12 +266,13 @@ class DSWAPIClient:
     async def put_template_draft_file_content(self, remote_id: str, tfile: TemplateFile):
         self.session.headers.update(self._headers())
         async with self.session.put(
-                f'{self.api_url}/document-template-drafts/{remote_id}/files/{tfile.remote_id}/content',
+                f'{self.api_url}/document-template-drafts/{remote_id}'
+                f'/files/{tfile.remote_id}/content',
                 data=tfile.content,
                 headers={'Content-Type': 'text/plain;charset=UTF-8'},
-        ) as r:
-            self._check_status(r, expected_status=200)
-            body = await r.json()
+        ) as response:
+            self._check_status(response, expected_status=200)
+            body = await response.json()
             return _load_remote_file(body)
 
     @handle_client_errors
@@ -283,9 +292,9 @@ class DSWAPIClient:
                 f'{self.api_url}/document-template-drafts/{remote_id}/assets',
                 data=data,
                 headers=self._headers(),
-        ) as r:
-            self._check_status(r, expected_status=201)
-            body = await r.json()
+        ) as response:
+            self._check_status(response, expected_status=201)
+            body = await response.json()
             return _load_remote_asset(body, tfile.content)
 
     @handle_client_errors
@@ -302,12 +311,13 @@ class DSWAPIClient:
             value=tfile.filename.as_posix(),
         )
         async with self.session.put(
-                f'{self.api_url}/document-template-drafts/{remote_id}/assets/{tfile.remote_id}/content',
+                f'{self.api_url}/document-template-drafts/{remote_id}'
+                f'/assets/{tfile.remote_id}/content',
                 data=data,
                 headers=self._headers()
-        ) as r:
-            self._check_status(r, expected_status=200)
-            body = await r.json()
+        ) as response:
+            self._check_status(response, expected_status=200)
+            body = await response.json()
             return _load_remote_asset(body, tfile.content)
 
     @handle_client_errors

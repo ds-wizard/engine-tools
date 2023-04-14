@@ -1,10 +1,11 @@
 import contextlib
 import io
 import logging
-import minio  # type: ignore
-import minio.error  # type: ignore
 import pathlib
 import tempfile
+
+import minio  # type: ignore
+import minio.error  # type: ignore
 import tenacity
 
 from dsw.config.model import S3Config
@@ -95,9 +96,9 @@ class S3Storage:
                 object_name=file_name,
                 file_path=str(target_path),
             )
-        except minio.error.S3Error as e:
-            if e.code != 'NoSuchKey':
-                raise e
+        except minio.error.S3Error as exc:
+            if exc.code != 'NoSuchKey':
+                raise exc
             return False
         return True
 

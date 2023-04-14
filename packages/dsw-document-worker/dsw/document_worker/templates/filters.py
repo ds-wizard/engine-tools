@@ -1,14 +1,16 @@
 import datetime
-import dateutil.parser as dp
-import jinja2
 import logging
-import markupsafe
-import markdown
 
 from typing import Any, Union, Optional
 
+import dateutil.parser as dp
+import jinja2
+import markupsafe
+import markdown
+
 from ..exceptions import JobException
 from ..model import DocumentContext
+from .tests import tests
 
 
 LOG = logging.getLogger(__name__)
@@ -22,7 +24,6 @@ class _JinjaEnv:
     @property
     def env(self) -> jinja2.Environment:
         if self._env is None:
-            from .tests import tests
             self._env = jinja2.Environment(
                 loader=_base_jinja_loader,
                 extensions=['jinja2.ext.do'],
@@ -39,7 +40,7 @@ _alphabet = [chr(x) for x in range(ord('a'), ord('z') + 1)]
 _alphabet_size = len(_alphabet)
 _base_jinja_loader = jinja2.BaseLoader()
 _j2_env = _JinjaEnv()
-_empty_dict = dict()  # type: dict[str, Any]
+_empty_dict = {}  # type: dict[str, Any]
 _romans = [(1000, 'M'), (900, 'CM'), (500, 'D'), (400, 'CD'), (100, 'C'), (90, 'XC'),
            (50, 'L'), (40, 'XL'), (10, 'X'), (9, 'IX'), (5, 'V'), (4, 'IV'), (1, 'I')]
 
@@ -56,23 +57,23 @@ def extract(obj, keys):
     return [obj[key] for key in keys if key in obj.keys()]
 
 
-def of_alphabet(n: int):
+def of_alphabet(number: int):
     result = ''
-    while n >= 0:
-        n, m = divmod(n, _alphabet_size)
-        result = result + _alphabet[m]
-        if n == 0:
+    while number >= 0:
+        number, remainder = divmod(number, _alphabet_size)
+        result = result + _alphabet[remainder]
+        if number == 0:
             break
     return result
 
 
-def roman(n: int) -> str:
+def roman(number: int) -> str:
     result = ''
-    while n > 0:
-        for i, r in _romans:
-            while n >= i:
-                result += r
-                n -= i
+    while number > 0:
+        for i, remainder in _romans:
+            while number >= i:
+                result += remainder
+                number -= i
     return result
 
 
@@ -131,34 +132,34 @@ def find_reply(replies, path, xtype='string'):
     reply = replies.get(path, default=None)
     if not _has_value(reply):
         return None
-    r = _get_value(reply)
+    value = _get_value(reply)
     if xtype == 'int':
-        return r if isinstance(r, int) else int(r)
+        return value if isinstance(value, int) else int(value)
     if xtype == 'float':
-        return r if isinstance(r, float) else float(r)
+        return value if isinstance(value, float) else float(value)
     if xtype == 'list':
-        return r if isinstance(r, list) else list(r)
-    return str(r)
+        return value if isinstance(value, list) else list(value)
+    return str(value)
 
 
 def reply_path(uuids: list) -> str:
     return '.'.join(map(str, uuids))
 
 
-def jinja2_render(template_str: str, vars=None, fail_safe=False, **kwargs):
-    if vars is None:
-        vars = _empty_dict
+def jinja2_render(template_str: str, variables=None, fail_safe=False, **kwargs):
+    if variables is None:
+        variables = _empty_dict
     LOG.debug('Jinja2-in-Jinja2 rendering requested')
     try:
         j2_template = _j2_env.get_template(template_str)
         LOG.debug('Jinja2-in-Jinja2 template prepared')
-        result = j2_template.render(**vars, **kwargs)
+        result = j2_template.render(**variables, **kwargs)
         LOG.debug('Jinja2-in-Jinja2 result finished')
         return result
-    except Exception as e:
+    except Exception as exc:
         if fail_safe:
             return ''
-        raise e  # re-raise
+        raise exc  # re-raise
 
 
 def to_context_obj(ctx, **options) -> DocumentContext:

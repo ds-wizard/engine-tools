@@ -1,16 +1,16 @@
 import base64
 import datetime
-import dateutil.parser
 import io
 import json
 import pathlib
 
+from typing import Any
+
+import dateutil.parser
 import xlsxwriter
 from xlsxwriter.chart import Chart
 from xlsxwriter.format import Format
 from xlsxwriter.worksheet import Worksheet
-
-from typing import Any
 
 from ...documents import DocumentFile, FileFormats
 from .base import Step, register_step, TMP_DIR, FormatStepException
@@ -115,9 +115,9 @@ class WorkbookBuilder:
 
     def __init__(self, workbook: xlsxwriter.Workbook):
         self.workbook = workbook
-        self.sheets = list()  # type: list[Worksheet]
-        self.formats = dict()  # type: dict[str, Format]
-        self.charts = dict()  # type: dict[str, Chart]
+        self.sheets = []  # type: list[Worksheet]
+        self.formats = {}  # type: dict[str, Format]
+        self.charts = {}  # type: dict[str, Chart]
 
     def _add_workbook_options(self, data: dict):
         # customized options not in regular 'constructor options'
@@ -209,7 +209,7 @@ class WorkbookBuilder:
     def _add_chart_advanced(self, chart: Chart, data: dict):
         if 'combine' in data.keys():
             other = data['combine']
-            if other in self.charts.keys():
+            if other in self.charts:
                 chart.combine(self.charts[other])
         if 'up_down_bars' in data.keys():
             chart.set_up_down_bars(data['up_down_bars'])
@@ -225,7 +225,7 @@ class WorkbookBuilder:
     def _add_chartsheet(self, data: dict):
         name = data.get('name', None)
         chart_name = data.get('chart', '')
-        if chart_name not in self.charts.keys():
+        if chart_name not in self.charts:
             return  # ignore if chart is missing
         sheet = self.workbook.add_chartsheet(name)
         sheet.set_chart(self.charts[chart_name])
@@ -258,7 +258,7 @@ class WorkbookBuilder:
             item_type = item.get('type', None)
             if item_type is None:
                 continue
-            elif item_type == 'cell':
+            if item_type == 'cell':
                 self._add_data_cell(worksheet, item)
             elif item_type == 'row':
                 self._add_data_row(worksheet, item)
@@ -287,18 +287,18 @@ class WorkbookBuilder:
         item.pop('cell', None)
         item.pop('row', None)
         item.pop('col', None)
-        if subtype in _CELL_WRITERS.keys():
+        if subtype in _CELL_WRITERS:
             _CELL_WRITERS[subtype](worksheet, pos_args, item, cell_format)
         elif subtype == 'rich_string':
             parts = []
-            for p in item.get('string_parts', []):
-                if not isinstance(p, str):
+            for part in item.get('string_parts', []):
+                if not isinstance(part, str):
                     continue
-                if p.startswith('!fmt::'):
-                    format_name = p[6:]
+                if part.startswith('!fmt::'):
+                    format_name = part[6:]
                     parts.append(self.formats.get(format_name, ''))
                 else:
-                    parts.append(p)
+                    parts.append(part)
             worksheet.write_rich_string(
                 *pos_args,
                 string_parts=parts,
@@ -420,7 +420,7 @@ class WorkbookBuilder:
         bytes_io = io.BytesIO()
         if 'b64bytes' in item.keys():
             if 'options' not in item.keys():
-                item['options'] = dict()
+                item['options'] = {}
             bytes_io = _b64img2io(item['b64bytes'])
             item['options']['image_data'] = bytes_io
         if 'cell' in item.keys():
@@ -587,10 +587,10 @@ class WorkbookBuilder:
     @staticmethod
     def _setup_worksheet_special_ranges(worksheet: Worksheet, data: dict):
         if 'unprotect_ranges' in data.keys():
-            for r in data['unprotect_ranges']:
+            for up_range in data['unprotect_ranges']:
                 worksheet.unprotect_range(
-                    cell_range=r.get('range', 'A1'),
-                    range_name=r.get('name', None),
+                    cell_range=up_range.get('range', 'A1'),
+                    range_name=up_range.get('name', None),
                 )
         if 'top_left_cell' in data.keys():
             if isinstance(data['top_left_cell'], str):
@@ -665,16 +665,16 @@ class WorkbookBuilder:
     @staticmethod
     def _setup_worksheet_filters(worksheet: Worksheet, data: dict):
         if 'filter_column_lists' in data.keys():
-            for f in data['filter_column_list']:
+            for filter_cl in data['filter_column_list']:
                 worksheet.filter_column_list(
-                    col=f.get('col', 0),
-                    filters=f.get('filters', _EMPTY_LIST),
+                    col=filter_cl.get('col', 0),
+                    filters=filter_cl.get('filters', _EMPTY_LIST),
                 )
         if 'filter_columns' in data.keys():
-            for f in data['filter_column_list']:
+            for filter_c in data['filter_columns']:
                 worksheet.filter_column(
-                    col=f.get('col', 0),
-                    criteria=f.get('criteria', _EMPTY_LIST),
+                    col=filter_c.get('col', 0),
+                    criteria=filter_c.get('criteria', _EMPTY_LIST),
                 )
         if 'autofilter' in data.keys():
             if isinstance(data['autofilter'], str):
@@ -917,8 +917,8 @@ class ExcelStep(Step):
             )
             if not isinstance(data, dict):
                 raise RuntimeError('Not a valid JSON object')
-        except Exception as e:
-            self.raise_exc(f'Failed to parse JSON for Excel: {str(e)}')
+        except Exception as exc:
+            self.raise_exc(f'Failed to parse JSON for Excel: {str(exc)}')
         return data
 
     def execute_follow(self, document: DocumentFile, context: dict) -> DocumentFile:
@@ -936,9 +936,9 @@ class ExcelStep(Step):
                 file_format=file_format,
                 content=data,
             )
-        except Exception as e:
+        except Exception as exc:
             raise FormatStepException(f'Failed to construct Excel document '
-                                      f'due to: {str(e)}')
+                                      f'due to: {str(exc)}') from exc
 
 
 register_step(ExcelStep.NAME, ExcelStep)

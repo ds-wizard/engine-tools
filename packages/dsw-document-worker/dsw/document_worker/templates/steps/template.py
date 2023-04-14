@@ -1,12 +1,18 @@
-import jinja2
-import jinja2.exceptions
+import gettext
 import json
 
 from typing import Any
 
+import jinja2
+import jinja2.exceptions
+import rdflib
+
 from ...consts import DEFAULT_ENCODING
 from ...context import Context
 from ...documents import DocumentFile, FileFormat, FileFormats
+from ...model.http import RequestsWrapper
+from ..filters import filters
+from ..tests import tests
 from .base import Step, register_step
 
 
@@ -37,12 +43,12 @@ class Jinja2Step(Step):
     OPTION_I18N_DOMAIN = 'i18n-domain'
     OPTION_I18N_LANG = 'i18n-lang'
 
-    def _jinja_exception_msg(self, e: jinja2.exceptions.TemplateSyntaxError):
+    def _jinja_exception_msg(self, exc: jinja2.exceptions.TemplateSyntaxError):
         lines = [
             'Failed loading Jinja2 template due to syntax error:',
-            f'- {e.message}',
-            f'- Filename: {e.name}',
-            f'- Line number: {e.lineno}',
+            f'- {exc.message}',
+            f'- Filename: {exc.name}',
+            f'- Line number: {exc.lineno}',
         ]
         return '\n'.join(lines)
 
@@ -73,15 +79,14 @@ class Jinja2Step(Step):
                 self.j2_env.add_extension('jinja2.ext.debug')
             self._add_j2_enhancements()
             self.j2_root_template = self.j2_env.get_template(self.root_file)
-        except jinja2.exceptions.TemplateSyntaxError as e:
-            self.raise_exc(self._jinja_exception_msg(e))
-        except Exception as e:
-            self.raise_exc(f'Failed loading Jinja2 template: {e}')
+        except jinja2.exceptions.TemplateSyntaxError as exc:
+            self.raise_exc(self._jinja_exception_msg(exc))
+        except Exception as exc:
+            self.raise_exc(f'Failed loading Jinja2 template: {exc}')
 
     def _add_j2_i18n(self, template):
         self.j2_env.add_extension('jinja2.ext.i18n')
         if self.i18n_dir is not None and self.i18n_lang is not None:
-            import gettext
             locale_path = template.template_dir / self.i18n_dir
             translations = gettext.translation(
                 domain=self.i18n_domain,
@@ -93,10 +98,6 @@ class Jinja2Step(Step):
             self.j2_env.install_null_translations(newstyle=True)  # type: ignore
 
     def _add_j2_enhancements(self):
-        from ..filters import filters
-        from ..tests import tests
-        from ...model.http import RequestsWrapper
-        import rdflib
         self.j2_env.filters.update(filters)
         self.j2_env.tests.update(tests)
         template_cfg = Context.get().app.cfg.templates.get_config(
@@ -126,10 +127,10 @@ class Jinja2Step(Step):
         content = b''
         try:
             content = self.j2_root_template.render(**jinja_args).encode(DEFAULT_ENCODING)
-        except jinja2.exceptions.TemplateRuntimeError as e:
+        except jinja2.exceptions.TemplateRuntimeError as exc:
             self.raise_exc(f'Failed rendering Jinja2 template due to'
-                           f' {type(e).__name__}\n'
-                           f'- {str(e)}')
+                           f' {type(exc).__name__}\n'
+                           f'- {str(exc)}')
         return DocumentFile(self.output_format, content, DEFAULT_ENCODING)
 
     def execute_first(self, context: dict) -> DocumentFile:

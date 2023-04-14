@@ -1,10 +1,11 @@
 import datetime
-import dateutil.parser
 import functools
 import logging
 import pathlib
 
 from typing import Optional
+
+import dateutil.parser
 
 from dsw.command_queue import CommandWorker, CommandQueue
 from dsw.config.sentry import SentryReporter
@@ -35,15 +36,15 @@ def handle_job_step(message):
         def handled_step(job, *args, **kwargs):
             try:
                 return func(job, *args, **kwargs)
-            except JobTimeoutError as e:
-                raise e  # re-raise (need to be cached by context manager)
-            except Exception as e:
+            except JobTimeoutError as exc:
+                raise exc  # re-raise (need to be cached by context manager)
+            except Exception as exc:
                 LOG.debug('Handling exception', exc_info=True)
                 raise create_job_exception(
                     job_id=job.doc_uuid,
                     message=message,
-                    exc=e,
-                )
+                    exc=exc,
+                ) from exc
         return handled_step
     return decorator
 
@@ -92,8 +93,8 @@ class Job:
         SentryReporter.set_context('format', '')
         SentryReporter.set_context('document', '')
         if self.app_uuid != NULL_UUID:
-            LOG.info(f'Limiting to app with UUID: {self.app_uuid}')
-        LOG.info(f'Getting the document "{self.doc_uuid}" details from DB')
+            LOG.info('Limiting to app with UUID: %s', self.app_uuid)
+        LOG.info('Getting the document "%s" details from DB', self.doc_uuid)
         self.doc = self.ctx.app.db.fetch_document(
             document_uuid=self.doc_uuid,
             app_uuid=self.app_uuid,
@@ -104,10 +105,10 @@ class Job:
                 message='Document record not found in database',
             )
         self.doc.retrieved_at = datetime.datetime.now()
-        LOG.info(f'Job "{self.doc_uuid}" details received')
+        LOG.info('Job "%s" details received', self.doc_uuid)
         # verify state
         state = self.doc.state
-        LOG.info(f'Original state of job is {state}')
+        LOG.info('Original state of job is: %s', state)
         if state == DocumentState.FINISHED:
             raise create_job_exception(
                 job_id=self.doc_uuid,
@@ -122,7 +123,7 @@ class Job:
     def prepare_template(self):
         template_id = self.safe_doc.document_template_id
         format_uuid = self.safe_doc.format_uuid
-        LOG.info(f'Document uses template {template_id} with format {format_uuid}')
+        LOG.info('Document uses template %s with format %s', template_id, format_uuid)
         # update Sentry info
         SentryReporter.set_context('template', template_id)
         SentryReporter.set_context('format', format_uuid)
@@ -147,7 +148,7 @@ class Job:
         self.template = template
 
     def _enrich_context(self):
-        extras = dict()
+        extras = {}
         if self.safe_format.requires_via_extras('submissions'):
             submissions = self.ctx.app.db.fetch_questionnaire_submissions(
                 questionnaire_uuid=self.safe_doc.questionnaire_uuid,
@@ -199,16 +200,16 @@ class Job:
     def store_document(self):
         s3_id = self.ctx.app.s3.identification
         final_file = self.safe_final_file
-        LOG.info(f'Preparing S3 bucket {s3_id}')
+        LOG.info('Preparing S3 bucket %s', s3_id)
         self.ctx.app.s3.ensure_bucket()
-        LOG.info(f'Storing document to S3 bucket {s3_id}')
+        LOG.info('Storing document to S3 bucket %s', s3_id)
         self.ctx.app.s3.store_document(
             app_uuid=self.app_uuid,
             file_name=self.doc_uuid,
             content_type=final_file.content_type,
             data=final_file.content,
         )
-        LOG.info(f'Document {self.doc_uuid} stored in S3 bucket {s3_id}')
+        LOG.info('Document %s stored in S3 bucket %s', self.doc_uuid, s3_id)
 
     @handle_job_step('Failed to finalize document generation')
     def finalize(self):
@@ -230,7 +231,7 @@ class Job:
             ),
             document_uuid=self.doc_uuid,
         )
-        LOG.info(f'Document {self.doc_uuid} record finalized')
+        LOG.info('Document %s record finalized', self.doc_uuid)
 
     def set_job_state(self, state: str, message: str) -> bool:
         return self.ctx.app.db.update_document_state(
@@ -242,9 +243,10 @@ class Job:
     def try_set_job_state(self, state: str, message: str) -> bool:
         try:
             return self.set_job_state(state, message)
-        except Exception as e:
-            SentryReporter.capture_exception(e)
-            LOG.warning(f'Tried to set state of {self.doc_uuid} to {state} but failed: {e}')
+        except Exception as exc:
+            SentryReporter.capture_exception(exc)
+            LOG.warning(f'Tried to set state of %s to %s but failed: %s',
+                        self.doc_uuid, state, exc)
             return False
 
     def _run(self):
@@ -272,29 +274,31 @@ class Job:
     def run(self):
         try:
             self._run()
-        except JobException as e:
-            LOG.warning('Handled job error: %s', e.log_message())
+        except JobException as exc:
+            LOG.warning('Handled job error: %s', exc.log_message())
             if self._sentry_job_exception():
-                SentryReporter.capture_exception(e)
-            if self.try_set_job_state(DocumentState.FAILED, e.db_message()):
-                LOG.info(f'Set state to {DocumentState.FAILED}')
+                SentryReporter.capture_exception(exc)
+            if self.try_set_job_state(DocumentState.FAILED, exc.db_message()):
+                LOG.info('Set state to %s', DocumentState.FAILED)
             else:
-                LOG.error(f'Could not set state to {DocumentState.FAILED}')
-                raise RuntimeError(f'Could not set state to {DocumentState.FAILED}')
-        except Exception as e:
-            SentryReporter.capture_exception(e)
+                LOG.error('Could not set state to %s', DocumentState.FAILED)
+                raise RuntimeError(f'Could not set state to '
+                                   f'{DocumentState.FAILED}') from exc
+        except Exception as exc:
+            SentryReporter.capture_exception(exc)
             job_exc = create_job_exception(
                 job_id=self.doc_uuid,
                 message='Failed with unexpected error',
-                exc=e,
+                exc=exc,
             )
             LOG.error(job_exc.log_message())
-            LOG.info('Failed with unexpected error', exc_info=e)
+            LOG.info('Failed with unexpected error', exc_info=exc)
             if self.try_set_job_state(DocumentState.FAILED, job_exc.db_message()):
-                LOG.info(f'Set state to {DocumentState.FAILED}')
+                LOG.info('Set state to %s', DocumentState.FAILED)
             else:
-                LOG.warning(f'Could not set state to {DocumentState.FAILED}')
-                raise RuntimeError(f'Could not set state to {DocumentState.FAILED}')
+                LOG.warning('Could not set state to %s', DocumentState.FAILED)
+                raise RuntimeError(f'Could not set state to '
+                                   f'{DocumentState.FAILED}') from exc
 
 
 class DocumentWorker(CommandWorker):
@@ -332,8 +336,8 @@ class DocumentWorker(CommandWorker):
     @staticmethod
     def _update_component_info():
         built_at = dateutil.parser.parse(BUILD_INFO.built_at)
-        LOG.info(f'Updating component info ({BUILD_INFO.version}, '
-                 f'{built_at.isoformat(timespec="seconds")})')
+        LOG.info(f'Updating component info (%s, %s)',
+                 BUILD_INFO.version, built_at.isoformat(timespec='seconds'))
         Context.get().app.db.update_component_info(
             name=COMPONENT_NAME,
             version=BUILD_INFO.version,
@@ -358,11 +362,11 @@ class DocumentWorker(CommandWorker):
         Context.get().update_trace_id(cmd.uuid)
         Context.get().update_document_id(cmd.body['uuid'])
         SentryReporter.set_context('cmd_uuid', cmd.uuid)
-        LOG.info(f'Running job #{cmd.uuid}')
+        LOG.info('Running job %s', cmd.uuid)
         job = Job(command=cmd)
         job.run()
         Context.get().update_trace_id('-')
         Context.get().update_document_id('-')
 
-    def process_exception(self, e: Exception):
-        SentryReporter.capture_exception(e)
+    def process_exception(self, exc: Exception):
+        SentryReporter.capture_exception(exc)

@@ -1,17 +1,17 @@
 import asyncio
-import sys
-
-import click  # type: ignore
 import datetime
-import dotenv
-import humanize  # type: ignore
 import logging
 import mimetypes
 import pathlib
-import slugify
-import watchgod  # type: ignore
+import sys
 
 from typing import Dict
+
+import click  # type: ignore
+import dotenv
+import humanize  # type: ignore
+import slugify
+import watchgod  # type: ignore
 
 from .api_client import DSWCommunicationError
 from .core import TDKCore, TDKProcessingError
@@ -74,8 +74,8 @@ def prompt_fill(text: str, obj, attr, **kwargs):
         try:
             setattr(obj, attr, click.prompt(text, **kwargs).strip())
             break
-        except ValidationError as e:
-            ClickPrinter.error(e.message)
+        except ValidationError as exc:
+            ClickPrinter.error(exc.message)
 
 
 def print_template_info(template: Template):
@@ -125,7 +125,7 @@ class ClickLogger(logging.Logger):
         name = logging.getLevelName(level)  # type: str
         if justify:
             name = name.ljust(8, ' ')
-        if self.colors and level in self.LEVEL_STYLES.keys():
+        if self.colors and level in self.LEVEL_STYLES:
             name = self.LEVEL_STYLES[level](name)
         return name
 
@@ -153,16 +153,18 @@ class ClickLogger(logging.Logger):
 class AliasedGroup(click.Group):
 
     def get_command(self, ctx, cmd_name):
-        rv = click.Group.get_command(self, ctx, cmd_name)
-        if rv is not None:
-            return rv
+        command = click.Group.get_command(self, ctx, cmd_name)
+        if command is not None:
+            return command
         matches = [x for x in self.list_commands(ctx)
                    if x.startswith(cmd_name)]
         if not matches:
             return None
-        elif len(matches) == 1:
+        if len(matches) == 1:
             return click.Group.get_command(self, ctx, matches[0])
-        ctx.fail('Too many matches: %s' % ', '.join(sorted(matches)))
+        matches_str = ', '.join(sorted(matches))
+        ctx.fail(f'Too many matches: {matches_str}')
+        return None
 
 
 class CLIContext:
@@ -187,7 +189,7 @@ class APICredentials:
 
     def check(self):
         if self.api_key is not None:
-            return
+            return True
         if self.username is not None and self.password is not None:
             ClickPrinter.warning('Using username/password credentials, '
                                  'consider switching to API keys.')
@@ -211,11 +213,11 @@ class APICredentials:
 
 def interact_formats() -> Dict[str, FormatSpec]:
     add_format = click.confirm('Do you want to add a format?', default=True)
-    formats = dict()  # type: Dict[str, FormatSpec]
+    formats = {}  # type: Dict[str, FormatSpec]
     while add_format:
         format_spec = FormatSpec()
         prompt_fill('Format name', obj=format_spec, attr='name', default='HTML')
-        if format_spec.name not in formats.keys() or click.confirm(
+        if format_spec.name not in formats or click.confirm(
                 'There is already a format with this name. Do you want to change it?'
         ):
             prompt_fill('File extension', obj=format_spec, attr='file_extension',
@@ -233,9 +235,11 @@ def interact_formats() -> Dict[str, FormatSpec]:
 def interact_builder(builder: TemplateBuilder):
     prompt_fill('Template name', obj=builder, attr='name')
     prompt_fill('Organization ID', obj=builder, attr='organization_id')
-    prompt_fill('Template ID', obj=builder, attr='template_id', default=slugify.slugify(builder.name))
+    prompt_fill('Template ID', obj=builder, attr='template_id',
+                default=slugify.slugify(builder.name))
     prompt_fill('Version', obj=builder, attr='version', default='0.1.0')
-    prompt_fill('Description', obj=builder, attr='description', default='My custom template')
+    prompt_fill('Description', obj=builder, attr='description',
+                default='My custom template')
     prompt_fill('License', obj=builder, attr='license', default='CC0')
     click.echo('=' * 60)
     formats = interact_formats()
@@ -246,17 +250,14 @@ def interact_builder(builder: TemplateBuilder):
 def load_local(tdk: TDKCore, template_dir: pathlib.Path):
     try:
         tdk.load_local(template_dir=template_dir)
-    except Exception as e:
+    except Exception as exc:
         ClickPrinter.failure('Could not load local template')
-        ClickPrinter.error(f'> {e}')
-        exit(1)
+        ClickPrinter.error(f'> {exc}')
+        sys.exit(1)
 
 
 def dir_from_id(template_id: str) -> pathlib.Path:
     return pathlib.Path.cwd() / template_id.replace(':', '_')
-
-
-#############################################################################################################
 
 
 @click.group(cls=AliasedGroup)
@@ -290,17 +291,17 @@ def new_template(ctx, template_dir, force):
     except Exception:
         click.echo('')
         ClickPrinter.failure('Exited...')
-        exit(1)
+        sys.exit(1)
     tdk = TDKCore(template=builder.build(), logger=ctx.obj.logger)
     template_dir = template_dir or dir_from_id(tdk.safe_template.id)
     tdk.prepare_local(template_dir=template_dir)
     try:
         tdk.store_local(force=force)
         ClickPrinter.success(f'Template project created: {template_dir}')
-    except Exception as e:
+    except Exception as exc:
         ClickPrinter.failure('Could not create new template project')
-        ClickPrinter.error(f'> {e}')
-        exit(1)
+        ClickPrinter.error(f'> {exc}')
+        sys.exit(1)
 
 
 @main.command(help='Download template from DSW.', name='get')
@@ -334,31 +335,32 @@ def get_template(ctx, api_server, template_id, template_dir, username, password,
                 zip_data = await tdk.download_bundle(template_id=template_id)
                 template_type = 'bundle'
             await tdk.safe_client.close()
-        except DSWCommunicationError as e:
+        except DSWCommunicationError as exc:
             ClickPrinter.error('Could not get template:', bold=True)
-            ClickPrinter.error(f'> {e.reason}\n> {e.message}')
-            exit(1)
+            ClickPrinter.error(f'> {exc.reason}\n> {exc.message}')
+            sys.exit(1)
         await tdk.safe_client.safe_close()
         if template_type == 'draft':
             tdk.prepare_local(template_dir=template_dir)
             try:
                 tdk.store_local(force=force)
                 ClickPrinter.success(f'Template draft {template_id} downloaded to {template_dir}')
-            except Exception as e:
+            except Exception as exc:
                 ClickPrinter.failure('Could not store template locally')
-                ClickPrinter.error(f'> {e}')
-                exit(1)
+                ClickPrinter.error(f'> {exc}')
+                sys.exit(1)
         elif template_type == 'bundle' and zip_data is not None:
             try:
                 tdk.extract_package(zip_data=zip_data, template_dir=template_dir, force=force)
-                ClickPrinter.success(f'Template {template_id} (released) downloaded to {template_dir}')
-            except Exception as e:
+                ClickPrinter.success(f'Template {template_id} (released) '
+                                     f'downloaded to {template_dir}')
+            except Exception as exc:
                 ClickPrinter.failure('Could not store template locally')
-                ClickPrinter.error(f'> {e}')
-                exit(1)
+                ClickPrinter.error(f'> {exc}')
+                sys.exit(1)
         else:
             ClickPrinter.failure(f'{template_id} is not released nor draft of a document template')
-            exit(1)
+            sys.exit(1)
 
     loop = asyncio.get_event_loop()
     loop.run_until_complete(main_routine())
@@ -406,19 +408,19 @@ def put_template(ctx, api_server, template_dir, username, password, api_key, for
                 await tdk.watch_project(watch_callback)
 
             await tdk.safe_client.close()
-        except TDKProcessingError as e:
+        except TDKProcessingError as exc:
             ClickPrinter.failure('Could not upload template')
-            ClickPrinter.error(f'> {e.message}\n> {e.hint}')
+            ClickPrinter.error(f'> {exc.message}\n> {exc.hint}')
             await tdk.safe_client.safe_close()
-            exit(1)
-        except DSWCommunicationError as e:
+            sys.exit(1)
+        except DSWCommunicationError as exc:
             ClickPrinter.failure('Could not upload template')
-            ClickPrinter.error(f'> {e.reason}\n> {e.message}')
+            ClickPrinter.error(f'> {exc.reason}\n> {exc.message}')
             ClickPrinter.error('> Probably incorrect API URL, metamodel version, '
                                'or template already exists...')
             ClickPrinter.error('> Check if you are using the matching version')
             await tdk.safe_client.safe_close()
-            exit(1)
+            sys.exit(1)
 
     loop = asyncio.get_event_loop()
     loop.run_until_complete(main_routine())
@@ -435,10 +437,10 @@ def create_package(ctx, template_dir, output, force: bool):
     load_local(tdk, template_dir)
     try:
         tdk.create_package(output=pathlib.Path(output), force=force)
-    except Exception as e:
+    except Exception as exc:
         ClickPrinter.failure('Failed to create the package')
-        ClickPrinter.error(f'> {e}')
-        exit(1)
+        ClickPrinter.error(f'> {exc}')
+        sys.exit(1)
     filename = click.style(output, bold=True)
     ClickPrinter.success(f'Package {filename} created')
 
@@ -458,10 +460,10 @@ def extract_package(ctx, template_package, output, force: bool):
             template_dir=output,
             force=force,
         )
-    except Exception as e:
+    except Exception as exc:
         ClickPrinter.failure('Failed to extract the package')
-        ClickPrinter.error(f'> {e}')
-        exit(1)
+        ClickPrinter.error(f'> {exc}')
+        sys.exit(1)
     ClickPrinter.success(f'Package {template_package} extracted')
 
 
@@ -506,10 +508,10 @@ def list_templates(ctx, api_server, username, password, api_key, output_format: 
                 for template in drafts:
                     click.echo(output_format.format(template=template))
 
-        except DSWCommunicationError as e:
+        except DSWCommunicationError as exc:
             ClickPrinter.failure('Failed to get list of templates')
-            ClickPrinter.error(f'> {e.reason}\n> {e.message}')
-            exit(1)
+            ClickPrinter.error(f'> {exc.reason}\n> {exc.message}')
+            sys.exit(1)
         await tdk.safe_client.safe_close()
 
     loop = asyncio.get_event_loop()
