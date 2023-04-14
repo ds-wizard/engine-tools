@@ -73,7 +73,8 @@ class MailConfig(ConfigModel):
                  auth: Optional[bool], username: Optional[str],
                  password: Optional[str], rate_limit_window: int,
                  rate_limit_count: int, timeout: int,
-                 dkim_selector: Optional[str], dkim_privkey_file: Optional[str]):
+                 dkim_selector: Optional[str] = None,
+                 dkim_privkey_file: Optional[str] = None):
         self.enabled = enabled
         self.name = name
         self.email = email
