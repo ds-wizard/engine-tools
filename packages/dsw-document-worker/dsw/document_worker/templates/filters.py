@@ -1,6 +1,7 @@
 import datetime
 import dateutil.parser as dp
 import jinja2
+import logging
 import markupsafe
 import markdown
 
@@ -8,7 +9,9 @@ from typing import Any, Union, Optional
 
 from ..exceptions import JobException
 from ..model import DocumentContext
-from ..logging import LOGGER
+
+
+LOG = logging.getLogger(__name__)
 
 
 class _JinjaEnv:
@@ -145,12 +148,12 @@ def reply_path(uuids: list) -> str:
 def jinja2_render(template_str: str, vars=None, fail_safe=False, **kwargs):
     if vars is None:
         vars = _empty_dict
-    LOGGER.debug('Jinja2-in-Jinja2 rendering requested')
+    LOG.debug('Jinja2-in-Jinja2 rendering requested')
     try:
         j2_template = _j2_env.get_template(template_str)
-        LOGGER.debug('Jinja2-in-Jinja2 template prepared')
+        LOG.debug('Jinja2-in-Jinja2 template prepared')
         result = j2_template.render(**vars, **kwargs)
-        LOGGER.debug('Jinja2-in-Jinja2 result finished')
+        LOG.debug('Jinja2-in-Jinja2 result finished')
         return result
     except Exception as e:
         if fail_safe:
@@ -159,11 +162,11 @@ def jinja2_render(template_str: str, vars=None, fail_safe=False, **kwargs):
 
 
 def to_context_obj(ctx, **options) -> DocumentContext:
-    LOGGER.debug('DocumentContext object requested')
+    LOG.debug('DocumentContext object requested')
     result = DocumentContext(ctx, **options)
-    LOGGER.debug('DocumentContext object created')
+    LOG.debug('DocumentContext object created')
     result._resolve_links()
-    LOGGER.debug('DocumentContext object links resolved')
+    LOG.debug('DocumentContext object links resolved')
     return result
 
 

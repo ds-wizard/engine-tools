@@ -16,15 +16,13 @@ classifiers = [
     'Development Status :: 5 - Production/Stable',
     'License :: OSI Approved :: Apache Software License',
     'Programming Language :: Python',
-    'Programming Language :: Python :: 3.7',
-    'Programming Language :: Python :: 3.8',
-    'Programming Language :: Python :: 3.9',
     'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.11',
     'Topic :: Database',
     'Topic :: Text Processing',
     'Topic :: Utilities',
 ]
-requires-python = '>=3.7, <4'
+requires-python = '>=3.10, <4'
 dependencies = [
     # DSW
     "dsw-database==3.22.1",

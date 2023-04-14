@@ -1,5 +1,6 @@
 import base64
 import datetime
+import logging
 import pathlib
 import shutil
 
@@ -12,6 +13,9 @@ from ..consts import FormatField
 from ..context import Context
 from ..documents import DocumentFile
 from ..templates.formats import Format
+
+
+LOG = logging.getLogger(__name__)
 
 
 class TemplateException(Exception):
@@ -69,7 +73,7 @@ class Template:
         raise TemplateException(self.template_id, message)
 
     def fetch_asset(self, file_name: str) -> Optional[Asset]:
-        Context.logger.info(f'Fetching asset "{file_name}"')
+        LOG.info(f'Fetching asset "{file_name}"')
         file_path = self.template_dir / file_name
         asset = None
         for a in self.db_template.assets.values():
@@ -77,7 +81,7 @@ class Template:
                 asset = a
                 break
         if asset is None or not file_path.exists():
-            Context.logger.error(f'Asset "{file_name}" not found')
+            LOG.error(f'Asset "{file_name}" not found')
             return None
         return Asset(
             asset_uuid=asset.uuid,
@@ -90,16 +94,16 @@ class Template:
         return str(self.template_dir / filename)
 
     def _store_asset(self, asset: DBDocumentTemplateAsset):
-        Context.logger.debug(f'Storing asset {asset.uuid} ({asset.file_name})')
+        LOG.debug(f'Storing asset {asset.uuid} ({asset.file_name})')
         remote_path = f'{self.asset_prefix}/{asset.uuid}'
         local_path = self.template_dir / asset.file_name
         local_path.parent.mkdir(parents=True, exist_ok=True)
         result = Context.get().app.s3.download_file(remote_path, local_path)
         if not result:
-            Context.logger.error(f'Asset "{local_path.name}" cannot be retrieved')
+            LOG.error(f'Asset "{local_path.name}" cannot be retrieved')
 
     def _store_file(self, file: DBDocumentTemplateFile):
-        Context.logger.debug(f'Storing file {file.uuid} ({file.file_name})')
+        LOG.debug(f'Storing file {file.uuid} ({file.file_name})')
         local_path = self.template_dir / file.file_name
         local_path.parent.mkdir(parents=True, exist_ok=True)
         local_path.write_text(
@@ -108,45 +112,45 @@ class Template:
         )
 
     def _delete_asset(self, asset: DBDocumentTemplateAsset):
-        Context.logger.debug(f'Deleting asset {asset.uuid} ({asset.file_name})')
+        LOG.debug(f'Deleting asset {asset.uuid} ({asset.file_name})')
         local_path = self.template_dir / asset.file_name
         local_path.unlink(missing_ok=True)
 
     def _delete_file(self, file: DBDocumentTemplateFile):
-        Context.logger.debug(f'Deleting file {file.uuid} ({file.file_name})')
+        LOG.debug(f'Deleting file {file.uuid} ({file.file_name})')
         local_path = self.template_dir / file.file_name
         local_path.unlink(missing_ok=True)
 
     def _update_asset(self, asset: DBDocumentTemplateAsset):
-        Context.logger.debug(f'Updating asset {asset.uuid} ({asset.file_name})')
+        LOG.debug(f'Updating asset {asset.uuid} ({asset.file_name})')
         old_asset = self.db_template.assets[asset.uuid]
         local_path = self.template_dir / asset.file_name
         if old_asset.updated_at == asset.updated_at and local_path.exists():
-            Context.logger.debug(f'- Asset {asset.uuid} ({asset.file_name}) did not change')
+            LOG.debug(f'- Asset {asset.uuid} ({asset.file_name}) did not change')
             return
         self._store_asset(asset)
 
     def _update_file(self, file: DBDocumentTemplateFile):
-        Context.logger.debug(f'Updating file {file.uuid} ({file.file_name})')
+        LOG.debug(f'Updating file {file.uuid} ({file.file_name})')
         old_file = self.db_template.files[file.uuid]
         local_path = self.template_dir / file.file_name
         if old_file.updated_at == file.updated_at and local_path.exists():
-            Context.logger.debug(f'- File {file.uuid} ({file.file_name}) did not change')
+            LOG.debug(f'- File {file.uuid} ({file.file_name}) did not change')
             return
         self._store_file(file)
 
     def prepare_all_template_files(self):
-        Context.logger.info(f'Storing all files of template {self.template_id} locally')
+        LOG.info(f'Storing all files of template {self.template_id} locally')
         for file in self.db_template.files.values():
             self._store_file(file)
 
     def prepare_all_template_assets(self):
-        Context.logger.info(f'Storing all assets of template {self.template_id} locally')
+        LOG.info(f'Storing all assets of template {self.template_id} locally')
         for asset in self.db_template.assets.values():
             self._store_asset(asset)
 
     def prepare_fs(self):
-        Context.logger.info(f'Preparing directory for template {self.template_id}')
+        LOG.info(f'Preparing directory for template {self.template_id}')
         if self.template_dir.exists():
             shutil.rmtree(self.template_dir)
         self.template_dir.mkdir(parents=True)
@@ -161,7 +165,7 @@ class Template:
         return to_add, to_del, to_chk
 
     def update_template_files(self, db_files: dict[str, DBDocumentTemplateFile]):
-        Context.logger.info(f'Updating files of template {self.template_id}')
+        LOG.info(f'Updating files of template {self.template_id}')
         to_add, to_del, to_chk = self._resolve_change(
             old_keys=frozenset(self.db_template.files.keys()),
             new_keys=frozenset(db_files.keys()),
@@ -175,7 +179,7 @@ class Template:
         self.db_template.files = db_files
 
     def update_template_assets(self, db_assets: dict[str, DBDocumentTemplateAsset]):
-        Context.logger.info(f'Updating assets of template {self.template_id}')
+        LOG.info(f'Updating assets of template {self.template_id}')
         to_add, to_del, to_chk = self._resolve_change(
             old_keys=frozenset(self.db_template.assets.keys()),
             new_keys=frozenset(db_assets.keys()),

@@ -1,6 +1,8 @@
 import pathlib
 from typing import Optional
 
+from .logging import prepare_logging, LOG_FILTER
+
 
 def _config_to_string(config: object):
     lines = [f'{type(config).__name__}']
@@ -28,9 +30,12 @@ class GeneralConfig(ConfigModel):
 
 class SentryConfig(ConfigModel):
 
-    def __init__(self, enabled: bool, workers_dsn: Optional[str]):
+    def __init__(self, enabled: bool, workers_dsn: Optional[str],
+                 traces_sample_rate: Optional[float], max_breadcrumbs: Optional[int]):
         self.enabled = enabled
         self.workers_dsn = workers_dsn
+        self.traces_sample_rate = traces_sample_rate
+        self.max_breadcrumbs = max_breadcrumbs
 
 
 class DatabaseConfig(ConfigModel):
@@ -54,10 +59,19 @@ class S3Config(ConfigModel):
 
 class LoggingConfig(ConfigModel):
 
-    def __init__(self, level: str, global_level: str, message_format: str):
+    def __init__(self, level: str, global_level: str, message_format: str,
+                 dict_config: Optional[dict] = None):
         self.level = level
         self.global_level = global_level
         self.message_format = message_format
+        self.dict_config = dict_config
+
+    def apply(self):
+        prepare_logging(self)
+
+    @staticmethod
+    def set_logging_extra(key: str, value: str):
+        LOG_FILTER.set_extra(key, value)
 
 
 class CloudConfig(ConfigModel):

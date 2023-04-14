@@ -7,7 +7,7 @@ from dsw.config.parser import MissingConfigurationError
 
 from .config import SeederConfig, SeederConfigParser
 from .consts import PROG_NAME, VERSION, NULL_UUID
-from .logging import prepare_logging
+from .seeder import DataSeeder, SeedRecipe
 
 
 def validate_config(ctx, param, value: Optional[IO]):
@@ -42,7 +42,7 @@ def validate_config(ctx, param, value: Optional[IO]):
 def cli(ctx: click.Context, config: SeederConfig, workdir: str):
     ctx.obj['cfg'] = config
     ctx.obj['workdir'] = pathlib.Path(workdir).absolute()
-    prepare_logging(cfg=config)
+    config.log.apply()
 
 
 @cli.command()
@@ -52,7 +52,6 @@ def run(ctx: click.Context, recipe: str):
     """Run worker that listens to persistent commands"""
     cfg = ctx.obj['cfg']
     workdir = ctx.obj['workdir']
-    from .seeder import DataSeeder
     seeder = DataSeeder(cfg=cfg, workdir=workdir)
     seeder.run(recipe)
 
@@ -65,7 +64,6 @@ def seed(ctx: click.Context, recipe: str, app_uuid: str):
     """Seed data in DSW directly"""
     cfg = ctx.obj['cfg']
     workdir = ctx.obj['workdir']
-    from .seeder import DataSeeder
     seeder = DataSeeder(cfg=cfg, workdir=workdir)
     seeder.seed(recipe_name=recipe, app_uuid=app_uuid)
 
@@ -75,7 +73,6 @@ def seed(ctx: click.Context, recipe: str, app_uuid: str):
 def list(ctx: click.Context):
     """List recipes for data seeding"""
     workdir = ctx.obj['workdir']
-    from .seeder import SeedRecipe
     recipes = SeedRecipe.load_from_dir(workdir)
     for recipe in recipes.values():
         click.echo(recipe)
