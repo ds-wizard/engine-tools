@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Added support for authentication using API keys
+- Added deprecated warning for username/password authentication
+
 
 ## [3.22.0]
 

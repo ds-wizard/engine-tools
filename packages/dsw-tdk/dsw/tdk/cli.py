@@ -1,4 +1,6 @@
 import asyncio
+import sys
+
 import click  # type: ignore
 import datetime
 import dotenv
@@ -38,6 +40,11 @@ class ClickPrinter:
     @staticmethod
     def error(message: str, **kwargs):
         click.secho(message=message, err=True, fg='red', **kwargs)
+
+    @staticmethod
+    def warning(message: str, **kwargs):
+        click.secho('WARNING', fg='yellow', bold=True, nl=False)
+        click.echo(f': {message}')
 
     @staticmethod
     def success(message: str):
@@ -171,6 +178,37 @@ class CLIContext:
         self.logger.muted = True
 
 
+class APICredentials:
+
+    def __init__(self, username, password, api_key):
+        self.username = username
+        self.password = password
+        self.api_key = api_key
+
+    def check(self):
+        if self.api_key is not None:
+            return
+        if self.username is not None and self.password is not None:
+            ClickPrinter.warning('Using username/password credentials, '
+                                 'consider switching to API keys.')
+            ClickPrinter.warning('Username/password authentication will be '
+                                 'removed in 3.25 as deprecated.')
+            return False
+        ClickPrinter.failure('Invalid credentials entered! You need to provide '
+                             'either API key or username/password credentials.')
+        sys.exit(1)
+
+    def init_args(self):
+        if self.api_key is not None:
+            return {
+                'api_key': self.api_key,
+            }
+        return {
+            'username': self.username,
+            'password': self.password,
+        }
+
+
 def interact_formats() -> Dict[str, FormatSpec]:
     add_format = click.confirm('Do you want to add a format?', default=True)
     formats = dict()  # type: Dict[str, FormatSpec]
@@ -270,21 +308,25 @@ def new_template(ctx, template_dir, force):
 @click.argument('TEMPLATE-DIR', type=NEW_DIR_TYPE, default=None, required=False)
 @click.option('-s', '--api-server', metavar='API-URL', envvar='DSW_API',
               prompt='URL of DSW API', help='URL of DSW server API.', callback=rectify_url)
-@click.option('-u', '--username', envvar='DSW_USERNAME', prompt='Username', hide_input=False,
-              metavar='EMAIL', help='Admin username (email) for DSW instance.')
-@click.option('-p', '--password', envvar='DSW_PASSWORD', prompt='Email', hide_input=True,
-              metavar='PASSWORD', help='Admin password for DSW instance.')
+@click.option('-u', '--username', envvar='DSW_USERNAME', metavar='EMAIL', default=None,
+              help='Admin username (email) for DSW instance.')
+@click.option('-p', '--password', envvar='DSW_PASSWORD', metavar='PASSWORD', default=None,
+              help='Admin password for DSW instance.')
+@click.option('-k', '--api-key', envvar='DSW_API_KEY', metavar='API-KEY', default=None,
+              help='API key for DSW instance.')
 @click.option('-f', '--force', is_flag=True, help='Overwrite any existing files.')
 @click.pass_context
-def get_template(ctx, api_server, template_id, template_dir, username, password, force):
+def get_template(ctx, api_server, template_id, template_dir, username, password, api_key, force):
     template_dir = template_dir or dir_from_id(template_id)
+    creds = APICredentials(username=username, password=password, api_key=api_key)
+    creds.check()
 
     async def main_routine():
         tdk = TDKCore(logger=ctx.obj.logger)
         template_type = 'unknown'
         zip_data = None
         try:
-            await tdk.init_client(api_url=api_server, username=username, password=password)
+            await tdk.init_client(api_url=api_server, **creds.init_args())
             try:
                 await tdk.load_remote(template_id=template_id)
                 template_type = 'draft'
@@ -326,15 +368,19 @@ def get_template(ctx, api_server, template_id, template_dir, username, password,
 @click.argument('TEMPLATE-DIR', type=DIR_TYPE, default=CURRENT_DIR, required=False)
 @click.option('-s', '--api-server', metavar='API-URL', envvar='DSW_API',
               prompt='URL of DSW API', help='URL of DSW server API.', callback=rectify_url)
-@click.option('-u', '--username', envvar='DSW_USERNAME', prompt='Username', hide_input=False,
-              metavar='USERNAME', help='Admin username (email address) for DSW instance.')
-@click.option('-p', '--password', envvar='DSW_PASSWORD', prompt='Password', hide_input=True,
-              metavar='PASSWORD', help='Admin password for DSW instance.')
+@click.option('-u', '--username', envvar='DSW_USERNAME', metavar='EMAIL', default=None,
+              help='Admin username (email) for DSW instance.')
+@click.option('-p', '--password', envvar='DSW_PASSWORD', metavar='PASSWORD', default=None,
+              help='Admin password for DSW instance.')
+@click.option('-k', '--api-key', envvar='DSW_API_KEY', metavar='API-KEY', default=None,
+              help='API key for DSW instance.')
 @click.option('-f', '--force', is_flag=True, help='Delete template if already exists.')
 @click.option('-w', '--watch', is_flag=True, help='Enter watch mode to continually upload changes.')
 @click.pass_context
-def put_template(ctx, api_server, template_dir, username, password, force, watch):
+def put_template(ctx, api_server, template_dir, username, password, api_key, force, watch):
     tdk = TDKCore(logger=ctx.obj.logger)
+    creds = APICredentials(username=username, password=password, api_key=api_key)
+    creds.check()
 
     async def watch_callback(changes):
         changes = list(changes)
@@ -350,7 +396,7 @@ def put_template(ctx, api_server, template_dir, username, password, force, watch
     async def main_routine():
         load_local(tdk, template_dir)
         try:
-            await tdk.init_client(api_server, username, password)
+            await tdk.init_client(api_url=api_server, **creds.init_args())
             await tdk.store_remote(force=force)
             ClickPrinter.success(f'Template {tdk.safe_project.safe_template.id} '
                                  f'uploaded to {api_server}')
@@ -422,21 +468,26 @@ def extract_package(ctx, template_package, output, force: bool):
 @main.command(help='List templates from DSW via API.', name='list')
 @click.option('-s', '--api-server', metavar='API-URL', envvar='DSW_API',
               prompt='URL of DSW API', help='URL of DSW server API.', callback=rectify_url)
-@click.option('-u', '--username', envvar='DSW_USERNAME', prompt='Username', hide_input=False,
-              metavar='USERNAME', help='Admin username (email address) for DSW instance.')
-@click.option('-p', '--password', envvar='DSW_PASSWORD', prompt='Password', hide_input=True,
-              metavar='PASSWORD', help='Admin password for DSW instance.')
+@click.option('-u', '--username', envvar='DSW_USERNAME', metavar='EMAIL', default=None,
+              help='Admin username (email) for DSW instance.')
+@click.option('-p', '--password', envvar='DSW_PASSWORD', metavar='PASSWORD', default=None,
+              help='Admin password for DSW instance.')
+@click.option('-k', '--api-key', envvar='DSW_API_KEY', metavar='API-KEY', default=None,
+              help='API key for DSW instance.')
 @click.option('--output-format', default=DEFAULT_LIST_FORMAT,
               metavar='FORMAT', help='Entry format string for printing.')
 @click.option('-r', '--released-only', is_flag=True, help='List only released templates')
 @click.option('-d', '--drafts-only', is_flag=True, help='List only template drafts')
 @click.pass_context
-def list_templates(ctx, api_server, username, password, output_format: str,
+def list_templates(ctx, api_server, username, password, api_key, output_format: str,
                    released_only: bool, drafts_only: bool):
+    creds = APICredentials(username=username, password=password, api_key=api_key)
+    creds.check()
+
     async def main_routine():
         tdk = TDKCore(logger=ctx.obj.logger)
         try:
-            await tdk.init_client(api_server, username, password)
+            await tdk.init_client(api_url=api_server, **creds.init_args())
             if released_only:
                 templates = await tdk.list_remote_templates()
                 for template in templates:

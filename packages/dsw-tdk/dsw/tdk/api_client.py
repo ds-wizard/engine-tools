@@ -143,6 +143,10 @@ class DSWAPIClient:
         return self.token
 
     @handle_client_errors
+    async def get_current_user(self) -> dict:
+        return await self._get_json('/users/current')
+
+    @handle_client_errors
     async def check_template_exists(self, remote_id: str) -> bool:
         async with self.session.get(f'{self.templates_endpoint}/{remote_id}', headers=self._headers()) as r:
             if r.status == 404:
