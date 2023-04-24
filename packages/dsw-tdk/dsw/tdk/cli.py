@@ -317,7 +317,7 @@ def new_template(ctx, template_dir, force):
 @click.option('-f', '--force', is_flag=True, help='Overwrite any existing files.')
 @click.pass_context
 def get_template(ctx, api_server, template_id, template_dir, username, password, api_key, force):
-    template_dir = template_dir or dir_from_id(template_id)
+    template_dir = pathlib.Path(template_dir or dir_from_id(template_id))
     creds = APICredentials(username=username, password=password, api_key=api_key)
     creds.check()
 
@@ -337,6 +337,7 @@ def get_template(ctx, api_server, template_id, template_dir, username, password,
         except DSWCommunicationError as e:
             ClickPrinter.error('Could not get template:', bold=True)
             ClickPrinter.error(f'> {e.reason}\n> {e.message}')
+            await tdk.safe_client.close()
             exit(1)
         await tdk.safe_client.safe_close()
         if template_type == 'draft':
@@ -347,6 +348,7 @@ def get_template(ctx, api_server, template_id, template_dir, username, password,
             except Exception as e:
                 ClickPrinter.failure('Could not store template locally')
                 ClickPrinter.error(f'> {e}')
+                await tdk.safe_client.close()
                 exit(1)
         elif template_type == 'bundle' and zip_data is not None:
             try:
@@ -355,6 +357,7 @@ def get_template(ctx, api_server, template_id, template_dir, username, password,
             except Exception as e:
                 ClickPrinter.failure('Could not store template locally')
                 ClickPrinter.error(f'> {e}')
+                await tdk.safe_client.close()
                 exit(1)
         else:
             ClickPrinter.failure(f'{template_id} is not released nor draft of a document template')
@@ -455,7 +458,7 @@ def extract_package(ctx, template_package, output, force: bool):
         data = pathlib.Path(template_package).read_bytes()
         tdk.extract_package(
             zip_data=data,
-            template_dir=output,
+            template_dir=pathlib.Path(output),
             force=force,
         )
     except Exception as e:
@@ -505,12 +508,13 @@ def list_templates(ctx, api_server, username, password, api_key, output_format: 
                 drafts = await tdk.list_remote_drafts()
                 for template in drafts:
                     click.echo(output_format.format(template=template))
+            await tdk.safe_client.safe_close()
 
         except DSWCommunicationError as e:
             ClickPrinter.failure('Failed to get list of templates')
             ClickPrinter.error(f'> {e.reason}\n> {e.message}')
+            await tdk.safe_client.safe_close()
             exit(1)
-        await tdk.safe_client.safe_close()
 
     loop = asyncio.get_event_loop()
     loop.run_until_complete(main_routine())

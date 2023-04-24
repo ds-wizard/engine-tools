@@ -91,7 +91,7 @@ class DSWAPIClient:
         """
         self.api_url = api_url
         self.token = None
-        self.session = session or aiohttp.ClientSession(connector=aiohttp.TCPConnector(verify_ssl=False))
+        self.session = session or aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False))
 
     @property
     def templates_endpoint(self):

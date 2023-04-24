@@ -1,0 +1,38 @@
+general:
+  environment: Production
+  serverPort: 3000
+  clientUrl: http://localhost:8080
+  secret: 'ab012345678901234567890123456789'
+
+database:
+  databaseName: dsw
+  authEnabled: true
+  username: postgres
+  password: postgres
+  connectionString: postgresql://postgres:postgres@postgres:5432/dsw
+
+s3:
+  url: http://host.docker.internal:9000
+  username: minio
+  password: minioPassword
+  bucket: dsw
+
+mail:
+  enabled: false
+  name:
+  email:
+  host:
+  port:
+  ssl:
+  username:
+  password:
+
+cloud:
+  enabled: false
+  domain: example.com
+  publicRegistrationEnabled: true
+
+plan:
+  recomputeJob:
+    enabled: false
+    cron: '* * * * *'

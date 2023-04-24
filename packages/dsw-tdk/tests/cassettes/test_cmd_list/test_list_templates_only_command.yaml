@@ -1,0 +1,142 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Authorization:
+      - Bearer dummy-token
+      User-Agent:
+      - dsw-tdk/3.22.0
+    method: GET
+    uri: http://localhost:3000/
+  response:
+    body:
+      string: '{"builtAt":"2023-04-21T02:27:50Z","components":[],"name":"Engine Wizard","version":"develop~13e28c13"}'
+    headers:
+      Access-Control-Allow-Credential:
+      - 'true'
+      Access-Control-Allow-Headers:
+      - Origin, X-Requested-With, Content-Type, Accept, Authorization
+      Access-Control-Allow-Methods:
+      - OPTIONS, HEAD, GET, POST, PUT, DELETE
+      Access-Control-Allow-Origin:
+      - '*'
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 23 Apr 2023 11:34:14 GMT
+      Server:
+      - Warp/3.3.25
+      Transfer-Encoding:
+      - chunked
+      x-trace-uuid:
+      - b612ffdf-d81a-421a-859f-f1625d1632ed
+    status:
+      code: 200
+      message: OK
+    url: http://localhost:3000/
+- request:
+    body: null
+    headers:
+      Authorization:
+      - Bearer dummy-token
+      User-Agent:
+      - dsw-tdk/3.22.0
+    method: GET
+    uri: http://localhost:3000/users/current
+  response:
+    body:
+      string: '{"active":true,"affiliation":"My University","createdAt":"2018-01-20T00:00:00Z","email":"albert.einstein@example.com","firstName":"Albert","imageUrl":null,"lastName":"Einstein","permissions":["UM_PERM","KM_PERM","KM_UPGRADE_PERM","KM_PUBLISH_PERM","PM_READ_PERM","PM_WRITE_PERM","QTN_PERM","CFG_PERM","SUBM_PERM","DOC_PERM","QTN_TML_PERM","QTN_IMPORTER_PERM","LOC_PERM","DOC_TML_WRITE_PERM","DOC_TML_READ_PERM"],"role":"admin","sources":["internal"],"submissionProps":[],"updatedAt":"2018-01-25T00:00:00Z","uuid":"ec6f8e90-2a91-49ec-aa3f-9eab2267fc66"}'
+    headers:
+      Access-Control-Allow-Credential:
+      - 'true'
+      Access-Control-Allow-Headers:
+      - Origin, X-Requested-With, Content-Type, Accept, Authorization
+      Access-Control-Allow-Methods:
+      - OPTIONS, HEAD, GET, POST, PUT, DELETE
+      Access-Control-Allow-Origin:
+      - '*'
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 23 Apr 2023 11:34:14 GMT
+      Server:
+      - Warp/3.3.25
+      Transfer-Encoding:
+      - chunked
+      x-trace-uuid:
+      - db2ba85c-86f7-452c-877f-9e79e5e9eeec
+    status:
+      code: 200
+      message: OK
+    url: http://localhost:3000/users/current
+- request:
+    body: null
+    headers:
+      Authorization:
+      - Bearer dummy-token
+      User-Agent:
+      - dsw-tdk/3.22.0
+    method: GET
+    uri: http://localhost:3000/document-templates/all
+  response:
+    body:
+      string: '[]'
+    headers:
+      Access-Control-Allow-Credential:
+      - 'true'
+      Access-Control-Allow-Headers:
+      - Origin, X-Requested-With, Content-Type, Accept, Authorization
+      Access-Control-Allow-Methods:
+      - OPTIONS, HEAD, GET, POST, PUT, DELETE
+      Access-Control-Allow-Origin:
+      - '*'
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 23 Apr 2023 11:34:14 GMT
+      Server:
+      - Warp/3.3.25
+      Transfer-Encoding:
+      - chunked
+      x-trace-uuid:
+      - 866a032b-5c3b-41e1-a21b-140000aca346
+    status:
+      code: 200
+      message: OK
+    url: http://localhost:3000/document-templates/all
+- request:
+    body: null
+    headers:
+      Authorization:
+      - Bearer dummy-token
+      User-Agent:
+      - dsw-tdk/3.22.0
+    method: GET
+    uri: http://localhost:3000/document-template-drafts?size=10000
+  response:
+    body:
+      string: '{"_embedded":{"documentTemplateDrafts":[]},"page":{"number":0,"size":10000,"totalElements":0,"totalPages":0}}'
+    headers:
+      Access-Control-Allow-Credential:
+      - 'true'
+      Access-Control-Allow-Headers:
+      - Origin, X-Requested-With, Content-Type, Accept, Authorization
+      Access-Control-Allow-Methods:
+      - OPTIONS, HEAD, GET, POST, PUT, DELETE
+      Access-Control-Allow-Origin:
+      - '*'
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 23 Apr 2023 11:34:14 GMT
+      Server:
+      - Warp/3.3.25
+      Transfer-Encoding:
+      - chunked
+      x-trace-uuid:
+      - b7caca83-9625-41d7-a445-fb5d0210c284
+    status:
+      code: 200
+      message: OK
+    url: http://localhost:3000/document-template-drafts?size=10000
+version: 1
