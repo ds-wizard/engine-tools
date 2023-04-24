@@ -7,11 +7,13 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+
+## [3.23.0]
+
 ### Changed
 
 - Improved retrieval of persistent commands
 - Moved persistent command handling queries here
-
 
 ## [3.22.1]
 
@@ -109,3 +111,4 @@ Released for version consistency with other DSW tools.
 [3.21.0]: /../../tree/v3.21.0
 [3.22.0]: /../../tree/v3.22.0
 [3.22.1]: /../../tree/v3.22.1
+[3.23.0]: /../../tree/v3.23.0

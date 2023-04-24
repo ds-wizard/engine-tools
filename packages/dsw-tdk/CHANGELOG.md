@@ -7,11 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [3.23.0]
+
 ### Changed
 
 - Added support for authentication using API keys
 - Added deprecated warning for username/password authentication
-
 
 ## [3.22.1]
 
@@ -317,3 +319,4 @@ Initial DSW Template Development Kit (versioned as part of the [DSW platform](ht
 [3.21.0]: /../../tree/v3.21.0
 [3.22.0]: /../../tree/v3.22.0
 [3.22.1]: /../../tree/v3.22.1
+[3.23.0]: /../../tree/v3.23.0
