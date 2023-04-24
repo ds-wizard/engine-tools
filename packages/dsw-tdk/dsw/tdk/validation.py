@@ -63,7 +63,7 @@ def _validate_version(field_name: str, value) -> List[ValidationError]:
 
 def _validate_natural(field_name: str, value) -> List[ValidationError]:
     if value is not None and (not isinstance(value, int) or value < 1):
-        return [ValidationError(field_name, 'Field {field_name} must be positive integer')]
+        return [ValidationError(field_name, 'It must be positive integer')]
     return []
 
 
@@ -173,9 +173,7 @@ def _validate_steps(field_name: str, value: List[Step]) -> List[ValidationError]
 FormatValidator = GenericValidator({
     'uuid': [_validate_required, _validate_non_empty],
     'name': [_validate_required, _validate_non_empty],
-    'short_name': [_validate_required, _validate_non_empty],
     'icon': [_validate_required, _validate_non_empty],
-    'color': [_validate_required, _validate_non_empty],
     'steps': [_validate_required, _validate_steps],
 })
 
@@ -198,7 +196,6 @@ TemplateValidator = GenericValidator({
     'name': [_validate_required, _validate_non_empty],
     'description': [_validate_required, _validate_non_empty],
     'readme': [_validate_required, _validate_non_empty],
-    'recommended_package_id': [_validate_package_id],
     'license': [_validate_required, _validate_non_empty],
     'metamodel_version': [_validate_natural],
     'allowed_packages': [_validate_package_filters],

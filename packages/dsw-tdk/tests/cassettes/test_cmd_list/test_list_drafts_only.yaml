@@ -1,0 +1,111 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Authorization:
+      - Bearer dummy-token
+      User-Agent:
+      - dsw-tdk/3.22.0
+    method: GET
+    uri: http://localhost:3000/
+  response:
+    body:
+      string: '{"builtAt":"2023-04-21T02:27:50Z","components":[],"name":"Engine Wizard","version":"develop~13e28c13"}'
+    headers:
+      Access-Control-Allow-Credential:
+      - 'true'
+      Access-Control-Allow-Headers:
+      - Origin, X-Requested-With, Content-Type, Accept, Authorization
+      Access-Control-Allow-Methods:
+      - OPTIONS, HEAD, GET, POST, PUT, DELETE
+      Access-Control-Allow-Origin:
+      - '*'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 25 Apr 2023 13:27:14 GMT
+      Server:
+      - Warp/3.3.25
+      Transfer-Encoding:
+      - chunked
+      x-trace-uuid:
+      - c1def8e2-7de3-4e0e-a96b-21f22c2016c2
+    status:
+      code: 200
+      message: OK
+    url: http://localhost:3000/
+- request:
+    body: null
+    headers:
+      Authorization:
+      - Bearer dummy-token
+      User-Agent:
+      - dsw-tdk/3.22.0
+    method: GET
+    uri: http://localhost:3000/users/current
+  response:
+    body:
+      string: '{"active":true,"affiliation":"My University","createdAt":"2018-01-20T00:00:00Z","email":"albert.einstein@example.com","firstName":"Albert","imageUrl":null,"lastName":"Einstein","permissions":["UM_PERM","KM_PERM","KM_UPGRADE_PERM","KM_PUBLISH_PERM","PM_READ_PERM","PM_WRITE_PERM","QTN_PERM","CFG_PERM","SUBM_PERM","DOC_PERM","QTN_TML_PERM","QTN_IMPORTER_PERM","LOC_PERM","DOC_TML_WRITE_PERM","DOC_TML_READ_PERM"],"role":"admin","sources":["internal"],"submissionProps":[],"updatedAt":"2018-01-25T00:00:00Z","uuid":"ec6f8e90-2a91-49ec-aa3f-9eab2267fc66"}'
+    headers:
+      Access-Control-Allow-Credential:
+      - 'true'
+      Access-Control-Allow-Headers:
+      - Origin, X-Requested-With, Content-Type, Accept, Authorization
+      Access-Control-Allow-Methods:
+      - OPTIONS, HEAD, GET, POST, PUT, DELETE
+      Access-Control-Allow-Origin:
+      - '*'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 25 Apr 2023 13:27:14 GMT
+      Server:
+      - Warp/3.3.25
+      Transfer-Encoding:
+      - chunked
+      x-trace-uuid:
+      - bf19235d-77d5-4579-adcf-d8df94219c03
+    status:
+      code: 200
+      message: OK
+    url: http://localhost:3000/users/current
+- request:
+    body: null
+    headers:
+      Authorization:
+      - Bearer dummy-token
+      User-Agent:
+      - dsw-tdk/3.22.0
+    method: GET
+    uri: http://localhost:3000/document-template-drafts?size=10000
+  response:
+    body:
+      string: '{"_embedded":{"documentTemplateDrafts":[{"createdAt":"2023-04-25T13:01:54.430803Z","description":"Dummy
+        document template 01 for testing purposes","id":"myorg:example01:1.0.0","name":"Test
+        template 01","organizationId":"myorg","templateId":"example01","updatedAt":"2023-04-25T13:12:30.16158Z","version":"1.0.0"},{"createdAt":"2023-04-25T13:13:28.596463Z","description":"Exported
+        questions and answers from a questionnaire","id":"myorg:questionnaire-report:2.9.0","name":"Questionnaire
+        Report","organizationId":"myorg","templateId":"questionnaire-report","updatedAt":"2023-04-25T13:13:28.656434Z","version":"2.9.0"}]},"page":{"number":0,"size":10000,"totalElements":2,"totalPages":1}}'
+    headers:
+      Access-Control-Allow-Credential:
+      - 'true'
+      Access-Control-Allow-Headers:
+      - Origin, X-Requested-With, Content-Type, Accept, Authorization
+      Access-Control-Allow-Methods:
+      - OPTIONS, HEAD, GET, POST, PUT, DELETE
+      Access-Control-Allow-Origin:
+      - '*'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 25 Apr 2023 13:27:14 GMT
+      Server:
+      - Warp/3.3.25
+      Transfer-Encoding:
+      - chunked
+      x-trace-uuid:
+      - c18d08dd-1733-4473-a04b-1da49fa1cdf9
+    status:
+      code: 200
+      message: OK
+    url: http://localhost:3000/document-template-drafts?size=10000
+version: 1

@@ -1,0 +1,71 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Authorization:
+      - Bearer foo
+      User-Agent:
+      - dsw-tdk/3.22.0
+    method: GET
+    uri: http://localhost:3000/
+  response:
+    body:
+      string: '{"builtAt":"2023-04-21T02:27:50Z","components":[],"name":"Engine Wizard","version":"develop~13e28c13"}'
+    headers:
+      Access-Control-Allow-Credential:
+      - 'true'
+      Access-Control-Allow-Headers:
+      - Origin, X-Requested-With, Content-Type, Accept, Authorization
+      Access-Control-Allow-Methods:
+      - OPTIONS, HEAD, GET, POST, PUT, DELETE
+      Access-Control-Allow-Origin:
+      - '*'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 25 Apr 2023 14:00:27 GMT
+      Server:
+      - Warp/3.3.25
+      Transfer-Encoding:
+      - chunked
+      x-trace-uuid:
+      - 259b7b23-1fe6-4174-b325-fce04a6d99b4
+    status:
+      code: 200
+      message: OK
+    url: http://localhost:3000/
+- request:
+    body: null
+    headers:
+      Authorization:
+      - Bearer foo
+      User-Agent:
+      - dsw-tdk/3.22.0
+    method: GET
+    uri: http://localhost:3000/users/current
+  response:
+    body:
+      string: '{"message":{"code":"error.service.token.unable_to_decode_token","defaultMessage":"Unable
+        to decode and verify token","params":[]},"status":401}'
+    headers:
+      Access-Control-Allow-Credential:
+      - 'true'
+      Access-Control-Allow-Headers:
+      - Origin, X-Requested-With, Content-Type, Accept, Authorization
+      Access-Control-Allow-Methods:
+      - OPTIONS, HEAD, GET, POST, PUT, DELETE
+      Access-Control-Allow-Origin:
+      - '*'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 25 Apr 2023 14:00:27 GMT
+      Server:
+      - Warp/3.3.25
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 401
+      message: Unauthorized
+    url: http://localhost:3000/users/current
+version: 1

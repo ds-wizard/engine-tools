@@ -1,6 +1,7 @@
 import pytest
 
 from click.testing import CliRunner
+
 from dsw.tdk import main
 
 
@@ -17,7 +18,7 @@ def test_base_help_works():
 
 
 @pytest.mark.parametrize(
-    'cmd', ['new', 'list', 'get', 'put', 'verify', 'package']
+    'cmd', ['new', 'list', 'get', 'put', 'verify', 'package', 'unpackage']
 )
 def test_command_help_works(cmd):
     runner = CliRunner()

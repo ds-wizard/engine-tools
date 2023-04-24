@@ -1,0 +1,2330 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Authorization:
+      - Bearer dummy-token
+      User-Agent:
+      - dsw-tdk/3.22.0
+    method: GET
+    uri: http://localhost:3000/
+  response:
+    body:
+      string: '{"builtAt":"2023-04-21T02:27:50Z","components":[],"name":"Engine Wizard","version":"develop~13e28c13"}'
+    headers:
+      Access-Control-Allow-Credential:
+      - 'true'
+      Access-Control-Allow-Headers:
+      - Origin, X-Requested-With, Content-Type, Accept, Authorization
+      Access-Control-Allow-Methods:
+      - OPTIONS, HEAD, GET, POST, PUT, DELETE
+      Access-Control-Allow-Origin:
+      - '*'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 25 Apr 2023 14:00:27 GMT
+      Server:
+      - Warp/3.3.25
+      Transfer-Encoding:
+      - chunked
+      x-trace-uuid:
+      - 4aaa7c88-afd3-4e7c-a8a9-40bc191c248f
+    status:
+      code: 200
+      message: OK
+    url: http://localhost:3000/
+- request:
+    body: null
+    headers:
+      Authorization:
+      - Bearer dummy-token
+      User-Agent:
+      - dsw-tdk/3.22.0
+    method: GET
+    uri: http://localhost:3000/users/current
+  response:
+    body:
+      string: '{"active":true,"affiliation":"My University","createdAt":"2018-01-20T00:00:00Z","email":"albert.einstein@example.com","firstName":"Albert","imageUrl":null,"lastName":"Einstein","permissions":["UM_PERM","KM_PERM","KM_UPGRADE_PERM","KM_PUBLISH_PERM","PM_READ_PERM","PM_WRITE_PERM","QTN_PERM","CFG_PERM","SUBM_PERM","DOC_PERM","QTN_TML_PERM","QTN_IMPORTER_PERM","LOC_PERM","DOC_TML_WRITE_PERM","DOC_TML_READ_PERM"],"role":"admin","sources":["internal"],"submissionProps":[],"updatedAt":"2018-01-25T00:00:00Z","uuid":"ec6f8e90-2a91-49ec-aa3f-9eab2267fc66"}'
+    headers:
+      Access-Control-Allow-Credential:
+      - 'true'
+      Access-Control-Allow-Headers:
+      - Origin, X-Requested-With, Content-Type, Accept, Authorization
+      Access-Control-Allow-Methods:
+      - OPTIONS, HEAD, GET, POST, PUT, DELETE
+      Access-Control-Allow-Origin:
+      - '*'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 25 Apr 2023 14:00:27 GMT
+      Server:
+      - Warp/3.3.25
+      Transfer-Encoding:
+      - chunked
+      x-trace-uuid:
+      - d7b69fc6-e402-4c97-a169-0fed0058aa2c
+    status:
+      code: 200
+      message: OK
+    url: http://localhost:3000/users/current
+- request:
+    body: null
+    headers:
+      Authorization:
+      - Bearer dummy-token
+      User-Agent:
+      - dsw-tdk/3.22.0
+    method: GET
+    uri: http://localhost:3000/document-template-drafts/myorg:questionnaire-report:2.9.0
+  response:
+    body:
+      string: '{"allowedPackages":[{"kmId":null,"maxVersion":null,"minVersion":null,"orgId":null}],"createdAt":"2023-04-25T13:13:28.596463Z","description":"Exported
+        questions and answers from a questionnaire","formatUuid":null,"formats":[{"icon":"far
+        fa-file","name":"JSON Data","steps":[{"name":"json","options":{}}],"uuid":"d3e98eb6-344d-481f-8e37-6a67b6cd1ad2"},{"icon":"far
+        fa-file-code","name":"HTML Document","steps":[{"name":"jinja","options":{"content-type":"text/html","extension":"html","template":"src/default.html.j2"}}],"uuid":"a9293d08-59a4-4e6b-ae62-7a6a570b031c"},{"icon":"far
+        fa-file-pdf","name":"PDF Document","steps":[{"name":"jinja","options":{"content-type":"text/html","extension":"html","template":"src/default.html.j2"}},{"name":"wkhtmltopdf","options":{"args":"--disable-smart-shrinking
+        -B 20mm -L 20mm -R 20mm -T 25mm"}}],"uuid":"68c26e34-5e77-4e15-9bf7-06ff92582257"},{"icon":"far
+        fa-file-alt","name":"LaTeX Document","steps":[{"name":"jinja","options":{"content-type":"text/x-tex","extension":"tex","template":"src/default.tex.j2"}}],"uuid":"dbc94579-40d7-42c3-975c-71e30d07778b"},{"icon":"far
+        fa-file-word","name":"MS Word Document","steps":[{"name":"jinja","options":{"content-type":"text/html","extension":"html","template":"src/for-word.html.j2"}},{"name":"pandoc","options":{"args":"--filter=pandoc-docx-pagebreakpy
+        --reference-doc=src/reference.docx","from":"html","to":"docx"}}],"uuid":"f4bd941a-dfbe-4226-a1fc-200fb5269311"},{"icon":"far
+        fa-file-alt","name":"Markdown Document","steps":[{"name":"jinja","options":{"content-type":"text/html","extension":"md","template":"src/default.md.j2"}}],"uuid":"f0533e48-f4c5-4af2-b2c1-5a47d4a247c0"}],"id":"myorg:questionnaire-report:2.9.0","license":"Apache-2.0","name":"Questionnaire
+        Report","questionnaire":null,"questionnaireUuid":null,"readme":"# Questionnaire
+        Report\r\n\r\nThis generic *default* template for [Data Stewardship Wizard](https://ds-wizard.org)
+        (DSW) directly transforms answers from a questionnaire into a document while
+        maintaining the structure. It is not tied to any knowledge model and is included
+        by default in every DSW instance.\r\n\r\n\r\n## Issues and Contributing\r\n\r\nThis
+        document template for DSW is available as open-source via GitHub Repository
+        [ds-wizard/questionnaire-report-template](https://github.com/ds-wizard/questionnaire-report-template),
+        you can [report issues](https://github.com/ds-wizard/questionnaire-report-template/issues)
+        there and fork it for customisations or contributions.\r\n\r\n\r\n## Changelog\r\n\r\n###
+        2.8.0\r\n\r\n- Adjusted to template metamodel version 11 (released in DSW
+        3.20.0)\r\n- Add versions overview / change tracker table\r\n\r\n### 2.7.1\r\n\r\n-
+        Fix Markdown rendering for integration question reply\r\n\r\n### 2.7.0\r\n\r\n-
+        Adjusted to template metamodel version 10 (released in DSW 3.12.0)\r\n\r\n###
+        2.6.0\r\n\r\n- Adjusted to template metamodel version 9 (released in DSW 3.10.0)\r\n\r\n###
+        2.5.0\r\n\r\n- Adjusted to template metamodel version 8 (released in DSW 3.8.0)\r\n\r\n###
+        2.4.0\r\n\r\n- Adjusted to template metamodel version 7 (released in DSW 3.7.0)\r\n\r\n###
+        2.3.0\r\n\r\n- Adjusted to template metamodel version 6 (released in DSW 3.6.0)\r\n\r\n###
+        2.2.0\r\n\r\n- Using new document context\r\n\r\n### 2.1.0\r\n\r\n- Adjusted
+        to template metamodel version 5 (released in DSW 3.5.0)\r\n\r\n### 2.0.0\r\n\r\n-
+        Improve template visual\r\n\r\n### 1.4.0\r\n\r\n- Adjusted to template metamodel
+        version 4 (released in DSW 3.2.0)\r\n\r\n### 1.3.0\r\n\r\n- Adjusted to template
+        metamodel version 3 (released in DSW 2.12.0)\r\n\r\n### 1.2.1\r\n\r\n- Fix
+        issue with multiple tags on questions\r\n\r\n### 1.2.0\r\n\r\n- Added support
+        for Multi-Choice questions (released in DSW 2.11.0)\r\n\r\n### 1.1.0\r\n\r\n-
+        Adjusted to template metamodel version 2\r\n\r\n### 1.0.0\r\n\r\n- Initial
+        version previously distributed as files directly in DSW\r\n","templateId":"questionnaire-report","updatedAt":"2023-04-25T13:13:28.656434Z","version":"2.9.0"}'
+    headers:
+      Access-Control-Allow-Credential:
+      - 'true'
+      Access-Control-Allow-Headers:
+      - Origin, X-Requested-With, Content-Type, Accept, Authorization
+      Access-Control-Allow-Methods:
+      - OPTIONS, HEAD, GET, POST, PUT, DELETE
+      Access-Control-Allow-Origin:
+      - '*'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 25 Apr 2023 14:00:27 GMT
+      Server:
+      - Warp/3.3.25
+      Transfer-Encoding:
+      - chunked
+      x-trace-uuid:
+      - 65087fee-0652-4161-9134-89a41cc1e356
+    status:
+      code: 200
+      message: OK
+    url: http://localhost:3000/document-template-drafts/myorg:questionnaire-report:2.9.0
+- request:
+    body: null
+    headers:
+      Authorization:
+      - Bearer dummy-token
+      User-Agent:
+      - dsw-tdk/3.22.0
+    method: GET
+    uri: http://localhost:3000/document-template-drafts/myorg:questionnaire-report:2.9.0/files
+  response:
+    body:
+      string: '[{"createdAt":"2023-04-25T13:13:28.630013Z","fileName":"src/default.tex.j2","updatedAt":"2023-04-25T13:13:28.630013Z","uuid":"1b1f2d3a-a0bb-4ee6-b2f2-d3e20bf332c4"},{"createdAt":"2023-04-25T13:13:28.634374Z","fileName":"src/default.md.j2","updatedAt":"2023-04-25T13:13:28.634374Z","uuid":"1b7f73af-2659-43bf-9a65-fa506ab60bf3"},{"createdAt":"2023-04-25T13:13:28.636711Z","fileName":"src/for-word.html.j2","updatedAt":"2023-04-25T13:13:28.636711Z","uuid":"158f343a-2c24-4001-aff8-61379d9fb2bd"},{"createdAt":"2023-04-25T13:13:28.643506Z","fileName":"src/default.html.j2","updatedAt":"2023-04-25T13:13:28.643506Z","uuid":"eb365c81-27bc-4113-bcdd-615c78342337"},{"createdAt":"2023-04-25T13:13:28.654905Z","fileName":"src/default.css","updatedAt":"2023-04-25T13:13:28.654905Z","uuid":"26409a22-4721-4bb1-8f28-bcf50a15894f"}]'
+    headers:
+      Access-Control-Allow-Credential:
+      - 'true'
+      Access-Control-Allow-Headers:
+      - Origin, X-Requested-With, Content-Type, Accept, Authorization
+      Access-Control-Allow-Methods:
+      - OPTIONS, HEAD, GET, POST, PUT, DELETE
+      Access-Control-Allow-Origin:
+      - '*'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 25 Apr 2023 14:00:27 GMT
+      Server:
+      - Warp/3.3.25
+      Transfer-Encoding:
+      - chunked
+      x-trace-uuid:
+      - fcf5eece-5ddc-4081-989b-2a4a680b50c8
+    status:
+      code: 200
+      message: OK
+    url: http://localhost:3000/document-template-drafts/myorg:questionnaire-report:2.9.0/files
+- request:
+    body: null
+    headers:
+      Authorization:
+      - Bearer dummy-token
+      User-Agent:
+      - dsw-tdk/3.22.0
+    method: GET
+    uri: http://localhost:3000/document-template-drafts/myorg:questionnaire-report:2.9.0/files/1b1f2d3a-a0bb-4ee6-b2f2-d3e20bf332c4
+  response:
+    body:
+      string: '{"appUuid":"00000000-0000-0000-0000-000000000000","content":"{#- ------------------------------------------------------------------------------------
+        -#}\r\n{#-  VARIABLES                                                                           -#}\r\n{#-
+        ------------------------------------------------------------------------------------
+        -#}\r\n{%- set dc = ctx|to_context_obj -%}\r\n{#- ------------------------------------------------------------------------------------
+        -#}\r\n{#-  ANSWERS MACROS                                                                      -#}\r\n{#-
+        ------------------------------------------------------------------------------------
+        -#}\r\n{%- macro renderAnswerValue(question, reply, path, humanIdentifier)
+        %}\r\n{%- if reply is of_type(\"StringReply\") %}\r\n\\begin{itemize}\r\n  \\item[\\CheckmarkBold]
+        {{reply.value}}\r\n\\end{itemize}\r\n{% else %}\r\n\\begin{itemize}\r\n  \\item[\\CheckmarkBold]\r\n  \\begin{markdown}\r\n  {{reply.value}}\r\n  \\end{markdown}\r\n  {%
+        if reply.is_integration -%}\r\n  {%- set integration = question.integration
+        -%}\r\n  \\href{{ \"{\" }}{{ integration.item(reply.item_id) }}{{ \"}\" }}{{
+        \"{\" }}({{ integration.name }}: {{ reply.item_id }}){{ \"}\" }}\r\n  {% endif
+        %}\r\n\\end{itemize}\r\n{% endif -%}\r\n{%- endmacro -%}\r\n{%- macro renderAnswerOption(question,
+        reply, path, humanIdentifier) -%}\r\n{%- set hi = question.answers.index(reply.answer)
+        -%}\r\n{%- set answer = reply.answer -%}\r\n{%- set path = path ~ \".\" ~
+        answer.uuid -%}\r\n{%- set humanIdentifier = humanIdentifier ~ \".\" ~ hi|of_alphabet
+        %}\r\n\\begin{itemize}\r\n  \\item[\\CheckmarkBold] {{ hi|of_alphabet }}.
+        {{ answer.label }}\r\n\\end{itemize}\r\n\r\n{% if answer.advice -%}\r\n\\noindent\r\n\\begin{markdown}\r\n{{answer.advice}}\r\n\\end{markdown}\r\n{%-
+        endif %}\r\n\r\n{% if answer.followups|length > 0 -%}\r\n{%- set hiPrefix
+        = humanIdentifier ~ \".\" -%}\r\n{%- for question in answer.followups -%}\r\n{%-
+        set x = loop.index -%}\r\n{{ renderQuestion(question, path, hiPrefix ~ x,
+        False) }}\r\n{%- endfor -%}\r\n{%- endif -%}\r\n{%- endmacro -%}\r\n{%- macro
+        renderAnswerList(question, reply, path, humanIdentifier) -%}\r\n{%- set itemPathPrefix
+        = path ~ \".\" -%}\r\n{%- set hiPrefix = humanIdentifier ~ \".\" -%}\r\n\\begin{itemize}\r\n  \\item[\\ArrowBoldDownRight]
+        Answered with {{reply.items|length}} item{% if reply.items|length > 1 %}s{%
+        endif %} as follows.\r\n\\end{itemize}\r\n{%- for i in reply.items -%}\r\n{%-
+        set itemPath = itemPathPrefix ~ i -%}\r\n{%- set itemHumanIdenfifier = hiPrefix
+        ~ (loop.index - 1)|of_alphabet -%}\r\n% Answer item: {{itemPath}}\r\n\r\n{%-
+        for question in question.followups -%}\r\n  {%- set x = loop.index -%}\r\n{{
+        renderQuestion(question, itemPath, itemHumanIdenfifier ~ \".\" ~ x, False)
+        }}\r\n{% else -%}\r\n  \\textit{No follow up questions}\r\n{% endfor %}\r\n{%
+        endfor %}\r\n{%- endmacro -%}\r\n{%- macro renderChoiceList(question, reply,
+        path, humanIdentifier) -%}\r\n{%- if question.choices|length > 0 -%}\r\n\\begin{itemize}\r\n{%-
+        for choice in question.choices -%}\r\n{%- if choice in reply.choices %}\r\n  \\item[\\CheckmarkBold]
+        {{ choice.label }}\r\n{%- else %}\r\n  \\item[\\XSolidBrush] {{ choice.label
+        }}\r\n{%- endif -%}\r\n{%- endfor %}\r\n\\end{itemize}\r\n{%- endif %}\r\n{%-
+        endmacro -%}\r\n{#- ------------------------------------------------------------------------------------
+        -#}\r\n{#-  QUESTION REPLY MACROS                                                               -#}\r\n{#-
+        ------------------------------------------------------------------------------------
+        -#}\r\n{%- macro renderQuestionReply(question, path, humanIdentifier) -%}\r\n  {%-
+        set isRequired = question.is_required -%}\r\n  {%- set reply = question.replies.get(path)
+        -%}\r\n  {%- if reply and reply.value -%}\r\n    {%- if question.questionType
+        == \"ValueQuestion\" and reply.value.type == \"StringReply\" -%}\r\n      {{
+        renderAnswerValue(question, reply, path, humanIdentifier) }}\r\n    {%- elif
+        question is of_type(\"OptionsQuestion\") and reply is of_type(\"AnswerReply\")
+        -%}\r\n      {{ renderAnswerOption(question, reply, path, humanIdentifier)
+        }}\r\n    {%- elif question is of_type(\"ListQuestion\") and reply is of_type(\"ItemListReply\")
+        -%}\r\n      {{ renderAnswerList(question, reply, path, humanIdentifier) }}\r\n    {%-
+        elif question is of_type(\"IntegrationQuestion\") and reply is of_type(\"IntegrationReply\")
+        -%}\r\n      {{ renderAnswerValue(question, reply, path, humanIdentifier)
+        }}\r\n    {%- elif question is of_type(\"MultiChoiceQuestion\") and reply
+        is of_type(\"MultiChoiceReply\") -%}\r\n      {{ renderChoiceList(question,
+        reply, path, humanIdentifier) }}\r\n    {%- endif -%}\r\n  {% else %}\r\n\\begin{itemize}\r\n  \\item[{%
+        if isRequired %}\\textcolor{colorReqQ}{% endif %}\\XSolidBrush] \\textit{This
+        question has not been answered yet!}\r\n\\end{itemize}\r\n  {% endif -%}\r\n{%-
+        endmacro -%}\r\n{#- ------------------------------------------------------------------------------------
+        -#}\r\n{#-  QUESTION EXTRAS MACRO                                                               -#}\r\n{#-
+        ------------------------------------------------------------------------------------
+        -#}\r\n{%- macro renderQuestionExtras(question) -%}\r\n  {%- set resourcePageReferences
+        = question.resource_page_reference -%}\r\n  {%- set urlReferences = question.url_references
+        -%}\r\n  {%- set tags = question.tags -%}\r\n  {%- set experts = question.experts
+        -%}\r\n  {%- if resourcePageReferences|length > 0 or urlReferences|length
+        > 0 or tags|length > 0 or experts|length > 0 %}\r\n\\begin{itemize}\r\n  {%-
+        if tags|length > 0 %}\r\n  \\item \\textit{Tags}: {% for tag in tags %}{%
+        set color = tag.color[1:] if tag.color[0] == \"#\" else tag.color %}\\setulcolor{{
+        \"{\" }}{{color}}{{ \"}\" }}\\ul{{ \"{\" }}{{tag.name}}{{ \"}\" }}{% if not
+        loop.last%}, {% endif %}{% endfor %}\r\n  {% endif %}\r\n  {%- if resourcePageReferences|length
+        > 0 %}\r\n  \\item \\textit{Data Stewardship for Open Science}: {% for reference
+        in resourcePageReferences -%}\r\n    \\href{{ \"{\" }}{{ reference.url }}{{
+        \"}\" }}{{ \"{\" }}{{ reference.short_uuid }}{{ \"}\" }}\r\n    {%- if not
+        loop.last -%}, {% endif -%}{%- endfor -%}\r\n  {%- endif -%}\r\n  {%- if urlReferences|length
+        > 0 %}\r\n  \\item \\textit{External Links}: {% for reference in urlReferences
+        -%}\r\n    \\href{{ \"{\" }}{{ reference.url }}{{ \"}\" }}{{ \"{\" }}{{ reference.label
+        }}{{ \"}\" }}\r\n    {%- if not loop.last -%}, {% endif -%}{%- endfor -%}\r\n  {%-
+        endif -%}\r\n  {% if question.expertUuids|length > 0 %}\r\n  \\item \\textit{Experts}:
+        {% for expert in experts -%}\r\n    {{expert.name}} $\\langle$\\href{{ \"{\"
+        }}mailto:{{ expert.email }}{{ \"}\" }}{{ \"{\" }}{{ expert.email }}{{ \"}\"
+        }}$\\rangle$\r\n    {%- if not loop.last -%}, {% endif -%}{%- endfor -%}\r\n  {%-
+        endif -%}\r\n\\end{itemize}\r\n  {%- endif -%}\r\n{%- endmacro -%}\r\n{#-
+        ------------------------------------------------------------------------------------
+        -#}\r\n{#-  QUESTION MACROS                                                                     -#}\r\n{#-
+        ------------------------------------------------------------------------------------
+        -#}\r\n{%- macro renderQuestion(question, path, humanIdentifier, topLevel)
+        -%}\r\n{%- set path = path ~ \".\" ~ question.uuid -%}\r\n{% if topLevel %}\r\n\\section*{{
+        \"{\" }}\\protect\\textcolor{colorSecId}{{ \"{\" }}{{humanIdentifier}}{{ \"}\"
+        }} {{question.title}}{{ \"}\" }}\r\n{% else %}\r\n\\subsection*{{ \"{\" }}\\protect\\textcolor{colorSecId}{{
+        \"{\" }}{{humanIdentifier}}{{ \"}\" }} {{question.title}}{{ \"}\" }}\r\n{%
+        endif %}\r\n\\label{{ \"{\" }}{{path}}{{ \"}\" }}\r\n% uuid: {{question.uuid}}\r\n%
+        path: {{path}}\r\n\r\n{{ renderQuestionExtras(question) }}\r\n\r\n{% if question.text
+        %}\r\n\\noindent\r\n\\begin{markdown}\r\n{{question.text}}\r\n\\end{markdown}\r\n{%
+        endif %}\r\n\r\n{{ renderQuestionReply(question, path, humanIdentifier) }}\r\n\r\n{%-
+        endmacro -%}\r\n{#- ------------------------------------------------------------------------------------
+        -#}\r\n{#-  REPORT MACROS                                                                       -#}\r\n{#-
+        ------------------------------------------------------------------------------------
+        -#}\r\n{%- macro progresBar(value) -%}\r\n{%- set color = \"colorBarAwful\"
+        -%}\r\n{%- if value > 0.95 -%}\r\n  {%- set color = \"colorBarAwesome\" -%}\r\n{%-
+        elif value > 0.8 -%}\r\n  {%- set color = \"colorBarNice\" -%}\r\n{%- elif
+        value > 0.6 -%}\r\n  {%- set color = \"colorBarGood\" -%}\r\n{%- elif value
+        > 0.4 -%}\r\n  {%- set color = \"colorBarAverage\" -%}\r\n{%- elif value >
+        0.2 -%}\r\n  {%- set color = \"colorBarBad\" -%}\r\n{%- endif -%}\r\n\\progressbar[subdivisions=10,width=15em,heighta=10pt,filledcolor={{color}}]{{
+        \"{\" }}{{value}}{{ \"}\" }}\r\n{%- endmacro -%}\r\n{%- macro renderReport(report)
+        -%}\r\n\\begin{table}[h]\r\n  \\centering\r\n  \\begin{tabular}{ l c r }\r\n{%-
+        for item in report.indications %}\r\n    Answered {% if item.is_for_phase
+        %}(current phase){% endif %} & {{item.answered}} / {{item.total}} & {{ progresBar(item.percentage)
+        }} \\\\\r\n{%- endfor %}\r\n    & & \\\\ \\hline\r\n    & & \\\\\r\n{%- if
+        report.metrics|length > 0 %}\r\n{%- for item in report.metrics %}\r\n    {{item.metric.title}}
+        & {{ \"%.2f\"|format(item.measure) }} & {{ progresBar(item.measure) }} \\\\\r\n{%-
+        endfor -%}\r\n{%- endif %}\r\n  \\end{tabular}\r\n\\end{table}\r\n{%- endmacro
+        -%}\r\n{%- macro renderVersions() -%}\r\n{% if dc.qtn.versions|length > 0
+        %}\r\n\\section*{History of Versions}\r\n\r\n\\begin{table}[h]\r\n\t\\centering\r\n\t\\begin{tabular}{
+        c c p{0.6\\linewidth} }\r\n\t\tVersion & Date & Description \\\\ \\hline\\hline\\Tstrut\r\n{%-
+        for version in dc.qtn.versions|reverse %}\r\n\t\t{{ version.name }}  & {{
+        version.created_at|datetime_format(\"%d %b %Y\") }} & {{ version.description
+        }} \\\\ \\hline\\Tstrut\r\n{%- endfor %}\r\n  \\end{tabular}\r\n\\end{table}\r\n{%
+        endif %}\r\n{%- endmacro -%}\r\n{#- ------------------------------------------------------------------------------------
+        -#}\r\n{#-  INTRODUCTION                                                                        -#}\r\n{#-
+        ------------------------------------------------------------------------------------
+        -#}\r\n\\documentclass[a4paper,12pt]{report}\r\n\\usepackage[utf8]{inputenc}\r\n\\usepackage[english]{babel}\r\n\r\n\\usepackage{geometry}\r\n\\geometry{\r\n\ta4paper,\r\n\tleft=20mm,\r\n\ttop=20mm,\r\n\tbottom=20mm,\r\n\tright=20mm,\r\n}\r\n\r\n\\usepackage{bbding}\r\n\\usepackage{color}\r\n\\usepackage{xcolor}\r\n\\usepackage{soul}\r\n\\usepackage{hyperref}\r\n\\usepackage[hashEnumerators,smartEllipses]{markdown}\r\n\\usepackage{progressbar}\r\n\r\n\\renewcommand{\\thechapter}{\\Roman{chapter}}\r\n\r\n\\setul{0.3ex}{0.3ex}\r\n\r\n%
+        Custom colors\r\n\\definecolor{colorSecId}{HTML}{0060c7}\r\n\\definecolor{colorReqQ}{HTML}{FF0000}\r\n%
+        Progress bar colors\r\n\\definecolor{colorBarAwful}{HTML}{DC3545}\r\n\\definecolor{colorBarBad}{HTML}{EA6D2C}\r\n\\definecolor{colorBarAverage}{HTML}{D4BC13}\r\n\\definecolor{colorBarGood}{HTML}{A9B720}\r\n\\definecolor{colorBarNice}{HTML}{7EB12C}\r\n\\definecolor{colorBarAwesome}{HTML}{28A745}\r\n%
+        Colors for tags (underline)\r\n{%- for tag in dc.km.tags -%}\r\n{%- set color
+        = tag.color[1:] if tag.color[0] == \"#\" else tag.color %}\r\n\\definecolor{{
+        \"{\" }}{{color}}{{ \"}\" }}{HTML}{{ \"{\" }}{{color}}{{ \"}\" }}\r\n{%- endfor
+        %}\r\n\r\n% Strut for table\r\n\\newcommand\\Tstrut{\\rule{0pt}{2.6ex}}\r\n\r\n\\begin{document}\r\n\r\n\\begin{titlepage}\r\n    \\begin{center}\r\n        \\vspace*{1cm}\r\n\r\n        \\Huge\r\n        \\textbf{{
+        \"{\" }}{{dc.qtn.name}}{{ \"}\" }}\r\n\r\n        \\vspace{0.5cm}\r\n        \\LARGE\r\n        Questionnaire
+        Report\r\n\r\n        \\vspace{1.5cm}\r\n\r\n{%- if dc.qtn.created_by %}\r\n        \\Large\r\n        \\textbf{{
+        \"{\" }}{{dc.qtn.created_by.first_name}} {{dc.qtn.created_by.last_name}}{{
+        \"}\" }}\\\\\r\n        {{dc.qtn.created_by.email}}\r\n{%- endif %}\r\n        \\vspace{1.5cm}\r\n\r\n        \\normalsize\r\n        Based
+        on\\\\\r\n        {{dc.pkg.name}}, {{dc.pkg.version}}\\\\\r\n        \\texttt{{\"{\"}}{{dc.pkg.org_id}}:{{dc.pkg.km_id}}:{{dc.pkg.version}}{{\"}\"}}\\\\\r\n        {%-
+        for version in dc.qtn.versions if version.uuid == dc.qtn.version %}\r\n        \\vspace{0.5cm}\r\n        Version:
+        {{ version.name }} ({{ version.created_at|datetime_format(\"%d %b %Y %H:%M:%S\")
+        }} UTC)\\\\\r\n        {%- endfor %}\r\n        {%- if dc.current_phase %}\r\n        \\vspace{0.5cm}\r\n        Project
+        phase: {{dc.current_phase.title}}\\\\\r\n        {%- endif %}\r\n        {%-
+        if dc.qtn.project_tags|length > 0 %}\r\n        \\vspace{0.25cm}\r\n        Project
+        tags: {% for tag in dc.qtn.project_tags %}{{ tag }}{% if not loop.last %},
+        {% endif %}{% endfor %}\\\\\r\n        {%- endif %}\r\n        {%- if dc.qtn.description
+        %}\r\n        \\vspace{0.25cm}\r\n        Description: {{ dc.qtn.description
+        }}\\\\\r\n        {%- endif %}\r\n\r\n        \\vfill\r\n\r\n        \\Large\r\n        {{
+        \"{\" }}{{ dc.doc.created_at|datetime_format(\"%d %b %Y\") }}{{ \"}\" }}\r\n\r\n        \\vspace{0.8cm}\r\n\r\n        \\normalsize\r\n        Document
+        generated by \\href{https://ds-wizard.org}{Data Stewardship Wizard}\r\n    \\end{center}\r\n\\end{titlepage}\r\n\r\n\\chapter*{Report
+        Summary}\r\n\r\n{{ renderReport(dc.report.total_report) }}\r\n\r\n{{ renderVersions()
+        }}\r\n\r\n{% for chapter in dc.km.chapters %}\r\n{% set chapterId = loop.index|roman
+        %}\r\n\\chapter{{ \"{\" }}{{chapter.title}}{{ \"}\" }}\r\n\\label{{ \"{\"
+        }}{{chapter.uuid}}{{ \"}\" }}\r\n% uuid: {{chapter.uuid}}\r\n% path: {{chapter.uuid}}\r\n\r\n{%-
+        if chapter.text %}\r\n\\begin{markdown}\r\n{{chapter.text}}\r\n\\end{markdown}\r\n{%-
+        endif %}\r\n\r\n{% for chapterReport in chapter.reports %}\r\n\\section*{Chapter
+        Summary}\r\n{{ renderReport(chapterReport) }}\r\n{% endfor %}\r\n\r\n{% for
+        question in chapter.questions %}\r\n{{ renderQuestion(question, chapter.uuid,
+        chapterId ~ \".\" ~ loop.index, True) }}\r\n{% endfor %}\r\n\r\n{% endfor
+        %}\r\n\r\n\\end{document}\r\n","createdAt":"2023-04-25T13:13:28.630013Z","documentTemplateId":"myorg:questionnaire-report:2.9.0","fileName":"src/default.tex.j2","updatedAt":"2023-04-25T13:13:28.630013Z","uuid":"1b1f2d3a-a0bb-4ee6-b2f2-d3e20bf332c4"}'
+    headers:
+      Access-Control-Allow-Credential:
+      - 'true'
+      Access-Control-Allow-Headers:
+      - Origin, X-Requested-With, Content-Type, Accept, Authorization
+      Access-Control-Allow-Methods:
+      - OPTIONS, HEAD, GET, POST, PUT, DELETE
+      Access-Control-Allow-Origin:
+      - '*'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 25 Apr 2023 14:00:27 GMT
+      Server:
+      - Warp/3.3.25
+      Transfer-Encoding:
+      - chunked
+      x-trace-uuid:
+      - 80474672-efb7-4c35-9618-4d8c28a35992
+    status:
+      code: 200
+      message: OK
+    url: http://localhost:3000/document-template-drafts/myorg:questionnaire-report:2.9.0/files/1b1f2d3a-a0bb-4ee6-b2f2-d3e20bf332c4
+- request:
+    body: null
+    headers:
+      Authorization:
+      - Bearer dummy-token
+      User-Agent:
+      - dsw-tdk/3.22.0
+    method: GET
+    uri: http://localhost:3000/document-template-drafts/myorg:questionnaire-report:2.9.0/files/1b7f73af-2659-43bf-9a65-fa506ab60bf3
+  response:
+    body:
+      string: "{\"appUuid\":\"00000000-0000-0000-0000-000000000000\",\"content\":\"{#-
+        ------------------------------------------------------------------------------------
+        -#}\\r\\n{#-  VARIABLES                                                                           -#}\\r\\n{#-
+        ------------------------------------------------------------------------------------
+        -#}\\r\\n{%- set dc = ctx|to_context_obj -%}\\r\\n{#- ------------------------------------------------------------------------------------
+        -#}\\r\\n{#-  TAGS, REFERENCES, and EXPERTS MACROS                                                 -#}\\r\\n{#-
+        ------------------------------------------------------------------------------------
+        -#}\\r\\n{%- macro renderTags(question) -%}\\r\\n{%- if question.tags|length
+        > 0 %}\\r\\n* \U0001F3F7\uFE0F **Tags:** {% for tag in question.tags %}*{{tag.name}}*{%
+        if not loop.last %}, {% endif %}{% endfor %}\\r\\n{%- endif %}\\r\\n{%- endmacro
+        -%}\\r\\n{%- macro renderResourcePageReferences(question) -%}\\r\\n{% set
+        refs = question.resource_page_references %}\\r\\n{% if refs|length > 0 %}\\r\\n*
+        \U0001F4D6 **Data Stewardship for Open Science:** {% for reference in refs
+        %}[{{reference.short_uuid}}]({{reference.url}}){% if not loop.last %}, {%
+        endif %}{% endfor %}\\r\\n{%- endif -%}\\r\\n{%- endmacro -%}\\r\\n{%- macro
+        renderURLReferences(question) -%}\\r\\n{% set refs = question.url_references
+        %}\\r\\n{% if refs|length > 0 %}\\r\\n* \U0001F517 **External links**: {%
+        for reference in refs %}[{{reference.label}}]({{reference.url}}){% if not
+        loop.last %}, {% endif %}{% endfor %}\\r\\n{%- endif -%}\\r\\n{%- endmacro
+        -%}\\r\\n{%- macro renderExperts(question) -%}\\r\\n{% if question.experts|length
+        > 0 %}\\r\\n* \U0001F64B **Experts:** {% for expert in question.experts %}*{{expert.name}}*
+        <{{expert.email}}>{% if not loop.last %}, {% endif %}{% endfor %}\\r\\n{%-
+        endif -%}\\r\\n{%- endmacro -%}\\r\\n{#- ------------------------------------------------------------------------------------
+        -#}\\r\\n{#-  ANSWERS MACROS                                                                      -#}\\r\\n{#-
+        ------------------------------------------------------------------------------------
+        -#}\\r\\n{%- macro renderAnswerValue(question, reply, path, humanIdentifier)
+        -%}\\r\\n\u2714\uFE0F {{reply.value}}\\r\\n{%- if reply.is_integration %}{%
+        set integration = question.integration -%}\\r\\n ({{integration.name}}: [{{reply.item_id}}]({{integration.item(reply.item_id)}}})){%-
+        endif -%}\\r\\n{%- endmacro -%}\\r\\n{%- macro renderAnswerOption(question,
+        reply, path, humanIdentifier) -%}\\r\\n{% set hi = question.answers.index(reply.answer)
+        %}\\r\\n{%- set answer = reply.answer -%}\\r\\n{%- set path = path ~ \\\".\\\"
+        ~ answer.uuid -%}\\r\\n{%- set humanIdentifier = humanIdentifier ~ \\\".\\\"
+        ~ hi|of_alphabet -%}\\r\\n\u2714\uFE0F {{ hi|of_alphabet }}. {{answer.label}}\\r\\n{%
+        if answer.advice -%}\\r\\n\U0001F4A1 {{answer.advice}}\\r\\n{%- endif -%}\\r\\n{%-
+        if answer.followups|length > 0 -%}\\r\\n{%- set hiPrefix = humanIdentifier
+        ~ \\\".\\\" -%}\\r\\n{%- for question in answer.followups -%}\\r\\n{%- set
+        x = loop.index -%}\\r\\n{{ renderQuestion(question, path, hiPrefix ~ x) }}\\r\\n{%-
+        endfor -%}\\r\\n{%- endif -%}\\r\\n{%- endmacro -%}\\r\\n{%- macro renderAnswerList(question,
+        reply, path, humanIdentifier) -%}\\r\\n{%- set itemPathPrefix = path ~ \\\".\\\"
+        -%}\\r\\n{%- set hiPrefix = humanIdentifier ~ \\\".\\\" -%}\\r\\n{%- for i
+        in reply.items -%}\\r\\n{%- set itemPath = itemPathPrefix ~ i -%}\\r\\n{%-
+        set itemHumanIdenfifier = hiPrefix ~ (loop.index - 1)|of_alphabet -%}\\r\\n{%-
+        for question in question.followups -%}\\r\\n{%- set x = loop.index -%}\\r\\n{{
+        renderQuestion(question, itemPath, itemHumanIdenfifier ~ \\\".\\\" ~ x) }}\\r\\n{%-
+        else -%}\\r\\n*No follow up questions*\\r\\n{%- endfor -%}\\r\\n{%- else %}\\r\\n*No
+        answer items*\\r\\n{%- endfor -%}\\r\\n{%- endmacro -%}\\r\\n{%- macro renderChoiceList(question,
+        reply, path, humanIdentifier) -%}\\r\\n{%- for choice in question.choices
+        -%}\\r\\n{%- if choice in reply.choices %}\\r\\n* \u2714\uFE0F {{ choice.label
+        }}\\r\\n{%- else %}\\r\\n* \u274C {{ choice.label }}\\r\\n{%- endif %}\\r\\n{%-
+        endfor -%}\\r\\n{%- endmacro -%}\\r\\n{#- ------------------------------------------------------------------------------------
+        -#}\\r\\n{#-  QUESTION MACROS                                                                     -#}\\r\\n{#-
+        ------------------------------------------------------------------------------------
+        -#}\\r\\n{%- macro renderQuestionExtras(question) -%}\\r\\n{{- renderResourcePageReferences(question)
+        -}}\\r\\n{{- renderURLReferences(question) -}}\\r\\n{{- renderExperts(question)
+        -}}\\r\\n{%- endmacro -%}\\r\\n{%- macro renderQuestionReply(question, path,
+        humanIdentifier) -%}\\r\\n{%- set reply = question.replies.get(path) -%}\\r\\n{%-
+        if reply and reply.value -%}\\r\\n{%- if question is of_type(\\\"ValueQuestion\\\")
+        and reply is of_type(\\\"StringReply\\\") -%}\\r\\n{{ renderAnswerValue(question,
+        reply, path, humanIdentifier) }}\\r\\n{%- elif question is of_type(\\\"OptionsQuestion\\\")
+        and reply is of_type(\\\"AnswerReply\\\") -%}\\r\\n{{ renderAnswerOption(question,
+        reply, path, humanIdentifier) }}\\r\\n{%- elif question is of_type(\\\"ListQuestion\\\")
+        and reply is of_type(\\\"ItemListReply\\\") -%}\\r\\n{{ renderAnswerList(question,
+        reply, path, humanIdentifier) }}\\r\\n{%- elif question is of_type(\\\"IntegrationQuestion\\\")
+        and reply is of_type(\\\"IntegrationReply\\\") -%}\\r\\n{{ renderAnswerValue(question,
+        reply, path, humanIdentifier) }}\\r\\n{%- elif question is of_type(\\\"MultiChoiceQuestion\\\")
+        and reply is of_type(\\\"MultiChoiceReply\\\") -%}\\r\\n{{ renderChoiceList(question,
+        reply, path, humanIdentifier) }}\\r\\n{%- endif -%}\\r\\n{%- else %}\\r\\n\u2757
+        *This question has not been answered yet!*\\r\\n{%- endif -%}\\r\\n{%- endmacro
+        -%}\\r\\n{%- macro renderQuestion(question, path, humanIdentifier) -%}\\r\\n{%-
+        set path = path ~ \\\".\\\" ~ question.uuid %}\\r\\n#### {{humanIdentifier}}
+        {{question.title}}\\r\\n{{- renderTags(question) -}}\\r\\n{{- renderQuestionExtras(question)
+        -}}\\r\\n{%- if question.text %}\\r\\n> {{ question.text.replace(\\\"\\\\n\\\",
+        \\\"\\\\n> \\\") }}\\r\\n{%- endif %}\\r\\n{{ renderQuestionReply(question,
+        path, humanIdentifier) }}\\r\\n{%- endmacro -%}\\r\\n{#- ------------------------------------------------------------------------------------
+        -#}\\r\\n{#-  CHAPTER MACROS                                                                      -#}\\r\\n{#-
+        ------------------------------------------------------------------------------------
+        -#}\\r\\n{%- macro renderReport(report) -%}\\r\\n{%- if report.indications|length
+        > 0 %}\\r\\n### Summary\\r\\n\\r\\n{% for item in report.indications -%}\\r\\n*
+        Answered{% if item.is_for_phase %} (current phase){% endif %}: **{{item.answered}}
+        / {{item.total}}** ({{\\\"%.2f\\\"|format(item.percentage)}} %)\\r\\n{% endfor
+        %}\\r\\n{% endif -%}\\r\\n{%- if report.metrics|length > 0 %}\\r\\n\\r\\n###
+        Metrics\\r\\n{% for item in report.metrics %}\\r\\n* {{item.metric.title}}:
+        {{ \\\"%.2f\\\"|format(item.measure) }}\\r\\n{%- endfor %}\\r\\n{% endif -%}\\r\\n{%-
+        endmacro -%}\\r\\n{%- macro renderChapter(chapter, humanIdentifier) -%}\\r\\n##
+        {{humanIdentifier|roman}}. {{chapter.title}}\\r\\n\\r\\n{%- if chapter.text
+        %}\\r\\n> {{chapter.text.replace(\\\"\\\\n\\\", \\\"\\\\n> \\\")}}\\r\\n{%
+        endif -%}\\r\\n\\r\\n{% for chapterReport in chapter.reports %}\\r\\n{{ renderReport(chapterReport)
+        }}\\r\\n{% endfor %}\\r\\n\\r\\n### Questions\\r\\n\\r\\n{% for question in
+        chapter.questions %}\\r\\n{{ renderQuestion(question, chapter.uuid, loop.index)
+        }}\\r\\n{%- else %}\\r\\n*No questions*\\r\\n{%- endfor %}\\r\\n{%- endmacro
+        -%}\\r\\n{#- ------------------------------------------------------------------------------------
+        -#}\\r\\n{#-  INTRODUCTION                                                                        -#}\\r\\n{#-
+        ------------------------------------------------------------------------------------
+        -#}\\r\\n# {{ dc.qtn.name }}\\r\\n\\r\\n* Organization: **{{ dc.org.name }}**\\r\\n{%-
+        if dc.qtn.created_by %}\\r\\n* Created by: **{{ dc.qtn.created_by.first_name
+        }} {{ dc.qtn.created_by.last_name }}** <{{ dc.qtn.created_by.email }}>\\r\\n{%-
+        endif %}\\r\\n* Based on: **{{ dc.pkg.name }}, {{ dc.pkg.version }}** (`{{
+        dc.pkg.org_id }}:{{ dc.pkg.km_id }}:{{ dc.pkg.version }}`)\\r\\n{%- for version
+        in dc.qtn.versions if version.uuid == dc.qtn.version %}\\r\\n* Version: **{{
+        version.name }}** ({{ version.created_at|datetime_format(\\\"%d %b %Y %H:%M:%S\\\")
+        }} UTC)\\r\\n{%- endfor %}\\r\\n{%- if dc.current_phase %}\\r\\n* Project
+        phase: **{{ dc.current_phase.title }}**\\r\\n{%- endif %}\\r\\n{%- if dc.qtn.project_tags|length
+        > 0 %}\\r\\n* Project tags: {% for tag in dc.qtn.project_tags %}**{{ tag }}**{%
+        if not loop.last %}, {% endif %}{% endfor %}\\r\\n{%- endif %}\\r\\n{%- if
+        dc.qtn.description %}\\r\\n* Description: **{{ dc.qtn.description }}**\\r\\n{%-
+        endif %}\\r\\n* Created at: **{{ dc.doc.created_at|datetime_format(\\\"%d
+        %b %Y\\\") }}**\\r\\n\\r\\n## Report\\r\\n\\r\\n{{ renderReport(dc.report.total_report)
+        }}\\r\\n\\r\\n{% if dc.qtn.versions|length > 0 %}\\r\\n## History of Versions\\r\\n\\r\\nThe
+        named versions of this document:\\r\\n\\r\\n{%- for version in dc.qtn.versions|reverse
+        %}\\r\\n* **{{ version.name }}** ({{ version.created_at|datetime_format(\\\"%d
+        %b %Y\\\") }}): {{ version.description }}\\r\\n{%- endfor %}\\r\\n{%- endif
+        %}\\r\\n\\r\\n---\\r\\n\\r\\n{% for chapter in dc.km.chapters %}\\r\\n{{ renderChapter(chapter,
+        loop.index) }}\\r\\n{% else %}\\r\\n*No chapters*\\r\\n{% endfor %}\\r\\n\",\"createdAt\":\"2023-04-25T13:13:28.634374Z\",\"documentTemplateId\":\"myorg:questionnaire-report:2.9.0\",\"fileName\":\"src/default.md.j2\",\"updatedAt\":\"2023-04-25T13:13:28.634374Z\",\"uuid\":\"1b7f73af-2659-43bf-9a65-fa506ab60bf3\"}"
+    headers:
+      Access-Control-Allow-Credential:
+      - 'true'
+      Access-Control-Allow-Headers:
+      - Origin, X-Requested-With, Content-Type, Accept, Authorization
+      Access-Control-Allow-Methods:
+      - OPTIONS, HEAD, GET, POST, PUT, DELETE
+      Access-Control-Allow-Origin:
+      - '*'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 25 Apr 2023 14:00:27 GMT
+      Server:
+      - Warp/3.3.25
+      Transfer-Encoding:
+      - chunked
+      x-trace-uuid:
+      - a7833d61-cab6-4e04-9b7d-8f1837b7d87a
+    status:
+      code: 200
+      message: OK
+    url: http://localhost:3000/document-template-drafts/myorg:questionnaire-report:2.9.0/files/1b7f73af-2659-43bf-9a65-fa506ab60bf3
+- request:
+    body: null
+    headers:
+      Authorization:
+      - Bearer dummy-token
+      User-Agent:
+      - dsw-tdk/3.22.0
+    method: GET
+    uri: http://localhost:3000/document-template-drafts/myorg:questionnaire-report:2.9.0/files/158f343a-2c24-4001-aff8-61379d9fb2bd
+  response:
+    body:
+      string: "{\"appUuid\":\"00000000-0000-0000-0000-000000000000\",\"content\":\"<!DOCTYPE
+        HTML>\\r\\n{# ------------------------------------------------------------------------------------
+        #}\\r\\n{#  VARIABLES                                                                           #}\\r\\n{#
+        ------------------------------------------------------------------------------------
+        #}\\r\\n{%- set dc = ctx|to_context_obj -%}\\r\\n{# ------------------------------------------------------------------------------------
+        #}\\r\\n{#  TAGS, REFERNCES, and EXPERTS MACROS                                                 #}\\r\\n{#
+        ------------------------------------------------------------------------------------
+        #}\\r\\n{%- macro renderTags(question) -%}\\r\\n  {% if question.tags|length
+        > 0 %}\\r\\n    <div>\\r\\n      \U0001F3F7\uFE0F <b>Tags:</b> {% for tag
+        in question.tags %}<i>{{tag.name}}</i>{% if not loop.last %}, {% endif %}{%
+        endfor %}\\r\\n    </div>\\r\\n  {% endif %}\\r\\n{%- endmacro -%}\\r\\n{%-
+        macro renderResourcePageReferences(question) -%}\\r\\n  {% set refs = question.resource_page_references
+        %}\\r\\n  {% if refs|length > 0 %}\\r\\n    <div>\\r\\n      \U0001F4D6 <b>Data
+        Stewardship for Open Science:</b> {% for reference in refs %}<a href=\\\"{{reference.url}}\\\"
+        target=\\\"_blank\\\"><i>{{reference.short_uuid}}</i></a>{% if not loop.last
+        %}, {% endif %}{% endfor %}\\r\\n    </div>\\r\\n  {% endif %}\\r\\n{%- endmacro
+        -%}\\r\\n{%- macro renderURLReferences(question) -%}\\r\\n  {% set refs =
+        question.url_references %}\\r\\n  {% if refs|length > 0 %}\\r\\n    <div>\\r\\n
+        \     \U0001F517 <b>External Links:</b> {% for reference in refs %}<a href=\\\"{{reference.url}}\\\"
+        target=\\\"_blank\\\"><i>{{reference.label}}</i></a>{% if not loop.last %},
+        {% endif %}{% endfor %}\\r\\n    </div>\\r\\n  {% endif %}\\r\\n{%- endmacro
+        -%}\\r\\n{%- macro renderExperts(question) -%}\\r\\n  {% if question.experts|length
+        > 0 %}\\r\\n    <div>\\r\\n      \U0001F64B <b>Experts:</b> {% for expert
+        in question.experts %}<i>{{expert.name}} (<a href=\\\"mailto:{{expert.email}}\\\">{{expert.email}}</a>){%
+        if not loop.last %}, {% endif %}</i>{% endfor %}\\r\\n    </div>\\r\\n  {%
+        endif %}\\r\\n{%- endmacro -%}\\r\\n{# ------------------------------------------------------------------------------------
+        #}\\r\\n{#  ANSWERS MACROS                                                                      #}\\r\\n{#
+        ------------------------------------------------------------------------------------
+        #}\\r\\n{%- macro renderAnswerValue(question, reply, path, humanIdentifier)
+        -%}\\r\\n  <div>\\r\\n    <p>\\r\\n      \u2714\uFE0F\\r\\n      {% if reply
+        is of_type(\\\"StringReply\\\") %}\\r\\n        <span>{{reply.value}}</span>\\r\\n
+        \     {% else %}\\r\\n        <span>{{reply.value|markdown}}</span>\\r\\n
+        \       {% if reply.is_integration %}\\r\\n          {# Integration #}\\r\\n
+        \         {% set integration = question.integration %}\\r\\n          <span>\\r\\n
+        \           ({{ integration.name }}: <a href=\\\"{{ integration.item(reply.item_id)
+        }}\\\">{{ reply.item_id }}</a>)\\r\\n          </span>\\r\\n        {% endif
+        %}\\r\\n      {% endif %}\\r\\n    </p>\\r\\n  </div>\\r\\n{%- endmacro -%}\\r\\n{%-
+        macro renderAnswerOption(question, reply, path, humanIdentifier) -%}\\r\\n
+        \ {% set hi = question.answers.index(reply.answer) %}\\r\\n  {% set answer
+        = reply.answer %}\\r\\n  {% set path = path ~ \\\".\\\" ~ answer.uuid %}\\r\\n
+        \ {% set humanIdentifier = humanIdentifier ~ \\\".\\\" ~ hi|of_alphabet %}\\r\\n
+        \ <div>\\r\\n    <p>\\r\\n      \u2714\uFE0F <span>{{ hi|of_alphabet }}. {{answer.label}}</span>\\r\\n
+        \   </p>\\r\\n    {% if answer.advice %}\\r\\n    <p>\\r\\n      <b>Advice:</b>
+        {{answer.advice|markdown}}\\r\\n    </p>\\r\\n    {% endif %}\\r\\n    {%
+        if answer.followups|length > 0 %}\\r\\n      <div>\\r\\n        {% set hiPrefix
+        = humanIdentifier ~ \\\".\\\" %}\\r\\n        {% for question in answer.followups
+        %}\\r\\n          {% set x = loop.index %}\\r\\n          {{ renderQuestion(question,
+        path, hiPrefix ~ x) }}\\r\\n        {% endfor %}\\r\\n      </div>\\r\\n    {%
+        endif %}\\r\\n  </div>\\r\\n{%- endmacro -%}\\r\\n{%- macro renderAnswerList(question,
+        reply, path, humanIdentifier) -%}\\r\\n  <div>\\r\\n    <h4>Answers ({{reply.items|length}}
+        items)</h4>\\r\\n    {% set itemPathPrefix = path ~ \\\".\\\" %}\\r\\n    {%
+        set hiPrefix = humanIdentifier ~ \\\".\\\" %}\\r\\n    {% for i in reply.items
+        %}\\r\\n      {% set itemPath = itemPathPrefix ~ i %}\\r\\n      {% set itemHumanIdenfifier
+        = hiPrefix ~ (loop.index - 1)|of_alphabet %}\\r\\n      <div class=\\\"answer-item\\\"
+        id=\\\"{{itemPath}}\\\">\\r\\n        <div class=\\\"followups\\\">\\r\\n
+        \         {% for question in question.followups %}\\r\\n            {% set
+        x = loop.index %}\\r\\n            {{ renderQuestion(question, itemPath, itemHumanIdenfifier
+        ~ \\\".\\\" ~ x) }}\\r\\n          {% else %}\\r\\n            <i>No follow
+        up questions</i>\\r\\n          {% endfor %}\\r\\n        </div>\\r\\n      </div>\\r\\n
+        \   {% else %}\\r\\n      <i>No answer items</i>\\r\\n    {% endfor %}\\r\\n
+        \ </div>\\r\\n{%- endmacro -%}\\r\\n{%- macro renderChoiceList(question, reply,
+        path, humanIdentifier) -%}\\r\\n  <div>\\r\\n    <ul>\\r\\n    {% for choice
+        in question.choices %}\\r\\n      {%- if choice in reply.choices %}\\r\\n
+        \       <li>\u2714\uFE0F {{ choice.label }}</li>\\r\\n      {%- else %}\\r\\n
+        \       <li>\u274C {{ choice.label }}</li>\\r\\n      {%- endif %}\\r\\n    {%
+        endfor %}\\r\\n    </ul>\\r\\n  </div>\\r\\n{%- endmacro -%}\\r\\n{# ------------------------------------------------------------------------------------
+        #}\\r\\n{#  QUESTION MACROS                                                                     #}\\r\\n{#
+        ------------------------------------------------------------------------------------
+        #}\\r\\n{%- macro renderQuestionExtras(question) -%}\\r\\n  <div>\\r\\n    {{
+        renderResourcePageReferences(question) }}\\r\\n    {{ renderURLReferences(question)
+        }}\\r\\n    {{ renderExperts(question) }}\\r\\n  </div>\\r\\n{%- endmacro
+        -%}\\r\\n{%- macro renderQuestionReply(question, path, humanIdentifier) -%}\\r\\n
+        \ {# Question - Answers #}\\r\\n  {% set reply = question.replies.get(path)
+        %}\\r\\n  {% if reply and reply.value %}\\r\\n    {% if question is of_type(\\\"ValueQuestion\\\")
+        and reply is of_type(\\\"StringReply\\\") %}\\r\\n      {{ renderAnswerValue(question,
+        reply, path, humanIdentifier) }}\\r\\n    {% elif question is of_type(\\\"OptionsQuestion\\\")
+        and reply is of_type(\\\"AnswerReply\\\") %}\\r\\n      {{ renderAnswerOption(question,
+        reply, path, humanIdentifier) }}\\r\\n    {% elif question is of_type(\\\"ListQuestion\\\")
+        and reply is of_type(\\\"ItemListReply\\\") %}\\r\\n      {{ renderAnswerList(question,
+        reply, path, humanIdentifier) }}\\r\\n    {% elif question is of_type(\\\"IntegrationQuestion\\\")
+        and reply is of_type(\\\"IntegrationReply\\\") %}\\r\\n      {{ renderAnswerValue(question,
+        reply, path, humanIdentifier) }}\\r\\n    {% elif question is of_type(\\\"MultiChoiceQuestion\\\")
+        and reply is of_type(\\\"MultiChoiceReply\\\") %}\\r\\n      {{ renderChoiceList(question,
+        reply, path, humanIdentifier) }}\\r\\n    {% endif %}\\r\\n  {% else %}\\r\\n
+        \   <p>\u2757 <i>This question has not been answered yet!</i></p>\\r\\n  {%
+        endif %}\\r\\n{%- endmacro -%}\\r\\n{%- macro renderQuestion(question, path,
+        humanIdentifier) -%}\\r\\n  {% set path = path ~ \\\".\\\" ~ question.uuid
+        %}\\r\\n  <div>\\r\\n    <h2>{{humanIdentifier}}. {{question.title}}</h2>\\r\\n\\r\\n
+        \   {{ renderTags(question) }}\\r\\n\\r\\n    {{ renderQuestionExtras(question)
+        }}\\r\\n\\r\\n    {{ question.text|markdown }}\\r\\n\\r\\n    {{ renderQuestionReply(question,
+        path, humanIdentifier) }}\\r\\n  </div>\\r\\n{%- endmacro -%}\\r\\n{# ------------------------------------------------------------------------------------
+        #}\\r\\n{#  CHAPTER MACROS                                                                      #}\\r\\n{#
+        ------------------------------------------------------------------------------------
+        #}\\r\\n{%- macro renderReport(report) -%}\\r\\n  <section>\\r\\n    <h2>Summary</h2>\\r\\n
+        \   <h3>Answered indication</h3>\\r\\n    <table>\\r\\n      <tbody>\\r\\n
+        \       {% for item in report.indications %}\\r\\n          <tr>\\r\\n            <td>Answered
+        {% if item.is_for_phase %}(current phase){% endif %}</td>\\r\\n              <td>{{item.answered}}
+        / {{item.total}} </td>\\r\\n            <td>{{ \\\"%.2f\\\"|format(item.percentage)}}
+        %</td>\\r\\n          </tr>\\r\\n        {% endfor %}\\r\\n      </tbody>\\r\\n
+        \   </table>\\r\\n    {% if report.metrics|length > 0 %}\\r\\n    <h3>Metrics</h3>\\r\\n
+        \   <table>\\r\\n      <thead><tr><th>Metric</th><th>Score</th></tr></thead>\\r\\n
+        \     <tbody>\\r\\n        {% for item in report.metrics %}\\r\\n          <tr>\\r\\n
+        \           <td>{{ item.metric.title }}</td>\\r\\n            <td>{{ \\\"%.2f\\\"|format(item.measure)
+        }}</td>\\r\\n          </tr>\\r\\n        {% endfor %}\\r\\n      </tbody>\\r\\n
+        \   </table>\\r\\n    {% endif %}\\r\\n  </section>\\r\\n{%- endmacro -%}\\r\\n{%-
+        macro renderChapter(chapter, humanIdentifier) -%}\\r\\n      <section>\\r\\n
+        \       <h1>{{humanIdentifier|roman}}. {{chapter.title}}</h1>\\r\\n        <p>{{chapter.text|markdown}}</p>\\r\\n\\r\\n
+        \       {% for chapterReport in chapter.reports %}\\r\\n          {{ renderReport(chapterReport)
+        }}\\r\\n        {% endfor %}\\r\\n\\r\\n        <section>\\r\\n          {%
+        for question in chapter.questions %}\\r\\n            {{ renderQuestion(question,
+        chapter.uuid, loop.index) }}\\r\\n          {% else %}\\r\\n            <p><i>No
+        questions</i></p>\\r\\n          {% endfor %}\\r\\n        </section>\\r\\n
+        \     </section>\\r\\n{%- endmacro -%}\\r\\n{# ------------------------------------------------------------------------------------
+        #}\\r\\n{#  HTML LAYOUT                                                                         #}\\r\\n{#
+        ------------------------------------------------------------------------------------
+        #}\\r\\n{%- macro renderFrontPage() -%}\\r\\n  <table>\\r\\n    <tr>\\r\\n
+        \     <th>Organization</th>\\r\\n      <td>{{dc.org.name}}</td>\\r\\n    </tr>\\r\\n
+        \   {% if dc.qtn.created_by %}\\r\\n    <tr>\\r\\n      <th>Created by</th>\\r\\n
+        \     <td>{{dc.qtn.created_by.first_name}} {{dc.qtn.created_by.last_name}}
+        (<a href=\\\"mailto:{{dc.qtn.created_by.email}}\\\">{{dc.qtn.created_by.email}}</a>)</td>\\r\\n
+        \   </tr>\\r\\n    {% endif %}\\r\\n    <tr>\\r\\n      <th>Based on</th>\\r\\n
+        \     <td>{{dc.pkg.name}}, {{dc.pkg.version}} (<code>{{dc.pkg.org_id}}:{{dc.pkg.km_id}}:{{dc.pkg.version}}</code>)</td>\\r\\n
+        \   </tr>\\r\\n    {% for version in dc.qtn.versions if version.uuid == dc.qtn.version
+        %}\\r\\n    <tr>\\r\\n      <th>Version</th>\\r\\n      <td>{{version.name}}
+        ({{ version.created_at|datetime_format(\\\"%d %b %Y %H:%M:%S\\\") }} UTC)</td>\\r\\n
+        \   </tr>\\r\\n    {% endfor %}\\r\\n    {% if dc.current_phase %}\\r\\n    <tr>\\r\\n
+        \     <th>Project Phase</th>\\r\\n      <td>{{dc.current_phase.title}}</td>\\r\\n
+        \   </tr>\\r\\n    {% endif %}\\r\\n    {% if dc.qtn.project_tags|length >
+        0 %}\\r\\n    <tr>\\r\\n      <th>Project Tags</th>\\r\\n      <td class=\\\"tags-row\\\">{%
+        for tag in dc.qtn.project_tags %}<span class=\\\"tag project-tag\\\">{{ tag
+        }}</span> {% endfor %}</td>\\r\\n    </tr>\\r\\n    {% endif %}\\r\\n    {%
+        if dc.qtn.description %}\\r\\n    <tr>\\r\\n      <th>Description</th>\\r\\n
+        \     <td>{{ dc.qtn.description }}</td>\\r\\n    </tr>\\r\\n    {% endif %}\\r\\n
+        \   <tr>\\r\\n      <th>Created at</th>\\r\\n      <td>{{ dc.doc.created_at|datetime_format(\\\"%d
+        %b %Y\\\") }}</td>\\r\\n    </tr>\\r\\n  </table>\\r\\n\\r\\n  \\\\newpage\\r\\n{%-
+        endmacro -%}\\r\\n{%- macro renderVersionsOverview() -%}\\r\\n  <div>\\r\\n
+        \   <h2>History of Versions</h2>\\r\\n    <p>The named versions of this document:</p>\\r\\n
+        \   <ul>\\r\\n      {% for version in dc.qtn.versions|reverse %}\\r\\n        <li>\\r\\n
+        \         <strong>{{ version.name }}</strong> ({{ version.created_at|datetime_format(\\\"%d
+        %b %Y\\\") }})\\r\\n          <p>{{ version.description }}</p>\\r\\n        </li>\\r\\n
+        \     {% endfor %}\\r\\n    </ul>\\r\\n  </div>\\r\\n{%- endmacro -%}\\r\\n{%-
+        macro renderContent() -%}\\r\\n  <div>\\r\\n    <div>\\r\\n      {{ renderReport(dc.report.total_report)
+        }}\\r\\n    </div>\\r\\n    {% if dc.qtn.versions|length > 0 %}\\r\\n      {{
+        renderVersionsOverview() }}\\r\\n    {% endif %}\\r\\n    {% for chapter in
+        dc.km.chapters %}\\r\\n      \\\\newpage\\r\\n      {{ renderChapter(chapter,
+        loop.index) }}\\r\\n    {% else %}\\r\\n      <p><i>No chapters</i></p>\\r\\n
+        \   {% endfor %}\\r\\n  </div>\\r\\n{%- endmacro -%}\\r\\n{# ------------------------------------------------------------------------------------
+        #}\\r\\n{#  HTML TEMPLATE                                                                       #}\\r\\n{#
+        ------------------------------------------------------------------------------------
+        #}\\r\\n<html>\\r\\n  <head>\\r\\n    <title>{{dc.qtn.name}}</title>\\r\\n
+        \   <meta charset=\\\"utf-8\\\">\\r\\n  </head>\\r\\n  <body>\\r\\n      {{
+        renderFrontPage() }}\\r\\n      {{ renderContent() }}\\r\\n  </body>\\r\\n</html>\\r\\n\",\"createdAt\":\"2023-04-25T13:13:28.636711Z\",\"documentTemplateId\":\"myorg:questionnaire-report:2.9.0\",\"fileName\":\"src/for-word.html.j2\",\"updatedAt\":\"2023-04-25T13:13:28.636711Z\",\"uuid\":\"158f343a-2c24-4001-aff8-61379d9fb2bd\"}"
+    headers:
+      Access-Control-Allow-Credential:
+      - 'true'
+      Access-Control-Allow-Headers:
+      - Origin, X-Requested-With, Content-Type, Accept, Authorization
+      Access-Control-Allow-Methods:
+      - OPTIONS, HEAD, GET, POST, PUT, DELETE
+      Access-Control-Allow-Origin:
+      - '*'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 25 Apr 2023 14:00:27 GMT
+      Server:
+      - Warp/3.3.25
+      Transfer-Encoding:
+      - chunked
+      x-trace-uuid:
+      - b7dbaba6-0a94-4f58-ac1d-d0828e3e36c8
+    status:
+      code: 200
+      message: OK
+    url: http://localhost:3000/document-template-drafts/myorg:questionnaire-report:2.9.0/files/158f343a-2c24-4001-aff8-61379d9fb2bd
+- request:
+    body: null
+    headers:
+      Authorization:
+      - Bearer dummy-token
+      User-Agent:
+      - dsw-tdk/3.22.0
+    method: GET
+    uri: http://localhost:3000/document-template-drafts/myorg:questionnaire-report:2.9.0/files/eb365c81-27bc-4113-bcdd-615c78342337
+  response:
+    body:
+      string: '{"appUuid":"00000000-0000-0000-0000-000000000000","content":"<!DOCTYPE
+        HTML>\r\n{# ------------------------------------------------------------------------------------
+        #}\r\n{#  VARIABLES                                                                           #}\r\n{#
+        ------------------------------------------------------------------------------------
+        #}\r\n{%- set dc = ctx|to_context_obj -%}\r\n{# ------------------------------------------------------------------------------------
+        #}\r\n{#  TAGS, REFERENCES, and EXPERTS MACROS                                                 #}\r\n{#
+        ------------------------------------------------------------------------------------
+        #}\r\n{%- macro renderResourcePageReferences(question) -%}\r\n  {% set refs
+        = question.resource_page_references %}\r\n  {% if refs|length > 0 %}\r\n    <div
+        class=\"references references-resourcepage\">\r\n      <svg aria-hidden=\"true\"
+        data-prefix=\"fas\" data-icon=\"book\" role=\"img\" xmlns=\"http://www.w3.org/2000/svg\"
+        viewBox=\"0 0 448 512\" class=\"svg-inline--fa fa-book fa-w-14 fa-2x\"><path
+        fill=\"currentColor\" d=\"M448 360V24c0-13.3-10.7-24-24-24H96C43 0 0 43 0
+        96v320c0 53 43 96 96 96h328c13.3 0 24-10.7 24-24v-16c0-7.5-3.5-14.3-8.9-18.7-4.2-15.4-4.2-59.3
+        0-74.7 5.4-4.3 8.9-11.1 8.9-18.6zM128 134c0-3.3 2.7-6 6-6h212c3.3 0 6 2.7
+        6 6v20c0 3.3-2.7 6-6 6H134c-3.3 0-6-2.7-6-6v-20zm0 64c0-3.3 2.7-6 6-6h212c3.3
+        0 6 2.7 6 6v20c0 3.3-2.7 6-6 6H134c-3.3 0-6-2.7-6-6v-20zm253.4 250H96c-17.7
+        0-32-14.3-32-32 0-17.6 14.4-32 32-32h285.4c-1.9 17.1-1.9 46.9 0 64z\" class=\"\"></path></svg>\r\n      <span><b>Data
+        Stewardship for Open Science:</b></span>\r\n      {% for reference in refs
+        %}\r\n        <a id=\"{{reference.uuid}}\" class=\"reference resourcepage-link\"
+        href=\"{{ reference.url }}\" target=\"_blank\"><i>{{reference.short_uuid}}</i></a>\r\n      {%
+        endfor %}\r\n    </div>\r\n  {% endif %}\r\n{%- endmacro -%}\r\n{%- macro
+        renderURLReferences(question) -%}\r\n  {% set refs = question.url_references
+        %}\r\n  {% if refs|length > 0 %}\r\n    <div class=\"references references-url\"
+        >\r\n      <svg aria-hidden=\"true\" data-prefix=\"far\" data-icon=\"external-link\"
+        role=\"img\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 576 512\"
+        class=\"svg-inline--fa fa-external-link fa-w-18 fa-2x\"><path fill=\"currentColor\"
+        d=\"M576 14.4l-.174 163.2c0 7.953-6.447 14.4-14.4 14.4H528.12c-8.067 0-14.56-6.626-14.397-14.691l2.717-73.627-2.062-2.062-278.863
+        278.865c-4.686 4.686-12.284 4.686-16.971 0l-23.029-23.029c-4.686-4.686-4.686-12.284
+        0-16.971L474.379 61.621l-2.062-2.062-73.626 2.717C390.626 62.44 384 55.946
+        384 47.879V14.574c0-7.953 6.447-14.4 14.4-14.4L561.6 0c7.953 0 14.4 6.447
+        14.4 14.4zM427.515 233.74l-24 24a12.002 12.002 0 0 0-3.515 8.485V458a6 6 0
+        0 1-6 6H54a6 6 0 0 1-6-6V118a6 6 0 0 1 6-6h301.976c10.691 0 16.045-12.926
+        8.485-20.485l-24-24A12.002 12.002 0 0 0 331.976 64H48C21.49 64 0 85.49 0 112v352c0
+        26.51 21.49 48 48 48h352c26.51 0 48-21.49 48-48V242.225c0-10.691-12.926-16.045-20.485-8.485z\"
+        class=\"\"></path></svg>\r\n      <b>External Links:</b>\r\n      {% for reference
+        in refs %}\r\n        <a id=\"{{reference.uuid}}\" class=\"reference url-link\"
+        href=\"{{reference.url}}\" target=\"_blank\"><i>{{reference.label}}</i></a>\r\n      {%
+        endfor %}\r\n    </div>\r\n  {% endif %}\r\n{%- endmacro -%}\r\n{%- macro
+        renderExperts(question) -%}\r\n  {% if question.experts|length > 0 %}\r\n    <div
+        class=\"experts\">\r\n      <svg aria-hidden=\"true\" data-prefix=\"far\"
+        data-icon=\"address-book\" role=\"img\" xmlns=\"http://www.w3.org/2000/svg\"
+        viewBox=\"0 0 448 512\" class=\"svg-inline--fa fa-address-book fa-w-14 fa-2x\"><path
+        fill=\"currentColor\" d=\"M436 160c6.6 0 12-5.4 12-12v-40c0-6.6-5.4-12-12-12h-20V48c0-26.5-21.5-48-48-48H48C21.5
+        0 0 21.5 0 48v416c0 26.5 21.5 48 48 48h320c26.5 0 48-21.5 48-48v-48h20c6.6
+        0 12-5.4 12-12v-40c0-6.6-5.4-12-12-12h-20v-64h20c6.6 0 12-5.4 12-12v-40c0-6.6-5.4-12-12-12h-20v-64h20zm-68
+        304H48V48h320v416zM208 256c35.3 0 64-28.7 64-64s-28.7-64-64-64-64 28.7-64
+        64 28.7 64 64 64zm-89.6 128h179.2c12.4 0 22.4-8.6 22.4-19.2v-19.2c0-31.8-30.1-57.6-67.2-57.6-10.8
+        0-18.7 8-44.8 8-26.9 0-33.4-8-44.8-8-37.1 0-67.2 25.8-67.2 57.6v19.2c0 10.6
+        10 19.2 22.4 19.2z\" class=\"\"></path></svg>\r\n      <b>Experts:</b>\r\n      {%
+        for expert in question.experts %}\r\n        <i class=\"expert\">{{expert.name}}
+        (<a href=\"mailto:{{expert.email}}\">{{expert.email}}</a>)</i>\r\n      {%
+        endfor %}\r\n    </div>\r\n  {% endif %}\r\n{%- endmacro -%}\r\n{# ------------------------------------------------------------------------------------
+        #}\r\n{#  ANSWERS MACROS                                                                      #}\r\n{#
+        ------------------------------------------------------------------------------------
+        #}\r\n{%- macro renderAnswerValue(question, reply, path, humanIdentifier)
+        -%}\r\n  <div class=\"answer-block answer-simple\" id=\"{{path}}\" data-path=\"{{path}}\"
+        data-type=\"answer\">\r\n    <p class=\"answer\">\r\n      <svg aria-hidden=\"true\"
+        data-prefix=\"fas\" data-icon=\"check\" class=\"svg-inline--fa fa-check fa-w-16\"
+        role=\"img\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 512 512\"><path
+        fill=\"currentColor\" d=\"M173.898 439.404l-166.4-166.4c-9.997-9.997-9.997-26.206
+        0-36.204l36.203-36.204c9.997-9.998 26.207-9.998 36.204 0L192 312.69 432.095
+        72.596c9.997-9.997 26.207-9.997 36.204 0l36.203 36.204c9.997 9.997 9.997 26.206
+        0 36.204l-294.4 294.401c-9.998 9.997-26.207 9.997-36.204-.001z\"></path></svg>\r\n      {%
+        if reply is of_type(\"StringReply\") %}\r\n        <span>{{reply.value}}</span>\r\n      {%
+        else %}\r\n        <span>{{reply.value|markdown}}</span>\r\n        {% if
+        reply.is_integration %}\r\n          {# Integration #}\r\n          {% set
+        integration = question.integration %}\r\n          <div class=\"integration-link\">\r\n            {%
+        if integration.logo %}<img src=\"{{ integration.logo }}\" alt=\"{{ integration.name
+        }}\">{% endif %}\r\n            <a href=\"{{ integration.item(reply.item_id)
+        }}\">\r\n              {{ integration.item(reply.item_id) }}\r\n            </a>\r\n          </div>\r\n        {%
+        endif %}\r\n      {% endif %}\r\n    </p>\r\n  </div>\r\n{%- endmacro -%}\r\n{%-
+        macro renderAnswerOption(question, reply, path, humanIdentifier) -%}\r\n  {%
+        set hi = question.answers.index(reply.answer) %}\r\n  {% set answer = reply.answer
+        %}\r\n  {% set path = path ~ \".\" ~ answer.uuid %}\r\n  {% set humanIdentifier
+        = humanIdentifier ~ \".\" ~ hi|of_alphabet %}\r\n  <div class=\"answer-block
+        answer-option\" id=\"{{path}}\" data-path=\"{{path}}\" data-uuid=\"{{answer.uuid}}\"
+        data-type=\"answer\">\r\n    <p class=\"answer\">\r\n      <svg aria-hidden=\"true\"
+        data-prefix=\"fas\" data-icon=\"check\" class=\"svg-inline--fa fa-check fa-w-16\"
+        role=\"img\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 512 512\"><path
+        fill=\"currentColor\" d=\"M173.898 439.404l-166.4-166.4c-9.997-9.997-9.997-26.206
+        0-36.204l36.203-36.204c9.997-9.998 26.207-9.998 36.204 0L192 312.69 432.095
+        72.596c9.997-9.997 26.207-9.997 36.204 0l36.203 36.204c9.997 9.997 9.997 26.206
+        0 36.204l-294.4 294.401c-9.998 9.997-26.207 9.997-36.204-.001z\"></path></svg>\r\n      <span>{{
+        hi|of_alphabet }}. {{answer.label}}</span>\r\n    </p>\r\n    {% if answer.advice
+        %}\r\n      <div class=\"advice\">\r\n        {{answer.advice|markdown}}\r\n      </div>\r\n    {%
+        endif %}\r\n    {% if answer.followups|length > 0 %}\r\n      <div class=\"followups\">\r\n        {%
+        set hiPrefix = humanIdentifier ~ \".\" %}\r\n        {% for question in answer.followups
+        %}\r\n          {% set x = loop.index %}\r\n          {{ renderQuestion(question,
+        path, hiPrefix ~ x) }}\r\n        {% endfor %}\r\n      </div>\r\n    {% endif
+        %}\r\n  </div>\r\n{%- endmacro -%}\r\n{%- macro renderAnswerList(question,
+        reply, path, humanIdentifier) -%}\r\n  <div class=\"answer-block answer-items\"
+        id=\"{{path}}\" data-path=\"{{path}}\" data-type=\"answer\">\r\n    <h4>Answers</h4>\r\n    {%
+        set itemPathPrefix = path ~ \".\" %}\r\n    {% set hiPrefix = humanIdentifier
+        ~ \".\" %}\r\n    {% for i in reply.items %}\r\n      {% set itemPath = itemPathPrefix
+        ~ i %}\r\n      {% set itemHumanIdenfifier = hiPrefix ~ (loop.index - 1)|of_alphabet
+        %}\r\n      <div class=\"answer-item\" id=\"{{itemPath}}\">\r\n        <div
+        class=\"followups\">\r\n          {% for question in question.followups %}\r\n            {%
+        set x = loop.index %}\r\n            {{ renderQuestion(question, itemPath,
+        itemHumanIdenfifier ~ \".\" ~ x) }}\r\n          {% else %}\r\n            No
+        follow up questions\r\n          {% endfor %}\r\n        </div>\r\n      </div>\r\n    {%
+        else %}\r\n      No answer items\r\n    {% endfor %}\r\n  </div>\r\n{%- endmacro
+        -%}\r\n{%- macro renderChoiceList(question, reply, path, humanIdentifier)
+        -%}\r\n  <div class=\"answer-block answer-items\" id=\"{{path}}\" data-path=\"{{path}}\"
+        data-type=\"answer\">\r\n    <div class=\"choices-list\">\r\n    {% for choice
+        in question.choices %}\r\n      {%- if choice in reply.choices %}\r\n        <div
+        class=\"choice choice-selected\">\r\n          <svg aria-hidden=\"true\" focusable=\"false\"
+        data-prefix=\"far\" data-icon=\"check-square\" class=\"svg-inline--fa fa-check-square
+        fa-w-14\" role=\"img\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0
+        448 512\"><path fill=\"currentColor\" d=\"M400 32H48C21.49 32 0 53.49 0 80v352c0
+        26.51 21.49 48 48 48h352c26.51 0 48-21.49 48-48V80c0-26.51-21.49-48-48-48zm0
+        400H48V80h352v352zm-35.864-241.724L191.547 361.48c-4.705 4.667-12.303 4.637-16.97-.068l-90.781-91.516c-4.667-4.705-4.637-12.303.069-16.971l22.719-22.536c4.705-4.667
+        12.303-4.637 16.97.069l59.792 60.277 141.352-140.216c4.705-4.667 12.303-4.637
+        16.97.068l22.536 22.718c4.667 4.706 4.637 12.304-.068 16.971z\"></path></svg>\r\n          {{
+        choice.label }}\r\n        </div>\r\n      {%- else %}\r\n        <div class=\"choice
+        choice-unselected\">\r\n          <svg aria-hidden=\"true\" focusable=\"false\"
+        data-prefix=\"far\" data-icon=\"square\" class=\"svg-inline--fa fa-square
+        fa-w-14\" role=\"img\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0
+        448 512\"><path fill=\"currentColor\" d=\"M400 32H48C21.5 32 0 53.5 0 80v352c0
+        26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48V80c0-26.5-21.5-48-48-48zm-6 400H54c-3.3
+        0-6-2.7-6-6V86c0-3.3 2.7-6 6-6h340c3.3 0 6 2.7 6 6v340c0 3.3-2.7 6-6 6z\"></path></svg>\r\n          {{
+        choice.label }}\r\n        </div>\r\n      {%- endif %}\r\n    {% endfor %}\r\n    </div>\r\n  </div>\r\n{%-
+        endmacro -%}\r\n{# ------------------------------------------------------------------------------------
+        #}\r\n{#  QUESTION MACROS                                                                     #}\r\n{#
+        ------------------------------------------------------------------------------------
+        #}\r\n{%- macro questionClasses(question) -%}\r\n  \"question {{ \"required\"
+        if question.is_required else \"optional\"}} {{  (\"phase-\" ~ question.required_phase.order)
+        if question.required_phase else \"phase-none\" }}\"\r\n{%- endmacro -%}\r\n{%-
+        macro renderQuestionExtras(question) -%}\r\n  <div class=\"extra-data\">\r\n    {#
+        Question - References - Resource Page References #}\r\n    {{ renderResourcePageReferences(question)
+        }}\r\n    {# Question - References - URL References #}\r\n    {{ renderURLReferences(question)
+        }}\r\n    {# Question - Experts #}\r\n    {{ renderExperts(question) }}\r\n  </div>\r\n{%-
+        endmacro -%}\r\n{%- macro renderQuestionReply(question, path, humanIdentifier)
+        -%}\r\n  {# Question - Answers #}\r\n  {% set reply = question.replies.get(path)
+        %}\r\n  {% if reply and reply.value %}\r\n    {% if question is of_type(\"ValueQuestion\")
+        and reply is of_type(\"StringReply\") %}\r\n      {{ renderAnswerValue(question,
+        reply, path, humanIdentifier) }}\r\n    {% elif question is of_type(\"OptionsQuestion\")
+        and reply is of_type(\"AnswerReply\") %}\r\n      {{ renderAnswerOption(question,
+        reply, path, humanIdentifier) }}\r\n    {% elif question is of_type(\"ListQuestion\")
+        and reply is of_type(\"ItemListReply\") %}\r\n      {{ renderAnswerList(question,
+        reply, path, humanIdentifier) }}\r\n    {% elif question is of_type(\"IntegrationQuestion\")
+        and reply is of_type(\"IntegrationReply\") %}\r\n      {{ renderAnswerValue(question,
+        reply, path, humanIdentifier) }}\r\n    {% elif question is of_type(\"MultiChoiceQuestion\")
+        and reply is of_type(\"MultiChoiceReply\") %}\r\n      {{ renderChoiceList(question,
+        reply, path, humanIdentifier) }}\r\n    {% endif %}\r\n  {% else %}\r\n    <div
+        class=\"answer-block not-answered\">\r\n      <p class=\"no-answer\">\r\n        <svg
+        aria-hidden=\"true\" data-prefix=\"fas\" data-icon=\"times\" class=\"svg-inline--fa
+        fa-times fa-w-11\" role=\"img\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0
+        0 352 512\"><path fill=\"currentColor\" d=\"M242.72 256l100.07-100.07c12.28-12.28
+        12.28-32.19 0-44.48l-22.24-22.24c-12.28-12.28-32.19-12.28-44.48 0L176 189.28
+        75.93 89.21c-12.28-12.28-32.19-12.28-44.48 0L9.21 111.45c-12.28 12.28-12.28
+        32.19 0 44.48L109.28 256 9.21 356.07c-12.28 12.28-12.28 32.19 0 44.48l22.24
+        22.24c12.28 12.28 32.2 12.28 44.48 0L176 322.72l100.07 100.07c12.28 12.28
+        32.2 12.28 44.48 0l22.24-22.24c12.28-12.28 12.28-32.19 0-44.48L242.72 256z\"></path></svg>\r\n        <span>This
+        question has not been answered yet!</span>\r\n      </p>\r\n    </div>\r\n  {%
+        endif %}\r\n{%- endmacro -%}\r\n{%- macro renderQuestion(question, path, humanIdentifier)
+        -%}\r\n  {% set path = path ~ \".\" ~ question.uuid %}\r\n  <div class={{questionClasses(question)}}
+        id=\"{{path}}\" data-uuid=\"{{question.uuid}}\" data-type=\"question\">\r\n    <div
+        class=\"question-header\">\r\n      <h4 class=\"title\">\r\n        <strong
+        class=\"human-identifier\">{{humanIdentifier}}</strong>\r\n        {{question.title}}\r\n      </h4>\r\n\r\n      {%
+        if question.tags|length > 0 %}\r\n      <div class=\"tags\">\r\n        {%
+        for tag in question.tags %}\r\n          <span class=\"tag\" style=\"background-color:{{tag.color}}\">{{tag.name}}</span>\r\n        {%
+        endfor %}\r\n      </div>\r\n      {% endif %}\r\n    </div>\r\n\r\n    <div
+        class=\"text\">\r\n      {{question.text|markdown}}\r\n    </div>\r\n\r\n    {{
+        renderQuestionExtras(question) }}\r\n\r\n    {{ renderQuestionReply(question,
+        path, humanIdentifier) }}\r\n  </div>\r\n{%- endmacro -%}\r\n{# ------------------------------------------------------------------------------------
+        #}\r\n{#  CHAPTER MACROS                                                                      #}\r\n{#
+        ------------------------------------------------------------------------------------
+        #}\r\n{%- macro renderReport(report) -%}\r\n  <section class=\"report\">\r\n    <h3
+        class=\"title\">Summary</h3>\r\n    <div class=\"indications\">\r\n      <table>\r\n        <tbody>\r\n          {%
+        for item in report.indications %}\r\n            <tr>\r\n              <td
+        class=\"table-label\">Answered {% if item.is_for_phase %}(current phase){%
+        endif %}</td>\r\n              <td>{{item.answered}} / {{item.total}} </td>\r\n              <td
+        class=\"progress-cell\">\r\n                <div class=\"progress\">\r\n                  <div
+        class=\"progress-fill\" style=\"width:{{100 * item.percentage}}%\">\r\n                  </div>\r\n                </div>\r\n              </td>\r\n            </tr>\r\n          {%
+        endfor %}\r\n        </tbody>\r\n      </table>\r\n    </div>\r\n    {% if
+        report.metrics|length > 0 %}\r\n    <div class=\"metrics\">\r\n        <table>\r\n          <thead><tr><th>Metric</th><th
+        colspan=\"2\">Score</th></tr></thead>\r\n          <tbody>\r\n            {%
+        for item in report.metrics %}\r\n              <tr>\r\n                <td
+        class=\"table-label\">\r\n                  {{item.metric.title}}\r\n                </td>\r\n                <td>{{
+        \"%.2f\"|format(item.measure) }}</td>\r\n                <td class=\"progress-cell\">\r\n                  <div
+        class=\"progress\">\r\n                    <div class=\"progress-fill bg-value-{{(item.measure
+        * 10)|int}}0\" style=\"width:{{100 * item.measure}}%\">\r\n                    </div>\r\n                  </div>\r\n                </td>\r\n              </tr>\r\n            {%
+        endfor %}\r\n          </tbody>\r\n        </table>\r\n    </div>\r\n    {%
+        endif %}\r\n  </section>\r\n{%- endmacro -%}\r\n{%- macro renderChapter(chapter,
+        humanIdentifier) -%}\r\n      <section class=\"chapter\" id=\"{{chapter.uuid}}\"
+        data-uuid=\"{{chapter.uuid}}\" data-type=\"chapter\">\r\n        <h2 class=\"title\">{{humanIdentifier|roman}}.
+        {{chapter.title}}</h2>\r\n        <p class=\"text-light\">{{chapter.text|markdown}}</p>\r\n\r\n        {%
+        for chapterReport in chapter.reports %}\r\n          {{ renderReport(chapterReport)
+        }}\r\n        {% endfor %}\r\n\r\n        <section class=\"questions\">\r\n          <h3
+        class=\"title\">Questions</h3>\r\n          {% for question in chapter.questions
+        %}\r\n            {{ renderQuestion(question, chapter.uuid, loop.index) }}\r\n          {%
+        else %}\r\n            <p class=\"text-light\">No questions</p>\r\n          {%
+        endfor %}\r\n        </section>\r\n      </section>\r\n{%- endmacro -%}\r\n{#
+        ------------------------------------------------------------------------------------
+        #}\r\n{#  HTML LAYOUT                                                                         #}\r\n{#
+        ------------------------------------------------------------------------------------
+        #}\r\n{%- macro renderFrontPage() -%}\r\n  <header>\r\n    <h1>{{dc.qtn.name}}</h1>\r\n\r\n    <table
+        class=\"dmp-data\">\r\n      <tr>\r\n        <th>Organization</th>\r\n        <td>{{dc.org.name}}</td>\r\n      </tr>\r\n      {%
+        if dc.qtn.created_by %}\r\n      <tr>\r\n        <th>Created by</th>\r\n        <td>{{dc.qtn.created_by.first_name}}
+        {{dc.qtn.created_by.last_name}} (<a href=\"mailto:{{dc.qtn.created_by.email}}\">{{dc.qtn.created_by.email}}</a>)</td>\r\n      </tr>\r\n      {%
+        endif %}\r\n      <tr>\r\n        <th>Based on</th>\r\n        <td>{{dc.pkg.name}},
+        {{dc.pkg.version}} (<span class=\"package-id\"><span class=\"organization-id\">{{dc.pkg.org_id}}</span>:<span
+        class=\"km-id\">{{dc.pkg.km_id}}</span>:<span class=\"version\">{{dc.pkg.version}}</span></span>)</td>\r\n      </tr>\r\n      {%
+        for version in dc.qtn.versions if version.uuid == dc.qtn.version %}\r\n      <tr>\r\n        <th>Version</th>\r\n        <td>{{version.name}}
+        ({{ version.created_at|datetime_format(\"%d %b %Y %H:%M:%S\") }} UTC)</td>\r\n      </tr>\r\n      {%
+        endfor %}\r\n      {% if dc.current_phase %}\r\n      <tr>\r\n        <th>Project
+        Phase</th>\r\n        <td>{{dc.current_phase.title}}</td>\r\n      </tr>\r\n      {%
+        endif %}\r\n      {% if dc.qtn.project_tags|length > 0 %}\r\n      <tr>\r\n        <th>Project
+        Tags</th>\r\n        <td class=\"tags-row\">{% for tag in dc.qtn.project_tags
+        %}<span class=\"tag project-tag\">{{ tag }}</span> {% endfor %}</td>\r\n      </tr>\r\n      {%
+        endif %}\r\n      {% if dc.qtn.description %}\r\n      <tr>\r\n        <th>Description</th>\r\n        <td>{{
+        dc.qtn.description }}</td>\r\n      </tr>\r\n      {% endif %}\r\n      <tr>\r\n        <th>Created
+        at</th>\r\n        <td>{{ dc.doc.created_at|datetime_format(\"%d %b %Y\")
+        }}</td>\r\n      </tr>\r\n    </table>\r\n    <p class=\"tool-info\">\r\n      Report
+        generated by Data Stewardship Wizard &lt;<a href=\"https://ds-wizard.org\"
+        target=\"_blank\">https://ds-wizard.org</a>&gt;\r\n      <svg xmlns=\"http://www.w3.org/2000/svg\"
+        viewBox=\"0 0 900 405\"><path d=\"M292.5,248.62l-16.8-29.78L245.58,210l23.2-3.4-21.7-38.46-21.81-12,21,3.5,45.83,7-68.46-55.3c-3.38-3.28-8.4-1.8-10.16,3l-17.6,67.44,24.47,4.12-27.1,6-15.14,58,45,6.38-50.76,8.13-63.46,31.83s41.71-1.89,55.9-3.87c53.74-7.53,93.22-8.29,147-16.61,9.41-1.46,45.88-25.28,45.88-25.28Z\"
+        style=\"fill:#f15a24\"/><path d=\"M498.18,201.59q0,32.44-18.39,49.69t-53.13,17.25H389.61V137.16h41.08q32,0,49.77,17T498.18,201.59Zm-28.82.72q0-42.31-37.24-42.32H417.35v85.54h11.91Q469.36,245.53,469.36,202.31Z\"
+        style=\"fill:#4d4948\"/><path d=\"M598.16,232.05q0,17.79-12.75,28t-35.49,10.24q-21,0-37.06-7.91V236.55a152.69,152.69,0,0,0,22.42,8.35,66,66,0,0,0,16.78,2.43q9.13,0,14-3.51T571,233.4a11.54,11.54,0,0,0-2.15-6.87,24,24,0,0,0-6.31-5.8q-4.15-2.79-17-8.9-12-5.66-18-10.87A40.67,40.67,0,0,1,518,188.83a34.67,34.67,0,0,1-3.58-16.17q0-17.43,11.77-27.41t32.54-10a76.94,76.94,0,0,1,19.47,2.42,134.47,134.47,0,0,1,19.37,6.83l-8.95,21.66a129.87,129.87,0,0,0-17.32-6,55.4,55.4,0,0,0-13.47-1.71q-7.87,0-12.08,3.69a12.15,12.15,0,0,0-4.21,9.61,11.92,11.92,0,0,0,1.7,6.42,18.81,18.81,0,0,0,5.42,5.31q3.71,2.55,17.59,9.21,18.35,8.81,25.15,17.65T598.16,232.05Z\"
+        style=\"fill:#4d4948\"/><path d=\"M758.13,268.53h-31.6l-17.72-69q-1-3.68-3.36-15.23t-2.73-15.5q-.54,4.86-2.68,15.59t-3.32,15.32l-17.63,68.83H647.58L614.2,137.16h27.3l16.74,71.71q4.38,19.86,6.35,34.41.54-5.11,2.46-15.85t3.63-16.67l19.06-73.6H716L735,210.76q1.26,4.94,3.14,15.09T741,243.28q.9-7,2.87-17.47t3.58-16.94l16.64-71.71h27.3Z\"
+        style=\"fill:#4d4948\"/></svg>\r\n    </p>\r\n  </header>\r\n{%- endmacro
+        -%}\r\n{%- macro renderVersionsOverview() -%}\r\n  <div id=\"versions\">\r\n    <table>\r\n      <thead>\r\n        <tr>\r\n          <th>Version</th>\r\n          <th>Date</th>\r\n          <th>Changes</th>\r\n        </tr>\r\n      <thead>\r\n      <tbody>\r\n        {%
+        for version in dc.qtn.versions|reverse %}\r\n          <tr>\r\n            <td
+        class=\"version-name\">{{ version.name }}</td>\r\n            <td class=\"version-date\">{{
+        version.created_at|datetime_format(\"%d %b %Y\") }}</td>\r\n            <td
+        class=\"version-changes\">{{ version.description }}</td>\r\n          </tr>\r\n        {%
+        else %}\r\n          <tr>\r\n            <td colspan=\"3\" class=\"no-versions\">There
+        are no named versions</tr>\r\n          </tr>\r\n        {% endfor %}\r\n      </tbody>\r\n    </table>\r\n  </div>\r\n{%-
+        endmacro -%}\r\n{%- macro renderContent() -%}\r\n  <main>\r\n    <section
+        class=\"total-report\">\r\n      <h2>Summary Report</h2>\r\n      {{ renderReport(dc.report.total_report)
+        }}\r\n\r\n      {% if dc.qtn.versions|length > 0 %}\r\n      <h2>History of
+        Versions</h2>\r\n      {{ renderVersionsOverview() }}\r\n      {% endif %}\r\n    </section>\r\n    {%
+        for chapter in dc.km.chapters %}\r\n      {{ renderChapter(chapter, loop.index)
+        }}\r\n    {% else %}\r\n      <p class=\"text-light\">No chapters</p>\r\n    {%
+        endfor %}\r\n  </main>\r\n{%- endmacro -%}\r\n{# ------------------------------------------------------------------------------------
+        #}\r\n{#  HTML TEMPLATE                                                                       #}\r\n{#
+        ------------------------------------------------------------------------------------
+        #}\r\n<html>\r\n  <head>\r\n    <title>DSW Questionnaire Report: {{dc.qtn.name}}</title>\r\n    <meta
+        charset=\"utf-8\">\r\n    <style>{% include \"src/default.css\" %}</style>\r\n  </head>\r\n  <body>\r\n    <article
+        class=\"dmp\">\r\n      {{ renderFrontPage() }}\r\n      {{ renderContent()
+        }}\r\n    </article>\r\n  </body>\r\n</html>\r\n","createdAt":"2023-04-25T13:13:28.643506Z","documentTemplateId":"myorg:questionnaire-report:2.9.0","fileName":"src/default.html.j2","updatedAt":"2023-04-25T13:13:28.643506Z","uuid":"eb365c81-27bc-4113-bcdd-615c78342337"}'
+    headers:
+      Access-Control-Allow-Credential:
+      - 'true'
+      Access-Control-Allow-Headers:
+      - Origin, X-Requested-With, Content-Type, Accept, Authorization
+      Access-Control-Allow-Methods:
+      - OPTIONS, HEAD, GET, POST, PUT, DELETE
+      Access-Control-Allow-Origin:
+      - '*'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 25 Apr 2023 14:00:27 GMT
+      Server:
+      - Warp/3.3.25
+      Transfer-Encoding:
+      - chunked
+      x-trace-uuid:
+      - 25e5cfa2-bfc5-41c6-9fe8-f1c5af4561f1
+    status:
+      code: 200
+      message: OK
+    url: http://localhost:3000/document-template-drafts/myorg:questionnaire-report:2.9.0/files/eb365c81-27bc-4113-bcdd-615c78342337
+- request:
+    body: null
+    headers:
+      Authorization:
+      - Bearer dummy-token
+      User-Agent:
+      - dsw-tdk/3.22.0
+    method: GET
+    uri: http://localhost:3000/document-template-drafts/myorg:questionnaire-report:2.9.0/files/26409a22-4721-4bb1-8f28-bcf50a15894f
+  response:
+    body:
+      string: '{"appUuid":"00000000-0000-0000-0000-000000000000","content":"/* General
+        styles */\r\n@page {\r\n  margin: 2.5cm;\r\n}\r\n\r\nh1, h2, h3, h4, h5, h6
+        {\r\n  page-break-inside: avoid !important;\r\n  page-break-after: avoid !important;\r\n}\r\n\r\nhtml,
+        body {\r\n  height: 100%;\r\n}\r\n\r\nbody {\r\n  max-width: 1000px;\r\n  margin:
+        auto;\r\n  font-family: sans-serif;\r\n  font-size: 10pt;\r\n  line-height:
+        1.5;\r\n}\r\n\r\nh1 {\r\n  font-size: 22pt;\r\n}\r\n\r\nh1, h2, h3, h4, h5,
+        h6 {\r\n  color: #333;\r\n}\r\n\r\na {\r\n  color: #049;\r\n}\r\n\r\n.text-light
+        {\r\n  color: #868e96!important;\r\n}\r\n\r\n.text-muted {\r\n  color: #AEA79F!important;\r\n}\r\n\r\ntable
+        {\r\n  width: 100%;\r\n}\r\n\r\n\r\n/* Front page */\r\n\r\nheader {\r\n  height:
+        25cm;\r\n  position: relative;\r\n}\r\n\r\nheader h1 {\r\n  padding: 7rem
+        0 4rem 0;\r\n}\r\n\r\nheader .dmp-data {\r\n  margin-top: 5rem;\r\n  width:
+        100%;\r\n}\r\n\r\nheader .dmp-data td, header .dmp-data th {\r\n  text-align:
+        left;\r\n  padding: 0.5rem 0;\r\n}\r\n\r\nheader .dmp-data th {\r\n  min-width:
+        9em;\r\n}\r\n\r\nheader .dmp-data .project-tag {\r\n  background-color: #6c757d;\r\n  margin-bottom:
+        0.25rem;\r\n}\r\n\r\nheader .tool-info {\r\n  text-align: center;\r\n  margin:
+        0;\r\n  padding-top: 2rem;\r\n  color: #868e96;\r\n  position: absolute;\r\n  bottom:
+        0;\r\n  width: 100%;\r\n}\r\n\r\nheader .tool-info svg {\r\n  height: 3rem;\r\n  display:
+        block;\r\n  margin: auto;\r\n}\r\n\r\n\r\n/* Total report section */\r\n\r\n.total-report
+        {\r\n  page-break-after: always;\r\n}\r\n\r\n/* Metrics and indications report
+        */\r\n\r\n.report {\r\n  margin-top: 1rem;\r\n  margin-bottom: 3rem;\r\n  background:
+        #eee;\r\n  border-radius: .5rem;\r\n  padding: 1rem;\r\n}\r\n\r\n.report h3
+        {\r\n  margin-top: 0;\r\n}\r\n\r\n.report table {\r\n  border-spacing: 0 .5rem;\r\n}\r\n\r\n.report
+        .metrics {\r\n  margin-top: 1rem;\r\n}\r\n\r\n.report .metrics table th {\r\n  text-align:
+        left;\r\n  padding: 0;\r\n}\r\n\r\n.report .table-label {\r\n  width: 40%;\r\n}\r\n\r\n.report
+        .progress-cell {\r\n  width: 50%;\r\n}\r\n\r\n.report .progress {\r\n  position:
+        relative;\r\n  height: .75rem;\r\n  background: #ddd;\r\n  border-radius:
+        .25rem;\r\n}\r\n\r\n.report .progress-fill {\r\n  position: absolute;\r\n  left:
+        0;\r\n  height: 100%;\r\n  background: #17a2b8;\r\n  border-radius: .25rem;\r\n}\r\n\r\n.report
+        .progress-fill.bg-value-100 {\r\n  background:#28a745;\r\n}\r\n\r\n.report
+        .progress-fill.bg-value-90 {\r\n  background:#53ac39;\r\n}\r\n\r\n.report
+        .progress-fill.bg-value-80 {\r\n  background:#7eb12c;\r\n}\r\n\r\n.report
+        .progress-fill.bg-value-70 {\r\n  background:#a9b720;\r\n}\r\n\r\n.report
+        .progress-fill.bg-value-60 {\r\n  background:#d4bc13;\r\n}\r\n\r\n.report
+        .progress-fill.bg-value-50 {\r\n  background:#ffc107;\r\n}\r\n\r\n.report
+        .progress-fill.bg-value-40 {\r\n  background:#f8a513;\r\n}\r\n\r\n.report
+        .progress-fill.bg-value-30 {\r\n  background:#f18920;\r\n}\r\n\r\n.report
+        .progress-fill.bg-value-20 {\r\n  background:#ea6d2c;\r\n}\r\n\r\n.report
+        .progress-fill.bg-value-10 {\r\n  background:#e35139;\r\n}\r\n\r\n.report
+        .progress-fill.bg-value-0 {\r\n  background:#dc3545;\r\n}\r\n\r\n\r\n/* Chapter
+        */\r\n\r\n.chapter {\r\n  page-break-before: always;\r\n  margin-bottom: 5rem;\r\n}\r\n\r\n\r\n/*
+        Question */\r\n\r\n.question:not(:last-child) {\r\n  padding-bottom: 3rem;\r\n}\r\n\r\n.answer-item:not(:last-child)
+        {\r\n  margin-bottom: 3rem;\r\n}\r\n\r\n.question, .answer-item {\r\n  border-left:
+        5px solid #eee;\r\n  padding-left: 1rem\r\n}\r\n\r\n.followups {\r\n  margin-top:
+        2rem;\r\n}\r\n\r\n.answer-item > .followups > .question, .questions > .question
+        {\r\n  border: none;\r\n  padding-left: 0;\r\n}\r\n\r\n.question-header h4
+        {\r\n  margin-top: 0;\r\n  margin-bottom: 0.5rem;\r\n  font-weight: bold;\r\n  background:
+        #eee;\r\n  padding: 1rem;\r\n  border-radius: 0.5rem;\r\n}\r\n\r\n.question
+        .title .human-identifier {\r\n  display: block;\r\n  margin-bottom: 0.25rem;\r\n  font-size:
+        8pt;\r\n}\r\n\r\n.question .question-header {\r\n  page-break-inside: avoid;\r\n}\r\n\r\n.question
+        .tag,\r\n.dmp-data .tag {\r\n  padding: .125rem 0.5rem;\r\n  color: #fff;\r\n  font-size:
+        8pt;\r\n  font-weight: bold;\r\n  border-radius: 0.25rem;\r\n  margin-right:
+        0.25rem;\r\n}\r\n\r\n.question .text {\r\n  margin-top: 0;\r\n  margin-bottom:
+        0.75rem;\r\n  color: #6c757d;\r\n  page-break-inside: avoid !important;\r\n}\r\n\r\n.question
+        > .extra-data {\r\n  margin-bottom: 0.75rem;\r\n  color: #6c757d;\r\n}\r\n\r\n.question
+        b {\r\n  font-weight: normal;\r\n}\r\n\r\n.advice {\r\n  background: #d1ecf1;\r\n  padding:
+        1rem;\r\n  border-radius: 0.5rem;\r\n  color: #0c5460;\r\n  margin: 1rem 0;\r\n}\r\n\r\n.advice
+        > *:first-child {\r\n  margin-top: 0;\r\n}\r\n\r\n.advice > *:last-child {\r\n  margin-bottom:
+        0;\r\n}\r\n\r\n\r\n/* Experts and references */\r\n\r\n.experts, .references
+        {\r\n  color: #868e96;\r\n  line-height: 1.5;\r\n}\r\n\r\n.experts b, .reference
+        b,\r\n.experts a, .reference a {\r\n  vertical-align: middle;\r\n}\r\n\r\n.experts
+        svg, .references svg {\r\n  width: 13px;\r\n  height: 14px;\r\n  margin-right:
+        7px;\r\n  vertical-align: middle;\r\n  color: #495057;\r\n}\r\n\r\n.expert::after,
+        .reference::after {\r\n  content: \",\";\r\n}\r\n\r\n.expert:last-of-type::after,
+        .reference:last-of-type::after {\r\n  content: \" \";\r\n}\r\n\r\n\r\n/* Answers
+        */\r\n\r\n.choices-list {\r\n  list-style-type: none;\r\n}\r\n\r\n.choices-list
+        .choice {\r\n  display: flex;\r\n  align-items: center;\r\n}\r\n\r\n.choices-list
+        .choice.choice-unselected {\r\n  color: gray;\r\n}\r\n\r\n.answer p, .no-answer
+        p {\r\n  margin: 0;\r\n}\r\n\r\n.answer-block .answer span {\r\n  vertical-align:
+        middle;\r\n}\r\n\r\n.answer-block .answer svg,\r\n.no-answer svg,\r\n.choice
+        svg {\r\n  height: 20px;\r\n  width: 20px;\r\n  margin-right: 0.3rem;\r\n  vertical-align:
+        middle;\r\n}\r\n\r\n.no-answer {\r\n  font-style: italic;\r\n}\r\n\r\n.no-answer
+        span {\r\n  vertical-align: middle;\r\n}\r\n\r\n.question.required .no-answer
+        {\r\n  color: #D0021B;\r\n}\r\n\r\n.integration-link {\r\n  display: flex;\r\n  align-items:
+        center;\r\n}\r\n\r\n.integration-link img {\r\n  max-height: 2rem;\r\n  margin-right:
+        .5rem;\r\n}\r\n\r\n.metrics > p {\r\n  font-style: italic;\r\n  margin-top:
+        0;\r\n}\r\n\r\n\r\n/* Versions */\r\ndiv#versions table {\r\n  width: 100%;\r\n  border-collapse:
+        collapse;\r\n}\r\n\r\ndiv#versions table,\r\ndiv#versions td,\r\ndiv#versions
+        th {\r\n  border: 1px solid #868e96;\r\n}\r\n\r\ndiv#versions td,\r\ndiv#versions
+        th {\r\n  padding: 0.2em;\r\n}\r\n\r\ndiv#versions th.title {\r\n  text-transform:
+        uppercase;\r\n}\r\n\r\ndiv#versions td.version-name {\r\n  text-align: center;\r\n  word-wrap:
+        break-word;\r\n}\r\n\r\ndiv#versions td.version-date {\r\n  text-align: center;\r\n  width:
+        18ex;\r\n}\r\n\r\ndiv#versions td.version-changes {\r\n  word-wrap: break-word;\r\n}\r\n\r\ndiv#versions
+        td.no-versions {\r\n  font-style: italic;\r\n  padding: 1em;\r\n  text-align:
+        center;\r\n}\r\n","createdAt":"2023-04-25T13:13:28.654905Z","documentTemplateId":"myorg:questionnaire-report:2.9.0","fileName":"src/default.css","updatedAt":"2023-04-25T13:13:28.654905Z","uuid":"26409a22-4721-4bb1-8f28-bcf50a15894f"}'
+    headers:
+      Access-Control-Allow-Credential:
+      - 'true'
+      Access-Control-Allow-Headers:
+      - Origin, X-Requested-With, Content-Type, Accept, Authorization
+      Access-Control-Allow-Methods:
+      - OPTIONS, HEAD, GET, POST, PUT, DELETE
+      Access-Control-Allow-Origin:
+      - '*'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 25 Apr 2023 14:00:27 GMT
+      Server:
+      - Warp/3.3.25
+      Transfer-Encoding:
+      - chunked
+      x-trace-uuid:
+      - 08e726d1-2454-4a91-8734-3b4f4a10ce3f
+    status:
+      code: 200
+      message: OK
+    url: http://localhost:3000/document-template-drafts/myorg:questionnaire-report:2.9.0/files/26409a22-4721-4bb1-8f28-bcf50a15894f
+- request:
+    body: null
+    headers:
+      Authorization:
+      - Bearer dummy-token
+      User-Agent:
+      - dsw-tdk/3.22.0
+    method: GET
+    uri: http://localhost:3000/document-template-drafts/myorg:questionnaire-report:2.9.0/assets
+  response:
+    body:
+      string: '[{"contentType":"application/vnd.openxmlformats-officedocument.wordprocessingml.document","createdAt":"2023-04-25T13:13:28.618034Z","fileName":"src/reference.docx","fileSize":64798,"updatedAt":"2023-04-25T13:13:28.618034Z","url":"http://host.docker.internal:9000/dsw/templates/myorg:questionnaire-report:2.9.0/e771fd78-45ef-40a2-924c-da61fb25f8d7?X-Amz-Signature=a775b7e578f5e29d797f7f655f35ad7a3a9c81d717b8d9bde0b3c552de4b33da&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=minio%2F20230425%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20230425T140028Z&X-Amz-Expires=60&X-Amz-SignedHeaders=host","urlExpiration":"2023-04-25T14:01:28.176805381Z","uuid":"e771fd78-45ef-40a2-924c-da61fb25f8d7"}]'
+    headers:
+      Access-Control-Allow-Credential:
+      - 'true'
+      Access-Control-Allow-Headers:
+      - Origin, X-Requested-With, Content-Type, Accept, Authorization
+      Access-Control-Allow-Methods:
+      - OPTIONS, HEAD, GET, POST, PUT, DELETE
+      Access-Control-Allow-Origin:
+      - '*'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 25 Apr 2023 14:00:27 GMT
+      Server:
+      - Warp/3.3.25
+      Transfer-Encoding:
+      - chunked
+      x-trace-uuid:
+      - 2d6ec248-3666-4c9a-86e4-64d142e40468
+    status:
+      code: 200
+      message: OK
+    url: http://localhost:3000/document-template-drafts/myorg:questionnaire-report:2.9.0/assets
+- request:
+    body: null
+    headers:
+      Authorization:
+      - Bearer dummy-token
+      User-Agent:
+      - dsw-tdk/3.22.0
+    method: GET
+    uri: http://localhost:3000/document-template-drafts/myorg:questionnaire-report:2.9.0/assets/e771fd78-45ef-40a2-924c-da61fb25f8d7
+  response:
+    body:
+      string: '{"contentType":"application/vnd.openxmlformats-officedocument.wordprocessingml.document","createdAt":"2023-04-25T13:13:28.618034Z","fileName":"src/reference.docx","fileSize":64798,"updatedAt":"2023-04-25T13:13:28.618034Z","url":"http://host.docker.internal:9000/dsw/templates/myorg:questionnaire-report:2.9.0/e771fd78-45ef-40a2-924c-da61fb25f8d7?X-Amz-Signature=a775b7e578f5e29d797f7f655f35ad7a3a9c81d717b8d9bde0b3c552de4b33da&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=minio%2F20230425%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20230425T140028Z&X-Amz-Expires=60&X-Amz-SignedHeaders=host","urlExpiration":"2023-04-25T14:01:28.185154923Z","uuid":"e771fd78-45ef-40a2-924c-da61fb25f8d7"}'
+    headers:
+      Access-Control-Allow-Credential:
+      - 'true'
+      Access-Control-Allow-Headers:
+      - Origin, X-Requested-With, Content-Type, Accept, Authorization
+      Access-Control-Allow-Methods:
+      - OPTIONS, HEAD, GET, POST, PUT, DELETE
+      Access-Control-Allow-Origin:
+      - '*'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 25 Apr 2023 14:00:27 GMT
+      Server:
+      - Warp/3.3.25
+      Transfer-Encoding:
+      - chunked
+      x-trace-uuid:
+      - 4f9f0617-c0a9-4080-aad6-3c99a7a058fa
+    status:
+      code: 200
+      message: OK
+    url: http://localhost:3000/document-template-drafts/myorg:questionnaire-report:2.9.0/assets/e771fd78-45ef-40a2-924c-da61fb25f8d7
+- request:
+    body: null
+    headers:
+      Authorization:
+      - Bearer dummy-token
+      User-Agent:
+      - dsw-tdk/3.22.0
+    method: GET
+    uri: http://localhost:3000/document-template-drafts/myorg:questionnaire-report:2.9.0/assets/e771fd78-45ef-40a2-924c-da61fb25f8d7/content
+  response:
+    body:
+      string: !!binary |
+        UEsDBBQABgAIAAAAIQDWV4BJvgEAACgLAAATAAgCW0NvbnRlbnRfVHlwZXNdLnhtbCCiBAIooAAC
+        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADM
+        ls9O20AQxu+VeAdrryjewKGqUBwOQI8tEvQBNt6xs2L/aWcC5O0Zx4mpUBJHJW64RIp3vu/7jdca
+        zeT61dnsGRKa4AtxkY9FBr4M2vi6EH8ef45+iAxJea1s8FCIJaC4np59mzwuI2DGao+FmBPFKymx
+        nINTmIcInk+qkJwi/ptqGVX5pGqQl+Pxd1kGT+BpRI2HmE5uoVILS9ndKz9uSaKvRXbT1jVRhTCu
+        0TfP5VZFAosfJCpGa0pFfC6fvf7ANVoz5axc1eDcRDzngh0JzcnugLXuN7/MZDRk9yrRL+W4Sr6E
+        pKUO5cKxMt9vs4UzVJUpodM3bjGFEhD5lpzNuxOnjN/w7+TwCzeDxMrjg3TWvRBISwt4fILWtz8e
+        iFgwBMDauRfhBWYPg1H8Zd4LUoVAPtAQt9FZ90KA1wMxbJx7EeagNKSL4xO0xgfdwyD5rfGB/V+e
+        sH/OUzMLQ7yBtXUvRG0DokrL/zGtN1mHQ514ar5znH58dixfZo52RF/iQybexKD9/fxIWdnsi+TK
+        +xQi8maX/qHtzSLWqEfccIREZv8H2SWy9af7g2bH06C3ZMvVnjt9AwAA//8DAFBLAwQUAAYACAAA
+        ACEAHpEat+8AAABOAgAACwAIAl9yZWxzLy5yZWxzIKIEAiigAAIAAAAAAAAAAAAAAAAAAAAAAAAA
+        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKySwWrDMAxA74P9g9G9UdrBGKNO
+        L2PQ2xjZBwhbSUwT29hq1/79PNjYAl3pYUfL0tOT0HpznEZ14JRd8BqWVQ2KvQnW+V7DW/u8eACV
+        hbylMXjWcOIMm+b2Zv3KI0kpyoOLWRWKzxoGkfiImM3AE+UqRPblpwtpIinP1GMks6OecVXX95h+
+        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
+        ZdYLecxNiMT1MofksdQxWRlR39CSPLTtUaZnA4YXU0xGQZpMB+KyRfqPHebZaToF/eOJy5sK6Xzt
+        riAmS0WBJ+PwseyayBbk0MuXx4Y7AAAA//8DAFBLAwQKAAAAAAAAACEAZ634UdxOAADcTgAAFQAA
+        AHdvcmQvbWVkaWEvaW1hZ2UxLnBuZ4lQTkcNChoKAAAADUlIRFIAAAOEAAABlQgGAAAApls/LAAA
+        AAZiS0dEAP8A/wD/oL2nkwAAIABJREFUeJzs3Xl8nNV1P/7PeWZGkhfJZjGL2WxJNsFmSTBg1kTE
+        RpqRPQKaToJlIDSL8/02bRLapCRtFqVLCrS/pOm3S0LTNinFJFXKom0kBWOxhMVgAiRADLYhLGa3
+        pZFsa5vn/P6QDF5krc+995nR5/16ORBLuudYRtKc5957DkBERERERERERERERERERERERERERERE
+        RERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERE
+        RERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERE
+        RERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERE
+        RERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERE
+        RERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERE
+        RERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERE
+        RERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERE
+        RERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERE
+        RERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERE
+        RERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERE
+        RERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERE
+        RERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERE
+        RERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERExojr
+        BIjy3btry0uivl4okBNV5fX+md798/5jS7frvIiIiIiIWBASGaIpRDIF5d+E4ksASvZ7UzeA75YM
+        bP0rqUfWUXpERERERCwIiUzQdctimd1dDVDED/c+ouiQQXy8uH7r2zZzIyIiIiLax3OdAFE+yvR0
+        3TRaMQgAKqjwY3hs11XlH7KVFxERERHR/rhDSBSwztrFpQJ/C4DoOD+kV0T/T8lt235iMi8iIiIi
+        ooNxh5AoYAL/8xh/MQgARary4861ZTdrChFTeRERERERHYwFIVHAVFE5mY8Tla9kYuXNnbUnHxF0
+        TkREREREI+GRUaIAdV9TdoyflTcwta+tbV5Eryi+ddtvgsqLiIiIiGgk3CEkCpA/6K3A1B+0lPlZ
+        ebhzzaKPBZETEREREdHhsCAkCpCKrghoqdkiWp+pLb9R6/h1SkRERERm8IUmUYAE+GiQyylwQ+aF
+        soadqdI5Aa5LRERERASAdwiJAjM8bmKboeWf97JyRfHPXnjO0PpERERENA1xh5AoIJ76Qe4OHmyx
+        H9FHMleX1xiMQURERETTDAtCooCoSFD3Bw+nRH3c1VVbXqfc3SciIiKiAPBFJVEAFJDM2vIdUBxn
+        KeTPds/e86n5t+zYYykeEREREeUhFoREAehZW3pGVr2nbcYUxVN+NHLl3Fu3vGgzLhERERHlDx4Z
+        JQpAFp7p46KHUMFZks0+1rm21HpsIiIiIsoPLAiJgqCBjpuYiKNEvdbO2vIbHMUnIiIiohzGI6NE
+        U6QVFdHM/FffAeB6VuBtJQO9n5X6V/c6zoOIiIiIcgR3CImmKHPCq+fAfTEIAGszsaIHd15berLr
+        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
+        LD832jBkdJn4HxH8LgDMM3r+im2wPtR0SYlpMG0v5MxVZslZvWIACj7JEofcizljVUUBHTBi6Arb
+        jYHauzzfUFLiw/RCfrHD/kFlvIXjNbbp3bUyRombvqef73do/Uan7YzPa6n94rtS5qg6vE6S8XjU
+        RmrRHknex9PXl48hs0U8uXRefkUuJ/Fs2d3Pn5HeT3SMR6T20foGfmWbOhCtxYKIHBgJVvZZi6xG
+        DnfXTHo8pziN6CmSNbkHB4MW0DhL+BLT6wEXtEhLpusPtHJrviKw6Xk7DXhUihPp85GrwKah8BFU
+        U7foHkjdNqtXiSeTzpJJc8uEl+smz7yVxPl5AjWy/LoDl6c+PfvUYPHdpb8lronaCPRg8aNrMg6Z
+        bRC6InXd9lm+iechZ5utiW1rGNyV+O/HbfLNqMNGDhu1mNuQwp4MtbtFLxt52Yne2MvGvWziZZNe
+        lnhZ0sumXja1MpznFDiTd9jyfmnlleJc7Wl50+MPRP7BKBhWPDuIvJ/zf7YYZxrvYI1PglHgsTcO
+        ixP3Vhh3DzF332l1TTQt2171fzOv/gMAAP//AwBQSwMEFAAGAAgAAAAhAIPQteXmAAAArQIAACUA
+        AAB3b3JkL2dsb3NzYXJ5L19yZWxzL2RvY3VtZW50LnhtbC5yZWxzrJJNS8QwEIbvgv8hzN2mu4qI
+        bLoXEfaq9Qdk0+kHppOQGT/67w3CaheXxUOP8w7zvE8gm+3n6NU7Jh4CGVgVJSgkF5qBOgMv9ePV
+        HSgWS431gdDAhAzb6vJi84TeSj7ifoisMoXYQC8S77Vm1+NouQgRKW/akEYreUydjta92g71uixv
+        dZozoDpiql1jIO2aa1D1FPE/7NC2g8OH4N5GJDlRoT9w/4wi+XGcsTZ1KAZmYZGJoE+LrJcU4T8W
+        h+ScwmpRBZk8zgW+53P1N0vWt4GktnuPvwY/0UFCH32y6gsAAP//AwBQSwMEFAAGAAgAAAAhAIex
+        C/3tAgAAMw8AABIAAAB3b3JkL251bWJlcmluZy54bWy0lltv2yAUx98n7TtYfm/xJXFcq2nVyzZ1
+        mqZJ6z4AISRB5WIBTtJvP7CNk9Rb5VA5D8aGc378DxxOuL7dMxpssVRE8HkYX0ZhgDkSS8LX8/DP
+        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
+        AAAAAAAAAAAAAAAAucYAAHdvcmQvZ2xvc3NhcnkvX3JlbHMvZG9jdW1lbnQueG1sLnJlbHNQSwEC
+        LQAUAAYACAAAACEAh7EL/e0CAAAzDwAAEgAAAAAAAAAAAAAAAADixwAAd29yZC9udW1iZXJpbmcu
+        eG1sUEsBAi0AFAAGAAgAAAAhAOFycVtDEQAAIasAAA8AAAAAAAAAAAAAAAAA/8oAAHdvcmQvc3R5
+        bGVzLnhtbFBLAQItABQABgAIAAAAIQCjn5vxNgEAABoDAAAUAAAAAAAAAAAAAAAAAG/cAAB3b3Jk
+        L3dlYlNldHRpbmdzLnhtbFBLAQItABQABgAIAAAAIQBZt5txQgIAADMIAAASAAAAAAAAAAAAAAAA
+        ANfdAAB3b3JkL2ZvbnRUYWJsZS54bWxQSwECLQAUAAYACAAAACEAJAD60eoLAAAedAAAGAAAAAAA
+        AAAAAAAAAABJ4AAAd29yZC9nbG9zc2FyeS9zdHlsZXMueG1sUEsBAi0AFAAGAAgAAAAhAEDB//E5
+        AQAAIwMAAB0AAAAAAAAAAAAAAAAAaewAAHdvcmQvZ2xvc3Nhcnkvd2ViU2V0dGluZ3MueG1sUEsB
+        Ai0AFAAGAAgAAAAhAMRJInNSAgAAQwkAABsAAAAAAAAAAAAAAAAA3e0AAHdvcmQvZ2xvc3Nhcnkv
+        Zm9udFRhYmxlLnhtbFBLAQItABQABgAIAAAAIQCGh6xzcQEAAL4CAAARAAAAAAAAAAAAAAAAAGjw
+        AABkb2NQcm9wcy9jb3JlLnhtbFBLAQItABQABgAIAAAAIQAX3BfP9gEAAPgDAAAQAAAAAAAAAAAA
+        AAAAABDzAABkb2NQcm9wcy9hcHAueG1sUEsFBgAAAAAaABoAzAYAADz2AAAAAA==
+    headers:
+      Access-Control-Allow-Credential:
+      - 'true'
+      Access-Control-Allow-Headers:
+      - Origin, X-Requested-With, Content-Type, Accept, Authorization
+      Access-Control-Allow-Methods:
+      - OPTIONS, HEAD, GET, POST, PUT, DELETE
+      Access-Control-Allow-Origin:
+      - '*'
+      Content-Type:
+      - application/vnd.openxmlformats-officedocument.wordprocessingml.document
+      Date:
+      - Tue, 25 Apr 2023 14:00:27 GMT
+      Server:
+      - Warp/3.3.25
+      Transfer-Encoding:
+      - chunked
+      x-trace-uuid:
+      - 956976b7-99d4-4ddb-9dfd-eeb0315d6bac
+    status:
+      code: 200
+      message: OK
+    url: http://localhost:3000/document-template-drafts/myorg:questionnaire-report:2.9.0/assets/e771fd78-45ef-40a2-924c-da61fb25f8d7/content
+version: 1
