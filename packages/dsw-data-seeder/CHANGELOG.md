@@ -10,6 +10,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Changed
 
 - Improved command queue
+- Changed envvars for configuration
 
 
 ## [3.22.1]

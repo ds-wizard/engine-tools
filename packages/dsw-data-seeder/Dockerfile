@@ -14,8 +14,8 @@ RUN python -m pip wheel --no-cache-dir --wheel-dir=/app/wheels -r /app/packages/
 
 FROM datastewardshipwizard/python-base:3.11-alpine
 
-ENV DSW_CONFIG /app/config.yml
-ENV SEEDER_WORKDIR /home/user/data
+ENV APPLICATION_CONFIG_PATH /app/config/application.yml
+ENV WORKDIR_PATH /home/user/data
 ENV SEEDER_RECIPE example
 ENV PATH "/home/user/.local/bin:$PATH"
 

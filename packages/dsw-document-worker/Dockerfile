@@ -20,8 +20,8 @@ RUN python -m pip wheel --no-cache-dir --wheel-dir=/app/wheels -r /app/packages/
 
 FROM datastewardshipwizard/python-base:3.11-alpine-docworker
 
-ENV DOCWORKER_CONFIG /app/config.yml
-ENV DOCWORKER_WORKDIR /tmp/docworker
+ENV APPLICATION_CONFIG_PATH /app/config/application.yml
+ENV WORKDIR_PATH /tmp/docworker
 ENV PATH "/home/user/.local/bin:$PATH"
 
 # Add fonts and data
