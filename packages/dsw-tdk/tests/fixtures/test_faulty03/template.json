@@ -1,0 +1,53 @@
+{
+  "organizationId": "te-st",
+  "templateId": "example.01",
+  "version": "not a version",
+  "name": null,
+  "description": null,
+  "metamodelVersion": "abc",
+  "license": "Apache-2.0",
+  "allowedPackages": [
+    {
+      "orgId": null,
+      "kmId": null,
+      "minVersion": null,
+      "maxVersion": null
+    }
+  ],
+  "formats": [
+    {
+        "uuid" : "d3e98eb6-344d-481f-8e37-6a67b6cd1ad2",
+        "name" : "JSON Data",
+        "icon" : "far fa-file",
+        "steps" : [
+            {
+                "name" : "json",
+                "options" : {}
+            }
+        ]
+    },
+    {
+        "uuid" : "a9293d08-59a4-4e6b-ae62-7a6a570b031c",
+        "name" : "HTML Document",
+        "icon" : "far fa-file-code",
+        "steps" : [
+            {
+                "name" : "jinja",
+                "options" : {
+                    "template" : "src/template.html.j2",
+                    "content-type" : "text/html",
+                    "extension" : "html"
+                }
+            }
+        ]
+    }
+  ],
+  "_tdk": {
+    "version": "3.23.0",
+    "readmeFile": "README.md",
+    "files": [
+      "src/**/*",
+      "!src/bar.txt"
+    ]
+  }
+}

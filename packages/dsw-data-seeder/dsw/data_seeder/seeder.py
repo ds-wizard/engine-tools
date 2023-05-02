@@ -1,7 +1,7 @@
 import collections
-import datetime
 import dateutil.parser
 import json
+import logging
 import mimetypes
 import pathlib
 import uuid
@@ -9,15 +9,19 @@ import uuid
 from typing import Optional
 
 from dsw.command_queue import CommandWorker, CommandQueue
+from dsw.config.sentry import SentryReporter
 from dsw.database.database import Database
 from dsw.database.model import PersistentCommand
 from dsw.storage import S3Storage
 
 from .build_info import BUILD_INFO
 from .config import SeederConfig
-from .consts import DEFAULT_ENCODING, DEFAULT_MIMETYPE, \
-    DEFAULT_PLACEHOLDER, COMPONENT_NAME, Queries
+from .consts import DEFAULT_ENCODING, DEFAULT_MIMETYPE, DEFAULT_PLACEHOLDER, \
+    COMPONENT_NAME, CMD_COMPONENT, CMD_CHANNEL, PROG_NAME
 from .context import Context
+
+
+LOG = logging.getLogger(__name__)
 
 
 def _guess_mimetype(filename: str) -> str:
@@ -186,7 +190,6 @@ class DataSeeder(CommandWorker):
         self.workdir = workdir
         self.recipe = SeedRecipe.create_default()  # type: SeedRecipe
 
-        self._prepare_logging()
         self._init_context(workdir=workdir)
 
     def _init_context(self, workdir: pathlib.Path):
@@ -199,83 +202,55 @@ class DataSeeder(CommandWorker):
                 multi_tenant=self.cfg.cloud.multi_tenant,
             ),
         )
-
-    def _prepare_logging(self):
-        Context.logger.set_level(self.cfg.log.level)
+        SentryReporter.initialize(
+            dsn=self.cfg.sentry.workers_dsn,
+            environment=self.cfg.general.environment,
+            server_name=self.cfg.general.client_url,
+            release=BUILD_INFO.version,
+            prog_name=PROG_NAME,
+            config=self.cfg.sentry,
+        )
 
     def _prepare_recipe(self, recipe_name: str):
-        Context.logger.info('Loading recipe')
+        LOG.info('Loading recipe')
         recipes = SeedRecipe.load_from_dir(self.workdir)
         if recipe_name not in recipes.keys():
             raise RuntimeError(f'Recipe "{recipe_name}" not found')
-        Context.logger.info('Preparing seed recipe')
+        LOG.info('Preparing seed recipe')
         self.recipe = recipes[recipe_name]
         self.recipe.prepare()
 
-    def work(self) -> bool:
-        Context.update_trace_id('-')
-        ctx = Context.get()
-        Context.logger.debug('Trying to fetch a new job')
-        cursor = ctx.app.db.conn_query.new_cursor(use_dict=True)
-        cursor.execute(Queries.SELECT_CMD, {'now': datetime.datetime.utcnow()})
-        result = cursor.fetchall()
-        if len(result) != 1:
-            Context.logger.debug(f'Fetched {len(result)} jobs')
-            return False
-
-        command = result[0]
-        try:
-            cmd = PersistentCommand.from_dict_row(command)
-            self._process_command(cmd)
-        except Exception as e:
-            Context.logger.warning(f'Failed: {str(e)}')
-            ctx.app.db.execute_query(
-                query=Queries.UPDATE_CMD_ERROR,
-                attempts=command.get('attempts', 0) + 1,
-                error_message=f'Failed: {str(e)}',
-                updated_at=datetime.datetime.utcnow(),
-                uuid=command['uuid'],
-            )
-
-        Context.logger.info('Committing transaction')
-        ctx.app.db.conn_query.connection.commit()
-        cursor.close()
-        Context.logger.info('Job processing finished')
-        return True
-
-    def _process_command(self, cmd: PersistentCommand):
-        Context.update_trace_id(cmd.uuid)
-        self.recipe.run_prepare()
-        app_ctx = Context.get().app
-        app_uuid = cmd.body['appUuid']
-        Context.logger.info(f'Seeding recipe "{self.recipe.name}" '
-                            f'to app with UUID "{app_uuid}"')
-        self.execute(app_uuid)
-        app_ctx.db.execute_query(
-            query=Queries.UPDATE_CMD_DONE,
-            attempts=cmd.attempts + 1,
-            updated_at=datetime.datetime.utcnow(),
-            uuid=cmd.uuid,
-        )
-
     def run(self, recipe_name: str):
+        SentryReporter.set_context('recipe_name', recipe_name)
         # prepare
         self._prepare_recipe(recipe_name)
         self._update_component_info()
         # work in queue
-        Context.logger.info('Preparing command queue')
+        LOG.info('Preparing command queue')
         queue = CommandQueue(
             worker=self,
             db=Context.get().app.db,
-            listen_query=Queries.LISTEN,
+            channel=CMD_CHANNEL,
+            component=CMD_COMPONENT,
         )
         queue.run()
+
+    def work(self, cmd: PersistentCommand):
+        Context.get().update_trace_id(cmd.uuid)
+        SentryReporter.set_context('cmd_uuid', cmd.uuid)
+        self.recipe.run_prepare()
+        app_uuid = cmd.body['appUuid']
+        LOG.info(f'Seeding recipe "{self.recipe.name}" '
+                 f'to app with UUID "{app_uuid}"')
+        self.execute(app_uuid)
+        Context.get().update_trace_id('-')
+        SentryReporter.set_context('cmd_uuid', '-')
 
     @staticmethod
     def _update_component_info():
         built_at = dateutil.parser.parse(BUILD_INFO.built_at)
-        Context.logger.info(f'Updating component info ({BUILD_INFO.version}, '
-                            f'{built_at.isoformat(timespec="seconds")})')
+        LOG.info(f'Updating component info ({BUILD_INFO.version}, '
+                 f'{built_at.isoformat(timespec="seconds")})')
         Context.get().app.db.update_component_info(
             name=COMPONENT_NAME,
             version=BUILD_INFO.version,
@@ -284,44 +259,43 @@ class DataSeeder(CommandWorker):
 
     def seed(self, recipe_name: str, app_uuid: str):
         self._prepare_recipe(recipe_name)
-        Context.logger.info('Executing recipe')
+        LOG.info(f'Executing recipe "{recipe_name}"')
         self.execute(app_uuid=app_uuid)
-        Context.logger.info('Committing')
+        LOG.info('Committing')
         Context().get().app.db.conn_query.connection.commit()
 
     def execute(self, app_uuid: str):
+        SentryReporter.set_context('app_uuid', app_uuid)
         # Run SQL scripts
         app_ctx = Context.get().app
         cursor = app_ctx.db.conn_query.new_cursor(use_dict=True)
         phase = 'DB'
         try:
-            Context.logger.info('Running SQL scripts')
+            LOG.info('Running SQL scripts')
             for path, script in self.recipe.iterate_db_scripts(app_uuid):
-                Context.logger.debug(f' -> Executing script: {path.name}')
+                LOG.debug(f' -> Executing script: {path.name}')
                 cursor.execute(query=script)
-                Context.logger.debug(f'    OK: {cursor.statusmessage}')
+                LOG.debug(f'    OK: {cursor.statusmessage}')
             phase = 'S3'
-            Context.logger.info('Transferring S3 objects')
+            LOG.info('Transferring S3 objects')
             for local_file, object_name in self.recipe.iterate_s3_objects():
-                Context.logger.debug(f' -> Reading: {local_file.name}')
+                LOG.debug(f' -> Reading: {local_file.name}')
                 data = local_file.read_bytes()
-                Context.logger.debug(f' -> Sending: {object_name}')
+                LOG.debug(f' -> Sending: {object_name}')
                 app_ctx.s3.store_object(
                     app_uuid=app_uuid,
                     object_name=object_name,
                     content_type=_guess_mimetype(local_file.name),
                     data=data,
                 )
-                Context.logger.debug('    OK (stored)')
+                LOG.debug('    OK (stored)')
         except Exception as e:
-            if Context.get().app.cfg.log.level == 'DEBUG':
-                import traceback
-                print('-'*60)
-                traceback.print_exc()
-                print('-'*60)
-            Context.logger.warn(f'Exception appeared [{type(e).__name__}]: {e}')
+            SentryReporter.capture_exception(e)
+            LOG.warning(f'Exception appeared [{type(e).__name__}]: {e}')
+            LOG.info('Failed with unexpected error', exc_info=e)
             app_ctx.db.conn_query.connection.rollback()
             raise RuntimeError(f'{phase}: {e}')
         finally:
-            Context.logger.info('Data seeding done')
+            LOG.info('Data seeding done')
+            SentryReporter.set_context('app_uuid', '-')
             cursor.close()

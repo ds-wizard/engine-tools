@@ -4,7 +4,7 @@ build-backend = 'setuptools.build_meta'
 
 [project]
 name = 'dsw-document-worker'
-version = "3.22.1"
+version = "3.23.0"
 description = 'Worker for assembling and transforming documents'
 readme = 'README.md'
 keywords = ['documents', 'generation', 'jinja2', 'pandoc', 'worker']
@@ -17,33 +17,33 @@ classifiers = [
     'License :: OSI Approved :: Apache Software License',
     'Operating System :: POSIX :: Linux',
     'Programming Language :: Python',
-    'Programming Language :: Python :: 3.9',
     'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.11',
     'Topic :: Text Processing',
 ]
-requires-python = '>=3.9, <4'
+requires-python = '>=3.10, <4'
 dependencies = [
     'click',
-    'jinja2',
+    'Jinja2',
     'Markdown',
     'MarkupSafe',
     'mdx-breakless-lists',
     'pathvalidate',
     'pdfrw',
+    'python-dateutil',
+    'python-slugify',
     'rdflib',
     'rdflib-jsonld',
     'requests',
-    'python-slugify',
-    'python-dateutil',
     'sentry-sdk',
     'tenacity',
     'weasyprint',
     'XlsxWriter',
     # DSW
-    "dsw-command-queue==3.22.1",
-    "dsw-config==3.22.1",
-    "dsw-database==3.22.1",
-    "dsw-storage==3.22.1",
+    "dsw-command-queue==3.23.0",
+    "dsw-config==3.23.0",
+    "dsw-database==3.23.0",
+    "dsw-storage==3.23.0",
 ]
 
 [project.urls]

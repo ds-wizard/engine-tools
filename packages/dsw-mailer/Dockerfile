@@ -12,8 +12,8 @@ RUN python -m pip wheel --no-cache-dir --wheel-dir=/app/wheels -r /app/packages/
 
 FROM datastewardshipwizard/python-base:3.11-alpine
 
-ENV DSW_CONFIG /app/config.yml
-ENV MAILER_WORKDIR /home/user/templates
+ENV APPLICATION_CONFIG_PATH /app/config/application.yml
+ENV WORKDIR_PATH /home/user/templates
 ENV MAILER_MODE wizard
 ENV PATH "/home/user/.local/bin:$PATH"
 

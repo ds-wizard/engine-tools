@@ -150,10 +150,11 @@ class TemplateRequestsConfig:
 class TemplateConfig:
 
     def __init__(self, ids: List[str], requests: TemplateRequestsConfig,
-                 secrets: dict[str, str]):
+                 secrets: dict[str, str], send_sentry: bool):
         self.ids = ids
         self.requests = requests
         self.secrets = secrets
+        self.send_sentry = send_sentry
 
     @staticmethod
     def load(data: dict):
@@ -163,6 +164,7 @@ class TemplateConfig:
                 data.get('requests', {}),
             ),
             secrets=data.get('secrets', {}),
+            send_sentry=bool(data.get('send_sentry', False)),
         )
 
 

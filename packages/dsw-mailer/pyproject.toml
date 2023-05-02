@@ -4,7 +4,7 @@ build-backend = 'setuptools.build_meta'
 
 [project]
 name = 'dsw-mailer'
-version = "3.22.1"
+version = "3.23.0"
 description = 'Worker for sending email notifications'
 readme = 'README.md'
 keywords = ['email', 'jinja2', 'notification', 'template']
@@ -16,23 +16,24 @@ classifiers = [
     'Development Status :: 5 - Production/Stable',
     'License :: OSI Approved :: Apache Software License',
     'Programming Language :: Python',
-    'Programming Language :: Python :: 3.9',
     'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.11',
     'Topic :: Communications :: Email',
     'Topic :: Text Processing',
 ]
-requires-python = '>=3.9, <4'
+requires-python = '>=3.10, <4'
 dependencies = [
     'click',
-    'jinja2',
+    'dkimpy',
+    'Jinja2',
     'pathvalidate',
     'python-dateutil',
     'sentry-sdk',
     'tenacity',
     # DSW
-    "dsw-command-queue==3.22.1",
-    "dsw-config==3.22.1",
-    "dsw-database==3.22.1",
+    "dsw-command-queue==3.23.0",
+    "dsw-config==3.23.0",
+    "dsw-database==3.23.0",
 ]
 
 [project.urls]

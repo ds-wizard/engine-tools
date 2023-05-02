@@ -99,12 +99,18 @@ class TDKCore:
             raise RuntimeError('No DSW API client specified')
         return self.client
 
-    async def init_client(self, api_url: str, username: str, password: str):
+    async def init_client(self, api_url: str, username: Optional[str] = None,
+                          password: Optional[str] = None, api_key: Optional[str] = None):
         self.logger.info(f'Connecting to {api_url}')
         self.client = DSWAPIClient(api_url=api_url)
-        await self.client.login(email=username, password=password)
+        if api_key is not None:
+            self.client.token = api_key  # type: ignore
+        if username is not None and password is not None:
+            await self.client.login(email=username, password=password)
         self.remote_version = await self.client.get_api_version()
-        self.logger.info(f'Successfully authenticated as {username}')
+        user = await self.client.get_current_user()
+        self.logger.info(f'Successfully authenticated as {user["firstName"]} '
+                         f'{user["lastName"]} ({user["email"]})')
         self.logger.debug(f'Connected to API version {self.remote_version}')
 
     def prepare_local(self, template_dir):

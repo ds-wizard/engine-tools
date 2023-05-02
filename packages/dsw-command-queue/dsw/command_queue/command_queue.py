@@ -1,12 +1,16 @@
 import abc
+import datetime
 import logging
 import os
 import platform
-import select
+import psycopg
 import signal
 import tenacity
 
 from dsw.database import Database
+from dsw.database.model import PersistentCommand
+
+from .query import CommandQueries
 
 LOG = logging.getLogger(__name__)
 
@@ -36,16 +40,23 @@ signal.signal(signal.SIGABRT, signal_handler)
 class CommandWorker:
 
     @abc.abstractmethod
-    def work(self) -> bool:
+    def work(self, payload: PersistentCommand):
+        pass
+
+    def process_exception(self, e: Exception):
         pass
 
 
 class CommandQueue:
 
-    def __init__(self, worker: CommandWorker, db: Database, listen_query: str):
+    def __init__(self, worker: CommandWorker, db: Database,
+                 channel: str, component: str):
         self.worker = worker
         self.db = db
-        self.listen_query = listen_query
+        self.queries = CommandQueries(
+            channel=channel,
+            component=component
+        )
 
     @tenacity.retry(
         reraise=True,
@@ -55,45 +66,77 @@ class CommandQueue:
         after=tenacity.after_log(LOG, logging.INFO),
     )
     def run(self):
+        LOG.info('Trying queued jobs before listening')
+        while self.fetch_and_process():
+            pass
         LOG.info('Preparing to listen for jobs in command queue')
         queue_conn = self.db.conn_queue
-        # Prepare file descriptors
-        fds = [queue_conn.connection]
-        if IS_LINUX:
-            fds.append(_QUEUE_PIPE_R)
-        # Query queue
-        with queue_conn.new_cursor() as cursor:
-            cursor.execute(self.listen_query)
-            queue_conn.listening = True
-            LOG.info('Listening for jobs in command queue')
-
-            notifications = list()  # type: list[str]
-            timeout = self.db.cfg.queue_timout
-
+        queue_conn.connection.execute(
+            query=self.queries.query_listen(),
+        )
+        queue_conn.listening = True
+        LOG.info('Listening for jobs in command queue')
+        running = True
+        while running:
+            queue_notifications = queue_conn.connection.notifies()
             LOG.info('Entering working cycle, waiting for notifications')
-            while True:
-                while self.worker.work():
+            for notification in queue_notifications:
+                LOG.info(f'Notification received: {notification}')
+                while self.accept_notification(payload=notification):
                     pass
-
-                LOG.debug('Waiting for new notifications')
-                notifications.clear()
-                if not queue_conn.listening:
-                    cursor.execute(self.listen_query)
-                    queue_conn.listening = True
-
-                w = select.select(fds, [], [], timeout)
 
                 if INTERRUPTED:
                     LOG.debug('Interrupt signal received, ending...')
-                    break
+                    queue_notifications.close()
+                    running = False
+        LOG.debug('Exiting command queue')
 
-                if w == ([], [], []):
-                    LOG.debug(f'Nothing received in this cycle '
-                              f'(timeouted after {timeout} seconds).')
-                else:
-                    # queue_conn.connection.poll()
-                    while queue_conn.connection.notifies:
-                        notifications.append(queue_conn.connection.notifies.pop())
-                    LOG.info(f'Notifications received ({len(notifications)})')
-                    LOG.debug(f'Notifications: {notifications}')
-    LOG.debug('The End')
+    def accept_notification(self, payload: psycopg.Notify) -> bool:
+        LOG.debug(f'Accepting notification from channel "{payload.channel}" '
+                  f'(PID = {payload.pid}) {payload.payload}')
+        LOG.debug('Trying to fetch a new job')
+        return self.fetch_and_process()
+
+    def fetch_and_process(self) -> bool:
+        cursor = self.db.conn_query.new_cursor(use_dict=True)
+        cursor.execute(
+            query=self.queries.query_get_command(),
+            params={'now': datetime.datetime.utcnow()},
+        )
+        result = cursor.fetchall()
+        if len(result) != 1:
+            LOG.debug(f'Fetched {len(result)} persistent commands')
+            return False
+
+        command = PersistentCommand.from_dict_row(result[0])
+        LOG.info(f'Retrieved persistent command {command.uuid} for processing')
+        LOG.debug(f'Previous state: {command.state}')
+        LOG.debug(f'Attempts: {command.attempts} / {command.max_attempts}')
+        LOG.debug(f'Last error: {command.last_error_message}')
+
+        try:
+            self.worker.work(command)
+
+            self.db.execute_query(
+                query=self.queries.query_command_done(),
+                attempts=command.attempts + 1,
+                updated_at=datetime.datetime.utcnow(),
+                uuid=command.uuid,
+            )
+        except Exception as e:
+            msg = f'Failed with exception: {str(e)} ({type(e).__name__})'
+            LOG.warning(msg)
+            self.worker.process_exception(e)
+            self.db.execute_query(
+                query=self.queries.query_command_error(),
+                attempts=command.attempts + 1,
+                error_message=msg,
+                updated_at=datetime.datetime.utcnow(),
+                uuid=command.uuid,
+            )
+
+        LOG.debug('Committing transaction')
+        self.db.conn_query.connection.commit()
+        cursor.close()
+        LOG.info('Notification processing finished')
+        return True

@@ -15,14 +15,13 @@ from typing import Optional
 
 from dsw.config.model import MailConfig
 
-from ..consts import DEFAULT_ENCODING
-from ..context import Context
-from ..model import MailMessage, MailAttachment
+from .consts import DEFAULT_ENCODING
+from .model import MailMessage, MailAttachment
 
 
 RETRY_SMTP_MULTIPLIER = 0.5
 RETRY_SMTP_TRIES = 3
-EMAIL_ENCODING = 'utf-8'
+LOG = logging.getLogger(__name__)
 
 
 class SMTPSender:
@@ -34,15 +33,15 @@ class SMTPSender:
         reraise=True,
         wait=tenacity.wait_exponential(multiplier=RETRY_SMTP_MULTIPLIER),
         stop=tenacity.stop_after_attempt(RETRY_SMTP_TRIES),
-        before=tenacity.before_log(Context.logger, logging.DEBUG),
-        after=tenacity.after_log(Context.logger, logging.DEBUG),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
     )
     def send(self, message: MailMessage, cfg: Optional[MailConfig]):
         used_cfg = cfg or self.default_cfg
         if not used_cfg.enabled:
-            Context.logger.info('Not actually sending email (enabled=False)')
+            LOG.info('Not actually sending email (enabled=False)')
             return
-        Context.logger.info(f'Sending via SMTP: {used_cfg.host}:{used_cfg.port}')
+        LOG.info(f'Sending via SMTP: {used_cfg.host}:{used_cfg.port}')
         self._send(message, used_cfg)
 
     @classmethod
@@ -107,8 +106,8 @@ class SMTPSender:
     def _convert_html_part(cls, mail: MailMessage) -> MIMEBase:
         if mail.html_body is None:
             raise RuntimeError('Requested HTML body but there is none')
-        txt_part = MIMEText(mail.html_body, 'html', EMAIL_ENCODING)
-        txt_part.set_charset(EMAIL_ENCODING)
+        txt_part = MIMEText(mail.html_body, 'html', DEFAULT_ENCODING)
+        txt_part.set_charset(DEFAULT_ENCODING)
         if len(mail.html_images) > 0:
             part = MIMEMultipart('related')
             part.attach(txt_part)
@@ -121,7 +120,7 @@ class SMTPSender:
     def _convert_plain_part(mail: MailMessage) -> MIMEText:
         if mail.plain_body is None:
             raise RuntimeError('Requested plain body but there is none')
-        return MIMEText(mail.plain_body, 'plain', EMAIL_ENCODING)
+        return MIMEText(mail.plain_body, 'plain', DEFAULT_ENCODING)
 
     @classmethod
     def _convert_txt_parts(cls, mail: MailMessage) -> MIMEBase:
@@ -130,7 +129,7 @@ class SMTPSender:
         if mail.html_body is None:
             return cls._convert_plain_part(mail)
         part = MIMEMultipart('alternative')
-        part.set_charset(EMAIL_ENCODING)
+        part.set_charset(DEFAULT_ENCODING)
         part.attach(cls._convert_plain_part(mail))
         part.attach(cls._convert_html_part(mail))
         return part

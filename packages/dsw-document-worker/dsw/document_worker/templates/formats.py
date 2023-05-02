@@ -1,8 +1,12 @@
+import logging
+
 from ..consts import FormatField, StepField
-from ..context import Context
 from ..documents import DocumentFile
 from ..templates.steps import create_step, Step, \
     FormatStepException, WkHtmlToPdfStep
+
+
+LOG = logging.getLogger(__name__)
 
 
 class Format:
@@ -19,7 +23,7 @@ class Format:
         self._verify_metadata(metadata)
         self.uuid = self._trace = metadata[FormatField.UUID]
         self.name = metadata[FormatField.NAME]
-        Context.logger.info(f'Setting up format "{self.name}" ({self._trace})')
+        LOG.info(f'Setting up format "{self.name}" ({self._trace})')
         self.steps = self._create_steps(metadata)
         if len(self.steps) < 1:
             self.template.raise_exc(f'Format {self.name} has no steps')
@@ -44,11 +48,11 @@ class Format:
                     create_step(self.template, step_name, step_options)
                 )
             except FormatStepException as e:
-                Context.logger.warning('Handling job exception', exc_info=True)
+                LOG.warning('Handling job exception', exc_info=True)
                 self.template.raise_exc(f'Cannot load step "{step_name}" of format "{self.name}"\n'
                                         f'- {e.message}')
             except Exception as e:
-                Context.logger.warning('Handling job exception', exc_info=True)
+                LOG.warning('Handling job exception', exc_info=True)
                 self.template.raise_exc(f'Cannot load step "{step_name}" of format "{self.name}"\n'
                                         f'- {str(e)}')
         return steps

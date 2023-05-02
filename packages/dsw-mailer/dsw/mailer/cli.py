@@ -9,7 +9,6 @@ from dsw.config.parser import MissingConfigurationError
 from .config import MailerConfig, MailerConfigParser
 from .consts import VERSION
 from .model import MessageRequest
-from .logging import prepare_logging
 
 
 def validate_config(ctx, param, value: Optional[IO]):
@@ -47,10 +46,10 @@ def extract_message_request(ctx, param, value: IO):
 @click.group(name='dsw-mailer')
 @click.pass_context
 @click.version_option(version=VERSION)
-@click.option('-c', '--config', envvar='DSW_CONFIG',
+@click.option('-c', '--config', envvar='APPLICATION_CONFIG_PATH',
               required=False, callback=validate_config,
               type=click.File('r', encoding='utf-8'))
-@click.option('-w', '--workdir', envvar='MAILER_WORKDIR',
+@click.option('-w', '--workdir', envvar='WORKDIR_PATH',
               type=click.Path(dir_okay=True, exists=True))
 @click.option('-m', '--mode', envvar='MAILER_MODE',
               type=click.Choice(['wizard', 'registry']),
@@ -58,8 +57,8 @@ def extract_message_request(ctx, param, value: IO):
 def cli(ctx, config: MailerConfig, workdir: str, mode: str):
     """Mailer for sending emails from DSW"""
     path_workdir = pathlib.Path(workdir)
-    prepare_logging(cfg=config)
     from .mailer import Mailer
+    config.log.apply()
     ctx.obj['mailer'] = Mailer(config, path_workdir, mode)
 
 

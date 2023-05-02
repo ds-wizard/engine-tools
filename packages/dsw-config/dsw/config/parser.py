@@ -102,6 +102,7 @@ class DSWConfigParser:
             level=self.get(self.keys.logging.level),
             global_level=self.get(self.keys.logging.global_level),
             message_format=self.get(self.keys.logging.format),
+            dict_config=self.get(self.keys.logging.dict_config),
         )
 
     @property
@@ -115,6 +116,8 @@ class DSWConfigParser:
         return SentryConfig(
             enabled=self.get(self.keys.sentry.enabled),
             workers_dsn=self.get(self.keys.sentry.worker_dsn),
+            traces_sample_rate=self.get(self.keys.sentry.traces_sample_rate),
+            max_breadcrumbs=self.get(self.keys.sentry.max_breadcrumbs),
         )
 
     @property

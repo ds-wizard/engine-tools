@@ -1,5 +1,6 @@
 import jinja2
 import json
+import logging
 import pathlib
 
 from typing import Optional
@@ -8,7 +9,9 @@ from .config import MailerConfig, MailConfig
 from .consts import DEFAULT_ENCODING
 from .model import MailMessage, MailAttachment, MessageRequest,\
     TemplateDescriptor, TemplateDescriptorPart
-from .logging import LOGGER
+
+
+LOG = logging.getLogger(__name__)
 
 
 class MailTemplate:
@@ -93,9 +96,7 @@ class TemplateRegistry:
             data = json.loads(path.read_text(encoding=DEFAULT_ENCODING))
             return TemplateDescriptor.load_from_file(data)
         except Exception as e:
-            import traceback
-            traceback.print_exc()
-            LOGGER.warn(f'Cannot load template descriptor at {str(path)}'
+            LOG.warning(f'Cannot load template descriptor at {str(path)}'
                         f'due to: {str(e)}')
             return None
 
@@ -115,7 +116,7 @@ class TemplateRegistry:
             elif part.type == 'html_image':
                 html_images.append(self._load_attachment(path, part))
         if html_template is None and plain_template is None:
-            LOGGER.warn(f'Template "{descriptor.id}" from {str(path)}'
+            LOG.warning(f'Template "{descriptor.id}" from {str(path)}'
                         f'does not have HTML nor Plain part - skipping')
             return None
         template = MailTemplate(
@@ -139,7 +140,7 @@ class TemplateRegistry:
             template = self._load_template(path, descriptor)
             if template is None:
                 continue
-            LOGGER.warn(f'Loaded template "{descriptor.id}" from {str(path)}')
+            LOG.info(f'Loaded template "{descriptor.id}" from {str(path)}')
             self.templates[path.name] = template
 
     def has_template_for(self, rq: MessageRequest) -> bool:

@@ -91,7 +91,7 @@ class DSWAPIClient:
         """
         self.api_url = api_url
         self.token = None
-        self.session = session or aiohttp.ClientSession(connector=aiohttp.TCPConnector(verify_ssl=False))
+        self.session = session or aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False))
 
     @property
     def templates_endpoint(self):
@@ -141,6 +141,10 @@ class DSWAPIClient:
         body = await self._post_json('/tokens', json=req)
         self.token = body.get('token', None)
         return self.token
+
+    @handle_client_errors
+    async def get_current_user(self) -> dict:
+        return await self._get_json('/users/current')
 
     @handle_client_errors
     async def check_template_exists(self, remote_id: str) -> bool:

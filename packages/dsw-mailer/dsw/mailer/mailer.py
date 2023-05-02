@@ -1,25 +1,30 @@
 import abc
 import datetime
 import dateutil.parser
+import logging
 import math
 import pathlib
 import time
 import urllib.parse
-import uuid
 
 from typing import Optional
 
 from dsw.command_queue import CommandWorker, CommandQueue
+from dsw.config.sentry import SentryReporter
 from dsw.database.database import Database
 from dsw.database.model import DBAppConfig, PersistentCommand, \
     DBInstanceConfigMail
 
 from .build_info import BUILD_INFO
 from .config import MailerConfig, MailConfig
-from .connection import SMTPSender, SentryReporter
-from .consts import Queries, COMPONENT_NAME, CMD_COMPONENT
+from .consts import PROG_NAME
+from .smtp import SMTPSender
+from .consts import COMPONENT_NAME, CMD_CHANNEL, CMD_COMPONENT
 from .context import Context
 from .model import MessageRequest
+
+
+LOG = logging.getLogger(__name__)
 
 
 class Mailer(CommandWorker):
@@ -32,7 +37,6 @@ class Mailer(CommandWorker):
             count=cfg.mail.rate_limit_count,
         )
 
-        self._prepare_logging()
         self._init_context(workdir=workdir, mode=mode)
         self.ctx = Context.get()
 
@@ -40,70 +44,49 @@ class Mailer(CommandWorker):
         Context.initialize(
             config=self.cfg,
             workdir=workdir,
-            db=Database(cfg=self.cfg.db),
+            db=Database(cfg=self.cfg.db, connect=False),
             sender=SMTPSender(cfg=self.cfg.mail),
             mode=mode,
         )
-        if self.cfg.sentry.enabled and self.cfg.sentry.workers_dsn is not None:
-            SentryReporter.initialize(
-                dsn=self.cfg.sentry.workers_dsn,
-                environment=self.cfg.general.environment,
-                server_name=self.cfg.general.client_url,
-            )
-
-    def _prepare_logging(self):
-        Context.logger.set_level(self.cfg.log.level)
+        SentryReporter.initialize(
+            dsn=self.cfg.sentry.workers_dsn,
+            environment=self.cfg.general.environment,
+            server_name=self.cfg.general.client_url,
+            release=BUILD_INFO.version,
+            prog_name=PROG_NAME,
+            config=self.cfg.sentry,
+        )
 
     @staticmethod
     def _update_component_info():
         built_at = dateutil.parser.parse(BUILD_INFO.built_at)
-        Context.logger.info(f'Updating component info ({BUILD_INFO.version}, '
-                            f'{built_at.isoformat(timespec="seconds")})')
+        LOG.info(f'Updating component info ({BUILD_INFO.version}, '
+                 f'{built_at.isoformat(timespec="seconds")})')
         Context.get().app.db.update_component_info(
             name=COMPONENT_NAME,
             version=BUILD_INFO.version,
             built_at=built_at,
         )
 
-    def work(self) -> bool:
-        Context.update_trace_id(str(uuid.uuid4()))
-        ctx = Context.get()
-        Context.logger.debug('Trying to fetch a new job')
-        cursor = ctx.app.db.conn_query.new_cursor(use_dict=True)
-        cursor.execute(Queries.SELECT_CMD, {'now': datetime.datetime.utcnow()})
-        result = cursor.fetchall()
-        if len(result) != 1:
-            Context.logger.debug(f'Fetched {len(result)} jobs')
-            return False
+    def run(self):
+        Context.get().app.db.connect()
+        # prepare
+        self._update_component_info()
+        # work in queue
+        LOG.info('Preparing command queue')
+        queue = CommandQueue(
+            worker=self,
+            db=Context.get().app.db,
+            channel=CMD_CHANNEL,
+            component=CMD_COMPONENT,
+        )
+        queue.run()
 
-        command = result[0]
-        try:
-            cmd = PersistentCommand.from_dict_row(command)
-            self._process_command(cmd)
-        except Exception as e:
-            import traceback
-            traceback.print_exc()
-            Context.logger.warning(f'Errored with exception: {str(e)}')
-            SentryReporter.capture_exception(e)
-            ctx.app.db.execute_query(
-                query=Queries.UPDATE_CMD_ERROR,
-                attempts=command.get('attempts', 0) + 1,
-                error_message=f'Failed with exception: {str(e)}',
-                updated_at=datetime.datetime.utcnow(),
-                uuid=command['uuid'],
-            )
-
-        Context.logger.info('Committing transaction')
-        ctx.app.db.conn_query.connection.commit()
-        cursor.close()
-        Context.logger.info('Job processing finished')
-        self.rate_limiter.hit()
-        Context.update_trace_id('-')
-        return True
-
-    def _process_command(self, cmd: PersistentCommand):
+    def work(self, cmd: PersistentCommand):
         # update Sentry info
-        SentryReporter.set_context('template', '')
+        SentryReporter.set_context('template', '-')
+        SentryReporter.set_context('cmd_uuid', cmd.uuid)
+        Context.get().update_trace_id(cmd.uuid)
         # work
         app_ctx = Context.get().app
         mc = load_mailer_command(cmd)
@@ -118,45 +101,33 @@ class Mailer(CommandWorker):
             cfg = _transform_mail_config(
                 cfg=app_ctx.db.get_mail_config(app_uuid=cmd.app_uuid),
             )
-        Context.logger.debug(f'Config from DB: {cfg}')
+        LOG.debug(f'Config from DB: {cfg}')
         # client URL
         rq.client_url = cmd.body.get('clientUrl', app_ctx.cfg.general.client_url)
         rq.domain = urllib.parse.urlparse(rq.client_url).hostname
         # update Sentry info
         SentryReporter.set_context('template', rq.template_name)
         self.send(rq, cfg)
-        app_ctx.db.execute_query(
-            query=Queries.UPDATE_CMD_DONE,
-            attempts=cmd.attempts + 1,
-            updated_at=datetime.datetime.utcnow(),
-            uuid=cmd.uuid,
-        )
+        SentryReporter.set_context('template', '-')
+        SentryReporter.set_context('cmd_uuid', '-')
+        Context.get().update_trace_id('-')
 
-    def run(self):
-        Context.get().app.db.connect()
-        # prepare
-        self._update_component_info()
-        # work in queue
-        Context.logger.info('Preparing command queue')
-        queue = CommandQueue(
-            worker=self,
-            db=Context.get().app.db,
-            listen_query=Queries.LISTEN,
-        )
-        queue.run()
+    def process_exception(self, e: Exception):
+        LOG.info('Failed with unexpected error', exc_info=e)
+        SentryReporter.capture_exception(e)
 
     def send(self, rq: MessageRequest, cfg: Optional[MailConfig]):
-        Context.logger.info(f'Sending request: {rq.template_name} ({rq.id})')
+        LOG.info(f'Sending request: {rq.template_name} ({rq.id})')
         # get template
         if not self.ctx.templates.has_template_for(rq):
             raise RuntimeError(f'Template not found: {rq.template_name}')
         # render
-        Context.logger.info(f'Rendering message: {rq.template_name}')
+        LOG.info(f'Rendering message: {rq.template_name}')
         msg = self.ctx.templates.render(rq, cfg)
         # send
-        Context.logger.info(f'Sending message: {rq.template_name}')
+        LOG.info(f'Sending message: {rq.template_name}')
         self.ctx.app.sender.send(msg, cfg)
-        Context.logger.info('Message sent successfully')
+        LOG.info('Message sent successfully')
 
 
 def _transform_mail_config(cfg: Optional[DBInstanceConfigMail]) -> Optional[MailConfig]:
@@ -176,6 +147,8 @@ def _transform_mail_config(cfg: Optional[DBInstanceConfigMail]) -> Optional[Mail
         timeout=cfg.timeout,
         ssl=None,
         auth=None,
+        dkim_privkey_file=None,
+        dkim_selector=None,
     )
 
 
@@ -194,7 +167,7 @@ class RateLimiter:
     def hit(self):
         if self.window == 0:
             return
-        Context.logger.debug('Hit for checking rate limit')
+        LOG.debug('Hit for checking rate limit')
         now = datetime.datetime.now().timestamp()
         threshold = now - self.window
         while len(self.hits) > 0 and self.hits[0] < threshold:
@@ -202,10 +175,10 @@ class RateLimiter:
         self.hits.append(now)
 
         if len(self.hits) >= self.count:
-            Context.logger.info('Reached rate limit')
+            LOG.info('Reached rate limit')
             sleep_time = math.ceil(self.window - now + self.hits[0])
             if sleep_time > 1:
-                Context.logger.info(f'Will sleep now for {sleep_time} second')
+                LOG.info(f'Will sleep now for {sleep_time} second')
                 time.sleep(sleep_time)
 
 
