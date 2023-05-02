@@ -34,10 +34,10 @@ def validate_config(ctx, param, value: Optional[IO]):
 
 @click.command(name='docworker')
 @click.version_option(version=VERSION)
-@click.argument('config', envvar='DOCWORKER_CONFIG',
+@click.argument('config', envvar='APPLICATION_CONFIG_PATH',
                 required=False, callback=validate_config,
                 type=click.File('r', encoding='utf-8'))
-@click.argument('workdir', envvar='DOCWORKER_WORKDIR')
+@click.argument('workdir', envvar='WORKDIR_PATH')
 def main(config: DocumentWorkerConfig, workdir: str):
     from .worker import DocumentWorker
     config.log.apply()

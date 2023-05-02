@@ -33,10 +33,10 @@ def validate_config(ctx, param, value: Optional[IO]):
 
 @click.group(name=PROG_NAME)
 @click.version_option(version=VERSION)
-@click.option('-c', '--config', envvar='DSW_CONFIG',
+@click.option('-c', '--config', envvar='APPLICATION_CONFIG_PATH',
               required=False, callback=validate_config,
               type=click.File('r', encoding='utf-8'))
-@click.option('-w', '--workdir', envvar='SEEDER_WORKDIR',
+@click.option('-w', '--workdir', envvar='WORKDIR_PATH',
               type=click.Path(dir_okay=True, exists=True))
 @click.pass_context
 def cli(ctx: click.Context, config: SeederConfig, workdir: str):
