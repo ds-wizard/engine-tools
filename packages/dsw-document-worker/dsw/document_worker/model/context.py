@@ -377,7 +377,7 @@ class Reply:
     def _resolve_links_parent(self, ctx):
         question_uuid = self.fragments[-1]
         if question_uuid in ctx.e.questions.keys():
-            self.question = ctx.e.questions[question_uuid]
+            self.question = ctx.e.questions.get(question_uuid, None)
             if self.question is not None:
                 self.question.replies[self.path] = self
 
@@ -398,7 +398,7 @@ class AnswerReply(Reply):
 
     def _resolve_links(self, ctx):
         super()._resolve_links_parent(ctx)
-        self.answer = ctx.e.answers[self.answer_uuid]
+        self.answer = ctx.e.answers.get(self.answer_uuid, None)
 
     @staticmethod
     def load(path: str, data: dict, **options):
@@ -650,9 +650,15 @@ class Question:
         return other.uuid == self.uuid
 
     def _resolve_links_parent(self, ctx):
-        self.tags = [ctx.e.tags[key] for key in self.tag_uuids]
-        self.experts = [ctx.e.experts[key] for key in self.expert_uuids]
-        self.references = [ctx.e.references[key] for key in self.reference_uuids]
+        self.tags = [ctx.e.tags[key]
+                     for key in self.tag_uuids
+                     if key in ctx.e.tags.keys()]
+        self.experts = [ctx.e.experts[key]
+                        for key in self.expert_uuids
+                        if key in ctx.e.experts.keys()]
+        self.references = [ctx.e.references[key]
+                           for key in self.reference_uuids
+                           if key in ctx.e.references.keys()]
         for ref in self.references:
             ref._resolve_links(ctx)
         if self.required_phase_uuid is None or ctx.current_phase is None:
