@@ -1,5 +1,5 @@
-certifi==2022.12.7
-minio==7.1.14
+certifi==2023.5.7
+minio==7.1.15
 PyYAML==6.0
 tenacity==8.2.2
 urllib3==1.26.15

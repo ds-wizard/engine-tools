@@ -1,5 +1,5 @@
-psycopg==3.1.8
-psycopg-binary==3.1.8
+psycopg==3.1.9
+psycopg-binary==3.1.9
 PyYAML==6.0
 tenacity==8.2.2
 typing_extensions==4.5.0
