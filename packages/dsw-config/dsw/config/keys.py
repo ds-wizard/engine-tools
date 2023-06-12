@@ -10,6 +10,12 @@ def cast_bool(value: Any) -> bool:
     return bool(value)
 
 
+def cast_optional_bool(value: Any) -> Optional[bool]:
+    if value is None:
+        return None
+    return bool(value)
+
+
 def cast_int(value: Any) -> int:
     return int(value)
 
@@ -269,18 +275,17 @@ class _MailKeys(ConfigKeysContainer):
     auth_enabled = ConfigKey(
         yaml_path=['mail', 'authEnabled'],
         var_names=[],
-        default=False,
-        cast=cast_bool,
+        cast=cast_optional_bool,
     )
     username = ConfigKey(
         yaml_path=['mail', 'username'],
         var_names=['MAIL_USERNAME'],
-        cast=cast_str,
+        cast=cast_optional_str,
     )
     password = ConfigKey(
         yaml_path=['mail', 'password'],
         var_names=['MAIL_PASSWORD'],
-        cast=cast_str,
+        cast=cast_optional_str,
     )
     rate_limit_window = ConfigKey(
         yaml_path=['mail', 'rateLimit', 'window'],
