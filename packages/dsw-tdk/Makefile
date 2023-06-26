@@ -13,5 +13,5 @@ docker-image-name:
 
 .PHONY: test
 test:
-	pip install pytest pytest-recording vcrpy
+	pip install -r requirements.test.txt
 	pytest tests
