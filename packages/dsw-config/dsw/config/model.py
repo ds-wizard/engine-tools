@@ -84,7 +84,7 @@ class MailConfig(ConfigModel):
 
     def __init__(self, enabled: bool, ssl: Optional[bool], name: str, email: str,
                  host: str, port: Optional[int], security: Optional[str],
-                 auth: Optional[bool], username: Optional[str],
+                 auth_enabled: Optional[bool], username: Optional[str],
                  password: Optional[str], rate_limit_window: int,
                  rate_limit_count: int, timeout: int,
                  dkim_selector: Optional[str] = None,
@@ -99,9 +99,11 @@ class MailConfig(ConfigModel):
         elif ssl is not None:
             self.security = 'ssl' if ssl else 'plain'
         self.port = port or self._default_port()
-        self.auth = auth or (username is not None and password is not None)
-        self.username = username if self.auth is not None else None
-        self.password = password if self.auth is not None else None
+        self.auth = auth_enabled
+        if self.auth is None:
+            self.auth = username is not None and password is not None
+        self.username = username
+        self.password = password
         self.rate_limit_window = rate_limit_window
         self.rate_limit_count = rate_limit_count
         self.timeout = timeout

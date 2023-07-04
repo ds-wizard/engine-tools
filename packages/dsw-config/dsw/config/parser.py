@@ -138,7 +138,7 @@ class DSWConfigParser:
             ssl=self.get(self.keys.mail.ssl),
             port=self.get(self.keys.mail.port),
             security=self.get(self.keys.mail.security),
-            auth=self.get(self.keys.mail.auth_enabled),
+            auth_enabled=self.get(self.keys.mail.auth_enabled),
             username=self.get(self.keys.mail.username),
             password=self.get(self.keys.mail.password),
             rate_limit_window=int(self.get(self.keys.mail.rate_limit_window)),
