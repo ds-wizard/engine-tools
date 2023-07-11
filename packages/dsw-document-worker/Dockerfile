@@ -9,14 +9,14 @@ COPY . /app
 RUN apk add -u build-base gcc \
  && clean
 
-RUN python -m pip wheel --no-cache-dir --wheel-dir=/app/wheels -r /app/packages/dsw-document-worker/requirements.txt \
- && python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/app/wheels /app/packages/dsw-command-queue \
- && python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/app/wheels /app/packages/dsw-config \
- && python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/app/wheels /app/packages/dsw-database \
- && python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/app/wheels /app/packages/dsw-storage \
- && python -m pip wheel --no-cache-dir --wheel-dir=/app/wheels /app/packages/dsw-document-worker/addons/* \
- && python -m pip install --no-cache --no-index /app/wheels/* \
- && python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/app/wheels /app/packages/dsw-document-worker
+RUN python -m pip wheel --wheel-dir=/app/wheels -r /app/packages/dsw-document-worker/requirements.txt \
+ && python -m pip wheel --no-deps --wheel-dir=/app/wheels /app/packages/dsw-command-queue \
+ && python -m pip wheel --no-deps --wheel-dir=/app/wheels /app/packages/dsw-config \
+ && python -m pip wheel --no-deps --wheel-dir=/app/wheels /app/packages/dsw-database \
+ && python -m pip wheel --no-deps --wheel-dir=/app/wheels /app/packages/dsw-storage \
+ && python -m pip wheel --wheel-dir=/app/wheels /app/packages/dsw-document-worker/addons/* \
+ && python -m pip install --no-index /app/wheels/* \
+ && python -m pip wheel --no-deps --wheel-dir=/app/wheels /app/packages/dsw-document-worker
 
 FROM datastewardshipwizard/python-base:3.11-alpine-docworker
 

@@ -26,7 +26,7 @@ Libraries are currently kept compatible with Python 3.10 and higher.
 
 * [Template Development Kit (dsw-tdk)](packages/dsw-tdk)
 
-Utilities are currently kept compatible with Python 3.9 and higher.
+Utilities are currently kept compatible with Python 3.10 and higher.
 
 ### Workers
 

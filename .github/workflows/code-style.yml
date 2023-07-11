@@ -9,20 +9,6 @@ jobs:
     name: Flake 8
     runs-on: ubuntu-latest
 
-    strategy:
-      fail-fast: false
-      matrix:
-        package:
-          - dsw-command-queue
-          - dsw-config
-          - dsw-data-seeder
-          - dsw-database
-          - dsw-document-worker
-          - dsw-mailer
-          - dsw-models
-          - dsw-storage
-          - dsw-tdk
-
     steps:
     - name: Check out repository
       uses: actions/checkout@v3
@@ -40,41 +26,44 @@ jobs:
       run: |
         bash scripts/build-info.sh
 
-    - name: Install dependencies
+    - name: Install Flake8 (5.0.4)
       run: |
         python -m pip install --upgrade pip
         pip install flake8==5.0.4
-        cd packages/${{ matrix.package }}
-        pip install -r requirements.txt
-        make local-deps
+
+    - name: Install dependencies
+      run: |
+        ROOT=$(pwd)
+        for package in $(ls packages); do
+          echo "-------------------------------------------------"
+          echo "- $package"
+          echo "-------------------------------------------------"
+          cd "$ROOT/packages/$package"
+          pip install -r requirements.txt
+          make local-deps
+          echo "================================================="
+        done
 
     - name: Install package
       run: |
-        pip install packages/${{ matrix.package }}
+        for package in $(ls packages); do
+          echo "-------------------------------------------------"
+          echo "- $package"
+          echo "-------------------------------------------------"
+          pip install packages/$package
+          echo "================================================="
+        done
 
     - name: Lint with flake8
       run: |
-        flake8 packages/${{ matrix.package }} --count --select=E9,F63,F7,F82 --show-source --statistics
-        flake8 packages/${{ matrix.package }} --count --max-complexity=12 --max-line-length=130 --statistics
+        flake8 packages --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 packages --count --max-complexity=12 --max-line-length=130 --statistics
 
   # Typing checks with MyPy
   typing:
     name: Typing
     runs-on: ubuntu-latest
 
-    strategy:
-      fail-fast: false
-      matrix:
-        package:
-          - dsw-command-queue
-          - dsw-config
-          - dsw-data-seeder
-          - dsw-database
-          - dsw-document-worker
-          - dsw-mailer
-          - dsw-storage
-          - dsw-tdk
-
     steps:
     - name: Check out repository
       uses: actions/checkout@v3
@@ -92,20 +81,34 @@ jobs:
       run: |
         bash scripts/build-info.sh
 
-    - name: Install dependencies
+    - name: Install MyPy (1.4.1)
       run: |
         python -m pip install --upgrade pip
-        pip install mypy==0.991
-        cd packages/${{ matrix.package }}
-        pip install -r requirements.txt
-        make local-deps
+        pip install mypy==1.4.1
 
-    - name: Install package
+    - name: Install dependencies
       run: |
-        cd packages/${{ matrix.package }}
-        pip install .
+        ROOT=$(pwd)
+        for package in $(ls packages); do
+          echo "-------------------------------------------------"
+          echo "- $package"
+          echo "-------------------------------------------------"
+          cd "$ROOT/packages/$package"
+          pip install -r requirements.txt
+          make local-deps
+          echo "================================================="
+        done
 
-    - name: Typecheck with mypy
+    - name: Install packages
       run: |
-        cd packages/${{ matrix.package }}
-        mypy --install-types --ignore-missing-imports --check-untyped-defs --non-interactive dsw
+        for package in $(ls packages); do
+          echo "-------------------------------------------------"
+          echo "- $package"
+          echo "-------------------------------------------------"
+          pip install packages/$package
+          echo "================================================="
+        done
+
+    - name: Check typing with MyPy
+      run: |
+        mypy --install-types --ignore-missing-imports --check-untyped-defs --non-interactive packages/*/dsw

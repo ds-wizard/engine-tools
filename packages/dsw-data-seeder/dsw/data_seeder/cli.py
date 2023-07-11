@@ -45,33 +45,30 @@ def cli(ctx: click.Context, config: SeederConfig, workdir: str):
     config.log.apply()
 
 
-@cli.command()
+@cli.command(name='run', help='Run worker that listens to persistent commands.')
 @click.option('-r', '--recipe', envvar='SEEDER_RECIPE')
 @click.pass_context
 def run(ctx: click.Context, recipe: str):
-    """Run worker that listens to persistent commands"""
     cfg = ctx.obj['cfg']
     workdir = ctx.obj['workdir']
     seeder = DataSeeder(cfg=cfg, workdir=workdir)
     seeder.run(recipe)
 
 
-@cli.command()
+@cli.command(name='seed', help='Seed data directly.')
 @click.option('-r', '--recipe', envvar='SEEDER_RECIPE')
 @click.option('-a', '--app_uuid', default=NULL_UUID)
 @click.pass_context
 def seed(ctx: click.Context, recipe: str, app_uuid: str):
-    """Seed data in DSW directly"""
     cfg = ctx.obj['cfg']
     workdir = ctx.obj['workdir']
     seeder = DataSeeder(cfg=cfg, workdir=workdir)
     seeder.seed(recipe_name=recipe, app_uuid=app_uuid)
 
 
-@cli.command()
+@cli.command(name='list', help='List recipes for data seeding.')
 @click.pass_context
 def list(ctx: click.Context):
-    """List recipes for data seeding"""
     workdir = ctx.obj['workdir']
     recipes = SeedRecipe.load_from_dir(workdir)
     for recipe in recipes.values():
