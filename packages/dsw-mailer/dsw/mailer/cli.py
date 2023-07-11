@@ -43,7 +43,7 @@ def extract_message_request(ctx, param, value: IO):
         exit(1)
 
 
-@click.group(name='dsw-mailer')
+@click.group(name='dsw-mailer', help='Mailer for sending emails from DSW')
 @click.pass_context
 @click.version_option(version=VERSION)
 @click.option('-c', '--config', envvar='APPLICATION_CONFIG_PATH',
@@ -55,28 +55,25 @@ def extract_message_request(ctx, param, value: IO):
               type=click.Choice(['wizard', 'registry']),
               default='wizard')
 def cli(ctx, config: MailerConfig, workdir: str, mode: str):
-    """Mailer for sending emails from DSW"""
     path_workdir = pathlib.Path(workdir)
     from .mailer import Mailer
     config.log.apply()
     ctx.obj['mailer'] = Mailer(config, path_workdir, mode)
 
 
-@cli.command()
+@cli.command(name='send', help='Send message(s) from given file directly.')
 @click.pass_context
 @click.argument('msg-request', type=click.File('r', encoding='utf-8'),
                 callback=extract_message_request)
 def send(ctx, msg_request: MessageRequest):
-    """Send message(s) from given file directly"""
     from .mailer import Mailer
     mailer = ctx.obj['mailer']  # type: Mailer
     mailer.send(rq=msg_request, cfg=None)
 
 
-@cli.command()
+@cli.command(name='run', help='Run mailer worker processing message jobs.')
 @click.pass_context
 def run(ctx):
-    """Run mailer worker processing message jobs"""
     from .mailer import Mailer
     mailer = ctx.obj['mailer']  # type: Mailer
     mailer.run()
