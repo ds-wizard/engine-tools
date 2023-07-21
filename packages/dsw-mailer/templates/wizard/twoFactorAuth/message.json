@@ -1,6 +1,8 @@
 {
-  "id": "twoFactorAuth",
+  "id": "wizard:twoFactorAuth",
   "subject": "Two-Factor Login Verification",
+  "subjectPrefix": true,
+  "defaultSenderName": "DSW",
   "parts": [
     {
       "type": "html",
@@ -10,6 +12,5 @@
       "type": "plain",
       "file": "message.txt.j2"
     }
-  ],
-  "modes": ["wizard"]
+  ]
 }

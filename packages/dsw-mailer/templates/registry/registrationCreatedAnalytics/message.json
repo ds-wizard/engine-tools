@@ -1,6 +1,8 @@
 {
-  "id": "registrationCreatedAnalytics",
+  "id": "registry:registrationCreatedAnalytics",
   "subject": "New Organization Registered",
+  "subjectPrefix": true,
+  "defaultSenderName": "DSW Registry",
   "parts": [
     {
       "type": "html",
@@ -10,6 +12,5 @@
       "type": "plain",
       "file": "message.txt.j2"
     }
-  ],
-  "modes": ["registry"]
+  ]
 }

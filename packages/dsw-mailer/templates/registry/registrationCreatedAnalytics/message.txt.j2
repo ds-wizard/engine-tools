@@ -1,8 +1,9 @@
 Hello!
 
-Good news - we have a new organization in {{ ctx.appTitle }} ({{ ctx.clientUrl }}):
+Good news - we have a new organization {% if ctx.appTitle %}in {{ ctx.appTitle }}{% endif %} ({{ ctx.clientUrl }}):
 
-- Name: {{ ctx.organization.name }}
-- Email: {{ ctx.organization.email }}
+- ID: {{ ctx.organizationId }}
+- Name: {{ ctx.organizationName }}
+- Email: {{ ctx.organizationEmail }}
 
 {% include '_common/footer.txt.j2' %}

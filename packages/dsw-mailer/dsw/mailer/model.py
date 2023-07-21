@@ -49,11 +49,14 @@ class TemplateDescriptorPart:
 
 class TemplateDescriptor:
 
-    def __init__(self, message_id: str, subject: str, language: str,
+    def __init__(self, message_id: str, subject: str, subject_prefix: bool,
+                 default_sender_name: Optional[str], language: str,
                  importance: str, sensitivity: Optional[str],
                  priority: Optional[str]):
         self.id = message_id
         self.subject = subject
+        self.use_subject_prefix = subject_prefix
+        self.default_sender_name = default_sender_name
         self.language = language
         self.importance = importance
         self.sensitivity = sensitivity
@@ -66,6 +69,8 @@ class TemplateDescriptor:
         result = TemplateDescriptor(
             message_id=data.get('id', ''),
             subject=data.get('subject', ''),
+            subject_prefix=data.get('subjectPrefix', True),
+            default_sender_name=data.get('defaultSenderName', None),
             language=data.get('language', 'en'),
             importance=data.get('importance', 'normal'),
             sensitivity=data.get('sensitivity', None),
@@ -103,10 +108,10 @@ class MessageRequest:
 class MailMessage:
 
     def __init__(self):
-        self.from_mail = ''
-        self.from_name = ''
-        self.recipients = list()
-        self.subject = ''
+        self.from_mail = ''  # type: str
+        self.from_name = None  # type: Optional[str]
+        self.recipients = list()  # type: list[str]
+        self.subject = ''  # type: str
         self.plain_body = None  # type: Optional[str]
         self.html_body = None  # type: Optional[str]
         self.html_images = list()  # type: list[MailAttachment]

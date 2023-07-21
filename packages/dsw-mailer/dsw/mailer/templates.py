@@ -26,24 +26,26 @@ class MailTemplate:
         self.attachments = list()  # type: list[MailAttachment]
         self.html_images = list()  # type: list[MailAttachment]
 
-    def render(self, rq: MessageRequest, mail_name: str, mail_from: str) -> MailMessage:
+    def render(self, rq: MessageRequest, mail_name: Optional[str], mail_from: str) -> MailMessage:
         ctx = rq.ctx
         msg = MailMessage()
         msg.recipients = rq.recipients
-        subject_prefix = ctx.get('appTitle', None)
-        if subject_prefix is None:
-            subject_prefix = mail_name
-        msg.subject = f'{subject_prefix}: {self.descriptor.subject}'
+        if self.descriptor.use_subject_prefix:
+            subject_prefix = ctx.get('appTitle', None) or mail_name
+            if subject_prefix is None:
+                subject_prefix = self.descriptor.default_sender_name
+            ctx['appTitle'] = subject_prefix
+            msg.subject = f'{subject_prefix}: {self.descriptor.subject}'
+        else:
+            msg.subject = self.descriptor.subject
         msg.msg_id = rq.id
         msg.msg_domain = rq.domain
         msg.language = self.descriptor.language
         msg.importance = self.descriptor.importance
         msg.priority = self.descriptor.priority
-        ctx['msgId'] = rq.id
-        ctx['subject'] = msg.subject
-        ctx['appTitle'] = subject_prefix
+        ctx['_meta']['subject'] = msg.subject
         msg.from_mail = mail_from
-        msg.from_name = subject_prefix
+        msg.from_name = mail_name or self.descriptor.default_sender_name
         if self.html_template is not None:
             msg.html_body = self.html_template.render(ctx=ctx)
         if self.plain_template is not None:
@@ -58,7 +60,7 @@ class TemplateRegistry:
     DESCRIPTOR_FILENAME = 'message.json'
     DESCRIPTOR_PATTERN = f'./**/{DESCRIPTOR_FILENAME}'
 
-    def __init__(self, cfg: MailerConfig, workdir: pathlib.Path, mode: str):
+    def __init__(self, cfg: MailerConfig, workdir: pathlib.Path):
         self.cfg = cfg
         self.workdir = workdir
         self.j2_env = jinja2.Environment(
@@ -66,7 +68,7 @@ class TemplateRegistry:
             extensions=['jinja2.ext.do'],
         )
         self.templates = dict()  # type: dict[str, MailTemplate]
-        self._load_templates(mode)
+        self._load_templates()
 
     def _load_jinja2(self, file_path: pathlib.Path) -> Optional[jinja2.Template]:
         if file_path.exists() and file_path.is_file():
@@ -129,19 +131,17 @@ class TemplateRegistry:
         template.html_images = [a for a in html_images if a is not None]
         return template
 
-    def _load_templates(self, mode: str):
+    def _load_templates(self):
         for descriptor_filename in self.workdir.glob(self.DESCRIPTOR_PATTERN):
             path = descriptor_filename.parent
             descriptor = self._load_descriptor(descriptor_filename)
             if descriptor is None:
                 continue
-            if mode not in descriptor.modes:
-                continue
             template = self._load_template(path, descriptor)
             if template is None:
                 continue
             LOG.info(f'Loaded template "{descriptor.id}" from {str(path)}')
-            self.templates[path.name] = template
+            self.templates[descriptor.id] = template
 
     def has_template_for(self, rq: MessageRequest) -> bool:
         return rq.template_name in self.templates.keys()

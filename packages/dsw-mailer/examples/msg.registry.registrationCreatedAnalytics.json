@@ -1,6 +1,6 @@
 {
   "id": "2ff6a64c-b781-4aea-8873-2ccb3e9ee3d7",
-  "type": "registrationCreatedAnalytics",
+  "type": "registry:registrationCreatedAnalytics",
   "trigger": "file:msg.registry.registrationCreatedAnalytics.json",
   "ctx": {
     "email": "john.doe@example.com",

@@ -17,18 +17,20 @@
               <td valign="top" class="dswTextContent" style="padding-top: 0; padding-right: 18px; padding-bottom: 9px; padding-left: 18px; mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; word-break: break-word; color: #757575; font-family: Helvetica; font-size: 14px; line-height: 150%; text-align: left;">
                 <p dir="ltr" style="margin: 10px 0; padding: 0; mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; color: #666666; font-family: Helvetica; font-size: 14px; line-height: 150%; text-align: left;">
                   Hello!<br><br>
-                  Good news &mdash; we have a new organization in {{ ctx.appTitle }} (<a href="{{ clientUrl }}" target="_blank">{{ ctx.clientUrl }}</a>):
+                  Good news &mdash; we have a new organization {% if ctx.appTitle %}in {{ ctx.appTitle }}{% endif %} (<a href="{{ ctx.clientUrl }}" target="_blank">{{ ctx.clientUrl }}</a>):
                 </p>
                   <dl>
+                    <dt>ID<dt>
+                    <dd>{{ ctx.organizationId }}</dd>
                     <dt>Name<dt>
-                    <dd>{{ ctx.organization.name }}</dd>
+                    <dd>{{ ctx.organizationName }}</dd>
                     <dt>Email<dt>
-                    <dd>{{ ctx.organization.email }}</dd>
+                    <dd>{{ ctx.organizationEmail }}</dd>
                   </dl>
                   <br>
                 <p dir="ltr" style="margin: 10px 0; padding: 0; mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; color: #666666; font-family: Helvetica; font-size: 14px; line-height: 150%; text-align: left;">
                   <em>Have a nice day!</em><br><br>
-                  Your <strong>{{ ctx.appTitle }}</strong>
+                  {% if ctx.appTitle %}<strong>{{ ctx.appTitle }}</strong> team{% endif %}
                 </p>
               </td>
             </tr>

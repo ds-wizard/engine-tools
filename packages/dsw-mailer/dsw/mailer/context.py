@@ -34,11 +34,10 @@ class JobContext:
 class _Context:
 
     def __init__(self, app: AppContext, job: JobContext,
-                 templates: TemplateRegistry, mode: str):
+                 templates: TemplateRegistry):
         self.app = app
         self.job = job
         self.templates = templates
-        self.mode = mode
 
     def update_trace_id(self, trace_id: str):
         self.app.cfg.log.set_logging_extra('traceId', trace_id)
@@ -59,15 +58,7 @@ class Context:
         return cls._instance
 
     @classmethod
-    def is_registry_mode(cls):
-        return cls.get().mode == 'registry'
-
-    @classmethod
-    def is_wizard_mode(cls):
-        return cls.get().mode == 'wizard'
-
-    @classmethod
-    def initialize(cls, db, config, sender, workdir, mode):
+    def initialize(cls, db, config, sender, workdir):
         cls._instance = _Context(
             app=AppContext(
                 db=db,
@@ -81,12 +72,5 @@ class Context:
             templates=TemplateRegistry(
                 cfg=config,
                 workdir=workdir,
-                mode=mode,
             ),
-            mode=mode,
         )
-        if cls.get().app.cfg.mail.name == '':
-            if cls.is_registry_mode():
-                cls.get().app.cfg.mail.name = 'DSW Registry'
-            elif cls.is_wizard_mode():
-                cls.get().app.cfg.mail.name = 'DSW'

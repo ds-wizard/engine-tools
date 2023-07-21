@@ -1,4 +1,3 @@
-import abc
 import datetime
 import dateutil.parser
 import logging
@@ -12,14 +11,14 @@ from typing import Optional
 from dsw.command_queue import CommandWorker, CommandQueue
 from dsw.config.sentry import SentryReporter
 from dsw.database.database import Database
-from dsw.database.model import DBAppConfig, PersistentCommand, \
-    DBInstanceConfigMail
+from dsw.database.model import PersistentCommand, DBInstanceConfigMail
 
 from .build_info import BUILD_INFO
 from .config import MailerConfig, MailConfig
 from .consts import PROG_NAME
 from .smtp import SMTPSender
-from .consts import COMPONENT_NAME, CMD_CHANNEL, CMD_COMPONENT
+from .consts import COMPONENT_NAME, CMD_CHANNEL, CMD_COMPONENT, \
+    CMD_FUNCTION
 from .context import Context
 from .model import MessageRequest
 
@@ -29,7 +28,7 @@ LOG = logging.getLogger(__name__)
 
 class Mailer(CommandWorker):
 
-    def __init__(self, cfg: MailerConfig, workdir: pathlib.Path, mode: str):
+    def __init__(self, cfg: MailerConfig, workdir: pathlib.Path):
         self.cfg = cfg
         self.workdir = workdir
         self.rate_limiter = RateLimiter(
@@ -37,16 +36,15 @@ class Mailer(CommandWorker):
             count=cfg.mail.rate_limit_count,
         )
 
-        self._init_context(workdir=workdir, mode=mode)
+        self._init_context(workdir=workdir)
         self.ctx = Context.get()
 
-    def _init_context(self, workdir: pathlib.Path, mode: str):
+    def _init_context(self, workdir: pathlib.Path):
         Context.initialize(
             config=self.cfg,
             workdir=workdir,
             db=Database(cfg=self.cfg.db, connect=False),
             sender=SMTPSender(cfg=self.cfg.mail),
-            mode=mode,
         )
         SentryReporter.initialize(
             dsn=self.cfg.sentry.workers_dsn,
@@ -89,18 +87,15 @@ class Mailer(CommandWorker):
         Context.get().update_trace_id(cmd.uuid)
         # work
         app_ctx = Context.get().app
-        mc = load_mailer_command(cmd)
-        mc.prepare(app_ctx.db)
+        mc = MailerCommand.load(cmd)
         rq = mc.to_request(
             msg_id=cmd.uuid,
             trigger='PersistentComment',
         )
         # get mailer config from DB
-        cfg = None
-        if Context.is_wizard_mode():
-            cfg = _transform_mail_config(
-                cfg=app_ctx.db.get_mail_config(app_uuid=cmd.app_uuid),
-            )
+        cfg = _transform_mail_config(
+            cfg=app_ctx.db.get_mail_config(app_uuid=cmd.app_uuid),
+        )
         LOG.debug(f'Config from DB: {cfg}')
         # client URL
         rq.client_url = cmd.body.get('clientUrl', app_ctx.cfg.general.client_url)
@@ -152,11 +147,6 @@ def _transform_mail_config(cfg: Optional[DBInstanceConfigMail]) -> Optional[Mail
     )
 
 
-#########################################################################################
-# Commands and their logic
-#########################################################################################
-
-
 class RateLimiter:
 
     def __init__(self, window: int, count: int):
@@ -182,528 +172,50 @@ class RateLimiter:
                 time.sleep(sleep_time)
 
 
-def _app_config_to_context(app_config: Optional[DBAppConfig]) -> dict:
-    if app_config is None:
-        return {}
-    return {
-        'supportEmail': app_config.support_email,
-        'appTitle': app_config.app_title,
-    }
+class MailerCommand:
 
-
-class MailerCommand(abc.ABC):
-
-    FUNCTION_NAME = 'unknown'
-    TEMPLATE_NAME = ''
-
-    @abc.abstractmethod
-    def to_context(self) -> dict:
-        pass
-
-    @abc.abstractmethod
-    def to_request(self, msg_id: str, trigger: str) -> MessageRequest:
-        pass
-
-    def prepare(self, db: Database):
-        pass
-
-    @classmethod
-    def corresponds(cls, cmd: PersistentCommand) -> bool:
-        return cls.FUNCTION_NAME == cmd.function
-
-    @staticmethod
-    @abc.abstractmethod
-    def create_from(cmd: PersistentCommand) -> 'MailerCommand':
-        pass
-
-
-class CmdUser:
-
-    def __init__(self, user_uuid: str, first_name: str, last_name: str,
-                 email: str):
-        self.uuid = user_uuid
-        self.first_name = first_name
-        self.last_name = last_name
-        self.email = email
-
-    def to_context(self) -> dict:
-        return {
-            'uuid': self.uuid,
-            'firstName': self.first_name,
-            'lastName': self.last_name,
-            'email': self.email
-        }
-
-
-class CmdOrg:
-
-    def __init__(self, org_id: str, name: str, email: str):
-        self.id = org_id
-        self.name = name
-        self.email = email
-
-    def to_context(self) -> dict:
-        return {
-            'id': self.id,
-            'name': self.name,
-            'email': self.email
-        }
-
-
-class MailerWizardCommand(MailerCommand):
-
-    def __init__(self, app_uuid: str):
+    def __init__(self, recipients: list[str], mode: str, template: str, ctx: dict,
+                 app_uuid: str, cmd_uuid: str):
+        self.mode = mode
+        self.template = template
+        self.recipients = recipients
+        self.ctx = ctx
         self.app_uuid = app_uuid
-        self.app_config = None  # type: Optional[DBAppConfig]
-
-    def prepare(self, db: Database):
-        self.app_config = db.get_app_config(
-            app_uuid=self.app_uuid,
-        )
-
-
-class _MWRegistrationConfirmation(MailerWizardCommand):
-
-    FUNCTION_NAME = 'sendRegistrationConfirmationMail'
-    TEMPLATE_NAME = 'registrationConfirmation'
-
-    def __init__(self, email: str, user: CmdUser, code: str,
-                 client_url: str, app_uuid: str):
-        super().__init__(app_uuid=app_uuid)
-        self.email = email
-        self.user = user
-        self.code = code
-        self.client_url = client_url
-
-    @property
-    def activation_link(self):
-        return f'{self.client_url}/signup/{self.user.uuid}/{self.code}'
-
-    def to_context(self) -> dict:
-        ctx = {
-            'user': self.user.to_context(),
-            'activationLink': self.activation_link,
-            'clientUrl': self.client_url,
-            'hash': self.code,
-        }
-        ctx.update(_app_config_to_context(self.app_config))
-        return ctx
+        self.cmd_uuid = cmd_uuid
+        self._enrich_context()
 
     def to_request(self, msg_id: str, trigger: str) -> MessageRequest:
         return MessageRequest(
             message_id=msg_id,
-            template_name=self.TEMPLATE_NAME,
+            template_name=f'{self.mode}:{self.template}',
             trigger=trigger,
-            ctx=self.to_context(),
-            recipients=[self.email],
+            ctx=self.ctx,
+            recipients=self.recipients,
         )
 
-    @classmethod
-    def corresponds(cls, cmd: PersistentCommand) -> bool:
-        return cls.FUNCTION_NAME == cmd.function and 'userUuid' in cmd.body
-
-    @staticmethod
-    def create_from(cmd: PersistentCommand) -> MailerCommand:
-        return _MWRegistrationConfirmation(
-            email=cmd.body['email'],
-            user=CmdUser(
-                user_uuid=cmd.body['userUuid'],
-                first_name=cmd.body['userFirstName'],
-                last_name=cmd.body['userLastName'],
-                email=cmd.body['userEmail'],
-            ),
-            code=cmd.body['hash'],
-            client_url=cmd.body['clientUrl'],
-            app_uuid=cmd.app_uuid,
-        )
-
-
-class _MWQuestionnaireInvitation(MailerWizardCommand):
-
-    FUNCTION_NAME = 'sendQuestionnaireInvitationMail'
-    TEMPLATE_NAME = 'questionnaireInvitation'
-
-    def __init__(self, email: str, invitee: CmdUser, owner: CmdUser,
-                 project_uuid: str, project_name: str,
-                 client_url: str, app_uuid: str):
-        super().__init__(app_uuid=app_uuid)
-        self.email = email
-        self.invitee = invitee
-        self.owner = owner
-        self.project_uuid = project_uuid
-        self.project_name = project_name
-        self.client_url = client_url
-
-    @property
-    def project_link(self):
-        return f'{self.client_url}/projects/{self.project_uuid}'
-
-    def to_context(self) -> dict:
-        ctx = {
-            'invitee': self.invitee.to_context(),
-            'owner': self.owner.to_context(),
-            'project': {
-                'uuid': self.project_uuid,
-                'name': self.project_name,
-                'link': self.project_link,
-            },
-            'clientUrl': self.client_url,
-        }
-        ctx.update(_app_config_to_context(self.app_config))
-        return ctx
-
-    def to_request(self, msg_id: str, trigger: str) -> MessageRequest:
-        return MessageRequest(
-            message_id=msg_id,
-            template_name=self.TEMPLATE_NAME,
-            trigger=trigger,
-            ctx=self.to_context(),
-            recipients=[self.email],
-        )
-
-    @staticmethod
-    def create_from(cmd: PersistentCommand) -> MailerCommand:
-        return _MWQuestionnaireInvitation(
-            email=cmd.body['email'],
-            invitee=CmdUser(
-                user_uuid=cmd.body['inviteeUuid'],
-                first_name=cmd.body['inviteeFirstName'],
-                last_name=cmd.body['inviteeLastName'],
-                email=cmd.body['inviteeEmail'],
-            ),
-            owner=CmdUser(
-                user_uuid=cmd.body['ownerUuid'],
-                first_name=cmd.body['ownerFirstName'],
-                last_name=cmd.body['ownerLastName'],
-                email=cmd.body['ownerEmail'],
-            ),
-            project_uuid=cmd.body['questionnaireUuid'],
-            project_name=cmd.body['questionnaireName'],
-            client_url=cmd.body['clientUrl'],
-            app_uuid=cmd.app_uuid,
-        )
-
-
-class _MWRegistrationCreatedAnalytics(MailerWizardCommand):
-
-    FUNCTION_NAME = 'sendRegistrationCreatedAnalyticsMail'
-    TEMPLATE_NAME = 'registrationCreatedAnalytics'
-
-    def __init__(self, email: str, user: CmdUser, client_url: str, app_uuid: str):
-        super().__init__(app_uuid=app_uuid)
-        self.email = email
-        self.user = user
-        self.client_url = client_url
-
-    def to_context(self) -> dict:
-        ctx = {
-            'user': self.user.to_context(),
-            'clientUrl': self.client_url,
-        }
-        ctx.update(_app_config_to_context(self.app_config))
-        return ctx
-
-    def to_request(self, msg_id: str, trigger: str) -> MessageRequest:
-        return MessageRequest(
-            message_id=msg_id,
-            template_name=self.TEMPLATE_NAME,
-            trigger=trigger,
-            ctx=self.to_context(),
-            recipients=[self.email],
-        )
-
-    @classmethod
-    def corresponds(cls, cmd: PersistentCommand) -> bool:
-        return cls.FUNCTION_NAME == cmd.function and 'userUuid' in cmd.body
-
-    @staticmethod
-    def create_from(cmd: PersistentCommand) -> MailerCommand:
-        return _MWRegistrationCreatedAnalytics(
-            email=cmd.body['email'],
-            user=CmdUser(
-                user_uuid=cmd.body['userUuid'],
-                first_name=cmd.body['userFirstName'],
-                last_name=cmd.body['userLastName'],
-                email=cmd.body['userEmail'],
-            ),
-            client_url=cmd.body['clientUrl'],
-            app_uuid=cmd.app_uuid,
-        )
-
-
-class _MWResetPassword(MailerWizardCommand):
-
-    FUNCTION_NAME = 'sendResetPasswordMail'
-    TEMPLATE_NAME = 'resetPassword'
-
-    def __init__(self, email: str, user: CmdUser, code: str,
-                 client_url: str, app_uuid: str):
-        super().__init__(app_uuid=app_uuid)
-        self.email = email
-        self.user = user
-        self.code = code
-        self.client_url = client_url
-
-    @property
-    def reset_link(self):
-        return f'{self.client_url}/forgotten-password/{self.user.uuid}/{self.code}'
-
-    def to_context(self) -> dict:
-        ctx = {
-            'user': self.user.to_context(),
-            'resetLink': self.reset_link,
-            'clientUrl': self.client_url,
-            'hash': self.code,
-        }
-        ctx.update(_app_config_to_context(self.app_config))
-        return ctx
-
-    def to_request(self, msg_id: str, trigger: str) -> MessageRequest:
-        return MessageRequest(
-            message_id=msg_id,
-            template_name=self.TEMPLATE_NAME,
-            trigger=trigger,
-            ctx=self.to_context(),
-            recipients=[self.email],
-        )
-
-    @staticmethod
-    def create_from(cmd: PersistentCommand) -> MailerCommand:
-        return _MWResetPassword(
-            email=cmd.body['email'],
-            user=CmdUser(
-                user_uuid=cmd.body['userUuid'],
-                first_name=cmd.body['userFirstName'],
-                last_name=cmd.body['userLastName'],
-                email=cmd.body['userEmail'],
-            ),
-            code=cmd.body['hash'],
-            client_url=cmd.body['clientUrl'],
-            app_uuid=cmd.app_uuid,
-        )
-
-
-class _MWTwoFactorAuth(MailerWizardCommand):
-
-    FUNCTION_NAME = 'sendTwoFactorAuthMail'
-    TEMPLATE_NAME = 'twoFactorAuth'
-
-    def __init__(self, email: str, user: CmdUser, code: str,
-                 client_url: str, app_uuid: str):
-        super().__init__(app_uuid=app_uuid)
-        self.email = email
-        self.user = user
-        self.code = code
-        self.client_url = client_url
-
-    def to_context(self) -> dict:
-        ctx = {
-            'user': self.user.to_context(),
-            'code': self.code,
-            'clientUrl': self.client_url,
-        }
-        ctx.update(_app_config_to_context(self.app_config))
-        return ctx
-
-    def to_request(self, msg_id: str, trigger: str) -> MessageRequest:
-        return MessageRequest(
-            message_id=msg_id,
-            template_name=self.TEMPLATE_NAME,
-            trigger=trigger,
-            ctx=self.to_context(),
-            recipients=[self.email],
-        )
-
-    @staticmethod
-    def create_from(cmd: PersistentCommand) -> MailerCommand:
-        return _MWTwoFactorAuth(
-            email=cmd.body['email'],
-            user=CmdUser(
-                user_uuid=cmd.body['userUuid'],
-                first_name=cmd.body['userFirstName'],
-                last_name=cmd.body['userLastName'],
-                email=cmd.body['userEmail'],
-            ),
-            code=cmd.body['code'],
-            client_url=cmd.body['clientUrl'],
-            app_uuid=cmd.app_uuid,
-        )
-
-
-class _MRRegistrationConfirmation(MailerCommand):
-
-    FUNCTION_NAME = 'sendRegistrationConfirmationMail'
-    TEMPLATE_NAME = 'registrationConfirmation'
-
-    def __init__(self, email: str, org: CmdOrg, code: str,
-                 client_url: str, callback_url: Optional[str]):
-        self.email = email
-        self.org = org
-        self.code = code
-        self.client_url = client_url
-        self.callback_url = callback_url
-
-    @property
-    def registry_link(self) -> str:
-        return f'{self.client_url}/signup/{self.org.id}/{self.code}'
-
-    @property
-    def callback_link(self) -> Optional[str]:
-        if self.callback_url is None:
-            return None
-        return f'{self.callback_url}/registry/signup/{self.org.id}/{self.code}'
-
-    @property
-    def activation_link(self) -> Optional[str]:
-        if self.callback_url is None:
-            return self.registry_link
-        return self.callback_link
-
-    def to_context(self) -> dict:
-        return {
-            'organization': self.org.to_context(),
-            'hash': self.code,
-            'registryLink': self.registry_link,
-            'callbackLink': self.callback_link,
-            'activationLink': self.activation_link,
-            'clientUrl': self.client_url,
+    def _enrich_context(self):
+        self.ctx['_meta'] = {
+            'cmd_uuid': self.cmd_uuid,
+            'recipients': self.recipients,
+            'mode': self.mode,
+            'template': self.template,
+            'now': datetime.datetime.now(),
         }
 
-    def to_request(self, msg_id: str, trigger: str) -> MessageRequest:
-        return MessageRequest(
-            message_id=msg_id,
-            template_name=self.TEMPLATE_NAME,
-            trigger=trigger,
-            ctx=self.to_context(),
-            recipients=[self.email],
-        )
-
-    @classmethod
-    def corresponds(cls, cmd: PersistentCommand) -> bool:
-        return cls.FUNCTION_NAME == cmd.function and 'organizationId' in cmd.body
-
     @staticmethod
-    def create_from(cmd: PersistentCommand) -> MailerCommand:
-        return _MRRegistrationConfirmation(
-            email=cmd.body['email'],
-            org=CmdOrg(
-                org_id=cmd.body['organizationId'],
-                name=cmd.body['organizationName'],
-                email=cmd.body['organizationEmail'],
-            ),
-            code=cmd.body['hash'],
-            client_url=cmd.body['clientUrl'],
-            callback_url=cmd.body.get('callbackUrl', None),
-        )
-
-
-class _MRRegistrationCreatedAnalytics(MailerCommand):
-
-    FUNCTION_NAME = 'sendRegistrationCreatedAnalyticsMail'
-    TEMPLATE_NAME = 'registrationCreatedAnalytics'
-
-    def __init__(self, email: str, org: CmdOrg, client_url: str):
-        self.email = email
-        self.org = org
-        self.client_url = client_url
-
-    def to_context(self) -> dict:
-        return {
-            'organization': self.org.to_context(),
-            'clientUrl': self.client_url,
-        }
-
-    def to_request(self, msg_id: str, trigger: str) -> MessageRequest:
-        return MessageRequest(
-            message_id=msg_id,
-            template_name=self.TEMPLATE_NAME,
-            trigger=trigger,
-            ctx=self.to_context(),
-            recipients=[self.email],
-        )
-
-    @classmethod
-    def corresponds(cls, cmd: PersistentCommand) -> bool:
-        return cls.FUNCTION_NAME == cmd.function and 'organizationId' in cmd.body
-
-    @staticmethod
-    def create_from(cmd: PersistentCommand) -> MailerCommand:
-        return _MRRegistrationCreatedAnalytics(
-            email=cmd.body['email'],
-            org=CmdOrg(
-                org_id=cmd.body['organizationId'],
-                name=cmd.body['organizationName'],
-                email=cmd.body['organizationEmail'],
-            ),
-            client_url=cmd.body['clientUrl'],
-        )
-
-
-class _MRResetToken(MailerCommand):
-
-    FUNCTION_NAME = 'sendResetTokenMail'
-    TEMPLATE_NAME = 'resetToken'
-
-    def __init__(self, email: str, org: CmdOrg, code: str, client_url: str):
-        self.email = email
-        self.org = org
-        self.code = code
-        self.client_url = client_url
-
-    @property
-    def reset_link(self):
-        return f'{self.client_url}/forgotten-token/{self.org.id}/{self.code}'
-
-    def to_context(self) -> dict:
-        return {
-            'organization': self.org.to_context(),
-            'resetLink': self.reset_link,
-            'hash': self.code,
-            'clientUrl': self.client_url,
-        }
-
-    def to_request(self, msg_id: str, trigger: str) -> MessageRequest:
-        return MessageRequest(
-            message_id=msg_id,
-            template_name=self.TEMPLATE_NAME,
-            trigger=trigger,
-            ctx=self.to_context(),
-            recipients=[self.email],
-        )
-
-    @staticmethod
-    def create_from(cmd: PersistentCommand) -> MailerCommand:
-        return _MRResetToken(
-            email=cmd.body['email'],
-            org=CmdOrg(
-                org_id=cmd.body['organizationId'],
-                name=cmd.body['organizationName'],
-                email=cmd.body['organizationEmail'],
-            ),
-            code=cmd.body['hash'],
-            client_url=cmd.body['clientUrl'],
-        )
-
-
-_MAILER_COMMANDS = [
-    _MWRegistrationConfirmation,
-    _MWResetPassword,
-    _MWQuestionnaireInvitation,
-    _MWRegistrationCreatedAnalytics,
-    _MWTwoFactorAuth,
-    _MRRegistrationConfirmation,
-    _MRResetToken,
-    _MRRegistrationCreatedAnalytics,
-]
-
-
-def load_mailer_command(cmd: PersistentCommand) -> MailerCommand:
-    if cmd.component != CMD_COMPONENT:
-        raise RuntimeError('Tried to process non-mailer command')
-    for CMD_TYPE in _MAILER_COMMANDS:
-        if issubclass(CMD_TYPE, MailerCommand) and CMD_TYPE.corresponds(cmd):
-            try:
-                return CMD_TYPE.create_from(cmd)
-            except KeyError as e:
-                raise RuntimeError(f'Cannot parse command: {str(e)}')
-    raise RuntimeError('Cannot process such command')
+    def load(cmd: PersistentCommand) -> 'MailerCommand':
+        if cmd.component != CMD_COMPONENT:
+            raise RuntimeError('Tried to process non-mailer command')
+        if cmd.function != CMD_FUNCTION:
+            raise RuntimeError(f'Unsupported function: {cmd.function}')
+        try:
+            return MailerCommand(
+                mode=cmd.body['mode'],
+                template=cmd.body['template'],
+                recipients=cmd.body['recipients'],
+                ctx=cmd.body['parameters'],
+                app_uuid=cmd.app_uuid,
+                cmd_uuid=cmd.uuid,
+            )
+        except KeyError as e:
+            raise RuntimeError(f'Cannot parse command: {str(e)}')
