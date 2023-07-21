@@ -51,14 +51,11 @@ def extract_message_request(ctx, param, value: IO):
               type=click.File('r', encoding='utf-8'))
 @click.option('-w', '--workdir', envvar='WORKDIR_PATH',
               type=click.Path(dir_okay=True, exists=True))
-@click.option('-m', '--mode', envvar='MAILER_MODE',
-              type=click.Choice(['wizard', 'registry']),
-              default='wizard')
-def cli(ctx, config: MailerConfig, workdir: str, mode: str):
+def cli(ctx, config: MailerConfig, workdir: str):
     path_workdir = pathlib.Path(workdir)
     from .mailer import Mailer
     config.log.apply()
-    ctx.obj['mailer'] = Mailer(config, path_workdir, mode)
+    ctx.obj['mailer'] = Mailer(config, path_workdir)
 
 
 @cli.command(name='send', help='Send message(s) from given file directly.')

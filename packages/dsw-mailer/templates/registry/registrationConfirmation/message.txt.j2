@@ -1,5 +1,9 @@
-Dear {{ ctx.organization.name }},
+Dear {{ ctx.organizationName }},
 
-For the activation of your account, please proceed here: {{ ctx.activationLink }}
+For the activation of your account, please proceed here: {% if ctx.callbackUrl -%}
+{{ ctx.callbackUrl }}/registry/signup/{{ ctx.organizationId }}/{{ ctx.hash }}
+{%- else -%}
+{{ ctx.clientUrl }}/signup/{{ ctx.organizationId }}/{{ ctx.hash }}
+{%- endif %}
 
 {% include '_common/footer.txt.j2' %}

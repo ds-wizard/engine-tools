@@ -16,7 +16,7 @@
             <tr>
               <td valign="top" class="dswTextContent" style="padding-top: 0; padding-right: 18px; padding-bottom: 9px; padding-left: 18px; mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; word-break: break-word; color: #666666; font-family: Helvetica; font-size: 14px; line-height: 150%; text-align: left;">
                 <p dir="ltr" style="margin: 10px 0; padding: 0; mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; color: #666666; font-family: Helvetica; font-size: 14px; line-height: 150%; text-align: left;">
-                  Hi {{ ctx.user.firstName }},<br><br>
+                  Hi {{ ctx.userFirstName }},<br><br>
                   Forgot your password? No problem, that happens to the best of us! You can easily set up a new password by clicking on the button below.
                 </p>
               </td>
@@ -42,7 +42,7 @@
           <tbody>
             <tr>
               <td align="center" valign="middle" class="dswButtonContent" style="font-family: Helvetica; font-size: 18px; mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
-                <a class="dswButton " title="Set up a new password" href="{{ ctx.resetLink }}" target="_blank" style="font-weight: bold; border: 18px solid #f15a24; border-radius: 2px; letter-spacing: -0.5px; line-height: 100%; text-align: center; text-decoration: none; color: #FFFFFF; mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; display: block;">Set up a new password</a>
+                <a class="dswButton " title="Set up a new password" href="{{ ctx.clientUrl }}/forgotten-password/{{ ctx.userUuid }}/{{ ctx.hash }}" target="_blank" style="font-weight: bold; border: 18px solid #f15a24; border-radius: 2px; letter-spacing: -0.5px; line-height: 100%; text-align: center; text-decoration: none; color: #FFFFFF; mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; display: block;">Set up a new password</a>
               </td>
             </tr>
           </tbody>
@@ -71,7 +71,7 @@
                   If any problem occurs contact us via <a href="mailto:{{ ctx.supportEmail }}" style="mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; color: #007C89; font-weight: normal; text-decoration: underline;">{{ ctx.supportEmail }}</a>.<br><br>
                   {% endif %}
                   <em>Thank you for using the DSW!</em><br><br>
-                  Your <strong>{{ ctx.appTitle }}</strong>
+                  {% if ctx.appTitle %}<strong>{{ ctx.appTitle }}</strong> team{% endif %}
                 </p>
               </td>
             </tr>

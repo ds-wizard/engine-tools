@@ -1,6 +1,8 @@
 {
-  "id": "registrationCreatedAnalytics",
+  "id": "wizard:registrationCreatedAnalytics",
   "subject": "New User Registered",
+  "subjectPrefix": true,
+  "defaultSenderName": "DSW",
   "parts": [
     {
       "type": "html",
@@ -10,6 +12,5 @@
       "type": "plain",
       "file": "message.txt.j2"
     }
-  ],
-  "modes": ["wizard"]
+  ]
 }

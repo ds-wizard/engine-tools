@@ -14,7 +14,6 @@ FROM datastewardshipwizard/python-base:3.11-alpine
 
 ENV APPLICATION_CONFIG_PATH /app/config/application.yml
 ENV WORKDIR_PATH /home/user/templates
-ENV MAILER_MODE wizard
 ENV PATH "/home/user/.local/bin:$PATH"
 
 # Setup non-root user
