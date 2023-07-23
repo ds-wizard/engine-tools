@@ -56,14 +56,13 @@ def extract(obj, keys):
     return [obj[key] for key in keys if key in obj.keys()]
 
 
-def of_alphabet(n: int):
-    result = ''
+def of_alphabet(n: int) -> str:
+    result = []
     while n >= 0:
         n, m = divmod(n, _alphabet_size)
-        result = result + _alphabet[m]
-        if n == 0:
-            break
-    return result
+        result.append(_alphabet[m])
+        n = n - 1
+    return ''.join(reversed(result))
 
 
 def roman(n: int) -> str:

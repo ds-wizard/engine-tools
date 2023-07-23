@@ -97,12 +97,13 @@ class Jinja2Step(Step):
         from ..tests import tests
         from ...model.http import RequestsWrapper
         import rdflib
+        import json
         self.j2_env.filters.update(filters)
         self.j2_env.tests.update(tests)
         template_cfg = Context.get().app.cfg.templates.get_config(
             self.template.template_id,
         )
-        self.j2_env.globals.update({'rdflib': rdflib})
+        self.j2_env.globals.update({'rdflib': rdflib, 'json': json})
         if template_cfg is not None:
             global_vars = {'secrets': template_cfg.secrets}  # type: dict[str,Any]
             if template_cfg.requests.enabled:
