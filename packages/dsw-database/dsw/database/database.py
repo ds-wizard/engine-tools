@@ -49,6 +49,8 @@ class Database:
                             'WHERE document_template_id = %s AND app_uuid = %s;'
     SELECT_TEMPLATE_ASSETS = 'SELECT * FROM document_template_asset ' \
                              'WHERE document_template_id = %s AND app_uuid = %s;'
+    CHECK_TABLE_EXISTS = 'SELECT EXISTS(SELECT * FROM information_schema.tables' \
+                         '                       WHERE table_name = %(table_name)s)'
     SELECT_MAIL_CONFIG = 'SELECT icm.* ' \
                          'FROM app_config ac JOIN instance_config_mail icm ' \
                          'ON ac.mail_config_uuid = icm.uuid ' \
@@ -88,6 +90,24 @@ class Database:
     def connect(self):
         self.conn_query.connect()
         self.conn_queue.connect()
+
+    @tenacity.retry(
+        reraise=True,
+        wait=tenacity.wait_exponential(multiplier=RETRY_QUERY_MULTIPLIER),
+        stop=tenacity.stop_after_attempt(RETRY_QUERY_TRIES),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
+    )
+    def _check_table_exists(self, table_name: str) -> bool:
+        with self.conn_query.new_cursor() as cursor:
+            try:
+                cursor.execute(
+                    query=self.CHECK_TABLE_EXISTS,
+                    params={'table_name': table_name},
+                )
+                return cursor.fetchone()[0]
+            except Exception:
+                return False
 
     @tenacity.retry(
         reraise=True,
@@ -356,6 +376,8 @@ class Database:
     )
     def get_mail_config(self, app_uuid: str) -> Optional[DBInstanceConfigMail]:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
+            if not self._check_table_exists(table_name='instance_config_mail'):
+                return None
             try:
                 cursor.execute(
                     query=self.SELECT_MAIL_CONFIG,
@@ -366,7 +388,7 @@ class Database:
                     return None
                 return DBInstanceConfigMail.from_dict_row(data=result)
             except Exception as e:
-                LOG.warning(f'Could not retrieve instance_mail_config for app'
+                LOG.warning(f'Could not retrieve instance_config_mail for app'
                             f' "{app_uuid}": {str(e)}')
                 return None
 
@@ -379,6 +401,8 @@ class Database:
     )
     def update_component_info(self, name: str, version: str, built_at: datetime.datetime):
         with self.conn_query.new_cursor(use_dict=True) as cursor:
+            if not self._check_table_exists(table_name='component'):
+                return None
             ts_now = datetime.datetime.utcnow()
             try:
                 cursor.execute(

@@ -112,7 +112,7 @@ jobs:
       run: |
         cd packages/${{ matrix.package }}
         NAME=$(make docker-image-name)
-        echo "::set-output name=NAME::$NAME"
+        echo "NAME=$NAME" >> $GITHUB_OUTPUT
 
     - name: Create build info
       run: |

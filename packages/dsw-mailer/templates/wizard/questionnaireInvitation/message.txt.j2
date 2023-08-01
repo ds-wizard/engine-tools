@@ -1,7 +1,7 @@
-Hi {{ ctx.invitee.firstName }},
+Hello {{ ctx.inviteeFirstName }},
 
-{{ ctx.owner.firstName}} {{ ctx.owner.lastName }} has invited you to the project "{{ ctx.project.name }}":
+{{ ctx.ownerFirstName }} {{ ctx.ownerLastName }} has invited you to the project "{{ ctx.questionnaireName }}":
 
-{{ ctx.project.link }}
+{{ ctx.clientUrl }}/projects/{{ ctx.questionnaireUuid }}
 
 {% include '_common/footer.txt.j2' %}

@@ -5,67 +5,7 @@ on:
 
 jobs:
   test-worker:
-    name: Test worker
-
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-        - 'ubuntu-latest'
-        python-version:
-        - '3.10'
-        - '3.11'
-        package:
-        - dsw-data-seeder
-        - dsw-document-worker
-        - dsw-mailer
-
-    runs-on: ${{ matrix.os }}
-
-    steps:
-    - name: Check out repository
-      uses: actions/checkout@v3
-
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
-        cache: pip
-        cache-dependency-path: |
-          **/pyproject.toml
-          **/requirements*.txt
-
-    - name: Prepare Python env
-      run: |
-        python -m pip install -U pip setuptools wheel
-
-    - name: Create build info
-      run: |
-        bash scripts/build-info.sh
-
-    - name: Install dependencies
-      run: |
-        cd packages/${{ matrix.package }}
-        pip install -r requirements.txt
-        make local-deps
-
-    - name: Install package
-      run: |
-        cd packages/${{ matrix.package }}
-        pip install .
-
-    - name: Verify installation
-      run: |
-        cd packages/${{ matrix.package }}
-        make verify
-
-    - name: Test package
-      run: |
-        cd packages/${{ matrix.package }}
-        make test
-
-  test-lib:
-    name: Test library
+    name: Test
 
     strategy:
       fail-fast: false
@@ -77,12 +17,6 @@ jobs:
         python-version:
         - '3.10'
         - '3.11'
-        package:
-        - dsw-command-queue
-        - dsw-config
-        - dsw-database
-        - dsw-models
-        - dsw-storage
 
     runs-on: ${{ matrix.os }}
 
@@ -108,83 +42,99 @@ jobs:
         bash scripts/build-info.sh
 
     - name: Install dependencies
+      shell: bash
+      run: |
+        ROOT=$(pwd)
+        for package in $(ls packages); do
+          echo "-------------------------------------------------"
+          echo "- $package"
+          echo "-------------------------------------------------"
+          cd "$ROOT/packages/$package"
+          pip install -r requirements.txt
+          if [ -f "requirements.test.txt" ]; then
+            pip install -r requirements.test.txt
+          fi
+          make local-deps
+          echo "================================================="
+        done
+
+    - name: Install packages
+      shell: bash
+      run: |
+        for package in $(ls packages); do
+          echo "-------------------------------------------------"
+          echo "- $package"
+          echo "-------------------------------------------------"
+          pip install packages/$package
+          echo "================================================="
+        done
+
+    - name: Prepare envvars
+      shell: bash
+      run: |
+          echo "VERIFY_FAILS=_" >> $GITHUB_ENV
+          echo "TEST_FAILS=_" >> $GITHUB_ENV
+
+    - name: "Test: command-queue"
+      continue-on-error: true
+      run: |
+        bash .github/test.sh dsw-command-queue
+
+    - name: "Test: config"
+      continue-on-error: true
+      run: |
+        bash .github/test.sh dsw-config
+
+    - name: "Test: data-seeder"
+      continue-on-error: true
+      run: |
+        bash .github/test.sh dsw-data-seeder
+
+    - name: "Test: database"
+      continue-on-error: true
+      run: |
+        bash .github/test.sh dsw-database
+
+    - name: "Test: document-worker"
+      continue-on-error: true
+      run: |
+        bash .github/test.sh dsw-document-worker
+
+    - name: "Test: mailer"
+      continue-on-error: true
+      run: |
+        bash .github/test.sh dsw-mailer
+
+    - name: "Test: models"
+      continue-on-error: true
+      run: |
+        bash .github/test.sh dsw-models
+
+    - name: "Test: storage"
+      continue-on-error: true
+      run: |
+        bash .github/test.sh dsw-storage
+
+    - name: "Test: TDK"
+      continue-on-error: true
+      run: |
+        bash .github/test.sh dsw-tdk
+
+    - name: "Evaluate tests"
+      shell: bash
       run: |
         cd packages/${{ matrix.package }}
-        pip install -r requirements.txt
-        make local-deps
-
-    - name: Install package
-      run: |
-        cd packages/${{ matrix.package }}
-        pip install .
-
-    - name: Verify installation
-      run: |
-        cd packages/${{ matrix.package }}
-        make verify
-
-    - name: Test package
-      run: |
-        cd packages/${{ matrix.package }}
-        make test
-
-  test-util:
-    name: Test utility
-
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-        - 'macos-latest'
-        - 'ubuntu-latest'
-        - 'windows-latest'
-        python-version:
-        - '3.9'
-        - '3.10'
-        - '3.11'
-        package:
-        - dsw-tdk
-
-    runs-on: ${{ matrix.os }}
-
-    steps:
-    - name: Check out repository
-      uses: actions/checkout@v3
-
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
-        cache: pip
-        cache-dependency-path: |
-          **/pyproject.toml
-          **/requirements*.txt
-
-    - name: Prepare Python env
-      run: |
-        python -m pip install -U pip setuptools wheel
-
-    - name: Create build info
-      run: |
-        bash scripts/build-info.sh
-
-    - name: Install dependencies
-      run: |
-        cd packages/${{ matrix.package }}
-        pip install -r requirements.txt
-        make local-deps
-
-    - name: Install package
-      run: |
-        cd packages/${{ matrix.package }}
-        pip install .
-
-    - name: Verify installation
-      run: |
-        cd packages/${{ matrix.package }}
-        make verify
-
-    - name: Test package
-      run: |
-        cd packages/${{ matrix.package }}
-        make test
+        RET=0
+        if [ $VERIFY_FAILS == "_" ]; then
+          echo "## Verify: passed"
+        else
+          echo "## Verify: failed for packages: $VERIFY_FAILS"
+          RET=1
+        fi
+        if [ $TEST_FAILS == "_" ]; then
+          echo "## Test: passed"
+        else
+          echo "## Test: failed for packages: $TEST_FAILS"
+          RET=1
+        fi
+        exit $RET

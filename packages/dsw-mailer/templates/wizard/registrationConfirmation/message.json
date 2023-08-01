@@ -1,6 +1,8 @@
 {
-  "id": "registrationConfirmation",
+  "id": "wizard:registrationConfirmation",
   "subject": "Registration Confirmation",
+  "subjectPrefix": true,
+  "defaultSenderName": "DSW",
   "parts": [
     {
       "type": "html",
@@ -10,6 +12,5 @@
       "type": "plain",
       "file": "message.txt.j2"
     }
-  ],
-  "modes": ["wizard"]
+  ]
 }

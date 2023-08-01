@@ -155,8 +155,10 @@
                       <em>Please do not reply to this email.</em>
                       <br>
                       <br>
+                    {% if ctx.appTitle and ctx.clientUrl  %}
                       <small>This email was generated from <a href="{{ ctx.clientUrl }}" target="_blank">{{ ctx.appTitle }}</a>.</small>
                       <br>
+                    {% endif %}
                     </td>
                   </tr>
                 </tbody>
