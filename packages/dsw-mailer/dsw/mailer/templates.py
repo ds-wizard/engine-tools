@@ -1,9 +1,11 @@
+import datetime
+import dateutil.parser
 import jinja2
 import json
 import logging
 import pathlib
 
-from typing import Optional
+from typing import Optional, Union
 
 from .config import MailerConfig, MailConfig
 from .consts import DEFAULT_ENCODING
@@ -68,7 +70,13 @@ class TemplateRegistry:
             extensions=['jinja2.ext.do'],
         )
         self.templates = dict()  # type: dict[str, MailTemplate]
+        self._set_filters()
         self._load_templates()
+
+    def _set_filters(self):
+        self.j2_env.filters.update({
+            'datetime_format': datetime_format,
+        })
 
     def _load_jinja2(self, file_path: pathlib.Path) -> Optional[jinja2.Template]:
         if file_path.exists() and file_path.is_file():
@@ -153,3 +161,11 @@ class TemplateRegistry:
             mail_name=used_cfg.name,
             mail_from=used_cfg.email,
         )
+
+
+def datetime_format(iso_timestamp: Union[None, datetime.datetime, str], fmt: str):
+    if iso_timestamp is None:
+        return ''
+    if not isinstance(iso_timestamp, datetime.datetime):
+        iso_timestamp = dateutil.parser.isoparse(iso_timestamp)
+    return iso_timestamp.strftime(fmt)
