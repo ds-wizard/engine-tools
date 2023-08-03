@@ -2,7 +2,7 @@ import jinja2  # type: ignore
 import pathlib
 import uuid
 
-from typing import List, Set
+from typing import List, Set, Optional
 
 from .consts import DEFAULT_ENCODING, DEFAULT_README
 from .model import Template, TemplateFile, Format, Step, PackageFilter
@@ -163,13 +163,33 @@ class TemplateBuilder:
         self.template.readme = readme
         self.template.tdk_config.readme_file = DEFAULT_README
         TemplateValidator.validate(self.template)
+
         for format_spec in self._formats:
             content = j2_env.get_template('starter.j2').render(template=self.template)
             self.template.files[format_spec.filename] = TemplateFile(
                 filename=format_spec.filename,
                 content_type='text/plain',
-                content=content.encode(encoding=DEFAULT_ENCODING)
+                content=content.encode(encoding=DEFAULT_ENCODING),
             )
             self.template.tdk_config.files.append(str(format_spec.filename))
         self.template.allowed_packages.append(PackageFilter())
+
+        license_file = j2_env.get_template('LICENSE.j2').render(template=self.template)
+        self.template.tdk_config.files.append('LICENSE')
+        self.template.files['LICENSE'] = TemplateFile(
+            filename='LICENSE',
+            content_type='text/plain',
+            content=license_file.encode(encoding=DEFAULT_ENCODING),
+        )
+
+        self.template.files['.env'] = TemplateFile(
+            filename='.env',
+            content_type='text/plain',
+            content=create_dot_env().encode(encoding=DEFAULT_ENCODING),
+        )
+
         return self.template
+
+
+def create_dot_env(api_url: Optional[str] = None, api_key: Optional[str] = None) -> str:
+    return j2_env.get_template('env.j2').render(api_url=api_url, api_key=api_key)
