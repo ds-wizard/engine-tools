@@ -8,6 +8,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 
+## [3.25.1]
+
+### Fixed
+
+Fix loading custom mail config
+
 ## [3.25.0]
 
 Released for version consistency with other DSW tools.
@@ -143,3 +149,4 @@ Released for version consistency with other DSW tools.
 [3.23.0]: /../../tree/v3.23.0
 [3.24.0]: /../../tree/v3.24.0
 [3.25.0]: /../../tree/v3.25.0
+[3.25.1]: /../../tree/v3.25.1
