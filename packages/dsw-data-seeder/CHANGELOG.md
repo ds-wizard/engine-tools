@@ -8,6 +8,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 
+## [3.26.1]
+
+Released for version consistency with other DSW tools.
+
 ## [3.26.0]
 
 Released for version consistency with other DSW tools.
@@ -175,3 +179,4 @@ Released for version consistency with other DSW tools.
 [3.24.0]: /../../tree/v3.24.0
 [3.25.0]: /../../tree/v3.25.0
 [3.26.0]: /../../tree/v3.26.0
+[3.26.1]: /../../tree/v3.26.1
