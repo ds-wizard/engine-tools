@@ -146,7 +146,7 @@ def _transform_mail_config(cfg: Optional[DBInstanceConfigMail]) -> Optional[Mail
         rate_limit_count=cfg.rate_limit_count,
         timeout=cfg.timeout,
         ssl=None,
-        auth=None,
+        auth_enabled=None,
         dkim_privkey_file=None,
         dkim_selector=None,
     )
