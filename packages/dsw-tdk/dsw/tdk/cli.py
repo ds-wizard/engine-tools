@@ -1,5 +1,4 @@
 import asyncio
-import sys
 
 import click  # type: ignore
 import datetime
@@ -96,6 +95,10 @@ def rectify_url(ctx, param, value) -> str:
     return value.rstrip('/')
 
 
+def rectify_key(ctx, param, value) -> str:
+    return value.strip()
+
+
 class ClickLogger(logging.Logger):
 
     NAME = 'DSW-TDK-CLI'
@@ -169,6 +172,7 @@ class CLIContext:
 
     def __init__(self):
         self.logger = ClickLogger.default()
+        self.dot_env_file = None
 
     def debug_mode(self):
         self.logger.show_timestamp = True
@@ -176,37 +180,6 @@ class CLIContext:
 
     def quiet_mode(self):
         self.logger.muted = True
-
-
-class APICredentials:
-
-    def __init__(self, username, password, api_key):
-        self.username = username
-        self.password = password
-        self.api_key = api_key
-
-    def check(self):
-        if self.api_key is not None:
-            return
-        if self.username is not None and self.password is not None:
-            ClickPrinter.warning('Using username/password credentials, '
-                                 'consider switching to API keys.')
-            ClickPrinter.warning('Username/password authentication will be '
-                                 'removed in 3.25 as deprecated.')
-            return False
-        ClickPrinter.failure('Invalid credentials entered! You need to provide '
-                             'either API key or username/password credentials.')
-        sys.exit(1)
-
-    def init_args(self):
-        if self.api_key is not None:
-            return {
-                'api_key': self.api_key,
-            }
-        return {
-            'username': self.username,
-            'password': self.password,
-        }
 
 
 def interact_formats() -> Dict[str, FormatSpec]:
@@ -273,13 +246,14 @@ def main(ctx, quiet, debug, dot_env):
     if pathlib.Path(dot_env).exists():
         dotenv.load_dotenv(dotenv_path=dot_env)
     ctx.ensure_object(CLIContext)
+    ctx.obj.dot_env_file = dot_env
     if quiet:
         ctx.obj.quiet_mode()
     if debug:
         ctx.obj.debug_mode()
 
 
-@main.command(help='Create a new DSW template project.', name='new')
+@main.command(help='Create a new template project.', name='new')
 @click.argument('TEMPLATE-DIR', type=NEW_DIR_TYPE, default=None, required=False)
 @click.option('-f', '--force', is_flag=True, help='Overwrite any matching files.')
 @click.pass_context
@@ -303,30 +277,25 @@ def new_template(ctx, template_dir, force):
         exit(1)
 
 
-@main.command(help='Download template from DSW.', name='get')
+@main.command(help='Download template from Wizard.', name='get')
 @click.argument('TEMPLATE-ID')
 @click.argument('TEMPLATE-DIR', type=NEW_DIR_TYPE, default=None, required=False)
-@click.option('-s', '--api-server', metavar='API-URL', envvar='DSW_API',
-              prompt='URL of DSW API', help='URL of DSW server API.', callback=rectify_url)
-@click.option('-u', '--username', envvar='DSW_USERNAME', metavar='EMAIL', default=None,
-              help='Admin username (email) for DSW instance.')
-@click.option('-p', '--password', envvar='DSW_PASSWORD', metavar='PASSWORD', default=None,
-              help='Admin password for DSW instance.')
-@click.option('-k', '--api-key', envvar='DSW_API_KEY', metavar='API-KEY', default=None,
-              help='API key for DSW instance.')
+@click.option('-u', '--api-url', metavar='API-URL', envvar='DSW_API_URL',
+              prompt='API URL', help='URL of Wizard server API.', callback=rectify_url)
+@click.option('-k', '--api-key', metavar='API-KEY', envvar='DSW_API_KEY',
+              prompt='API Key', help='API key for Wizard instance.', callback=rectify_key,
+              hide_input=True)
 @click.option('-f', '--force', is_flag=True, help='Overwrite any existing files.')
 @click.pass_context
-def get_template(ctx, api_server, template_id, template_dir, username, password, api_key, force):
+def get_template(ctx, api_url, template_id, template_dir, api_key, force):
     template_dir = pathlib.Path(template_dir or dir_from_id(template_id))
-    creds = APICredentials(username=username, password=password, api_key=api_key)
-    creds.check()
 
     async def main_routine():
         tdk = TDKCore(logger=ctx.obj.logger)
         template_type = 'unknown'
         zip_data = None
         try:
-            await tdk.init_client(api_url=api_server, **creds.init_args())
+            await tdk.init_client(api_url=api_url, api_key=api_key)
             try:
                 await tdk.load_remote(template_id=template_id)
                 template_type = 'draft'
@@ -367,23 +336,18 @@ def get_template(ctx, api_server, template_id, template_dir, username, password,
     loop.run_until_complete(main_routine())
 
 
-@main.command(help='Upload template to DSW.', name='put')
+@main.command(help='Upload template to Wizard.', name='put')
 @click.argument('TEMPLATE-DIR', type=DIR_TYPE, default=CURRENT_DIR, required=False)
-@click.option('-s', '--api-server', metavar='API-URL', envvar='DSW_API',
-              prompt='URL of DSW API', help='URL of DSW server API.', callback=rectify_url)
-@click.option('-u', '--username', envvar='DSW_USERNAME', metavar='EMAIL', default=None,
-              help='Admin username (email) for DSW instance.')
-@click.option('-p', '--password', envvar='DSW_PASSWORD', metavar='PASSWORD', default=None,
-              help='Admin password for DSW instance.')
-@click.option('-k', '--api-key', envvar='DSW_API_KEY', metavar='API-KEY', default=None,
-              help='API key for DSW instance.')
+@click.option('-u', '--api-url', metavar='API-URL', envvar='DSW_API_URL',
+              prompt='API URL', help='URL of Wizard server API.', callback=rectify_url)
+@click.option('-k', '--api-key', metavar='API-KEY', envvar='DSW_API_KEY',
+              prompt='API Key', help='API key for Wizard instance.', callback=rectify_key,
+              hide_input=True)
 @click.option('-f', '--force', is_flag=True, help='Delete template if already exists.')
 @click.option('-w', '--watch', is_flag=True, help='Enter watch mode to continually upload changes.')
 @click.pass_context
-def put_template(ctx, api_server, template_dir, username, password, api_key, force, watch):
+def put_template(ctx, api_url, template_dir, api_key, force, watch):
     tdk = TDKCore(logger=ctx.obj.logger)
-    creds = APICredentials(username=username, password=password, api_key=api_key)
-    creds.check()
 
     async def watch_callback(changes):
         changes = list(changes)
@@ -399,10 +363,10 @@ def put_template(ctx, api_server, template_dir, username, password, api_key, for
     async def main_routine():
         load_local(tdk, template_dir)
         try:
-            await tdk.init_client(api_url=api_server, **creds.init_args())
+            await tdk.init_client(api_url=api_url, api_key=api_key)
             await tdk.store_remote(force=force)
             ClickPrinter.success(f'Template {tdk.safe_project.safe_template.id} '
-                                 f'uploaded to {api_server}')
+                                 f'uploaded to {api_url}')
 
             if watch:
                 ClickPrinter.watch('Entering watch mode... (press Ctrl+C to abort)')
@@ -427,7 +391,7 @@ def put_template(ctx, api_server, template_dir, username, password, api_key, for
     loop.run_until_complete(main_routine())
 
 
-@main.command(help='Create ZIP package for DSW template.', name='package')
+@main.command(help='Create ZIP package for a template.', name='package')
 @click.argument('TEMPLATE-DIR', type=DIR_TYPE, default=CURRENT_DIR, required=False)
 @click.option('-o', '--output', default='template.zip', type=click.Path(writable=True),
               show_default=True, help='Target package file.')
@@ -446,7 +410,7 @@ def create_package(ctx, template_dir, output, force: bool):
     ClickPrinter.success(f'Package {filename} created')
 
 
-@main.command(help='Extract DSW template from ZIP package', name='unpackage')
+@main.command(help='Extract a template from ZIP package', name='unpackage')
 @click.argument('TEMPLATE-PACKAGE', type=FILE_READ_TYPE, required=False)
 @click.option('-o', '--output', type=NEW_DIR_TYPE, default=None, required=False,
               help='Target package file.')
@@ -468,29 +432,23 @@ def extract_package(ctx, template_package, output, force: bool):
     ClickPrinter.success(f'Package {template_package} extracted')
 
 
-@main.command(help='List templates from DSW via API.', name='list')
-@click.option('-s', '--api-server', metavar='API-URL', envvar='DSW_API',
-              prompt='URL of DSW API', help='URL of DSW server API.', callback=rectify_url)
-@click.option('-u', '--username', envvar='DSW_USERNAME', metavar='EMAIL', default=None,
-              help='Admin username (email) for DSW instance.')
-@click.option('-p', '--password', envvar='DSW_PASSWORD', metavar='PASSWORD', default=None,
-              help='Admin password for DSW instance.')
-@click.option('-k', '--api-key', envvar='DSW_API_KEY', metavar='API-KEY', default=None,
-              help='API key for DSW instance.')
+@main.command(help='List templates from Wizard via API.', name='list')
+@click.option('-u', '--api-url', metavar='API-URL', envvar='DSW_API_URL',
+              prompt='API URL', help='URL of Wizard server API.', callback=rectify_url)
+@click.option('-k', '--api-key', metavar='API-KEY', envvar='DSW_API_KEY',
+              prompt='API Key', help='API key for Wizard instance.', callback=rectify_key,
+              hide_input=True)
 @click.option('--output-format', default=DEFAULT_LIST_FORMAT,
               metavar='FORMAT', help='Entry format string for printing.')
 @click.option('-r', '--released-only', is_flag=True, help='List only released templates')
 @click.option('-d', '--drafts-only', is_flag=True, help='List only template drafts')
 @click.pass_context
-def list_templates(ctx, api_server, username, password, api_key, output_format: str,
+def list_templates(ctx, api_url, api_key, output_format: str,
                    released_only: bool, drafts_only: bool):
-    creds = APICredentials(username=username, password=password, api_key=api_key)
-    creds.check()
-
     async def main_routine():
         tdk = TDKCore(logger=ctx.obj.logger)
         try:
-            await tdk.init_client(api_url=api_server, **creds.init_args())
+            await tdk.init_client(api_url=api_url, api_key=api_key)
             if released_only:
                 templates = await tdk.list_remote_templates()
                 for template in templates:
@@ -520,7 +478,7 @@ def list_templates(ctx, api_server, username, password, api_key, output_format: 
     loop.run_until_complete(main_routine())
 
 
-@main.command(help='Verify DSW template project.', name='verify')
+@main.command(help='Verify a template project.', name='verify')
 @click.argument('TEMPLATE-DIR', type=DIR_TYPE, default=CURRENT_DIR, required=False)
 @click.pass_context
 def verify_template(ctx, template_dir):
@@ -535,3 +493,28 @@ def verify_template(ctx, template_dir):
         click.echo('Found violations:')
         for err in errors:
             click.echo(f' - {err.field_name}: {err.message}')
+
+
+@main.command(help='Create a .env file.', name='dot-env')
+@click.argument('TEMPLATE-DIR', type=DIR_TYPE, default=CURRENT_DIR, required=False)
+@click.option('-u', '--api-url', metavar='API-URL', envvar='DSW_API_URL',
+              prompt='API URL', help='URL of Wizard server API.', callback=rectify_url)
+@click.option('-k', '--api-key', metavar='API-KEY', envvar='DSW_API_KEY',
+              prompt='API Key', help='API key for Wizard instance.', callback=rectify_key,
+              hide_input=True)
+@click.option('-f', '--force', is_flag=True, help='Overwrite file if already exists.')
+@click.pass_context
+def create_dot_env(ctx, template_dir, api_url, api_key, force):
+    filename = ctx.obj.dot_env_file or '.env'
+    tdk = TDKCore(logger=ctx.obj.logger)
+    try:
+        tdk.create_dot_env(
+            output=pathlib.Path(template_dir) / filename,
+            force=force,
+            api_url=api_url,
+            api_key=api_key,
+        )
+    except Exception as e:
+        ClickPrinter.failure('Failed to create dot-env file')
+        ClickPrinter.error(f'> {e}')
+        exit(1)

@@ -1,0 +1,16 @@
+{
+  "id": "wizard:apiKeyCreated",
+  "subject": "A new API key has been created",
+  "subjectPrefix": true,
+  "defaultSenderName": "DSW",
+  "parts": [
+    {
+      "type": "html",
+      "file": "message.html.j2"
+    },
+    {
+      "type": "plain",
+      "file": "message.txt.j2"
+    }
+  ]
+}

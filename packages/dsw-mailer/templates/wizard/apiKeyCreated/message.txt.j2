@@ -1,0 +1,12 @@
+Dear {{ ctx.userFirstName }},
+
+A new API key named "{{ ctx.tokenName }}" has been created for your account.
+It will expire on {{ ctx.tokenExpiresAt|datetime_format("%B %-d, %Y (at %H:%M %Z)") }}.
+
+You can manage your API keys here: {{ ctx.clientUrl }}/users/edit/current/api-keys
+
+{% if ctx.supportEmail %}
+If you did not initiate this login attempt, please contact us via {{ ctx.supportEmail }}.
+{% endif %}
+
+{% include '_common/footer.txt.j2' %}

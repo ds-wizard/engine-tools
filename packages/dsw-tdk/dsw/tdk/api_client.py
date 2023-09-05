@@ -81,7 +81,7 @@ class DSWAPIClient:
                         f'{r.reason} (expecting {expected_status})'
             )
 
-    def __init__(self, api_url: str, session=None):
+    def __init__(self, api_url: str, api_key: str, session=None):
         """
         Exception representing communication error with DSW.
 
@@ -90,7 +90,7 @@ class DSWAPIClient:
             session (aiohttp.ClientSession): Optional custom session for HTTP communication.
         """
         self.api_url = api_url
-        self.token = None
+        self.token = api_key
         self.session = session or aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False))
 
     @property

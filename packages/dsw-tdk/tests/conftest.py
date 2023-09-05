@@ -20,7 +20,7 @@ vcr.use_cassette = vcr.default_vcr.use_cassette
 
 @pytest.fixture(scope='session')
 def dsw_api_url():
-    value = os.environ.get('DSW_API', 'http://localhost:3000')
+    value = os.environ.get('DSW_API_URL', 'http://localhost:3000')
     return value
 
 
@@ -33,7 +33,7 @@ def dsw_api_key():
 @pytest.fixture(scope='session')
 def dsw_env(dsw_api_url: str, dsw_api_key: str):
     return {
-        'DSW_API': dsw_api_url,
+        'DSW_API_URL': dsw_api_url,
         'DSW_API_KEY': dsw_api_key,
     }
 

@@ -15,7 +15,7 @@ from typing import List, Optional, Tuple
 from .api_client import DSWAPIClient, DSWCommunicationError
 from .consts import DEFAULT_ENCODING, REGEX_SEMVER
 from .model import TemplateProject, Template, TemplateFile, TemplateFileType
-from .utils import UUIDGen
+from .utils import UUIDGen, create_dot_env
 from .validation import ValidationError, TemplateValidator
 
 
@@ -99,14 +99,9 @@ class TDKCore:
             raise RuntimeError('No DSW API client specified')
         return self.client
 
-    async def init_client(self, api_url: str, username: Optional[str] = None,
-                          password: Optional[str] = None, api_key: Optional[str] = None):
+    async def init_client(self, api_url: str, api_key: str):
         self.logger.info(f'Connecting to {api_url}')
-        self.client = DSWAPIClient(api_url=api_url)
-        if api_key is not None:
-            self.client.token = api_key  # type: ignore
-        if username is not None and password is not None:
-            await self.client.login(email=username, password=password)
+        self.client = DSWAPIClient(api_url=api_url, api_key=api_key)
         self.remote_version = await self.client.get_api_version()
         user = await self.client.get_current_user()
         self.logger.info(f'Successfully authenticated as {user["firstName"]} '
@@ -361,6 +356,17 @@ class TDKCore:
                 target_dir.mkdir(parents=True, exist_ok=True)
                 target_file.write_text(data=content, encoding=DEFAULT_ENCODING)
         self.logger.debug('Extracting package done')
+
+    def create_dot_env(self, output: pathlib.Path, force: bool, api_url: str, api_key: str):
+        if output.exists():
+            if force:
+                self.logger.warning(f'Overwriting {output.as_posix()} (forced)')
+            else:
+                raise RuntimeError(f'File {output} already exists (not forced)')
+        output.write_text(
+            data=create_dot_env(api_url=api_url, api_key=api_key),
+            encoding=DEFAULT_ENCODING,
+        )
 
     async def watch_project(self, callback):
         async for changes in watchgod.awatch(self.safe_project.template_dir):

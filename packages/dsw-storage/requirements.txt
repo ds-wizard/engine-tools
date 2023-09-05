@@ -2,4 +2,4 @@ certifi==2023.7.22
 minio==7.1.15
 PyYAML==6.0.1
 tenacity==8.2.2
-urllib3==1.26.16
+urllib3==2.0.4
