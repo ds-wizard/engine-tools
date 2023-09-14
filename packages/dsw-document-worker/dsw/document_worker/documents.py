@@ -1,6 +1,8 @@
 import pathvalidate
 import slugify
 
+from typing import Optional
+
 from dsw.database.database import DBDocument
 
 from .consts import DEFAULT_ENCODING, DocumentNamingStrategy
@@ -105,7 +107,7 @@ class FileFormats:
 class DocumentFile:
 
     def __init__(self, file_format: FileFormat, content: bytes,
-                 encoding: str = DEFAULT_ENCODING):
+                 encoding: Optional[str] = None):
         self.file_format = file_format
         self._content = content
         self.byte_size = len(content)
@@ -114,6 +116,10 @@ class DocumentFile:
     @property
     def content_type(self) -> str:
         return self.file_format.content_type
+
+    @property
+    def safe_encoding(self) -> str:
+        return self.encoding or DEFAULT_ENCODING
 
     @property
     def content(self) -> bytes:
@@ -130,6 +136,12 @@ class DocumentFile:
     def store(self, name: str):
         with open(self.filename(name), mode='bw') as f:
             f.write(self.content)
+
+    @property
+    def object_content_type(self) -> str:
+        if self.encoding is not None:
+            return f'{self.content_type}; charset={self.encoding}'
+        return self.content_type
 
 
 def _name_uuid(document: DBDocument) -> str:

@@ -913,7 +913,7 @@ class ExcelStep(Step):
         data = _EMPTY_DICT
         try:
             data = json.loads(
-                s=document.content.decode(encoding=document.encoding),
+                s=document.content.decode(encoding=document.safe_encoding),
             )
             if not isinstance(data, dict):
                 raise RuntimeError('Not a valid JSON object')

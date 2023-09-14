@@ -7,6 +7,8 @@ import pathlib
 import tempfile
 import tenacity
 
+from typing import Optional
+
 from dsw.config.model import S3Config
 
 LOG = logging.getLogger(__name__)
@@ -68,7 +70,8 @@ class S3Storage:
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
     def store_document(self, app_uuid: str, file_name: str,
-                       content_type: str, data: bytes):
+                       content_type: str, data: bytes,
+                       metadata: Optional[dict] = None):
         object_name = f'{DOCUMENTS_DIR}/{file_name}'
         if self.multi_tenant:
             object_name = f'{app_uuid}/{object_name}'
@@ -79,6 +82,7 @@ class S3Storage:
                 data=file,
                 length=len(data),
                 content_type=content_type,
+                metadata=metadata,
             )
 
     @tenacity.retry(
@@ -109,7 +113,8 @@ class S3Storage:
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
     def store_object(self, app_uuid: str, object_name: str,
-                     content_type: str, data: bytes):
+                     content_type: str, data: bytes,
+                     metadata: Optional[dict] = None):
         if self.multi_tenant:
             object_name = f'{app_uuid}/{object_name}'
         with io.BytesIO(data) as file:
@@ -119,4 +124,5 @@ class S3Storage:
                 data=file,
                 length=len(data),
                 content_type=content_type,
+                metadata=metadata,
             )

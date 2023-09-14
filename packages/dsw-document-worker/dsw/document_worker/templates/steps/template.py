@@ -131,7 +131,11 @@ class Jinja2Step(Step):
             self.raise_exc(f'Failed rendering Jinja2 template due to'
                            f' {type(e).__name__}\n'
                            f'- {str(e)}')
-        return DocumentFile(self.output_format, content, DEFAULT_ENCODING)
+        return DocumentFile(
+            file_format=self.output_format,
+            content=content,
+            encoding=DEFAULT_ENCODING,
+        )
 
     def execute_first(self, context: dict) -> DocumentFile:
         return self._execute(ctx=context)
