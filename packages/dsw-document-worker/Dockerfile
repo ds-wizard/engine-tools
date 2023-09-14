@@ -6,7 +6,7 @@ WORKDIR /app
 
 COPY . /app
 
-RUN apk add -u build-base gcc \
+RUN apk add -u build-base gcc font-noto-emoji \
  && clean
 
 RUN python -m pip wheel --wheel-dir=/app/wheels -r /app/packages/dsw-document-worker/requirements.txt \
