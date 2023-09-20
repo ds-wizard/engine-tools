@@ -3,7 +3,7 @@ import logging
 from ..consts import FormatField, StepField
 from ..documents import DocumentFile
 from ..templates.steps import create_step, Step, \
-    FormatStepException, WkHtmlToPdfStep
+    FormatStepException
 
 
 LOG = logging.getLogger(__name__)
@@ -59,8 +59,7 @@ class Format:
 
     @property
     def is_pdf(self) -> bool:
-        # TODO: refactor to check output FileFormat for step (instead of specific step)
-        return isinstance(self.steps[-1], WkHtmlToPdfStep)
+        return self.steps[-1].produces_only_pdf
 
     def requires_via_extras(self, requirement: str) -> bool:
         return any(step.requires_via_extras(requirement)

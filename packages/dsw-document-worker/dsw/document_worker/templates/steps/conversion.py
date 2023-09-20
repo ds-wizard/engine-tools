@@ -29,6 +29,10 @@ class WkHtmlToPdfStep(Step):
         )
         return DocumentFile(self.OUTPUT_FORMAT, data)
 
+    @property
+    def produces_only_pdf(self):
+        return True
+
 
 class WeasyPrintStep(Step):
     NAME = 'weasyprint'
@@ -75,6 +79,10 @@ class WeasyPrintStep(Step):
             custom_metadata=self.wp_custom_metadata,
         )
         return DocumentFile(self.OUTPUT_FORMAT, data)
+
+    @property
+    def produces_only_pdf(self):
+        return True
 
 
 class PandocStep(Step):
