@@ -32,6 +32,10 @@ class WkHtmlToPdfStep(Step):
             content=data,
         )
 
+    @property
+    def produces_only_pdf(self):
+        return True
+
 
 class WeasyPrintStep(Step):
     NAME = 'weasyprint'
@@ -81,6 +85,10 @@ class WeasyPrintStep(Step):
             file_format=self.OUTPUT_FORMAT,
             content=data,
         )
+
+    @property
+    def produces_only_pdf(self):
+        return True
 
 
 class PandocStep(Step):

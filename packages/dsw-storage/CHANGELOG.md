@@ -11,6 +11,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - Support for object metadata
 
+## [3.27.1]
+
+Released for version consistency with other DSW tools.
+
 ## [3.27.0]
 
 Released for version consistency with other DSW tools.
@@ -135,3 +139,4 @@ Released for version consistency with other DSW tools.
 [3.26.0]: /../../tree/v3.26.0
 [3.26.1]: /../../tree/v3.26.1
 [3.27.0]: /../../tree/v3.27.0
+[3.27.1]: /../../tree/v3.27.1
