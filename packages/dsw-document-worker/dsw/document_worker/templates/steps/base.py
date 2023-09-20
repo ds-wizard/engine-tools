@@ -37,6 +37,10 @@ class Step:
     def raise_exc(self, message: str):
         raise FormatStepException(message)
 
+    @property
+    def produces_only_pdf(self):
+        return False
+
 
 STEPS = dict()
 
