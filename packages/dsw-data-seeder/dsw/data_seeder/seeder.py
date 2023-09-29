@@ -32,10 +32,22 @@ def _guess_mimetype(filename: str) -> str:
         return DEFAULT_MIMETYPE
 
 
+class DBScript:
+
+    def __init__(self, filepath: pathlib.Path, target: str, order: int):
+        self.filepath = filepath
+        self.target = target
+        self.order = order
+
+    @property
+    def id(self) -> str:
+        return f'{self.order}::{self.filepath.as_posix()}::{self.target}'
+
+
 class SeedRecipe:
 
     def __init__(self, name: str, description: str, root: pathlib.Path,
-                 db_scripts: list[pathlib.Path], db_placeholder: str,
+                 db_scripts: dict[str, DBScript], db_placeholder: str,
                  s3_app_dir: Optional[pathlib.Path], s3_fname_replace: dict[str, str],
                  uuids_count: int, uuids_placeholder: Optional[str]):
         self.name = name
@@ -45,7 +57,7 @@ class SeedRecipe:
         self.db_placeholder = db_placeholder
         self.s3_app_dir = s3_app_dir
         self.s3_fname_replace = s3_fname_replace
-        self._db_scripts_data = collections.OrderedDict()  # type: dict[pathlib.Path, str]
+        self._db_scripts_data = collections.OrderedDict()  # type: dict[str, str]
         self.s3_objects = collections.OrderedDict()  # type: dict[pathlib.Path, str]
         self.prepared = False
         self.uuids_count = uuids_count
@@ -53,8 +65,8 @@ class SeedRecipe:
         self.uuids_replacement = dict()  # type: dict[str, str]
 
     def _load_db_scripts(self):
-        for db_script in self.db_scripts:
-            self._db_scripts_data[db_script] = db_script.read_text(
+        for script_id, db_script in self.db_scripts.items():
+            self._db_scripts_data[script_id] = db_script.filepath.read_text(
                 encoding=DEFAULT_ENCODING,
             )
 
@@ -95,8 +107,8 @@ class SeedRecipe:
 
     def iterate_db_scripts(self, app_uuid: str):
         return (
-            (name, self._replace_db_script(script, app_uuid))
-            for name, script in self._db_scripts_data.items()
+            (script_id, self._replace_db_script(script, app_uuid))
+            for script_id, script in self._db_scripts_data.items()
         )
 
     def _replace_object_name(self, object_name: str) -> str:
@@ -134,19 +146,24 @@ class SeedRecipe:
         ))
         db = data.get('db', {})  # type: dict
         s3 = data.get('s3', {})  # type: dict
-        scripts = [
-            pathlib.Path(x) for x in db.get('scripts', [])
-        ]
-        db_scripts = list()
-        for script in scripts:
-            if '*' in str(script):
-                db_scripts.extend(
-                    sorted([s for s in recipe_file.parent.glob(str(script))])
-                )
-            elif script.is_absolute():
-                db_scripts.append(script)
+        scripts = db.get('scripts', [])  # type: list[dict]
+        db_scripts = collections.OrderedDict()  # type: dict[str, DBScript]
+        for index, script in enumerate(scripts):
+            target = script.get('target', '')
+            filename = str(script.get('filename', ''))
+            if filename == '':
+                continue
+            filepath = pathlib.Path(filename)
+            if '*' in filename:
+                for item in sorted([s for s in recipe_file.parent.glob(filename)]):
+                    s = DBScript(item, target, index)
+                    db_scripts[s.id] = s
+            elif filepath.is_absolute():
+                s = DBScript(filepath, target, index)
+                db_scripts[s.id] = s
             else:
-                db_scripts.append(recipe_file.parent / script)
+                s = DBScript(recipe_file.parent / filepath, target, index)
+                db_scripts[s.id] = s
         s3_app_dir = None
         if 'appDir' in s3.keys():
             s3_app_dir = recipe_file.parent / s3['appDir']
@@ -174,7 +191,7 @@ class SeedRecipe:
             name='default',
             description='Default dummy recipe',
             root=pathlib.Path('/dev/null'),
-            db_scripts=[],
+            db_scripts={},
             db_placeholder='<<|APP-ID|>>',
             s3_app_dir=pathlib.Path('/dev/null'),
             s3_fname_replace={},
@@ -191,6 +208,8 @@ class DataSeeder(CommandWorker):
         self.recipe = SeedRecipe.create_default()  # type: SeedRecipe
 
         self._init_context(workdir=workdir)
+        self.dbs = {}  # type: dict[str, Database]
+        self._init_extra_connections()
 
     def _init_context(self, workdir: pathlib.Path):
         Context.initialize(
@@ -210,6 +229,10 @@ class DataSeeder(CommandWorker):
             prog_name=PROG_NAME,
             config=self.cfg.sentry,
         )
+
+    def _init_extra_connections(self):
+        for db_id, extra_db_cfg in Context.get().app.cfg.extra_dbs.items():
+            self.dbs[db_id] = Database(cfg=extra_db_cfg, with_queue=False)
 
     def _prepare_recipe(self, recipe_name: str):
         LOG.info('Loading recipe')
@@ -261,8 +284,6 @@ class DataSeeder(CommandWorker):
         self._prepare_recipe(recipe_name)
         LOG.info(f'Executing recipe "{recipe_name}"')
         self.execute(app_uuid=app_uuid)
-        LOG.info('Committing')
-        Context().get().app.db.conn_query.connection.commit()
 
     def execute(self, app_uuid: str):
         SentryReporter.set_context('app_uuid', app_uuid)
@@ -270,11 +291,18 @@ class DataSeeder(CommandWorker):
         app_ctx = Context.get().app
         cursor = app_ctx.db.conn_query.new_cursor(use_dict=True)
         phase = 'DB'
+        used_targets = set()
         try:
             LOG.info('Running SQL scripts')
-            for path, script in self.recipe.iterate_db_scripts(app_uuid):
-                LOG.debug(f' -> Executing script: {path.name}')
-                cursor.execute(query=script)
+            for script_id, sql_script in self.recipe.iterate_db_scripts(app_uuid):
+                LOG.debug(f' -> Executing script: {script_id}')
+                script = self.recipe.db_scripts[script_id]
+                if script.target in self.dbs.keys():
+                    with self.dbs[script.target].conn_query.new_cursor(use_dict=True) as c:
+                        c.execute(query=sql_script)
+                    used_targets.add(script.target)
+                else:
+                    cursor.execute(query=sql_script)
                 LOG.debug(f'    OK: {cursor.statusmessage}')
             phase = 'S3'
             LOG.info('Transferring S3 objects')
@@ -293,9 +321,16 @@ class DataSeeder(CommandWorker):
             SentryReporter.capture_exception(e)
             LOG.warning(f'Exception appeared [{type(e).__name__}]: {e}')
             LOG.info('Failed with unexpected error', exc_info=e)
+            LOG.info('Rolling back DB changes')
             app_ctx.db.conn_query.connection.rollback()
+            for target in used_targets:
+                self.dbs[target].conn_query.connection.rollback()
             raise RuntimeError(f'{phase}: {e}')
         finally:
+            LOG.info('Committing DB changes')
+            Context().get().app.db.conn_query.connection.commit()
+            for target in used_targets:
+                self.dbs[target].conn_query.connection.commit()
             LOG.info('Data seeding done')
             SentryReporter.set_context('app_uuid', '-')
             cursor.close()

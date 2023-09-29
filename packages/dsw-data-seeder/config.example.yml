@@ -15,3 +15,9 @@ logging:
 
 cloud:
   enabled: True
+
+extraDatabases:
+  otherApp:
+    connectionString: postgresql://postgres:postgres@postgres:5432/engine-wizard
+    connectionTimeout: 30000
+    queueTimeout: 300
