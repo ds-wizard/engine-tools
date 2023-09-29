@@ -66,7 +66,8 @@ class Database:
                      'FROM document_template_asset WHERE app_uuid = %(app_uuid)s) ' \
                      'as result;'
 
-    def __init__(self, cfg: DatabaseConfig, connect: bool = True):
+    def __init__(self, cfg: DatabaseConfig, connect: bool = True,
+                 with_queue: bool = True):
         self.cfg = cfg
         LOG.info('Preparing PostgreSQL connection for QUERY')
         self.conn_query = PostgresConnection(
@@ -77,19 +78,22 @@ class Database:
         )
         if connect:
             self.conn_query.connect()
-        LOG.info('Preparing PostgreSQL connection for QUEUE')
-        self.conn_queue = PostgresConnection(
-            name='queue',
-            dsn=self.cfg.connection_string,
-            timeout=self.cfg.connection_timeout,
-            autocommit=True,
-        )
-        if connect:
-            self.conn_queue.connect()
+        self.with_queue = with_queue
+        if with_queue:
+            LOG.info('Preparing PostgreSQL connection for QUEUE')
+            self.conn_queue = PostgresConnection(
+                name='queue',
+                dsn=self.cfg.connection_string,
+                timeout=self.cfg.connection_timeout,
+                autocommit=True,
+            )
+            if connect:
+                self.conn_queue.connect()
 
     def connect(self):
         self.conn_query.connect()
-        self.conn_queue.connect()
+        if self.with_queue:
+            self.conn_queue.connect()
 
     @tenacity.retry(
         reraise=True,
@@ -293,7 +297,7 @@ class Database:
     )
     def update_document_retrieved(self, retrieved_at: datetime.datetime,
                                   document_uuid: str) -> bool:
-        with self.conn_queue.new_cursor() as cursor:
+        with self.conn_query.new_cursor() as cursor:
             cursor.execute(
                 query=self.UPDATE_DOCUMENT_RETRIEVED,
                 params=(

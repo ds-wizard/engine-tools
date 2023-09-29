@@ -3,8 +3,16 @@
   "description": "Whatever internal information about this data seed set",
   "db": {
     "scripts": [
-      "user_seed.sql",
-      "app_config_seed.sql"
+      {
+        "filename": "user_seed.sql"
+      },
+      {
+        "filename": "user_seed.sql",
+        "target": "other"
+      },
+      {
+        "filename": "app_config_seed.sql"
+      }
     ],
     "appIdPlaceholder": "<<|APP-ID|>>"
   },
