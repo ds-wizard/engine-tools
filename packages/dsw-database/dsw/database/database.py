@@ -11,7 +11,7 @@ from dsw.config.model import DatabaseConfig
 
 from .model import DBDocumentTemplate, DBDocumentTemplateFile, \
     DBDocumentTemplateAsset, DBDocument, DBComponent, \
-    DocumentState, DBAppConfig, DBAppLimits, DBSubmission, \
+    DocumentState, DBTenantConfig, DBTenantLimits, DBSubmission, \
     DBInstanceConfigMail, DBQuestionnaireSimple
 
 LOG = logging.getLogger(__name__)
@@ -30,40 +30,40 @@ def wrap_json_data(data: dict):
 class Database:
 
     # TODO: refactor queries and models
-    SELECT_DOCUMENT = 'SELECT * FROM document WHERE uuid = %s AND app_uuid = %s LIMIT 1;'
-    SELECT_QTN_DOCUMENTS = 'SELECT * FROM document WHERE questionnaire_uuid = %s AND app_uuid = %s;'
-    SELECT_DOCUMENT_SUBMISSIONS = 'SELECT * FROM submission WHERE document_uuid = %s AND app_uuid = %s;'
+    SELECT_DOCUMENT = 'SELECT * FROM document WHERE uuid = %s AND tenant_uuid = %s LIMIT 1;'
+    SELECT_QTN_DOCUMENTS = 'SELECT * FROM document WHERE questionnaire_uuid = %s AND tenant_uuid = %s;'
+    SELECT_DOCUMENT_SUBMISSIONS = 'SELECT * FROM submission WHERE document_uuid = %s AND tenant_uuid = %s;'
     SELECT_QTN_SUBMISSIONS = 'SELECT s.* FROM document d JOIN submission s ON d.uuid = s.document_uuid ' \
-                             'WHERE d.questionnaire_uuid = %s AND d.app_uuid = %s;'
+                             'WHERE d.questionnaire_uuid = %s AND d.tenant_uuid = %s;'
     SELECT_QTN_SIMPLE = 'SELECT qtn.* FROM questionnaire qtn ' \
-                        'WHERE qtn.uuid = %s AND qtn.app_uuid = %s;'
-    SELECT_APP_CONFIG = 'SELECT * FROM app_config WHERE uuid = %(app_uuid)s LIMIT 1;'
-    SELECT_APP_LIMIT = 'SELECT uuid, storage FROM app_limit WHERE uuid = %(app_uuid)s LIMIT 1;'
+                        'WHERE qtn.uuid = %s AND qtn.tenant_uuid = %s;'
+    SELECT_TENANT_CONFIG = 'SELECT * FROM tenant_config WHERE uuid = %(tenant_uuid)s LIMIT 1;'
+    SELECT_TENANT_LIMIT = 'SELECT uuid, storage FROM tenant_limit_bundle WHERE uuid = %(tenant_uuid)s LIMIT 1;'
     UPDATE_DOCUMENT_STATE = 'UPDATE document SET state = %s, worker_log = %s WHERE uuid = %s;'
     UPDATE_DOCUMENT_RETRIEVED = 'UPDATE document SET retrieved_at = %s, state = %s WHERE uuid = %s;'
     UPDATE_DOCUMENT_FINISHED = 'UPDATE document SET finished_at = %s, state = %s, ' \
                                'file_name = %s, content_type = %s, worker_log = %s, ' \
                                'file_size = %s WHERE uuid = %s;'
-    SELECT_TEMPLATE = 'SELECT * FROM document_template WHERE id = %s AND app_uuid = %s LIMIT 1;'
+    SELECT_TEMPLATE = 'SELECT * FROM document_template WHERE id = %s AND tenant_uuid = %s LIMIT 1;'
     SELECT_TEMPLATE_FILES = 'SELECT * FROM document_template_file ' \
-                            'WHERE document_template_id = %s AND app_uuid = %s;'
+                            'WHERE document_template_id = %s AND tenant_uuid = %s;'
     SELECT_TEMPLATE_ASSETS = 'SELECT * FROM document_template_asset ' \
-                             'WHERE document_template_id = %s AND app_uuid = %s;'
+                             'WHERE document_template_id = %s AND tenant_uuid = %s;'
     CHECK_TABLE_EXISTS = 'SELECT EXISTS(SELECT * FROM information_schema.tables' \
                          '                       WHERE table_name = %(table_name)s)'
     SELECT_MAIL_CONFIG = 'SELECT icm.* ' \
-                         'FROM app_config ac JOIN instance_config_mail icm ' \
-                         'ON ac.mail_config_uuid = icm.uuid ' \
-                         'WHERE ac.uuid = %(app_uuid)s;'
+                         'FROM tenant_config tc JOIN instance_config_mail icm ' \
+                         'ON tc.mail_config_uuid = icm.uuid ' \
+                         'WHERE tc.uuid = %(tenant_uuid)s;'
     UPDATE_COMPONENT_INFO = 'INSERT INTO component (name, version, built_at, created_at, updated_at) ' \
                             'VALUES (%(name)s, %(version)s, %(built_at)s, %(created_at)s, %(updated_at)s)' \
                             'ON CONFLICT (name) DO ' \
                             'UPDATE SET version = %(version)s, built_at = %(built_at)s, updated_at = %(updated_at)s;'
     SELECT_COMPONENT_INFO = 'SELECT * FROM component WHERE name = %(name)s;'
     SUM_FILE_SIZES = 'SELECT (SELECT COALESCE(SUM(file_size)::bigint, 0) ' \
-                     'FROM document WHERE app_uuid = %(app_uuid)s) ' \
+                     'FROM document WHERE tenant_uuid = %(tenant_uuid)s) ' \
                      '+ (SELECT COALESCE(SUM(file_size)::bigint, 0) ' \
-                     'FROM document_template_asset WHERE app_uuid = %(app_uuid)s) ' \
+                     'FROM document_template_asset WHERE tenant_uuid = %(tenant_uuid)s) ' \
                      'as result;'
 
     def __init__(self, cfg: DatabaseConfig, connect: bool = True,
@@ -120,11 +120,11 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def fetch_document(self, document_uuid: str, app_uuid: str) -> Optional[DBDocument]:
+    def fetch_document(self, document_uuid: str, tenant_uuid: str) -> Optional[DBDocument]:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
                 query=self.SELECT_DOCUMENT,
-                params=(document_uuid, app_uuid),
+                params=(document_uuid, tenant_uuid),
             )
             result = cursor.fetchall()
             if len(result) != 1:
@@ -138,8 +138,8 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def fetch_app_config(self, app_uuid: str) -> Optional[DBAppConfig]:
-        return self.get_app_config(app_uuid)
+    def fetch_tenant_config(self, tenant_uuid: str) -> Optional[DBTenantConfig]:
+        return self.get_tenant_config(tenant_uuid)
 
     @tenacity.retry(
         reraise=True,
@@ -148,16 +148,16 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def fetch_app_limits(self, app_uuid: str) -> Optional[DBAppLimits]:
+    def fetch_tenant_limits(self, tenant_uuid: str) -> Optional[DBTenantLimits]:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
-                query=self.SELECT_APP_LIMIT,
-                params={'app_uuid': app_uuid},
+                query=self.SELECT_TENANT_LIMIT,
+                params={'tenant_uuid': tenant_uuid},
             )
             result = cursor.fetchall()
             if len(result) != 1:
                 return None
-            return DBAppLimits.from_dict_row(result[0])
+            return DBTenantLimits.from_dict_row(result[0])
 
     @tenacity.retry(
         reraise=True,
@@ -167,12 +167,12 @@ class Database:
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
     def fetch_template(
-            self, template_id: str, app_uuid: str
+            self, template_id: str, tenant_uuid: str
     ) -> Optional[DBDocumentTemplate]:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
                 query=self.SELECT_TEMPLATE,
-                params=(template_id, app_uuid),
+                params=(template_id, tenant_uuid),
             )
             result = cursor.fetchall()
             if len(result) != 1:
@@ -187,12 +187,12 @@ class Database:
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
     def fetch_template_files(
-            self, template_id: str, app_uuid: str
+            self, template_id: str, tenant_uuid: str
     ) -> List[DBDocumentTemplateFile]:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
                 query=self.SELECT_TEMPLATE_FILES,
-                params=(template_id, app_uuid),
+                params=(template_id, tenant_uuid),
             )
             return [DBDocumentTemplateFile.from_dict_row(x) for x in cursor.fetchall()]
 
@@ -204,12 +204,12 @@ class Database:
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
     def fetch_template_assets(
-            self, template_id: str, app_uuid: str
+            self, template_id: str, tenant_uuid: str
     ) -> List[DBDocumentTemplateAsset]:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
                 query=self.SELECT_TEMPLATE_ASSETS,
-                params=(template_id, app_uuid),
+                params=(template_id, tenant_uuid),
             )
             return [DBDocumentTemplateAsset.from_dict_row(x) for x in cursor.fetchall()]
 
@@ -220,11 +220,11 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def fetch_qtn_documents(self, questionnaire_uuid: str, app_uuid: str) -> List[DBDocument]:
+    def fetch_qtn_documents(self, questionnaire_uuid: str, tenant_uuid: str) -> List[DBDocument]:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
                 query=self.SELECT_QTN_DOCUMENTS,
-                params=(questionnaire_uuid, app_uuid),
+                params=(questionnaire_uuid, tenant_uuid),
             )
             return [DBDocument.from_dict_row(x) for x in cursor.fetchall()]
 
@@ -235,11 +235,11 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def fetch_document_submissions(self, document_uuid: str, app_uuid: str) -> List[DBSubmission]:
+    def fetch_document_submissions(self, document_uuid: str, tenant_uuid: str) -> List[DBSubmission]:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
                 query=self.SELECT_DOCUMENT_SUBMISSIONS,
-                params=(document_uuid, app_uuid),
+                params=(document_uuid, tenant_uuid),
             )
             return [DBSubmission.from_dict_row(x) for x in cursor.fetchall()]
 
@@ -250,11 +250,11 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def fetch_questionnaire_submissions(self, questionnaire_uuid: str, app_uuid: str) -> List[DBSubmission]:
+    def fetch_questionnaire_submissions(self, questionnaire_uuid: str, tenant_uuid: str) -> List[DBSubmission]:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
                 query=self.SELECT_QTN_SUBMISSIONS,
-                params=(questionnaire_uuid, app_uuid),
+                params=(questionnaire_uuid, tenant_uuid),
             )
             return [DBSubmission.from_dict_row(x) for x in cursor.fetchall()]
 
@@ -265,11 +265,11 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def fetch_questionnaire_simple(self, questionnaire_uuid: str, app_uuid: str) -> DBQuestionnaireSimple:
+    def fetch_questionnaire_simple(self, questionnaire_uuid: str, tenant_uuid: str) -> DBQuestionnaireSimple:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
                 query=self.SELECT_QTN_SIMPLE,
-                params=(questionnaire_uuid, app_uuid),
+                params=(questionnaire_uuid, tenant_uuid),
             )
             return DBQuestionnaireSimple.from_dict_row(cursor.fetchone())
 
@@ -341,11 +341,11 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def get_currently_used_size(self, app_uuid: str):
+    def get_currently_used_size(self, tenant_uuid: str):
         with self.conn_query.new_cursor() as cursor:
             cursor.execute(
                 query=self.SUM_FILE_SIZES,
-                params={'app_uuid': app_uuid},
+                params={'tenant_uuid': tenant_uuid},
             )
             row = cursor.fetchone()
             return row[0]
@@ -357,18 +357,18 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def get_app_config(self, app_uuid: str) -> Optional[DBAppConfig]:
+    def get_tenant_config(self, tenant_uuid: str) -> Optional[DBTenantConfig]:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             try:
                 cursor.execute(
-                    query=self.SELECT_APP_CONFIG,
-                    params={'app_uuid': app_uuid},
+                    query=self.SELECT_TENANT_CONFIG,
+                    params={'tenant_uuid': tenant_uuid},
                 )
                 result = cursor.fetchone()
-                return DBAppConfig.from_dict_row(data=result)
+                return DBTenantConfig.from_dict_row(data=result)
             except Exception as e:
-                LOG.warning(f'Could not retrieve app_config for app'
-                            f' "{app_uuid}": {str(e)}')
+                LOG.warning(f'Could not retrieve tenant_config for tenant'
+                            f' "{tenant_uuid}": {str(e)}')
                 return None
 
     @tenacity.retry(
@@ -378,22 +378,22 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def get_mail_config(self, app_uuid: str) -> Optional[DBInstanceConfigMail]:
+    def get_mail_config(self, tenant_uuid: str) -> Optional[DBInstanceConfigMail]:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             if not self._check_table_exists(table_name='instance_config_mail'):
                 return None
             try:
                 cursor.execute(
                     query=self.SELECT_MAIL_CONFIG,
-                    params={'app_uuid': app_uuid},
+                    params={'tenant_uuid': tenant_uuid},
                 )
                 result = cursor.fetchone()
                 if result is None:
                     return None
                 return DBInstanceConfigMail.from_dict_row(data=result)
             except Exception as e:
-                LOG.warning(f'Could not retrieve instance_config_mail for app'
-                            f' "{app_uuid}": {str(e)}')
+                LOG.warning(f'Could not retrieve instance_config_mail for tenant'
+                            f' "{tenant_uuid}": {str(e)}')
                 return None
 
     @tenacity.retry(

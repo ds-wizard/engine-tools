@@ -9,8 +9,8 @@ from typing import Optional
 from dsw.command_queue import CommandWorker, CommandQueue
 from dsw.config.sentry import SentryReporter
 from dsw.database.database import Database
-from dsw.database.model import DBDocument, DBAppConfig, DBAppLimits, \
-    PersistentCommand
+from dsw.database.model import DBDocument, DBTenantConfig, \
+    DBTenantLimits, PersistentCommand
 from dsw.storage import S3Storage
 
 from .build_info import BUILD_INFO
@@ -54,13 +54,13 @@ class Job:
         self.ctx = Context.get()
         self.template = None  # type: Optional[Template]
         self.format = None  # type: Optional[Format]
-        self.app_uuid = command.app_uuid  # type: str
+        self.tenant_uuid = command.tenant_uuid  # type: str
         self.doc_uuid = command.body['uuid']  # type: str
         self.doc_context = command.body  # type: dict
         self.doc = None  # type: Optional[DBDocument]
         self.final_file = None  # type: Optional[DocumentFile]
-        self.app_config = None  # type: Optional[DBAppConfig]
-        self.app_limits = None  # type: Optional[DBAppLimits]
+        self.tenant_config = None  # type: Optional[DBTenantConfig]
+        self.tenant_limits = None  # type: Optional[DBTenantLimits]
 
     @property
     def safe_doc(self) -> DBDocument:
@@ -91,12 +91,12 @@ class Job:
         SentryReporter.set_context('template', '')
         SentryReporter.set_context('format', '')
         SentryReporter.set_context('document', '')
-        if self.app_uuid != NULL_UUID:
-            LOG.info(f'Limiting to app with UUID: {self.app_uuid}')
+        if self.tenant_uuid != NULL_UUID:
+            LOG.info(f'Limiting to tenant with UUID: {self.tenant_uuid}')
         LOG.info(f'Getting the document "{self.doc_uuid}" details from DB')
         self.doc = self.ctx.app.db.fetch_document(
             document_uuid=self.doc_uuid,
-            app_uuid=self.app_uuid,
+            tenant_uuid=self.tenant_uuid,
         )
         if self.doc is None:
             raise create_job_exception(
@@ -129,19 +129,19 @@ class Job:
         SentryReporter.set_context('document', self.doc_uuid)
         # prepare template
         template = TemplateRegistry.get().prepare_template(
-            app_uuid=self.app_uuid,
+            tenant_uuid=self.tenant_uuid,
             template_id=template_id,
         )
         # prepare format
         template.prepare_format(format_uuid)
         self.format = template.formats.get(format_uuid)
         # check limits (PDF-only)
-        self.app_config = self.ctx.app.db.fetch_app_config(app_uuid=self.app_uuid)
-        self.app_limits = self.ctx.app.db.fetch_app_limits(app_uuid=self.app_uuid)
+        self.tenant_config = self.ctx.app.db.fetch_tenant_config(tenant_uuid=self.tenant_uuid)
+        self.tenant_limits = self.ctx.app.db.fetch_tenant_limits(tenant_uuid=self.tenant_uuid)
         LimitsEnforcer.check_format(
             job_id=self.doc_uuid,
             doc_format=self.safe_format,
-            app_config=self.app_config,
+            tenant_config=self.tenant_config,
         )
         # finalize
         self.template = template
@@ -151,13 +151,13 @@ class Job:
         if self.safe_format.requires_via_extras('submissions'):
             submissions = self.ctx.app.db.fetch_questionnaire_submissions(
                 questionnaire_uuid=self.safe_doc.questionnaire_uuid,
-                app_uuid=self.app_uuid,
+                tenant_uuid=self.tenant_uuid,
             )
             extras['submissions'] = [s.to_dict() for s in submissions]
         if self.safe_format.requires_via_extras('questionnaire'):
             questionnaire = self.ctx.app.db.fetch_questionnaire_simple(
                 questionnaire_uuid=self.safe_doc.questionnaire_uuid,
-                app_uuid=self.app_uuid,
+                tenant_uuid=self.tenant_uuid,
             )
             extras['questionnaire'] = questionnaire.to_dict()
         self.doc_context['extras'] = extras
@@ -178,8 +178,8 @@ class Job:
             job_id=self.doc_uuid,
             doc_size=final_file.byte_size,
         )
-        limit_size = None if self.app_limits is None else self.app_limits.storage
-        used_size = self.ctx.app.db.get_currently_used_size(app_uuid=self.app_uuid)
+        limit_size = None if self.tenant_limits is None else self.tenant_limits.storage
+        used_size = self.ctx.app.db.get_currently_used_size(tenant_uuid=self.tenant_uuid)
         LimitsEnforcer.check_size_usage(
             job_id=self.doc_uuid,
             doc_size=final_file.byte_size,
@@ -190,7 +190,7 @@ class Job:
         if self.safe_format.is_pdf:
             final_file.content = LimitsEnforcer.make_watermark(
                 doc_pdf=final_file.content,
-                app_config=self.app_config,
+                tenant_config=self.tenant_config,
             )
         # finalize
         self.final_file = final_file
@@ -203,7 +203,7 @@ class Job:
         self.ctx.app.s3.ensure_bucket()
         LOG.info(f'Storing document to S3 bucket {s3_id}')
         self.ctx.app.s3.store_document(
-            app_uuid=self.app_uuid,
+            tenant_uuid=self.tenant_uuid,
             file_name=self.doc_uuid,
             content_type=final_file.object_content_type,
             data=final_file.content,

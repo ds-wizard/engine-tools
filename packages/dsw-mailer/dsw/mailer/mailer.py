@@ -94,7 +94,7 @@ class Mailer(CommandWorker):
         )
         # get mailer config from DB
         cfg = _transform_mail_config(
-            cfg=app_ctx.db.get_mail_config(app_uuid=cmd.app_uuid),
+            cfg=app_ctx.db.get_mail_config(tenant_uuid=cmd.tenant_uuid),
         )
         LOG.debug(f'Config from DB: {cfg}')
         # client URL
@@ -175,12 +175,12 @@ class RateLimiter:
 class MailerCommand:
 
     def __init__(self, recipients: list[str], mode: str, template: str, ctx: dict,
-                 app_uuid: str, cmd_uuid: str):
+                 tenant_uuid: str, cmd_uuid: str):
         self.mode = mode
         self.template = template
         self.recipients = recipients
         self.ctx = ctx
-        self.app_uuid = app_uuid
+        self.tenant_uuid = tenant_uuid
         self.cmd_uuid = cmd_uuid
         self._enrich_context()
 
@@ -214,7 +214,7 @@ class MailerCommand:
                 template=cmd.body['template'],
                 recipients=cmd.body['recipients'],
                 ctx=cmd.body['parameters'],
-                app_uuid=cmd.app_uuid,
+                tenant_uuid=cmd.tenant_uuid,
                 cmd_uuid=cmd.uuid,
             )
         except KeyError as e:
