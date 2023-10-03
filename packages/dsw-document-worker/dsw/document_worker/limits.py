@@ -1,4 +1,4 @@
-from dsw.database.database import DBAppConfig
+from dsw.database.database import DBTenantConfig
 
 from .context import Context
 from .exceptions import JobException
@@ -47,10 +47,10 @@ class LimitsEnforcer:
 
     @staticmethod
     def check_format(job_id: str, doc_format: Format,
-                     app_config: Optional[DBAppConfig]):
+                     tenant_config: Optional[DBTenantConfig]):
         pdf_only = Context.get().app.cfg.experimental.pdf_only
-        if app_config is not None:
-            pdf_only = pdf_only or app_config.feature_pdf_only
+        if tenant_config is not None:
+            pdf_only = pdf_only or tenant_config.feature_pdf_only
         if not pdf_only or doc_format.is_pdf:
             return
         raise JobException(
@@ -60,8 +60,8 @@ class LimitsEnforcer:
 
     @staticmethod
     def make_watermark(doc_pdf: bytes,
-                       app_config: Optional[DBAppConfig]) -> bytes:
+                       tenant_config: Optional[DBTenantConfig]) -> bytes:
         watermark = Context.get().app.cfg.experimental.pdf_watermark
-        if watermark is None or app_config is None or not app_config.feature_pdf_watermark:
+        if watermark is None or tenant_config is None or not tenant_config.feature_pdf_watermark:
             return doc_pdf
         return PdfWaterMarker.create_watermark(doc_pdf=doc_pdf)

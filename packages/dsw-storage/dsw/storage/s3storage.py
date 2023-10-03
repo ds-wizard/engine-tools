@@ -69,12 +69,12 @@ class S3Storage:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def store_document(self, app_uuid: str, file_name: str,
+    def store_document(self, tenant_uuid: str, file_name: str,
                        content_type: str, data: bytes,
                        metadata: Optional[dict] = None):
         object_name = f'{DOCUMENTS_DIR}/{file_name}'
         if self.multi_tenant:
-            object_name = f'{app_uuid}/{object_name}'
+            object_name = f'{tenant_uuid}/{object_name}'
         with temp_binary_file(data=data) as file:
             self.client.put_object(
                 bucket_name=self.cfg.bucket,
@@ -112,11 +112,11 @@ class S3Storage:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def store_object(self, app_uuid: str, object_name: str,
+    def store_object(self, tenant_uuid: str, object_name: str,
                      content_type: str, data: bytes,
                      metadata: Optional[dict] = None):
         if self.multi_tenant:
-            object_name = f'{app_uuid}/{object_name}'
+            object_name = f'{tenant_uuid}/{object_name}'
         with io.BytesIO(data) as file:
             self.client.put_object(
                 bucket_name=self.cfg.bucket,

@@ -57,9 +57,9 @@ class TemplateComposite:
 
 class Template:
 
-    def __init__(self, app_uuid: str, template_dir: pathlib.Path,
+    def __init__(self, tenant_uuid: str, template_dir: pathlib.Path,
                  db_template: TemplateComposite):
-        self.app_uuid = app_uuid
+        self.tenant_uuid = tenant_uuid
         self.template_dir = template_dir
         self.last_used = datetime.datetime.utcnow()
         self.db_template = db_template
@@ -67,7 +67,7 @@ class Template:
         self.formats = dict()  # type: dict[str, Format]
         self.asset_prefix = f'templates/{self.db_template.template.id}'
         if Context.get().app.cfg.cloud.multi_tenant:
-            self.asset_prefix = f'{self.app_uuid}/{self.asset_prefix}'
+            self.asset_prefix = f'{self.tenant_uuid}/{self.asset_prefix}'
 
     def raise_exc(self, message: str):
         raise TemplateException(self.template_id, message)
@@ -233,40 +233,40 @@ class TemplateRegistry:
     def __init__(self):
         self._templates = dict()  # type: dict[str, dict[str, Template]]
 
-    def has_template(self, app_uuid: str, template_id: str) -> bool:
-        return app_uuid in self._templates.keys() and \
-               template_id in self._templates[app_uuid].keys()
+    def has_template(self, tenant_uuid: str, template_id: str) -> bool:
+        return tenant_uuid in self._templates.keys() and \
+               template_id in self._templates[tenant_uuid].keys()
 
-    def _set_template(self, app_uuid: str, template_id: str, template: Template):
-        if app_uuid not in self._templates.keys():
-            self._templates[app_uuid] = dict()
-        self._templates[app_uuid][template_id] = template
+    def _set_template(self, tenant_uuid: str, template_id: str, template: Template):
+        if tenant_uuid not in self._templates.keys():
+            self._templates[tenant_uuid] = dict()
+        self._templates[tenant_uuid][template_id] = template
 
-    def get_template(self, app_uuid: str, template_id: str) -> Template:
-        return self._templates[app_uuid][template_id]
+    def get_template(self, tenant_uuid: str, template_id: str) -> Template:
+        return self._templates[tenant_uuid][template_id]
 
-    def _init_new_template(self, app_uuid: str, template_id: str,
+    def _init_new_template(self, tenant_uuid: str, template_id: str,
                            db_template: TemplateComposite):
         workdir = Context.get().app.workdir
-        template_dir = workdir / app_uuid / template_id.replace(':', '_')
+        template_dir = workdir / tenant_uuid / template_id.replace(':', '_')
         template = Template(
-            app_uuid=app_uuid,
+            tenant_uuid=tenant_uuid,
             template_dir=template_dir,
             db_template=db_template,
         )
         template.prepare_fs()
-        self._set_template(app_uuid, template_id, template)
+        self._set_template(tenant_uuid, template_id, template)
 
-    def _refresh_template(self, app_uuid: str, template_id: str,
+    def _refresh_template(self, tenant_uuid: str, template_id: str,
                           db_template: TemplateComposite):
-        template = self.get_template(app_uuid, template_id)
+        template = self.get_template(tenant_uuid, template_id)
         template.update_template(db_template)
 
-    def prepare_template(self, app_uuid: str, template_id: str) -> Template:
+    def prepare_template(self, tenant_uuid: str, template_id: str) -> Template:
         ctx = Context.get()
         query_args = dict(
             template_id=template_id,
-            app_uuid=app_uuid,
+            tenant_uuid=tenant_uuid,
         )
         db_template = ctx.app.db.fetch_template(**query_args)
         if db_template is None:
@@ -279,22 +279,22 @@ class TemplateRegistry:
             db_assets={f.uuid: f for f in db_assets},
         )
 
-        if self.has_template(app_uuid, template_id):
-            self._refresh_template(app_uuid, template_id, template_composite)
+        if self.has_template(tenant_uuid, template_id):
+            self._refresh_template(tenant_uuid, template_id, template_composite)
         else:
-            self._init_new_template(app_uuid, template_id, template_composite)
+            self._init_new_template(tenant_uuid, template_id, template_composite)
 
-        return self.get_template(app_uuid, template_id)
+        return self.get_template(tenant_uuid, template_id)
 
-    def _clear_template(self, app_uuid: str, template_id: str):
-        template = self._templates[app_uuid].pop(template_id)
+    def _clear_template(self, tenant_uuid: str, template_id: str):
+        template = self._templates[tenant_uuid].pop(template_id)
         if template.template_dir.exists():
             shutil.rmtree(template.template_dir)
 
     def cleanup(self):
         # TODO: configurable
         threshold = datetime.datetime.utcnow() - datetime.timedelta(days=7)
-        for app_uuid, templates in self._templates.items():
+        for tenant_uuid, templates in self._templates.items():
             for template_id, template in templates.items():
                 if template.last_used < threshold:
-                    self._clear_template(app_uuid, template_id)
+                    self._clear_template(tenant_uuid, template_id)
