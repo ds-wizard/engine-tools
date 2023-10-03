@@ -205,7 +205,7 @@ class Job:
         self.ctx.app.s3.store_document(
             app_uuid=self.app_uuid,
             file_name=self.doc_uuid,
-            content_type=final_file.content_type,
+            content_type=final_file.object_content_type,
             data=final_file.content,
         )
         LOG.info(f'Document {self.doc_uuid} stored in S3 bucket {s3_id}')

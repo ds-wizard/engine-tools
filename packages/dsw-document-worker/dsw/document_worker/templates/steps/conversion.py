@@ -27,7 +27,10 @@ class WkHtmlToPdfStep(Step):
             metadata=self.options,
             workdir=str(self.template.template_dir),
         )
-        return DocumentFile(self.OUTPUT_FORMAT, data)
+        return DocumentFile(
+            file_format=self.OUTPUT_FORMAT,
+            content=data,
+        )
 
     @property
     def produces_only_pdf(self):
@@ -78,7 +81,10 @@ class WeasyPrintStep(Step):
             version=self.wp_version,
             custom_metadata=self.wp_custom_metadata,
         )
-        return DocumentFile(self.OUTPUT_FORMAT, data)
+        return DocumentFile(
+            file_format=self.OUTPUT_FORMAT,
+            content=data,
+        )
 
     @property
     def produces_only_pdf(self):
@@ -110,6 +116,19 @@ class PandocStep(Step):
         FileFormats.RST,
         FileFormats.RTF,
     ])
+    OUTPUT_ENCODINGS = {
+        FileFormats.ADoc: DEFAULT_ENCODING,
+        FileFormats.DocBook4: None,
+        FileFormats.DocBook5: None,
+        FileFormats.DOCX: None,
+        FileFormats.EPUB: None,
+        FileFormats.HTML: DEFAULT_ENCODING,
+        FileFormats.LaTeX: DEFAULT_ENCODING,
+        FileFormats.Markdown: DEFAULT_ENCODING,
+        FileFormats.ODT: None,
+        FileFormats.RST: DEFAULT_ENCODING,
+        FileFormats.RTF: None,
+    }
 
     OPTION_FROM = 'from'
     OPTION_TO = 'to'
@@ -137,7 +156,11 @@ class PandocStep(Step):
             metadata=self.options,
             workdir=str(self.template.template_dir),
         )
-        return DocumentFile(self.output_format, data)
+        return DocumentFile(
+            file_format=self.output_format,
+            content=data,
+            encoding=self.OUTPUT_ENCODINGS[self.output_format],
+        )
 
 
 class RdfLibConvertStep(Step):
@@ -178,7 +201,11 @@ class RdfLibConvertStep(Step):
         data = self.rdflib_convert(
             self.input_format, self.output_format, document.content, self.options
         )
-        return DocumentFile(self.output_format, data)
+        return DocumentFile(
+            file_format=self.output_format,
+            content=data,
+            encoding=DEFAULT_ENCODING,
+        )
 
 
 register_step(WkHtmlToPdfStep.NAME, WkHtmlToPdfStep)
