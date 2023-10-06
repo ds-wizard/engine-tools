@@ -17,7 +17,7 @@ from .api_client import DSWCommunicationError
 from .core import TDKCore, TDKProcessingError
 from .consts import VERSION, DEFAULT_LIST_FORMAT
 from .model import Template
-from .utils import TemplateBuilder, FormatSpec
+from .utils import TemplateBuilder, FormatSpec, safe_utf8
 from .validation import ValidationError
 
 CURRENT_DIR = pathlib.Path.cwd()
@@ -72,7 +72,8 @@ class ClickPrinter:
 def prompt_fill(text: str, obj, attr, **kwargs):
     while True:
         try:
-            setattr(obj, attr, click.prompt(text, **kwargs).strip())
+            value = safe_utf8(click.prompt(text, **kwargs).strip())
+            setattr(obj, attr, value)
             break
         except ValidationError as e:
             ClickPrinter.error(e.message)
