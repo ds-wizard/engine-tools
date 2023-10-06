@@ -34,7 +34,7 @@ dependencies = [
     'pathspec',
     'python-dotenv',
     'python-slugify',
-    'watchgod',
+    'watchfiles',
 ]
 
 [project.optional-dependencies]
