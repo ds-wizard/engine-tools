@@ -1,4 +1,5 @@
 import asyncio
+import signal
 
 import click  # type: ignore
 import datetime
@@ -8,7 +9,7 @@ import logging
 import mimetypes
 import pathlib
 import slugify
-import watchgod  # type: ignore
+import watchfiles  # type: ignore
 
 from typing import Dict
 
@@ -31,9 +32,9 @@ NEW_DIR_TYPE = click.Path(dir_okay=True, file_okay=False, resolve_path=True,
 class ClickPrinter:
 
     CHANGE_SIGNS = {
-        watchgod.Change.added: click.style('+', fg='green'),
-        watchgod.Change.modified: click.style('*', fg='yellow'),
-        watchgod.Change.deleted: click.style('-', fg='red'),
+        watchfiles.Change.added: click.style('+', fg='green'),
+        watchfiles.Change.modified: click.style('*', fg='yellow'),
+        watchfiles.Change.deleted: click.style('-', fg='red'),
     }
 
     @staticmethod
@@ -61,7 +62,7 @@ class ClickPrinter:
         click.echo(f': {message}')
 
     @classmethod
-    def watch_change(cls, change_type: watchgod.Change, filepath: pathlib.Path, root: pathlib.Path):
+    def watch_change(cls, change_type: watchfiles.Change, filepath: pathlib.Path, root: pathlib.Path):
         timestamp = datetime.datetime.now().isoformat(timespec='milliseconds')
         sign = cls.CHANGE_SIGNS[change_type]
         click.secho('WATCH', fg='blue', bold=True, nl=False)
@@ -348,6 +349,7 @@ def get_template(ctx, api_url, template_id, template_dir, api_key, force):
 @click.pass_context
 def put_template(ctx, api_url, template_dir, api_key, force, watch):
     tdk = TDKCore(logger=ctx.obj.logger)
+    stop_event = asyncio.Event()
 
     async def watch_callback(changes):
         changes = list(changes)
@@ -370,7 +372,7 @@ def put_template(ctx, api_url, template_dir, api_key, force, watch):
 
             if watch:
                 ClickPrinter.watch('Entering watch mode... (press Ctrl+C to abort)')
-                await tdk.watch_project(watch_callback)
+                await tdk.watch_project(watch_callback, stop_event)
 
             await tdk.safe_client.close()
         except TDKProcessingError as e:
@@ -387,8 +389,17 @@ def put_template(ctx, api_url, template_dir, api_key, force, watch):
             await tdk.safe_client.safe_close()
             exit(1)
 
+    def set_stop_event(signum, frame):
+        signame = signal.Signals(signum).name
+        ClickPrinter.warning(f'Got {signame}, finishing... Bye!')
+        stop_event.set()
+
+    signal.signal(signal.SIGINT, set_stop_event)
+    signal.signal(signal.SIGABRT, set_stop_event)
+
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(main_routine())
+    main_task = asyncio.ensure_future(main_routine())
+    loop.run_until_complete(main_task)
 
 
 @main.command(help='Create ZIP package for a template.', name='package')

@@ -7,8 +7,9 @@ import pathlib
 import re
 import shutil
 import tempfile
-import watchgod  # type: ignore
+import watchfiles  # type: ignore
 import zipfile
+
 
 from typing import List, Optional, Tuple
 
@@ -19,7 +20,7 @@ from .utils import UUIDGen, create_dot_env
 from .validation import ValidationError, TemplateValidator
 
 
-ChangeItem = Tuple[watchgod.Change, pathlib.Path]
+ChangeItem = Tuple[watchfiles.Change, pathlib.Path]
 
 
 class TDKProcessingError(RuntimeError):
@@ -80,6 +81,9 @@ class TDKCore:
         self.loop = asyncio.get_event_loop()
         self.changes_processor = ChangesProcessor(self)
         self.remote_id = 'unknown'
+
+    async def close(self):
+        await self.safe_client.close()
 
     @property
     def safe_template(self) -> Template:
@@ -368,8 +372,11 @@ class TDKCore:
             encoding=DEFAULT_ENCODING,
         )
 
-    async def watch_project(self, callback):
-        async for changes in watchgod.awatch(self.safe_project.template_dir):
+    async def watch_project(self, callback, stop_event: asyncio.Event):
+        async for changes in watchfiles.awatch(
+                self.safe_project.template_dir,
+                stop_event=stop_event,
+        ):
             await callback((
                 change for change in ((change[0], pathlib.Path(change[1])) for change in changes)
                 if self.safe_project.is_template_file(
@@ -460,7 +467,7 @@ class ChangesProcessor:
             self.tdk.logger.debug(f'Processing {file_change}')
             change_type = file_change[0]
             filepath = file_change[1]
-            if change_type == watchgod.Change.deleted and filepath not in deleted:
+            if change_type == watchfiles.Change.deleted and filepath not in deleted:
                 self.tdk.logger.debug('Scheduling delete operation')
                 deleted.add(filepath)
                 await self.tdk._delete_file(filepath)
@@ -472,7 +479,7 @@ class ChangesProcessor:
     async def _reload_descriptor(self, force: bool) -> bool:
         if self.descriptor_change is None:
             return False
-        if self.descriptor_change[0] == watchgod.Change.deleted:
+        if self.descriptor_change[0] == watchfiles.Change.deleted:
             raise RuntimeError(f'Deleted template descriptor {self.tdk.safe_project.descriptor_path} ... the end')
         self.tdk.logger.debug(f'Reloading {TemplateProject.TEMPLATE_FILE} file')
         previous_id = self.tdk.safe_project.safe_template.id
@@ -490,7 +497,7 @@ class ChangesProcessor:
     async def _reload_readme(self) -> bool:
         if self.readme_change is None:
             return False
-        if self.readme_change[0] == watchgod.Change.deleted:
+        if self.readme_change[0] == watchfiles.Change.deleted:
             raise RuntimeError(f'Deleted used README file {self.tdk.safe_project.used_readme}')
         self.tdk.logger.debug('Reloading README file')
         self.tdk.safe_project.load_readme()
