@@ -54,7 +54,7 @@ class DBDocument:
     file_name: str
     content_type: str
     worker_log: str
-    creator_uuid: str
+    created_by: str
     retrieved_at: Optional[datetime.datetime]
     finished_at: Optional[datetime.datetime]
     created_at: datetime.datetime
@@ -73,7 +73,7 @@ class DBDocument:
             questionnaire_replies_hash=data['questionnaire_replies_hash'],
             document_template_id=data['document_template_id'],
             format_uuid=str(data['format_uuid']),
-            creator_uuid=str(data['creator_uuid']),
+            created_by=str(data['created_by']),
             retrieved_at=data['retrieved_at'],
             finished_at=data['finished_at'],
             created_at=data['created_at'],
