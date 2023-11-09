@@ -434,10 +434,12 @@ def extract_package(ctx, template_package, output, force: bool):
         data = pathlib.Path(template_package).read_bytes()
         tdk.extract_package(
             zip_data=data,
-            template_dir=pathlib.Path(output),
+            template_dir=pathlib.Path(output) if output is not None else output,
             force=force,
         )
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         ClickPrinter.failure('Failed to extract the package')
         ClickPrinter.error(f'> {e}')
         exit(1)
