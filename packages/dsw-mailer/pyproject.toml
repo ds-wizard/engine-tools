@@ -4,7 +4,7 @@ build-backend = 'setuptools.build_meta'
 
 [project]
 name = 'dsw-mailer'
-version = "3.28.0"
+version = "4.0.0rc2"
 description = 'Worker for sending email notifications'
 readme = 'README.md'
 keywords = ['email', 'jinja2', 'notification', 'template']
@@ -31,9 +31,9 @@ dependencies = [
     'sentry-sdk',
     'tenacity',
     # DSW
-    "dsw-command-queue==3.28.0",
-    "dsw-config==3.28.0",
-    "dsw-database==3.28.0",
+    "dsw-command-queue==4.0.0rc2",
+    "dsw-config==4.0.0rc2",
+    "dsw-database==4.0.0rc2",
 ]
 
 [project.urls]
