@@ -11,13 +11,13 @@
         "target": "other"
       },
       {
-        "filename": "app_config_seed.sql"
+        "filename": "tenant_config_seed.sql"
       }
     ],
-    "appIdPlaceholder": "<<|APP-ID|>>"
+    "tenantIdPlaceholder": "<<|TENANT-ID|>>"
   },
   "s3": {
-    "appDir": "app",
+    "dir": "app",
     "filenameReplace": {
       ":": "_"
     }

@@ -193,3 +193,7 @@ class TemplateBuilder:
 
 def create_dot_env(api_url: Optional[str] = None, api_key: Optional[str] = None) -> str:
     return j2_env.get_template('env.j2').render(api_url=api_url, api_key=api_key)
+
+
+def safe_utf8(text: str) -> str:
+    return text.encode(encoding='utf-8', errors='ignore').decode(encoding='utf-8')

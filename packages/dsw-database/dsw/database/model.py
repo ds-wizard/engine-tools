@@ -54,11 +54,11 @@ class DBDocument:
     file_name: str
     content_type: str
     worker_log: str
-    creator_uuid: str
+    created_by: str
     retrieved_at: Optional[datetime.datetime]
     finished_at: Optional[datetime.datetime]
     created_at: datetime.datetime
-    app_uuid: str
+    tenant_uuid: str
     file_size: int
 
     @staticmethod
@@ -73,14 +73,14 @@ class DBDocument:
             questionnaire_replies_hash=data['questionnaire_replies_hash'],
             document_template_id=data['document_template_id'],
             format_uuid=str(data['format_uuid']),
-            creator_uuid=str(data['creator_uuid']),
+            created_by=str(data['created_by']),
             retrieved_at=data['retrieved_at'],
             finished_at=data['finished_at'],
             created_at=data['created_at'],
             file_name=data['file_name'],
             content_type=data['content_type'],
             worker_log=data['worker_log'],
-            app_uuid=str(data.get('app_uuid', NULL_UUID)),
+            tenant_uuid=str(data.get('tenant_uuid', NULL_UUID)),
             file_size=data['file_size'],
         )
 
@@ -101,7 +101,7 @@ class DBDocumentTemplate:
     phase: str
     created_at: datetime.datetime
     updated_at: datetime.datetime
-    app_uuid: str
+    tenant_uuid: str
 
     @property
     def is_draft(self):
@@ -132,7 +132,7 @@ class DBDocumentTemplate:
             phase=data['phase'],
             created_at=data['created_at'],
             updated_at=data['updated_at'],
-            app_uuid=str(data.get('app_uuid', NULL_UUID)),
+            tenant_uuid=str(data.get('tenant_uuid', NULL_UUID)),
         )
 
 
@@ -144,7 +144,7 @@ class DBDocumentTemplateFile:
     content: str
     created_at: datetime.datetime
     updated_at: datetime.datetime
-    app_uuid: str
+    tenant_uuid: str
 
     @staticmethod
     def from_dict_row(data: dict) -> 'DBDocumentTemplateFile':
@@ -155,7 +155,7 @@ class DBDocumentTemplateFile:
             content=data['content'],
             created_at=data['created_at'],
             updated_at=data['updated_at'],
-            app_uuid=str(data.get('app_uuid', NULL_UUID)),
+            tenant_uuid=str(data.get('tenant_uuid', NULL_UUID)),
         )
 
 
@@ -168,7 +168,7 @@ class DBDocumentTemplateAsset:
     file_size: int
     created_at: datetime.datetime
     updated_at: datetime.datetime
-    app_uuid: str
+    tenant_uuid: str
 
     @staticmethod
     def from_dict_row(data: dict) -> 'DBDocumentTemplateAsset':
@@ -180,7 +180,7 @@ class DBDocumentTemplateAsset:
             file_size=data['file_size'],
             created_at=data['created_at'],
             updated_at=data['updated_at'],
-            app_uuid=str(data.get('app_uuid', NULL_UUID)),
+            tenant_uuid=str(data.get('tenant_uuid', NULL_UUID)),
         )
 
 
@@ -194,7 +194,7 @@ class PersistentCommand:
     last_error_message: Optional[str]
     attempts: int
     max_attempts: int
-    app_uuid: str
+    tenant_uuid: str
     created_by: Optional[str]
     created_at: datetime.datetime
     updated_at: datetime.datetime
@@ -213,12 +213,12 @@ class PersistentCommand:
             created_by=str(data['created_by']),
             created_at=data['created_at'],
             updated_at=data['updated_at'],
-            app_uuid=str(data.get('app_uuid', NULL_UUID)),
+            tenant_uuid=str(data.get('tenant_uuid', NULL_UUID)),
         )
 
 
 @dataclasses.dataclass
-class DBAppConfig:
+class DBTenantConfig:
     uuid: str
     organization: dict
     authentication: dict
@@ -253,7 +253,7 @@ class DBAppConfig:
 
     @staticmethod
     def from_dict_row(data: dict):
-        return DBAppConfig(
+        return DBTenantConfig(
             uuid=str(data['uuid']),
             organization=data['organization'],
             authentication=data['authentication'],
@@ -273,14 +273,14 @@ class DBAppConfig:
 
 
 @dataclasses.dataclass
-class DBAppLimits:
-    app_uuid: str
+class DBTenantLimits:
+    tenant_uuid: str
     storage: Optional[int]
 
     @staticmethod
     def from_dict_row(data: dict):
-        return DBAppLimits(
-            app_uuid=str(data['uuid']),
+        return DBTenantLimits(
+            tenant_uuid=str(data['uuid']),
             storage=data['storage'],
         )
 
@@ -298,7 +298,7 @@ class DBSubmission:
     created_by: str
     created_at: datetime.datetime
     updated_at: datetime.datetime
-    app_uuid: str
+    tenant_uuid: str
 
     @staticmethod
     def from_dict_row(data: dict):
@@ -312,7 +312,7 @@ class DBSubmission:
             created_by=str(data['created_by']),
             created_at=data['created_at'],
             updated_at=data['updated_at'],
-            app_uuid=str(data.get('app_uuid', NULL_UUID)),
+            tenant_uuid=str(data.get('tenant_uuid', NULL_UUID)),
         )
 
     def to_dict(self) -> dict:
@@ -326,7 +326,7 @@ class DBSubmission:
             'created_by': self.created_by,
             'created_at': self.created_at.isoformat(timespec='milliseconds'),
             'updated_at': self.updated_at.isoformat(timespec='milliseconds'),
-            'app_uuid': self.app_uuid,
+            'tenant_uuid': self.tenant_uuid,
         }
 
 
@@ -349,7 +349,7 @@ class DBQuestionnaireSimple:
     description: str
     is_template: bool
     project_tags: list[str]
-    app_uuid: str
+    tenant_uuid: str
 
     @staticmethod
     def from_dict_row(data: dict):
@@ -367,7 +367,7 @@ class DBQuestionnaireSimple:
             description=data['description'],
             is_template=data['is_template'],
             project_tags=data['project_tags'],
-            app_uuid=str(data.get('app_uuid', NULL_UUID)),
+            tenant_uuid=str(data.get('tenant_uuid', NULL_UUID)),
         )
 
     def to_dict(self) -> dict:
@@ -385,7 +385,7 @@ class DBQuestionnaireSimple:
             'description': self.description,
             'is_template': self.is_template,
             'project_tags': self.project_tags,
-            'app_uuid': self.app_uuid,
+            'tenant_uuid': self.tenant_uuid,
         }
 
 

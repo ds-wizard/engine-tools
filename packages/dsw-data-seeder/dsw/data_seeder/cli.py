@@ -57,13 +57,13 @@ def run(ctx: click.Context, recipe: str):
 
 @cli.command(name='seed', help='Seed data directly.')
 @click.option('-r', '--recipe', envvar='SEEDER_RECIPE')
-@click.option('-a', '--app_uuid', default=NULL_UUID)
+@click.option('-t', '--tenant-uuid', default=NULL_UUID)
 @click.pass_context
-def seed(ctx: click.Context, recipe: str, app_uuid: str):
+def seed(ctx: click.Context, recipe: str, tenant_uuid: str):
     cfg = ctx.obj['cfg']
     workdir = ctx.obj['workdir']
     seeder = DataSeeder(cfg=cfg, workdir=workdir)
-    seeder.seed(recipe_name=recipe, app_uuid=app_uuid)
+    seeder.seed(recipe_name=recipe, tenant_uuid=tenant_uuid)
 
 
 @cli.command(name='list', help='List recipes for data seeding.')
