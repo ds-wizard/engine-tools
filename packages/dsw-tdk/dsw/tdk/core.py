@@ -410,6 +410,9 @@ class TDKCore:
                               f' {self.safe_project.safe_template.id}: {e}')
 
     async def _delete_file(self, filepath: pathlib.Path):
+        if not filepath.is_file():
+            self.logger.debug(f'{filepath.as_posix()} is not a regular file - skipping')
+            return
         try:
             tfile = self.safe_project.get_template_file(filepath=filepath)
             if tfile is None:
@@ -421,6 +424,9 @@ class TDKCore:
             self.logger.error(f'Failed to delete file {filepath.as_posix()}: {e}')
 
     async def _update_file(self, filepath: pathlib.Path):
+        if not filepath.is_file():
+            self.logger.debug(f'{filepath.as_posix()} is not a regular file - skipping')
+            return
         try:
             remote_tfile = self.safe_project.get_template_file(filepath=filepath)
             local_tfile = self.safe_project.load_file(filepath=filepath)
