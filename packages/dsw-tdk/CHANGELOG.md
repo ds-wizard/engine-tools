@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Adjusted with template metamodel version 12 (integration and integration reply changes)
 
+### Fixed
+
+- Fixed directory handling in `watch` mode
+
 
 ## [4.0.0]
 
