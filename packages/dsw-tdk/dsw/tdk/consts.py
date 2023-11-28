@@ -4,7 +4,7 @@ import re
 
 APP = 'dsw-tdk'
 VERSION = '4.0.0'
-METAMODEL_VERSION = 11
+METAMODEL_VERSION = 12
 
 REGEX_SEMVER = re.compile(r'^[0-9]+\.[0-9]+\.[0-9]+$')
 REGEX_ORGANIZATION_ID = re.compile(r'^(?![.])(?!.*[.]$)[a-zA-Z0-9.]+$')

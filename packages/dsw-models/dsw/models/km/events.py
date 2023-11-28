@@ -82,7 +82,7 @@ class MapEntry:
 
 class _KMEvent(abc.ABC):
     TYPE = 'UNKNOWN'
-    METAMODEL_VERSION = 10
+    METAMODEL_VERSION = 14
 
     def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str):
@@ -1785,8 +1785,8 @@ class AddIntegrationEvent(_KMAddEvent, abc.ABC):
 
     def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str, annotations: list[MapEntry],
-                 integration_id: str, name: str, props: list[str], logo: str,
-                 item_url: str):
+                 integration_id: str, name: str, props: list[str], logo: Optional[str],
+                 item_url: Optional[str]):
         super().__init__(
             event_uuid=event_uuid,
             entity_uuid=entity_uuid,
@@ -1828,10 +1828,11 @@ class AddApiIntegrationEvent(AddIntegrationEvent):
 
     def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str, annotations: list[MapEntry],
-                 integration_id: str, name: str, props: list[str], logo: str,
-                 item_url: str, rq_method: str, rq_url: str, rq_headers: list[MapEntry],
-                 rq_body: str, rq_empty_search: bool, rs_list_field: str,
-                 rs_item_id: str, rs_item_template: str):
+                 integration_id: str, name: str, props: list[str], logo: Optional[str],
+                 item_url: Optional[str], rq_method: str, rq_url: str,
+                 rq_headers: list[MapEntry], rq_body: str, rq_empty_search: bool,
+                 rs_list_field: Optional[str], rs_item_id: Optional[str],
+                 rs_item_template: str):
         super().__init__(
             event_uuid=event_uuid,
             entity_uuid=entity_uuid,
@@ -1900,8 +1901,8 @@ class AddWidgetIntegrationEvent(AddIntegrationEvent):
 
     def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str, annotations: list[MapEntry],
-                 integration_id: str, name: str, props: list[str], logo: str,
-                 item_url: str, widget_url: str):
+                 integration_id: str, name: str, props: list[str], logo: Optional[str],
+                 item_url: Optional[str], widget_url: str):
         super().__init__(
             event_uuid=event_uuid,
             entity_uuid=entity_uuid,
@@ -1951,8 +1952,8 @@ class EditIntegrationEvent(_KMEditEvent, abc.ABC):
     def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str, annotations: EventField[list[MapEntry]],
                  integration_id: EventField[str], name: EventField[str],
-                 props: EventField[list[str]], logo: EventField[str],
-                 item_url: EventField[str]):
+                 props: EventField[list[str]], logo: EventField[Optional[str]],
+                 item_url: EventField[Optional[str]]):
         super().__init__(
             event_uuid=event_uuid,
             entity_uuid=entity_uuid,
@@ -1995,11 +1996,11 @@ class EditApiIntegrationEvent(EditIntegrationEvent):
     def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str, annotations: EventField[list[MapEntry]],
                  integration_id: EventField[str], name: EventField[str],
-                 props: EventField[list[str]], logo: EventField[str],
-                 item_url: EventField[str], rq_method: EventField[str],
+                 props: EventField[list[str]], logo: EventField[Optional[str]],
+                 item_url: EventField[Optional[str]], rq_method: EventField[str],
                  rq_url: EventField[str], rq_headers: EventField[list[MapEntry]],
                  rq_body: EventField[str], rq_empty_search: EventField[bool],
-                 rs_list_field: EventField[str], rs_item_id: EventField[str],
+                 rs_list_field: EventField[Optional[str]], rs_item_id: EventField[Optional[str]],
                  rs_item_template: EventField[str]):
         super().__init__(
             event_uuid=event_uuid,
@@ -2076,8 +2077,8 @@ class EditWidgetIntegrationEvent(EditIntegrationEvent):
     def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str, annotations: EventField[list[MapEntry]],
                  integration_id: EventField[str], name: EventField[str],
-                 props: EventField[list[str]], logo: EventField[str],
-                 item_url: EventField[str], widget_url: EventField[str]):
+                 props: EventField[list[str]], logo: EventField[Optional[str]],
+                 item_url: EventField[Optional[str]], widget_url: EventField[str]):
         super().__init__(
             event_uuid=event_uuid,
             entity_uuid=entity_uuid,

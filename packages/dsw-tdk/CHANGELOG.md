@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Adjusted with template metamodel version 12 (integration and integration reply changes)
+
 
 ## [4.0.0]
 

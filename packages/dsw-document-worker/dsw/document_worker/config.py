@@ -73,32 +73,10 @@ class _CommandPandocKeys(ConfigKeysContainer):
     )
 
 
-class _CommandWkhtmltopdfKeys(ConfigKeysContainer):
-    executable = ConfigKey(
-        yaml_path=['externals', 'wkhtmltopdf', 'executable'],
-        var_names=['WKHTMLTOPDF_EXECUTABLE'],
-        default='wkhtmltopdf',
-        cast=cast_str,
-    )
-    args = ConfigKey(
-        yaml_path=['externals', 'wkhtmltopdf', 'args'],
-        var_names=['WKHTMLTOPDF_ARGS'],
-        default='',
-        cast=cast_str,
-    )
-    timeout = ConfigKey(
-        yaml_path=['externals', 'wkhtmltopdf', 'timeout'],
-        var_names=['WKHTMLTOPDF_TIMEOUT'],
-        default=None,
-        cast=cast_optional_int,
-    )
-
-
 class DocWorkerConfigKeys(ConfigKeys):
     documents = _DocumentsKeys
     experimental = _ExperimentalKeys
     cmd_pandoc = _CommandPandocKeys
-    cmd_wkhtmltopdf = _CommandWkhtmltopdfKeys
 
 
 class DocumentsConfig(ConfigModel):
@@ -184,7 +162,7 @@ class TemplatesConfig:
 class DocumentWorkerConfig:
 
     def __init__(self, db: DatabaseConfig, s3: S3Config, log: LoggingConfig,
-                 doc: DocumentsConfig, pandoc: CommandConfig, wkhtmltopdf: CommandConfig,
+                 doc: DocumentsConfig, pandoc: CommandConfig,
                  templates: TemplatesConfig, experimental: ExperimentalConfig,
                  cloud: CloudConfig, sentry: SentryConfig, general: GeneralConfig):
         self.db = db
@@ -192,7 +170,6 @@ class DocumentWorkerConfig:
         self.log = log
         self.doc = doc
         self.pandoc = pandoc
-        self.wkhtmltopdf = wkhtmltopdf
         self.templates = templates
         self.experimental = experimental
         self.cloud = cloud
@@ -211,7 +188,6 @@ class DocumentWorkerConfig:
                f'{self.sentry}' \
                f'{self.general}' \
                f'Pandoc: {self.pandoc}' \
-               f'WkHtmlToPdf: {self.wkhtmltopdf}' \
                f'====================\n'
 
 
@@ -235,14 +211,6 @@ class DocumentWorkerConfigParser(DSWConfigParser):
             executable=self.get(self.keys.cmd_pandoc.executable),
             args=self.get(self.keys.cmd_pandoc.args),
             timeout=self.get(self.keys.cmd_pandoc.timeout),
-        )
-
-    @property
-    def wkhtmltopdf(self) -> CommandConfig:
-        return CommandConfig(
-            executable=self.get(self.keys.cmd_wkhtmltopdf.executable),
-            args=self.get(self.keys.cmd_wkhtmltopdf.args),
-            timeout=self.get(self.keys.cmd_wkhtmltopdf.timeout),
         )
 
     @property
@@ -272,7 +240,6 @@ class DocumentWorkerConfigParser(DSWConfigParser):
             log=self.logging,
             doc=self.documents,
             pandoc=self.pandoc,
-            wkhtmltopdf=self.wkhtmltopdf,
             templates=self.templates,
             experimental=self.experimental,
             cloud=self.cloud,
