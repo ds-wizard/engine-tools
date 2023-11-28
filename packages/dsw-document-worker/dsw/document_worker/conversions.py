@@ -43,36 +43,6 @@ class FormatConversionException(Exception):
                f' to {self.target_format} - {self.message}'
 
 
-class WkHtmlToPdf:
-
-    ARGS1 = ['--quiet', '--load-error-handling', 'ignore']
-    ARGS2 = ['--encoding', DEFAULT_ENCODING, '-', '-']
-
-    def __init__(self, config: DocumentWorkerConfig):
-        self.config = config
-
-    def __call__(self, source_format: FileFormat, target_format: FileFormat,
-                 data: bytes, metadata: dict, workdir: str) -> bytes:
-        config_args = shlex.split(self.config.wkhtmltopdf.args)
-        template_args = self.extract_template_args(metadata)
-        args_access = ['--disable-local-file-access', '--allow', workdir]
-        args = self.ARGS1 + template_args + config_args + args_access + self.ARGS2
-        command = self.config.wkhtmltopdf.command + args
-        return run_conversion(
-            args=command,
-            workdir=workdir,
-            input_data=data,
-            name=type(self).__name__,
-            source_format=source_format,
-            target_format=target_format,
-            timeout=self.config.wkhtmltopdf.timeout,
-        )
-
-    @staticmethod
-    def extract_template_args(metadata: dict):
-        return shlex.split(metadata.get('args', ''))
-
-
 class Pandoc:
 
     def __init__(self, config: DocumentWorkerConfig):

@@ -13,7 +13,6 @@
 
 -  PostgreSQL
 -  S3 storage (e.g. [Minio](https://min.io))
--  [wkhtmltopdf](https://github.com/wkhtmltopdf/wkhtmltopdf)
 -  [pandoc](https://github.com/jgm/pandoc)
 
 For more information, see [deployment example](https://github.com/ds-wizard/dsw-deployment-example).

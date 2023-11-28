@@ -66,8 +66,8 @@ class Integration:
         self.uuid = uuid  # type: str
         self.name = name  # type: str
         self.id = integration_id  # type: str
-        self.item_url = item_url  # type: str
-        self.logo = logo  # type: str
+        self.item_url = item_url  # type: Optional[str]
+        self.logo = logo  # type: Optional[str]
         self.props = props  # type: dict[str, str]
         self.type = integration_type  # type: str
         self.annotations = annotations  # type: AnnotationsT
@@ -76,7 +76,9 @@ class Integration:
     def a(self):
         return self.annotations
 
-    def item(self, item_id: str) -> str:
+    def item(self, item_id: str) -> Optional[str]:
+        if self.item_url is None:
+            return None
         return self.item_url.replace('${id}', item_id)
 
     def __eq__(self, other):
@@ -104,8 +106,8 @@ class ApiIntegration(Integration):
         self.rq_method = rq_method  # type: str
         self.rq_url = rq_url  # type: str
         self.rq_headers = rq_headers  # type: dict[str, str]
-        self.rs_list_field = rs_list_field  # type: str
-        self.rs_item_id = rs_item_id  # type: str
+        self.rs_list_field = rs_list_field  # type: Optional[str]
+        self.rs_item_id = rs_item_id  # type: Optional[str]
         self.rs_item_template = rs_item_template  # type: str
 
     @staticmethod

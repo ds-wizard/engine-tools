@@ -7,6 +7,14 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- Adjusted with template metamodel version 12 (integration and integration reply changes)
+
+### Removed
+
+- Support of `wkhtmltopdf` step (marked as deprecated in v3.24)
+
 ### Fixed
 
 - Reporting Jinja2 template syntax errors

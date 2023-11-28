@@ -41,7 +41,3 @@ templates:
 #    executable: pandoc
 #    args: --standalone
 #    timeout:
-#  wkhtmltopdf:
-#    executable: wkhtmltopdf
-#    args:
-#    timeout:
