@@ -127,6 +127,8 @@ class Jinja2Step(Step):
         content = b''
         try:
             content = self.j2_root_template.render(**jinja_args).encode(DEFAULT_ENCODING)
+        except jinja2.exceptions.TemplateSyntaxError as e:
+            self.raise_exc(self._jinja_exception_msg(e))
         except jinja2.exceptions.TemplateRuntimeError as e:
             self.raise_exc(f'Failed rendering Jinja2 template due to'
                            f' {type(e).__name__}\n'

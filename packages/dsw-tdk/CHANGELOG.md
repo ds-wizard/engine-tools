@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
+## [4.1.0]
+
+### Changed
+
+- Adjusted with template metamodel version 12 (integration and integration reply changes)
+
+### Fixed
+
+- Fixed directory handling in `watch` mode
+
 ## [4.0.0]
 
 ### Fixed
@@ -366,3 +376,4 @@ Initial DSW Template Development Kit (versioned as part of the [DSW platform](ht
 [3.27.1]: /../../tree/v3.27.1
 [3.28.0]: /../../tree/v3.28.0
 [4.0.0]: /../../tree/v4.0.0
+[4.1.0]: /../../tree/v4.1.0
