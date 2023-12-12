@@ -25,5 +25,6 @@
   "uuids": {
     "count": 3,
     "placeholder": "{{-UUID[n]-}}"
-  }
+  },
+  "initWait": 1.0
 }
