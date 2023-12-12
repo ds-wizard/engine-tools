@@ -4,6 +4,8 @@ import logging
 import os
 import platform
 import psycopg
+import psycopg.generators
+import select
 import signal
 import tenacity
 
@@ -50,13 +52,14 @@ class CommandWorker:
 class CommandQueue:
 
     def __init__(self, worker: CommandWorker, db: Database,
-                 channel: str, component: str):
+                 channel: str, component: str, timeout: float):
         self.worker = worker
         self.db = db
         self.queries = CommandQueries(
             channel=channel,
             component=component
         )
+        self.timeout = timeout
 
     @tenacity.retry(
         reraise=True,
@@ -76,19 +79,29 @@ class CommandQueue:
         )
         queue_conn.listening = True
         LOG.info('Listening for jobs in command queue')
-        running = True
-        while running:
-            queue_notifications = queue_conn.connection.notifies()
-            LOG.info('Entering working cycle, waiting for notifications')
-            for notification in queue_notifications:
-                LOG.info(f'Notification received: {notification}')
-                while self.accept_notification(payload=notification):
-                    pass
+        fds = [queue_conn.connection.pgconn.socket]
+        if IS_LINUX:
+            fds.append(_QUEUE_PIPE_R)
+        LOG.info('Entering working cycle, waiting for notifications')
+        while True:
+            res = True
+            while res:
+                res = self.fetch_and_process()
+            w = select.select(fds, [], [], self.timeout)
 
-                if INTERRUPTED:
-                    LOG.debug('Interrupt signal received, ending...')
-                    queue_notifications.close()
-                    running = False
+            if INTERRUPTED:
+                LOG.debug('Interrupt signal received, ending...')
+                break
+
+            if w == ([], [], []):
+                LOG.debug(f'Nothing received in this cycle '
+                          f'(timeouted after {self.timeout} seconds).')
+            else:
+                notifications = 0
+                for n in psycopg.generators.notifies(queue_conn.connection.pgconn):
+                    notifications += 1
+                    LOG.debug(str(n))
+                LOG.info(f'Notifications received ({notifications})')
         LOG.debug('Exiting command queue')
 
     def accept_notification(self, payload: psycopg.Notify) -> bool:

@@ -77,6 +77,7 @@ class Mailer(CommandWorker):
             db=Context.get().app.db,
             channel=CMD_CHANNEL,
             component=CMD_COMPONENT,
+            timeout=Context.get().app.cfg.db.queue_timout,
         )
         queue.run()
 
