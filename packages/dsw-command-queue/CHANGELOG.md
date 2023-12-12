@@ -8,6 +8,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 
+## [4.0.1]
+
+### Fixed
+
+- Retry mechanism for failed commands (timeout for queueing)
+
 ## [4.0.0]
 
 Released for version consistency with other DSW tools.
@@ -152,3 +158,4 @@ Released for version consistency with other DSW tools.
 [3.27.1]: /../../tree/v3.27.1
 [3.28.0]: /../../tree/v3.28.0
 [4.0.0]: /../../tree/v4.0.0
+[4.0.1]: /../../tree/v4.0.1
