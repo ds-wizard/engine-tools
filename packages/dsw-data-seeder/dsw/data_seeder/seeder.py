@@ -4,6 +4,7 @@ import json
 import logging
 import mimetypes
 import pathlib
+import time
 import uuid
 
 from typing import Optional
@@ -49,7 +50,8 @@ class SeedRecipe:
     def __init__(self, name: str, description: str, root: pathlib.Path,
                  db_scripts: dict[str, DBScript], db_placeholder: str,
                  s3_dir: Optional[pathlib.Path], s3_fname_replace: dict[str, str],
-                 uuids_count: int, uuids_placeholder: Optional[str]):
+                 uuids_count: int, uuids_placeholder: Optional[str],
+                 init_wait: float):
         self.name = name
         self.description = description
         self.root = root
@@ -63,6 +65,7 @@ class SeedRecipe:
         self.uuids_count = uuids_count
         self.uuids_placeholder = uuids_placeholder
         self.uuids_replacement = dict()  # type: dict[str, str]
+        self.init_wait = init_wait
 
     def _load_db_scripts(self):
         for script_id, db_script in self.db_scripts.items():
@@ -177,6 +180,7 @@ class SeedRecipe:
             s3_fname_replace=s3.get('filenameReplace', {}),
             uuids_count=data.get('uuids', {}).get('count', 0),
             uuids_placeholder=data.get('uuids', {}).get('placeholder', None),
+            init_wait=data.get('initWait', 0),
         )
 
     @staticmethod
@@ -197,6 +201,7 @@ class SeedRecipe:
             s3_fname_replace={},
             uuids_count=0,
             uuids_placeholder=None,
+            init_wait=0,
         )
 
 
@@ -255,6 +260,7 @@ class DataSeeder(CommandWorker):
             db=Context.get().app.db,
             channel=CMD_CHANNEL,
             component=CMD_COMPONENT,
+            timeout=Context.get().app.cfg.db.queue_timout,
         )
         queue.run()
 
@@ -265,6 +271,9 @@ class DataSeeder(CommandWorker):
         tenant_uuid = cmd.body['tenantUuid']
         LOG.info(f'Seeding recipe "{self.recipe.name}" '
                  f'to tenant with UUID "{tenant_uuid}"')
+        if cmd.attempts == 0 and self.recipe.init_wait > 0.01:
+            LOG.info(f'Waiting for {self.recipe.init_wait} seconds (first attempt)')
+            time.sleep(self.recipe.init_wait)
         self.execute(tenant_uuid)
         Context.get().update_trace_id('-')
         SentryReporter.set_context('cmd_uuid', '-')
@@ -289,7 +298,6 @@ class DataSeeder(CommandWorker):
         SentryReporter.set_context('tenant_uuid', tenant_uuid)
         # Run SQL scripts
         app_ctx = Context.get().app
-        cursor = app_ctx.db.conn_query.new_cursor(use_dict=True)
         phase = 'DB'
         used_targets = set()
         try:
@@ -298,12 +306,13 @@ class DataSeeder(CommandWorker):
                 LOG.debug(f' -> Executing script: {script_id}')
                 script = self.recipe.db_scripts[script_id]
                 if script.target in self.dbs.keys():
+                    used_targets.add(script.target)
                     with self.dbs[script.target].conn_query.new_cursor(use_dict=True) as c:
                         c.execute(query=sql_script)
-                    used_targets.add(script.target)
                 else:
-                    cursor.execute(query=sql_script)
-                LOG.debug(f'    OK: {cursor.statusmessage}')
+                    with app_ctx.db.conn_query.new_cursor(use_dict=True) as c:
+                        c.execute(query=sql_script)
+
             phase = 'S3'
             LOG.info('Transferring S3 objects')
             for local_file, object_name in self.recipe.iterate_s3_objects():
@@ -322,15 +331,23 @@ class DataSeeder(CommandWorker):
             LOG.warning(f'Exception appeared [{type(e).__name__}]: {e}')
             LOG.info('Failed with unexpected error', exc_info=e)
             LOG.info('Rolling back DB changes')
-            app_ctx.db.conn_query.connection.rollback()
+
+            LOG.debug(f'Used extra DBs: {used_targets}')
+            conn = app_ctx.db.conn_query.connection
+            LOG.debug(f'DEFAULT will roll back: {conn.pgconn.status} / {conn.pgconn.transaction_status}')
+            conn.rollback()
+            LOG.debug(f'DEFAULT rolled back: {conn.pgconn.status} / {conn.pgconn.transaction_status}')
             for target in used_targets:
-                self.dbs[target].conn_query.connection.rollback()
+                conn = self.dbs[target].conn_query.connection
+                LOG.debug(f'{target} will roll back: {conn.pgconn.status} / {conn.pgconn.transaction_status}')
+                conn.rollback()
+                LOG.debug(f'{target} rolled back: {conn.pgconn.status} / {conn.pgconn.transaction_status}')
             raise RuntimeError(f'{phase}: {e}')
-        finally:
+        else:
             LOG.info('Committing DB changes')
-            Context().get().app.db.conn_query.connection.commit()
+            app_ctx.db.conn_query.connection.commit()
             for target in used_targets:
                 self.dbs[target].conn_query.connection.commit()
+        finally:
             LOG.info('Data seeding done')
             SentryReporter.set_context('tenant_uuid', '-')
-            cursor.close()
