@@ -64,12 +64,10 @@ For further information, visit our [documentation](https://docs.ds-wizard.org).
 
 You can use the following environment variables to avoid repeating CLI options.
 
-- `DSW_API` = URL of DSW API you want to use, e.g., https://api.demo.ds-wizard.org (notice that it is **not** the URL of client, you can find it out by clicking Help > About in DSW)
-    - Used when `--api-server` not specified
-- `DSW_USERNAME` = username (email address) that you use to login with your admin account
-    - Used when `--username` not specified
-- `DSW_PASSWORD` = corresponding password to login with your admin account
-    - Used when `--password` not specified
+- `DSW_API_URL` = URL of DSW API you want to use, e.g., https://api.demo.ds-wizard.org (notice that it is **not** the URL of client, you can find it out by clicking Help > About in DSW)
+    - Used when `--api-url` not specified
+- `DSW_API_KEY` = API Key of the user authorized to manage document templates
+    - Used when `--api-key` not specified
   
  You can also use them in `.env` file which is automatically loaded from current directory or specify it using `--dot-env` option:
  
