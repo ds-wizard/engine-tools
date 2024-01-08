@@ -15,14 +15,12 @@ setup(
         "Topic :: Software Development :: Build Tools",
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.4",
-        "Programming Language :: Python :: 3.5",
-        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.11",
     ],
     keywords="pandoc filter docx",
     py_modules=["docx_pagebreak"],
     install_requires=[
-        "panflute==2.0.5",
+        "panflute==2.3.0",
     ],
     entry_points={
         "console_scripts": [
