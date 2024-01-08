@@ -1,4 +1,4 @@
-FROM datastewardshipwizard/python-base:4.1.0-3.11-docworker as builder
+FROM datastewardshipwizard/python-base:4.2.1-3.11-docworker as builder
 
 ARG TARGETARCH
 
@@ -14,11 +14,10 @@ RUN python -m pip wheel --wheel-dir=/app/wheels -r /app/packages/dsw-document-wo
  && python -m pip wheel --no-deps --wheel-dir=/app/wheels /app/packages/dsw-config \
  && python -m pip wheel --no-deps --wheel-dir=/app/wheels /app/packages/dsw-database \
  && python -m pip wheel --no-deps --wheel-dir=/app/wheels /app/packages/dsw-storage \
- && python -m pip wheel --wheel-dir=/app/wheels /app/packages/dsw-document-worker/addons/* \
- && python -m pip install --no-index /app/wheels/* \
+ && python -m pip wheel --no-deps --wheel-dir=/app/wheels /app/packages/dsw-document-worker/addons/* \
  && python -m pip wheel --no-deps --wheel-dir=/app/wheels /app/packages/dsw-document-worker
 
-FROM datastewardshipwizard/python-base:4.1.0-3.11-docworker
+FROM datastewardshipwizard/python-base:4.2.1-3.11-docworker
 
 ENV APPLICATION_CONFIG_PATH /app/config/application.yml
 ENV WORKDIR_PATH /tmp/docworker
@@ -38,7 +37,7 @@ COPY --chown=user:user packages/dsw-document-worker/data /home/user/data
 
 # Install Python packages
 COPY --from=builder --chown=user:user /app/wheels /home/user/wheels
-RUN python -m pip install --user --no-cache --no-index /home/user/wheels/*  \
+RUN python -m pip install --break-system-packages --user --no-cache --no-index /home/user/wheels/*  \
  && rm -rf /home/user/wheels
 
 # Run

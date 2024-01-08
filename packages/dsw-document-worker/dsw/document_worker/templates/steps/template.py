@@ -1,5 +1,8 @@
+import typing as t
+
 import jinja2
 import jinja2.exceptions
+import jinja2.sandbox
 import json
 
 from typing import Any
@@ -23,6 +26,16 @@ class JSONStep(Step):
 
     def execute_follow(self, document: DocumentFile, context: dict) -> DocumentFile:
         return self.raise_exc(f'Step "{self.NAME}" cannot process other files')
+
+
+class JinjaEnvironment(jinja2.sandbox.SandboxedEnvironment):
+
+    def is_safe_attribute(self, obj: t.Any, attr: str, value: t.Any) -> bool:
+        if attr in ['os', 'subprocess', 'eval', 'exec', 'popen', 'system']:
+            return False
+        if attr == '__setitem__' and isinstance(obj, dict):
+            return True
+        return super().is_safe_attribute(obj, attr, value)
 
 
 class Jinja2Step(Step):
@@ -60,7 +73,7 @@ class Jinja2Step(Step):
 
         self.output_format = FileFormat(self.extension, self.content_type, self.extension)
         try:
-            self.j2_env = jinja2.Environment(
+            self.j2_env = JinjaEnvironment(
                 loader=jinja2.FileSystemLoader(searchpath=template.template_dir),
                 extensions=[
                     'jinja2.ext.do',
