@@ -8,6 +8,13 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 
+## [4.2.1]
+
+### Fixed
+
+- Use Jinja2 sandboxing
+- Update base Docker images (due to [CVE-2023-7104](https://nvd.nist.gov/vuln/detail/CVE-2023-7104))
+
 ## [4.2.0]
 
 Released for version consistency with other DSW tools.
@@ -220,3 +227,4 @@ Released for version consistency with other DSW tools.
 [4.1.0]: /../../tree/v4.1.0
 [4.1.1]: /../../tree/v4.1.1
 [4.2.0]: /../../tree/v4.2.0
+[4.2.1]: /../../tree/v4.2.1
