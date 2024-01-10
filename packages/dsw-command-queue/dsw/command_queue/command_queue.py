@@ -104,6 +104,21 @@ class CommandQueue:
                 LOG.info(f'Notifications received ({notifications})')
         LOG.debug('Exiting command queue')
 
+    @tenacity.retry(
+        reraise=True,
+        wait=tenacity.wait_exponential(multiplier=RETRY_QUEUE_MULTIPLIER),
+        stop=tenacity.stop_after_attempt(RETRY_QUEUE_TRIES),
+        before=tenacity.before_log(LOG, logging.INFO),
+        after=tenacity.after_log(LOG, logging.INFO),
+    )
+    def run_once(self):
+        LOG.info('Fetching the commands')
+        while True:
+            result = self.fetch_and_process()
+            if not result:
+                LOG.info('There are no more commands to process')
+                return
+
     def accept_notification(self, payload: psycopg.Notify) -> bool:
         LOG.debug(f'Accepting notification from channel "{payload.channel}" '
                   f'(PID = {payload.pid}) {payload.payload}')

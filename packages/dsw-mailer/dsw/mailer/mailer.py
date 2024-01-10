@@ -81,6 +81,21 @@ class Mailer(CommandWorker):
         )
         queue.run()
 
+    def run_once(self):
+        Context.get().app.db.connect()
+        # prepare
+        self._update_component_info()
+        # work in queue
+        LOG.info('Preparing command queue')
+        queue = CommandQueue(
+            worker=self,
+            db=Context.get().app.db,
+            channel=CMD_CHANNEL,
+            component=CMD_COMPONENT,
+            timeout=Context.get().app.cfg.db.queue_timout,
+        )
+        queue.run_once()
+
     def work(self, cmd: PersistentCommand):
         # update Sentry info
         SentryReporter.set_context('template', '-')
