@@ -1,4 +1,4 @@
-FROM datastewardshipwizard/python-base:4.1.0-3.11-basic as builder
+FROM datastewardshipwizard/python-base:4.3.0-3.11-basic as builder
 
 WORKDIR /app
 
@@ -8,7 +8,7 @@ RUN python -m pip wheel --no-cache-dir --wheel-dir=/app/wheels -r /app/packages/
  && python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/app/wheels /app/packages/dsw-tdk
 
 
-FROM datastewardshipwizard/python-base:4.1.0-3.11-basic
+FROM datastewardshipwizard/python-base:4.3.0-rc.1-3.11-basic
 
 ENV PATH "/home/user/.local/bin:$PATH"
 
@@ -20,7 +20,7 @@ WORKDIR /home/user
 
 # Install Python packages
 COPY --from=builder --chown=user:user /app/wheels /home/user/wheels
-RUN python -m pip install --user --no-cache --no-index /home/user/wheels/*  \
+RUN python -m pip install --break-system-packages --user --no-cache --no-index /home/user/wheels/*  \
  && rm -rf /home/user/wheels
 
 # Run
