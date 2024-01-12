@@ -1,6 +1,7 @@
 import datetime
 import dateutil.parser
 import jinja2
+import jinja2.sandbox
 import json
 import logging
 import pathlib
@@ -65,7 +66,7 @@ class TemplateRegistry:
     def __init__(self, cfg: MailerConfig, workdir: pathlib.Path):
         self.cfg = cfg
         self.workdir = workdir
-        self.j2_env = jinja2.Environment(
+        self.j2_env = jinja2.sandbox.SandboxedEnvironment(
             loader=jinja2.FileSystemLoader(searchpath=workdir),
             extensions=['jinja2.ext.do'],
         )
