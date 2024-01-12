@@ -93,17 +93,21 @@ class Mailer(CommandWorker):
             msg_id=cmd.uuid,
             trigger='PersistentComment',
         )
+        # get tenant config from DB
+        tenant_cfg = app_ctx.db.get_tenant_config(tenant_uuid=cmd.tenant_uuid)
+        LOG.debug(f'Tenant config from DB: {tenant_cfg}')
+        rq.style.from_dict(tenant_cfg.look_and_feel)
         # get mailer config from DB
-        cfg = _transform_mail_config(
+        mail_cfg = _transform_mail_config(
             cfg=app_ctx.db.get_mail_config(tenant_uuid=cmd.tenant_uuid),
         )
-        LOG.debug(f'Config from DB: {cfg}')
+        LOG.debug(f'Mail config from DB: {mail_cfg}')
         # client URL
         rq.client_url = cmd.body.get('clientUrl', app_ctx.cfg.general.client_url)
         rq.domain = urllib.parse.urlparse(rq.client_url).hostname
         # update Sentry info
         SentryReporter.set_context('template', rq.template_name)
-        self.send(rq, cfg)
+        self.send(rq, mail_cfg)
         SentryReporter.set_context('template', '-')
         SentryReporter.set_context('cmd_uuid', '-')
         Context.get().update_trace_id('-')
