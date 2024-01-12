@@ -1,6 +1,6 @@
-psycopg==3.1.13
-psycopg-binary==3.1.13
+psycopg==3.1.17
+psycopg-binary==3.1.17
 PyYAML==6.0.1
 tenacity==8.2.3
-typing_extensions==4.8.0
-tzdata==2023.3
+typing_extensions==4.9.0
+tzdata==2023.4

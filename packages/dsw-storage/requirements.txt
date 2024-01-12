@@ -1,6 +1,6 @@
 certifi==2023.11.17
-minio==7.1.17
+minio==7.2.3
 PyYAML==6.0.1
-sentry-sdk==1.37.1
+sentry-sdk==1.39.2
 tenacity==8.2.3
 urllib3==2.1.0
