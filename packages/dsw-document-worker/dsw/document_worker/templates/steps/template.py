@@ -84,6 +84,7 @@ class Jinja2Step(Step):
                 self._add_j2_i18n(template)
             if 'debug' in self.jinja_ext:
                 self.j2_env.add_extension('jinja2.ext.debug')
+            self._apply_policies(options)
             self._add_j2_enhancements()
             self.j2_root_template = self.j2_env.get_template(self.root_file)
         except jinja2.exceptions.TemplateSyntaxError as e:
@@ -91,7 +92,39 @@ class Jinja2Step(Step):
         except Exception as e:
             self.raise_exc(f'Failed loading Jinja2 template: {e}')
 
+    def _apply_policies(self, options: dict):
+        # https://jinja.palletsprojects.com/en/3.0.x/api/#policies
+        policies = {
+            'policy.urlize.target': '_blank',
+            'json.dumps_kwargs': {
+                'allow_nan': False,
+                'ensure_ascii': False,
+            },
+        }  # type: dict[str,Any]
+        if 'policy.truncate.leeway' in options:
+            policies['truncate.leeway'] = options['policy.truncate.leeway']
+        if 'policy.urlize.rel' in options:
+            policies['urlize.rel'] = options['policy.urlize.rel']
+        if 'policy.urlize.target' in options:
+            policies['urlize.target'] = options['policy.urlize.target']
+        if 'policy.urlize.extra_schemes' in options:
+            values = options['policy.urlize.extra_schemes'].split(',')
+            policies['truncate.leeway'] = values
+        if 'policy.ext.i18n.trimmed' in options:
+            value = options['policy.ext.i18n.trimmed'].lower() == 'true'
+            policies['ext.i18n.trimmed'] = value
+        for key in options:
+            if not key.startswith('policy.json.dumps_kwargs.'):
+                continue
+            name = key[len('policy.json.dumps_kwargs.'):]
+            if name in ['allow_nan', 'skipkeys', 'sort_keys', 'ensure_ascii', 'check_circular']:
+                policies['json.dumps_kwargs'][name] = options[key].lower() == 'true'
+            else:
+                policies['json.dumps_kwargs'][name] = options[key]
+        self.j2_env.policies.update(policies)
+
     def _add_j2_i18n(self, template):
+        # https://jinja.palletsprojects.com/en/3.1.x/extensions/#i18n-extension
         self.j2_env.add_extension('jinja2.ext.i18n')
         if self.i18n_dir is not None and self.i18n_lang is not None:
             import gettext
