@@ -69,24 +69,21 @@ class CommandQueue:
         after=tenacity.after_log(LOG, logging.INFO),
     )
     def run(self):
-        LOG.info('Trying queued jobs before listening')
-        while self.fetch_and_process():
-            pass
-        LOG.info('Preparing to listen for jobs in command queue')
+        LOG.info('Preparing to listen to command queue')
         queue_conn = self.db.conn_queue
         queue_conn.connection.execute(
             query=self.queries.query_listen(),
         )
         queue_conn.listening = True
-        LOG.info('Listening for jobs in command queue')
+        LOG.info('Listening to notifications in command queue')
         fds = [queue_conn.connection.pgconn.socket]
         if IS_LINUX:
             fds.append(_QUEUE_PIPE_R)
-        LOG.info('Entering working cycle, waiting for notifications')
+
         while True:
-            res = True
-            while res:
-                res = self.fetch_and_process()
+            self._fetch_and_process_queued()
+
+            LOG.debug('Waiting for notifications')
             w = select.select(fds, [], [], self.timeout)
 
             if INTERRUPTED:
@@ -95,13 +92,13 @@ class CommandQueue:
 
             if w == ([], [], []):
                 LOG.debug(f'Nothing received in this cycle '
-                          f'(timeouted after {self.timeout} seconds).')
+                          f'(timeouted after {self.timeout} seconds)')
             else:
                 notifications = 0
                 for n in psycopg.generators.notifies(queue_conn.connection.pgconn):
                     notifications += 1
                     LOG.debug(str(n))
-                LOG.info(f'Notifications received ({notifications})')
+                LOG.info(f'Notifications received ({notifications} in total)')
         LOG.debug('Exiting command queue')
 
     @tenacity.retry(
@@ -112,12 +109,15 @@ class CommandQueue:
         after=tenacity.after_log(LOG, logging.INFO),
     )
     def run_once(self):
+        LOG.info('Processing the command queue once')
+        self._fetch_and_process_queued()
+
+    def _fetch_and_process_queued(self):
         LOG.info('Fetching the commands')
-        while True:
-            result = self.fetch_and_process()
-            if not result:
-                LOG.info('There are no more commands to process')
-                return
+        count = 0
+        while self.fetch_and_process():
+            count += 1
+        LOG.info(f'There are no more commands to process ({count} processed)')
 
     def accept_notification(self, payload: psycopg.Notify) -> bool:
         LOG.debug(f'Accepting notification from channel "{payload.channel}" '

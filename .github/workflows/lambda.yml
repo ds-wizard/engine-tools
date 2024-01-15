@@ -5,7 +5,7 @@ on:
 
 jobs:
   package:
-    name: Python Package
+    name: Lambda Package
     runs-on: ubuntu-latest
 
     strategy:
@@ -38,7 +38,7 @@ jobs:
     - name: Install dependencies
       run: |
         cd packages/dsw-${{ matrix.package }}
-        make build-lambda-package
+        make lambda-package
 
     - name: Create artifact
       uses: actions/upload-artifact@v4
