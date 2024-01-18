@@ -23,6 +23,10 @@ from .validation import ValidationError, TemplateValidator
 ChangeItem = Tuple[watchfiles.Change, pathlib.Path]
 
 
+def _change(item: ChangeItem, root: pathlib.Path) -> str:
+    return f'{item[0].name.upper()}[{item[1].relative_to(root).as_posix()}]'
+
+
 class TDKProcessingError(RuntimeError):
 
     def __init__(self, message: str, hint: str):
@@ -267,7 +271,7 @@ class TDKCore:
             if project_update and result is not None:
                 self.safe_project.update_template_file(result)
         except Exception as e:
-            self.logger.error(f'Failed to store remote {tfile.remote_type.value} {tfile.filename.as_posix()}: {e}')
+            self.logger.error(f'Failed to store remote {tfile.remote_type.value} {tfile.filename.as_posix()}: {str(e)}')
 
     async def store_remote_files(self):
         for tfile in self.safe_project.safe_template.files.values():
@@ -471,7 +475,7 @@ class ChangesProcessor:
         deleted = set()
         updated = set()
         for file_change in self.file_changes:
-            self.tdk.logger.debug(f'Processing {file_change}')
+            self.tdk.logger.debug(f'Processing: {_change(file_change, self.tdk.safe_project.template_dir)}')
             change_type = file_change[0]
             filepath = file_change[1]
             if change_type == watchfiles.Change.deleted and filepath not in deleted:
@@ -514,6 +518,7 @@ class ChangesProcessor:
         if self.readme_change is not None or self.descriptor_change is not None:
             self.tdk.logger.debug('Updating template descriptor (metadata)')
             await self.tdk._update_descriptor()
+            self.tdk.safe_project.template = self.tdk.safe_template
 
     async def process_changes(self, changes: List[ChangeItem], force: bool):
         self._split_changes(changes)

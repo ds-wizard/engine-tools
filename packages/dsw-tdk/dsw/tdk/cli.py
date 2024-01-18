@@ -438,8 +438,6 @@ def extract_package(ctx, template_package, output, force: bool):
             force=force,
         )
     except Exception as e:
-        import traceback
-        traceback.print_exc()
         ClickPrinter.failure('Failed to extract the package')
         ClickPrinter.error(f'> {e}')
         exit(1)
