@@ -248,7 +248,7 @@ class DataSeeder(CommandWorker):
         self.recipe = recipes[recipe_name]
         self.recipe.prepare()
 
-    def run(self, recipe_name: str):
+    def _run_preparation(self, recipe_name) -> CommandQueue:
         SentryReporter.set_context('recipe_name', recipe_name)
         # prepare
         self._prepare_recipe(recipe_name)
@@ -262,7 +262,17 @@ class DataSeeder(CommandWorker):
             component=CMD_COMPONENT,
             timeout=Context.get().app.cfg.db.queue_timout,
         )
+        return queue
+
+    def run(self, recipe_name: str):
+        LOG.info('Starting seeder worker (loop)')
+        queue = self._run_preparation(recipe_name)
         queue.run()
+
+    def run_once(self, recipe_name):
+        LOG.info('Starting seeder worker (once)')
+        queue = self._run_preparation(recipe_name)
+        queue.run_once()
 
     def work(self, cmd: PersistentCommand):
         Context.get().update_trace_id(cmd.uuid)
