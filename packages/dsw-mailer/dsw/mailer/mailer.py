@@ -70,7 +70,7 @@ class Mailer(CommandWorker):
         Context.get().app.db.connect()
         # prepare
         self._update_component_info()
-        # work in queue
+        # init queue
         LOG.info('Preparing command queue')
         queue = CommandQueue(
             worker=self,

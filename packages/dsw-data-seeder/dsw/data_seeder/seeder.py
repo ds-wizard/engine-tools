@@ -248,12 +248,12 @@ class DataSeeder(CommandWorker):
         self.recipe = recipes[recipe_name]
         self.recipe.prepare()
 
-    def _run_preparation(self, recipe_name) -> CommandQueue:
+    def _run_preparation(self, recipe_name: str) -> CommandQueue:
         SentryReporter.set_context('recipe_name', recipe_name)
         # prepare
         self._prepare_recipe(recipe_name)
         self._update_component_info()
-        # work in queue
+        # init queue
         LOG.info('Preparing command queue')
         queue = CommandQueue(
             worker=self,
@@ -269,7 +269,7 @@ class DataSeeder(CommandWorker):
         queue = self._run_preparation(recipe_name)
         queue.run()
 
-    def run_once(self, recipe_name):
+    def run_once(self, recipe_name: str):
         LOG.info('Starting seeder worker (once)')
         queue = self._run_preparation(recipe_name)
         queue.run_once()
