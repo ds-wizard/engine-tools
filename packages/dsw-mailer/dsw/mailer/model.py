@@ -52,7 +52,8 @@ class StyleConfig:
         self.primary_color = Color(primary_color)
         self.illustration_color = Color(illustration_color)
 
-    def from_dict(self, data: dict):
+    def from_dict(self, data: Optional[dict]):
+        data = data or dict()
         if data.get('logoUrl', None) is not None:
             self.logo_url = data.get('logoUrl')
         if data.get('primaryColor', None) is not None:

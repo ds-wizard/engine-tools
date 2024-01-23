@@ -1,12 +1,15 @@
+PIP = pip
+PYTHON = python
+
 .PHONY: verify
 verify:
 	@echo "Trying to import: dsw.storage"
-	python -c 'import dsw.storage'
+	$(PYTHON) -c 'import dsw.storage'
 
 .PHONY: local-deps
 local-deps:
 	@echo "Installing local dependencies"
-	pip install ../dsw-config
+	$(PIP) install ../dsw-config
 
 .PHONY: test
 test:

@@ -1,7 +1,9 @@
+PYTHON = python
+
 .PHONY: verify
 verify:
 	@echo "Trying to import: dsw.models"
-	python -c 'import dsw.models'
+	$(PYTHON) -c 'import dsw.models'
 
 .PHONY: local-deps
 local-deps:
