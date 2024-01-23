@@ -106,7 +106,8 @@ class Mailer(CommandWorker):
         # get tenant config from DB
         tenant_cfg = app_ctx.db.get_tenant_config(tenant_uuid=cmd.tenant_uuid)
         LOG.debug(f'Tenant config from DB: {tenant_cfg}')
-        rq.style.from_dict(tenant_cfg.look_and_feel)
+        if tenant_cfg is not None:
+            rq.style.from_dict(tenant_cfg.look_and_feel)
         # get mailer config from DB
         mail_cfg = _transform_mail_config(
             cfg=app_ctx.db.get_mail_config(tenant_uuid=cmd.tenant_uuid),
