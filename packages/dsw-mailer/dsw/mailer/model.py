@@ -1,9 +1,22 @@
+import os
+
 from typing import Optional
 
 
 class Color:
-    DEFAULT_PRIMARY_HEX = '#0033aa'
-    DEFAULT_ILLUSTRATIONS_HEX = '#4285f4'
+    DEFAULT_PRIMARY_HEX = os.getenv('DEFAULT_PRIMARY_COLOR', '#0033aa')
+    DEFAULT_ILLUSTRATIONS_HEX = os.getenv('DEFAULT_ILLUSTRATIONS_COLOR', '#4285f4')
+
+    @staticmethod
+    def contrast_ratio(color1: 'Color', color2: 'Color') -> float:
+        # https://www.w3.org/TR/WCAG20/#contrast-ratiodef
+
+        l1 = color1.luminance + 0.05
+        l2 = color2.luminance + 0.05
+        if l1 > l2:
+            return l1 / l2
+        else:
+            return l2 / l1
 
     def __init__(self, color_hex: str = '#000000'):
         h = color_hex.lstrip('#')
@@ -39,7 +52,10 @@ class Color:
 
     @property
     def contrast_color(self) -> 'Color':
-        return Color('#ffffff') if self.is_dark else Color('#000000')
+        if self.contrast_ratio(self, Color('#ffffff')) > 3:
+            return Color('#ffffff')
+        else:
+            return Color('#000000')
 
     def __str__(self):
         return self.hex
