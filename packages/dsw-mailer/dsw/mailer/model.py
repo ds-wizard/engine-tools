@@ -2,6 +2,8 @@ from typing import Optional
 
 
 class Color:
+    DEFAULT_PRIMARY_HEX = '#0033aa'
+    DEFAULT_ILLUSTRATIONS_HEX = '#4285f4'
 
     def __init__(self, color_hex: str = '#000000'):
         h = color_hex.lstrip('#')
@@ -47,10 +49,10 @@ class StyleConfig:
     _DEFAULT = None
 
     def __init__(self, logo_url: Optional[str], primary_color: str,
-                 illustration_color: str):
+                 illustrations_color: str):
         self.logo_url = logo_url
         self.primary_color = Color(primary_color)
-        self.illustration_color = Color(illustration_color)
+        self.illustrations_color = Color(illustrations_color)
 
     def from_dict(self, data: Optional[dict]):
         data = data or dict()
@@ -61,10 +63,10 @@ class StyleConfig:
                 'primaryColor',
                 self.default().primary_color.hex
             ))
-        if data.get('illustrationColor', None) is not None:
-            self.illustration_color = Color(data.get(
-                'illustrationColor',
-                self.default().illustration_color.hex,
+        if data.get('illustrationsColor', None) is not None:
+            self.illustrations_color = Color(data.get(
+                'illustrationsColor',
+                self.default().illustrations_color.hex,
             ))
 
     @classmethod
@@ -72,8 +74,8 @@ class StyleConfig:
         if cls._DEFAULT is None:
             cls._DEFAULT = StyleConfig(
                 logo_url=None,
-                primary_color='#0033aa',
-                illustration_color='#4285f4',
+                primary_color=Color.DEFAULT_PRIMARY_HEX,
+                illustrations_color=Color.DEFAULT_ILLUSTRATIONS_HEX,
             )
         return cls._DEFAULT
 
@@ -183,8 +185,8 @@ class MessageRequest:
             recipients=data.get('recipients', []),
             style=StyleConfig(
                 logo_url=data.get('styleLogoUrl', None),
-                primary_color=data.get('stylePrimaryColor', '#019AD6'),
-                illustration_color=data.get('styleIllustrationColor', '#019AD6'),
+                primary_color=data.get('stylePrimaryColor', Color.DEFAULT_PRIMARY_HEX),
+                illustrations_color=data.get('styleIllustrationsColor', Color.DEFAULT_ILLUSTRATIONS_HEX),
             ),
         )
 
