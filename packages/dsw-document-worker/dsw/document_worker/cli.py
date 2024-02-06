@@ -7,37 +7,44 @@ from dsw.config.parser import MissingConfigurationError
 from dsw.config.sentry import SentryReporter
 
 from .config import DocumentWorkerConfig, DocumentWorkerConfigParser
-from .consts import VERSION
+from .consts import (VERSION, VAR_APP_CONFIG_PATH, VAR_WORKDIR_PATH,
+                     DEFAULT_ENCODING)
 
 
-def validate_config(ctx, param, value: Optional[IO]):
-    if value is None:
-        content = ''
-    else:
-        content = value.read()
-        value.close()
+def load_config_str(config_str: str) -> DocumentWorkerConfig:
     parser = DocumentWorkerConfigParser()
-    if not parser.can_read(content):
+    if not parser.can_read(config_str):
         click.echo('Error: Cannot parse config file', err=True)
         exit(1)
 
     try:
-        parser.read_string(content)
+        parser.read_string(config_str)
         parser.validate()
-        return parser.config
     except MissingConfigurationError as e:
         click.echo('Error: Missing configuration', err=True)
         for missing_item in e.missing:
-            click.echo(f' - {missing_item}')
+            click.echo(f' - {missing_item}', err=True)
         exit(1)
+
+    config = parser.config
+    config.log.apply()
+    return config
+
+
+def validate_config(ctx, param, value: Optional[IO]):
+    content = ''
+    if value is not None:
+        content = value.read()
+        value.close()
+    return load_config_str(content)
 
 
 @click.command(name='docworker')
 @click.version_option(version=VERSION)
-@click.argument('config', envvar='APPLICATION_CONFIG_PATH',
+@click.argument('config', envvar=VAR_APP_CONFIG_PATH,
                 required=False, callback=validate_config,
-                type=click.File('r', encoding='utf-8'))
-@click.argument('workdir', envvar='WORKDIR_PATH')
+                type=click.File('r', encoding=DEFAULT_ENCODING))
+@click.argument('workdir', envvar=VAR_WORKDIR_PATH,)
 def main(config: DocumentWorkerConfig, workdir: str):
     from .worker import DocumentWorker
     config.log.apply()

@@ -220,52 +220,60 @@ class PersistentCommand:
 @dataclasses.dataclass
 class DBTenantConfig:
     uuid: str
-    organization: dict
-    authentication: dict
-    privacy_and_support: dict
-    dashboard: dict
-    look_and_feel: dict
-    registry: dict
-    knowledge_model: dict
-    questionnaire: dict
-    submission: dict
-    feature: dict
-    owl: dict
+    organization: Optional[dict]
+    authentication: Optional[dict]
+    privacy_and_support: Optional[dict]
+    dashboard: Optional[dict]
+    look_and_feel: Optional[dict]
+    registry: Optional[dict]
+    knowledge_model: Optional[dict]
+    questionnaire: Optional[dict]
+    submission: Optional[dict]
+    feature: Optional[dict]
+    owl: Optional[dict]
     mail_config_uuid: Optional[str]
     created_at: datetime.datetime
     updated_at: datetime.datetime
 
     @property
     def feature_pdf_only(self) -> bool:
+        if self.feature is None:
+            return False
         return self.feature.get('pdfOnlyEnabled', False)
 
     @property
     def feature_pdf_watermark(self) -> bool:
+        if self.feature is None:
+            return False
         return self.feature.get('pdfWatermarkEnabled', False)
 
     @property
     def app_title(self) -> Optional[str]:
+        if self.look_and_feel is None:
+            return None
         return self.look_and_feel.get('appTitle', None)
 
     @property
     def support_email(self) -> Optional[str]:
+        if self.privacy_and_support is None:
+            return None
         return self.privacy_and_support.get('supportEmail', None)
 
     @staticmethod
     def from_dict_row(data: dict):
         return DBTenantConfig(
             uuid=str(data['uuid']),
-            organization=data['organization'],
-            authentication=data['authentication'],
-            privacy_and_support=data['privacy_and_support'],
-            dashboard=data['dashboard_and_login_screen'],
-            look_and_feel=data['look_and_feel'],
-            registry=data['registry'],
-            knowledge_model=data['knowledge_model'],
-            questionnaire=data['questionnaire'],
-            submission=data['submission'],
-            feature=data['feature'],
-            owl=data['owl'],
+            organization=data.get('organization', None),
+            authentication=data.get('authentication', None),
+            privacy_and_support=data.get('privacy_and_support', None),
+            dashboard=data.get('dashboard_and_login_screen', None),
+            look_and_feel=data.get('look_and_feel', None),
+            registry=data.get('registry', None),
+            knowledge_model=data.get('knowledge_model', None),
+            questionnaire=data.get('questionnaire', None),
+            submission=data.get('submission', None),
+            feature=data.get('feature', None),
+            owl=data.get('owl', None),
             mail_config_uuid=data.get('mail_config_uuid', None),
             created_at=data['created_at'],
             updated_at=data['updated_at'],

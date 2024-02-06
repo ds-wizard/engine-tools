@@ -1,3 +1,5 @@
+PIP = pip
+
 .PHONY: verify
 verify:
 	@echo "Executing command: dsw-tdk --version"
@@ -13,5 +15,5 @@ docker-image-name:
 
 .PHONY: test
 test:
-	pip install -r requirements.test.txt
+	$(PIP) install -r requirements.test.txt
 	pytest tests

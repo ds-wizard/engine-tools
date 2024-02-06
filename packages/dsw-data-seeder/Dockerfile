@@ -1,8 +1,11 @@
-FROM datastewardshipwizard/python-base:4.2.1-3.11-basic as builder
+FROM datastewardshipwizard/python-base:4.3.0-3.11-basic as builder
 
 WORKDIR /app
 
 COPY . /app
+
+RUN apk add -u build-base gcc \
+ && clean
 
 RUN python -m pip wheel --no-cache-dir --wheel-dir=/app/wheels -r /app/packages/dsw-data-seeder/requirements.txt \
  && python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/app/wheels /app/packages/dsw-command-queue \
@@ -12,7 +15,7 @@ RUN python -m pip wheel --no-cache-dir --wheel-dir=/app/wheels -r /app/packages/
  && python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/app/wheels /app/packages/dsw-data-seeder
 
 
-FROM datastewardshipwizard/python-base:4.2.1-3.11-basic
+FROM datastewardshipwizard/python-base:4.3.0-rc.1-3.11-basic
 
 ENV APPLICATION_CONFIG_PATH /app/config/application.yml
 ENV WORKDIR_PATH /home/user/data

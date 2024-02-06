@@ -7,30 +7,37 @@ from typing import IO, Optional
 from dsw.config.parser import MissingConfigurationError
 
 from .config import MailerConfig, MailerConfigParser
-from .consts import VERSION
+from .consts import (VERSION, VAR_APP_CONFIG_PATH, VAR_WORKDIR_PATH,
+                     DEFAULT_ENCODING)
 from .model import MessageRequest
 
 
-def validate_config(ctx, param, value: Optional[IO]):
-    if value is None:
-        content = ''
-    else:
-        content = value.read()
-        value.close()
+def load_config_str(config_str: str) -> MailerConfig:
     parser = MailerConfigParser()
-    if not parser.can_read(content):
+    if not parser.can_read(config_str):
         click.echo('Error: Cannot parse config file', err=True)
         exit(1)
 
     try:
-        parser.read_string(content)
+        parser.read_string(config_str)
         parser.validate()
-        return parser.config
     except MissingConfigurationError as e:
         click.echo('Error: Missing configuration', err=True)
         for missing_item in e.missing:
             click.echo(f' - {missing_item}', err=True)
         exit(1)
+
+    config = parser.config
+    config.log.apply()
+    return config
+
+
+def validate_config(ctx, param, value: Optional[IO]):
+    content = ''
+    if value is not None:
+        content = value.read()
+        value.close()
+    return load_config_str(content)
 
 
 def extract_message_request(ctx, param, value: IO):
@@ -46,10 +53,10 @@ def extract_message_request(ctx, param, value: IO):
 @click.group(name='dsw-mailer', help='Mailer for sending emails from DSW')
 @click.pass_context
 @click.version_option(version=VERSION)
-@click.option('-c', '--config', envvar='APPLICATION_CONFIG_PATH',
+@click.option('-c', '--config', envvar=VAR_APP_CONFIG_PATH,
               required=False, callback=validate_config,
-              type=click.File('r', encoding='utf-8'))
-@click.option('-w', '--workdir', envvar='WORKDIR_PATH',
+              type=click.File('r', encoding=DEFAULT_ENCODING))
+@click.option('-w', '--workdir', envvar=VAR_WORKDIR_PATH,
               type=click.Path(dir_okay=True, exists=True))
 def cli(ctx, config: MailerConfig, workdir: str):
     path_workdir = pathlib.Path(workdir)
@@ -60,7 +67,7 @@ def cli(ctx, config: MailerConfig, workdir: str):
 
 @cli.command(name='send', help='Send message(s) from given file directly.')
 @click.pass_context
-@click.argument('msg-request', type=click.File('r', encoding='utf-8'),
+@click.argument('msg-request', type=click.File('r', encoding=DEFAULT_ENCODING),
                 callback=extract_message_request)
 def send(ctx, msg_request: MessageRequest):
     from .mailer import Mailer

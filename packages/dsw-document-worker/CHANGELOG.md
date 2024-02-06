@@ -8,6 +8,17 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 
+## [4.3.0]
+
+### Added
+
+- Support for Jinja policies
+- Support for Lambda deployment
+
+### Fixed
+
+- Fix unnecessary ensuring ASCII with `tojson` Jinja filter
+
 ## [4.2.1]
 
 ### Fixed
@@ -228,3 +239,4 @@ Released for version consistency with other DSW tools.
 [4.1.1]: /../../tree/v4.1.1
 [4.2.0]: /../../tree/v4.2.0
 [4.2.1]: /../../tree/v4.2.1
+[4.3.0]: /../../tree/v4.3.0

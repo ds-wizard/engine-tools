@@ -6,47 +6,54 @@ from typing import IO, Optional
 from dsw.config.parser import MissingConfigurationError
 
 from .config import SeederConfig, SeederConfigParser
-from .consts import PROG_NAME, VERSION, NULL_UUID
+from .consts import (PROG_NAME, VERSION, NULL_UUID, DEFAULT_ENCODING,
+                     VAR_SEEDER_RECIPE, VAR_WORKDIR_PATH, VAR_APP_CONFIG_PATH)
 from .seeder import DataSeeder, SeedRecipe
 
 
-def validate_config(ctx, param, value: Optional[IO]):
-    if value is None:
-        content = ''
-    else:
-        content = value.read()
-        value.close()
+def load_config_str(config_str: str) -> SeederConfig:
     parser = SeederConfigParser()
-    if not parser.can_read(content):
+    if not parser.can_read(config_str):
         click.echo('Error: Cannot parse config file', err=True)
         exit(1)
+
     try:
-        parser.read_string(content)
+        parser.read_string(config_str)
         parser.validate()
-        return parser.config
     except MissingConfigurationError as e:
         click.echo('Error: Missing configuration', err=True)
         for missing_item in e.missing:
-            click.echo(f' - {missing_item}')
+            click.echo(f' - {missing_item}', err=True)
         exit(1)
+
+    config = parser.config
+    config.log.apply()
+    return config
+
+
+def validate_config(ctx, param, value: Optional[IO]):
+    content = ''
+    if value is not None:
+        content = value.read()
+        value.close()
+    return load_config_str(content)
 
 
 @click.group(name=PROG_NAME)
 @click.version_option(version=VERSION)
-@click.option('-c', '--config', envvar='APPLICATION_CONFIG_PATH',
+@click.option('-c', '--config', envvar=VAR_APP_CONFIG_PATH,
               required=False, callback=validate_config,
-              type=click.File('r', encoding='utf-8'))
-@click.option('-w', '--workdir', envvar='WORKDIR_PATH',
+              type=click.File('r', encoding=DEFAULT_ENCODING))
+@click.option('-w', '--workdir', envvar=VAR_WORKDIR_PATH,
               type=click.Path(dir_okay=True, exists=True))
 @click.pass_context
 def cli(ctx: click.Context, config: SeederConfig, workdir: str):
     ctx.obj['cfg'] = config
     ctx.obj['workdir'] = pathlib.Path(workdir).absolute()
-    config.log.apply()
 
 
 @cli.command(name='run', help='Run worker that listens to persistent commands.')
-@click.option('-r', '--recipe', envvar='SEEDER_RECIPE')
+@click.option('-r', '--recipe', envvar=VAR_SEEDER_RECIPE, required=True)
 @click.pass_context
 def run(ctx: click.Context, recipe: str):
     cfg = ctx.obj['cfg']
@@ -56,7 +63,7 @@ def run(ctx: click.Context, recipe: str):
 
 
 @cli.command(name='seed', help='Seed data directly.')
-@click.option('-r', '--recipe', envvar='SEEDER_RECIPE')
+@click.option('-r', '--recipe', envvar=VAR_SEEDER_RECIPE, required=True)
 @click.option('-t', '--tenant-uuid', default=NULL_UUID)
 @click.pass_context
 def seed(ctx: click.Context, recipe: str, tenant_uuid: str):
