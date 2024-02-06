@@ -7,10 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [4.3.0]
+
 ### Fixed
 
 - Fix `watch` mode errors after descriptor change
-
 
 ## [4.2.1]
 
@@ -396,3 +398,4 @@ Initial DSW Template Development Kit (versioned as part of the [DSW platform](ht
 [4.1.1]: /../../tree/v4.1.1
 [4.2.0]: /../../tree/v4.2.0
 [4.2.1]: /../../tree/v4.2.1
+[4.3.0]: /../../tree/v4.3.0
