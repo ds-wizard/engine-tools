@@ -1,4 +1,6 @@
 import logging
+import os
+import pathlib
 import rdflib
 import shlex
 import subprocess
@@ -44,16 +46,43 @@ class FormatConversionException(Exception):
 
 
 class Pandoc:
+    FILTERS_PATH = pathlib.Path(os.getenv('PANDOC_FILTERS', '/pandoc/filters'))
+    TEMPLATES_PATH = pathlib.Path(os.getenv('PANDOC_TEMPLATES', '/pandoc/templates'))
 
-    def __init__(self, config: DocumentWorkerConfig):
+    def __init__(self, config: DocumentWorkerConfig, filter_names: list[str], template_name: str | None):
         self.config = config
+        self.filter_names = filter_names
+        self.template_name = template_name
+        self._check_filters()
+        self._check_template()
+
+    def _check_filters(self):
+        for name in self.filter_names:
+            if not (self.FILTERS_PATH / name).is_file():
+                raise RuntimeError(f'Pandoc filter "{name}" not found')
+
+    def _check_template(self):
+        if self.template_name and not (self.TEMPLATES_PATH / self.template_name).is_file():
+            raise RuntimeError(f'Pandoc template "{self.template_name}" not found')
+
+    def _extra_args(self):
+        args = []
+        if self.template_name:
+            args.extend(['--template', str(self.TEMPLATES_PATH / self.template_name)])
+        for filter_name in self.filter_names:
+            if filter_name.endswith('.lua'):
+                args.extend(['--lua-filter', str(self.FILTERS_PATH / filter_name)])
+            else:
+                args.extend(['--filter', str(self.FILTERS_PATH / filter_name)])
+        return shlex.split(' '.join(args))
 
     def __call__(self, source_format: FileFormat, target_format: FileFormat,
                  data: bytes, metadata: dict, workdir: str) -> bytes:
         args = ['-f', source_format.name, '-t', target_format.name, '-o', '-']
         config_args = shlex.split(self.config.pandoc.args)
         template_args = self.extract_template_args(metadata)
-        command = self.config.pandoc.command + template_args + config_args + args
+        extra_args = self._extra_args()
+        command = self.config.pandoc.command + template_args + config_args + extra_args + args
         return run_conversion(
             args=command,
             workdir=workdir,
