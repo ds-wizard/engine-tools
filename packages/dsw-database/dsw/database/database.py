@@ -358,6 +358,8 @@ class Database:
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
     def get_tenant_config(self, tenant_uuid: str) -> Optional[DBTenantConfig]:
+        if not self._check_table_exists(table_name='tenant_config'):
+            return None
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             try:
                 cursor.execute(
@@ -431,6 +433,8 @@ class Database:
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
     def get_component_info(self, name: str) -> Optional[DBComponent]:
+        if not self._check_table_exists(table_name='component'):
+            return None
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             try:
                 cursor.execute(
