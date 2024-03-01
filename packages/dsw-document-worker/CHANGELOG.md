@@ -8,6 +8,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 
+## [4.4.0]
+
+### Changed
+
+- Enhanced support for Pandoc filters in `pandoc` step
+
 ## [4.3.1]
 
 Released for version consistency with other DSW tools.
@@ -245,3 +251,4 @@ Released for version consistency with other DSW tools.
 [4.2.1]: /../../tree/v4.2.1
 [4.3.0]: /../../tree/v4.3.0
 [4.3.1]: /../../tree/v4.3.1
+[4.4.0]: /../../tree/v4.4.0
