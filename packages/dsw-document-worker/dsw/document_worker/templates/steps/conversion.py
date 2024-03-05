@@ -100,16 +100,31 @@ class PandocStep(Step):
 
     OPTION_FROM = 'from'
     OPTION_TO = 'to'
+    OPTION_FILTERS = 'filters'
+    OPTION_TEMPLATE = 'template'
 
     def __init__(self, template, options: dict):
         super().__init__(template, options)
-        self.pandoc = Pandoc(config=Context.get().app.cfg)
         self.input_format = FileFormats.get(options[self.OPTION_FROM])
         self.output_format = FileFormats.get(options[self.OPTION_TO])
         if self.input_format not in self.INPUT_FORMATS:
             self.raise_exc(f'Unknown input format "{self.input_format.name}"')
         if self.output_format not in self.OUTPUT_FORMATS:
             self.raise_exc(f'Unknown output format "{self.output_format.name}"')
+        self.pandoc = Pandoc(
+            config=Context.get().app.cfg,
+            filter_names=self._extract_filter_names(options.get(self.OPTION_FILTERS, '')),
+            template_name=options.get(self.OPTION_TEMPLATE, None)
+        )
+
+    @staticmethod
+    def _extract_filter_names(filters: str) -> list[str]:
+        names = list()
+        for name in filters.split(','):
+            name = name.strip()
+            if name:
+                names.append(name)
+        return names
 
     def execute_first(self, context: dict) -> DocumentFile:
         return self.raise_exc(f'Step "{self.NAME}" cannot be first')

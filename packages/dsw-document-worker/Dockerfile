@@ -1,4 +1,4 @@
-FROM datastewardshipwizard/python-base:4.3.0-3.11-docworker as builder
+FROM datastewardshipwizard/python-base:4.4.0-3.11-docworker as builder
 
 ARG TARGETARCH
 
@@ -17,14 +17,18 @@ RUN python -m pip wheel --wheel-dir=/app/wheels -r /app/packages/dsw-document-wo
  && python -m pip wheel --no-deps --wheel-dir=/app/wheels /app/packages/dsw-document-worker/addons/* \
  && python -m pip wheel --no-deps --wheel-dir=/app/wheels /app/packages/dsw-document-worker
 
-FROM datastewardshipwizard/python-base:4.3.0-3.11-docworker
+FROM datastewardshipwizard/python-base:4.4.0-3.11-docworker
 
 ENV APPLICATION_CONFIG_PATH /app/config/application.yml
 ENV WORKDIR_PATH /tmp/docworker
 ENV PATH "/home/user/.local/bin:$PATH"
 
-# Add fonts and data
-COPY packages/dsw-document-worker/fonts /usr/share/fonts/truetype/custom
+# Add fonts
+COPY packages/dsw-document-worker/resources/fonts /usr/share/fonts/truetype/custom
+RUN fc-cache
+
+# Add Pandoc filters
+COPY packages/dsw-document-worker/resources/pandoc/filters /pandoc/filters
 RUN fc-cache
 
 # Use non-root user
