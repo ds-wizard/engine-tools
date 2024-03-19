@@ -7,10 +7,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+
+## [4.3.2]
+
 ### Fixed
 
 - Fixed color handling for custom colors in emails
-
 
 ## [4.3.1]
 
@@ -216,3 +218,4 @@ Released for version consistency with other DSW tools.
 [4.2.1]: /../../tree/v4.2.1
 [4.3.0]: /../../tree/v4.3.0
 [4.3.1]: /../../tree/v4.3.1
+[4.3.2]: /../../tree/v4.3.2
