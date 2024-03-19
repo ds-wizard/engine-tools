@@ -1,4 +1,5 @@
 import os
+import re
 
 from typing import Optional
 
@@ -18,9 +19,22 @@ class Color:
         else:
             return l2 / l1
 
-    def __init__(self, color_hex: str = '#000000'):
+    def __init__(self, color_hex: str = '#000000', default: str = '#000000'):
+        color_hex = self.parse_color_to_hex(color_hex) or default
         h = color_hex.lstrip('#')
         self.red, self.green, self.blue = tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
+
+    @staticmethod
+    def parse_color_to_hex(color: str) -> Optional[str]:
+        color = color.strip()
+        if re.match(r'^#[0-9a-fA-F]{6}$', color):
+            return color
+        if re.match(r'^#[0-9a-fA-F]{3}$', color):
+            r = color[1]
+            g = color[2]
+            b = color[3]
+            return f'#{r}{r}{g}{g}{b}{b}'
+        return None
 
     @property
     def hex(self):
@@ -67,8 +81,8 @@ class StyleConfig:
     def __init__(self, logo_url: Optional[str], primary_color: str,
                  illustrations_color: str):
         self.logo_url = logo_url
-        self.primary_color = Color(primary_color)
-        self.illustrations_color = Color(illustrations_color)
+        self.primary_color = Color(primary_color, Color.DEFAULT_PRIMARY_HEX)
+        self.illustrations_color = Color(illustrations_color, Color.DEFAULT_ILLUSTRATIONS_HEX)
 
     def from_dict(self, data: Optional[dict]):
         data = data or dict()
@@ -78,12 +92,12 @@ class StyleConfig:
             self.primary_color = Color(data.get(
                 'primaryColor',
                 self.default().primary_color.hex
-            ))
+            ), Color.DEFAULT_PRIMARY_HEX)
         if data.get('illustrationsColor', None) is not None:
             self.illustrations_color = Color(data.get(
                 'illustrationsColor',
                 self.default().illustrations_color.hex,
-            ))
+            ), Color.DEFAULT_ILLUSTRATIONS_HEX)
 
     @classmethod
     def default(cls):
