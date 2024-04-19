@@ -5,7 +5,7 @@ on:
 
 jobs:
   package:
-    name: Lambda Package
+    name: Lambda ZIP Package
     runs-on: ubuntu-latest
 
     strategy:
@@ -46,3 +46,125 @@ jobs:
       with:
         name: ${{ matrix.package }}-lambda.zip
         path: packages/dsw-${{ matrix.package }}/${{ matrix.package }}-lambda.zip
+
+  docker:
+    name: Lambda Docker Image
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          - dsw-document-worker
+
+    env:
+      PUBLIC_IMAGE_PREFIX: 'datastewardshipwizard'
+      DOCKER_META_CONTEXT: '.'
+      DOCKER_META_FILE: './packages/${{ matrix.package }}/lambda.Dockerfile'
+      DOCKER_META_PLATFORMS: 'linux/amd64,linux/arm64'
+      DOCKER_META_SUFFIX_LAMBDA: '-lambda'
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v4
+      with:
+          fetch-depth: 0
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+
+    - name: Set up Docker Buildx
+      id: buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Get Docker image name
+      id: docker-image-name
+      run: |
+        cd packages/${{ matrix.package }}
+        NAME=$(make docker-image-name)
+        echo "NAME=$NAME" >> $GITHUB_OUTPUT
+
+    - name: Create build info
+      run: |
+        bash scripts/build-info.sh
+
+    # TEST DOCKER IMAGE BUILD
+    - name: Docker meta [test]
+      id: meta-test
+      uses: docker/metadata-action@v5
+      with:
+        images: |
+          ${{ env.PUBLIC_IMAGE_PREFIX }}/${{ steps.docker-image-name.outputs.NAME }}
+        tags: |
+          type=sha
+        flavor: |
+            suffix=${{ env.DOCKER_META_SUFFIX_LAMBDA }}
+
+    - name: Docker build [test]
+      uses: docker/build-push-action@v5
+      with:
+        context: ${{ env.DOCKER_META_CONTEXT }}
+        file: ${{ env.DOCKER_META_FILE }}
+        platforms: ${{ env.DOCKER_META_PLATFORMS }}
+        push: false
+        tags: ${{ steps.meta-test.outputs.tags }}
+        labels: ${{ steps.meta-test.outputs.labels }}
+
+    # PREPARE
+    - name: Docker login [docker.io]
+      if: github.event_name != 'pull_request'
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_HUB_USERNAME }}
+        password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+
+    # DEVELOPMENT IMAGES
+    - name: Docker meta [dev]
+      id: meta-dev
+      if: github.event_name != 'pull_request'
+      uses: docker/metadata-action@v5
+      with:
+        images: |
+          ${{ secrets.DOCKER_HUB_USERNAME }}/${{ steps.docker-image-name.outputs.NAME }}
+        tags: |
+          type=ref,event=branch
+        flavor: |
+            suffix=${{ env.DOCKER_META_SUFFIX_LAMBDA }}
+
+    - name: Docker build+push [dev]
+      uses: docker/build-push-action@v5
+      if: github.event_name != 'pull_request' && steps.meta-dev.outputs.tags != ''
+      with:
+        context: ${{ env.DOCKER_META_CONTEXT }}
+        file: ${{ env.DOCKER_META_FILE }}
+        platforms: ${{ env.DOCKER_META_PLATFORMS }}
+        push: true
+        tags: ${{ steps.meta-dev.outputs.tags }}
+        labels: ${{ steps.meta-dev.outputs.labels }}
+
+    # PUBLIC IMAGES
+    - name: Docker meta [public]
+      id: meta-public
+      if: github.event_name != 'pull_request'
+      uses: docker/metadata-action@v5
+      with:
+        images: |
+          ${{ env.PUBLIC_IMAGE_PREFIX }}/${{ steps.docker-image-name.outputs.NAME }}
+        tags: |
+          type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=semver,pattern={{major}},enable=${{ !startsWith(github.ref, 'refs/tags/v0.') }}
+        flavor: |
+            suffix=${{ env.DOCKER_META_SUFFIX_LAMBDA }}
+
+    - name: Docker build+push [public]
+      uses: docker/build-push-action@v5
+      if: github.event_name != 'pull_request' && steps.meta-public.outputs.tags != ''
+      with:
+        context: ${{ env.DOCKER_META_CONTEXT }}
+        file: ${{ env.DOCKER_META_FILE }}
+        platforms: ${{ env.DOCKER_META_PLATFORMS }}
+        push: true
+        tags: ${{ steps.meta-public.outputs.tags }}
+        labels: ${{ steps.meta-public.outputs.labels }}
