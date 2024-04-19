@@ -340,11 +340,11 @@ class DocumentWorker(CommandWorker):
             built_at=built_at,
         )
 
-    def run(self):
+    def _run_preparation(self) -> CommandQueue:
         Context.get().app.db.connect()
         # prepare
         self._update_component_info()
-        # work in queue
+        # init queue
         LOG.info('Preparing command queue')
         queue = CommandQueue(
             worker=self,
@@ -353,7 +353,17 @@ class DocumentWorker(CommandWorker):
             component=CMD_COMPONENT,
             timeout=Context.get().app.cfg.db.queue_timout,
         )
+        return queue
+
+    def run(self):
+        LOG.info('Starting document worker (loop)')
+        queue = self._run_preparation()
         queue.run()
+
+    def run_once(self):
+        LOG.info('Starting document worker (once)')
+        queue = self._run_preparation()
+        queue.run_once()
 
     def work(self, cmd: PersistentCommand):
         Context.get().update_trace_id(cmd.uuid)
