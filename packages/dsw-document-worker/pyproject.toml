@@ -27,7 +27,6 @@ dependencies = [
     'Jinja2',
     'Markdown',
     'MarkupSafe',
-    'mdx-breakless-lists',
     'pathvalidate',
     'pdfrw',
     'python-dateutil',

@@ -4,6 +4,7 @@ import jinja2
 import logging
 import markupsafe
 import markdown
+import re
 
 from typing import Any, Union, Optional
 
@@ -12,6 +13,42 @@ from ..model import DocumentContext
 
 
 LOG = logging.getLogger(__name__)
+
+
+class DSWMarkdownExt(markdown.extensions.Extension):
+    def extendMarkdown(self, md):
+        md.preprocessors.register(DSWMarkdownProcessor(md), 'dsw_markdown', 27)
+        md.registerExtension(self)
+
+
+class DSWMarkdownProcessor(markdown.preprocessors.Preprocessor):
+
+    def __init__(self, md):
+        super().__init__(md)
+        self.LI_RE = re.compile(r'^[ ]*((\d+\.)|[*+-])[ ]+.*')
+
+    def run(self, lines):
+        prev_li = False
+        new_lines = []
+
+        for line in lines:
+            # Add line break before the first list item
+            if self.LI_RE.match(line):
+                if not prev_li:
+                    new_lines.append('')
+                prev_li = True
+            elif line == '':
+                prev_li = False
+
+            # Replace trailing un-escaped backslash with (supported) two spaces
+            _line = line.rstrip('\\')
+            if line[-1:] == '\\' and (len(line) - len(_line)) % 2 == 1:
+                new_lines.append(f'{line[:-1]}  ')
+                continue
+
+            new_lines.append(line)
+
+        return new_lines
 
 
 class _JinjaEnv:
@@ -81,7 +118,7 @@ def xmarkdown(md_text: str):
     return markupsafe.Markup(markdown.markdown(
         text=md_text,
         extensions=[
-            'mdx_breakless_lists',
+            DSWMarkdownExt(),
         ]
     ))
 
