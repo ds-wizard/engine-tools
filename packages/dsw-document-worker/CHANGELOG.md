@@ -11,6 +11,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - Support lambda deployment
 
+### Fixed
+
+- Markdown filter in Jinja uses training backslashes for newlines
+
 
 ## [4.5.0]
 
