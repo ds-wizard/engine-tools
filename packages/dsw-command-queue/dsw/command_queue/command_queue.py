@@ -129,7 +129,7 @@ class CommandQueue:
         cursor = self.db.conn_query.new_cursor(use_dict=True)
         cursor.execute(
             query=self.queries.query_get_command(),
-            params={'now': datetime.datetime.utcnow()},
+            params={'now': datetime.datetime.now(tz=datetime.UTC)},
         )
         result = cursor.fetchall()
         if len(result) != 1:
@@ -148,7 +148,7 @@ class CommandQueue:
             self.db.execute_query(
                 query=self.queries.query_command_done(),
                 attempts=command.attempts + 1,
-                updated_at=datetime.datetime.utcnow(),
+                updated_at=datetime.datetime.now(tz=datetime.UTC),
                 uuid=command.uuid,
             )
         except Exception as e:
@@ -159,7 +159,7 @@ class CommandQueue:
                 query=self.queries.query_command_error(),
                 attempts=command.attempts + 1,
                 error_message=msg,
-                updated_at=datetime.datetime.utcnow(),
+                updated_at=datetime.datetime.now(tz=datetime.UTC),
                 uuid=command.uuid,
             )
 

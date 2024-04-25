@@ -409,7 +409,7 @@ class Database:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             if not self._check_table_exists(table_name='component'):
                 return None
-            ts_now = datetime.datetime.utcnow()
+            ts_now = datetime.datetime.now(tz=datetime.UTC)
             try:
                 cursor.execute(
                     query=self.UPDATE_COMPONENT_INFO,

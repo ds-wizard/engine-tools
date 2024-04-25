@@ -174,7 +174,7 @@ class RateLimiter:
         if self.window == 0:
             return
         LOG.debug('Hit for checking rate limit')
-        now = datetime.datetime.now().timestamp()
+        now = datetime.datetime.now(tz=datetime.UTC).timestamp()
         threshold = now - self.window
         while len(self.hits) > 0 and self.hits[0] < threshold:
             self.hits.pop()
@@ -215,7 +215,7 @@ class MailerCommand:
             'recipients': self.recipients,
             'mode': self.mode,
             'template': self.template,
-            'now': datetime.datetime.now(),
+            'now': datetime.datetime.now(tz=datetime.UTC),
         }
 
     @staticmethod

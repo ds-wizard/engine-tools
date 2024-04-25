@@ -56,7 +56,7 @@ def _cell_writer_datetime(worksheet: Worksheet, pos_args, item, cell_format):
     try:
         value = dateutil.parser.parse(item['value'])
     except Exception:
-        value = datetime.datetime.utcnow()
+        value = datetime.datetime.now(tz=datetime.UTC)
     worksheet.write_datetime(
         *pos_args,
         date=value,
