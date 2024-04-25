@@ -16,6 +16,8 @@ ENV APPLICATION_CONFIG_PATH /app/config/application.yml
 ENV WORKDIR_PATH /home/user/templates
 ENV PATH "/home/user/.local/bin:$PATH"
 
+RUN apk add tzdata
+
 # Setup non-root user
 USER user
 

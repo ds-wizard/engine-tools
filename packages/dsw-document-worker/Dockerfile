@@ -31,6 +31,8 @@ RUN fc-cache
 COPY packages/dsw-document-worker/resources/pandoc/filters /pandoc/filters
 RUN fc-cache
 
+RUN apk add tzdata
+
 # Use non-root user
 USER user
 
