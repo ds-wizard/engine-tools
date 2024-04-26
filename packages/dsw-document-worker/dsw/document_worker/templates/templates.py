@@ -61,7 +61,7 @@ class Template:
                  db_template: TemplateComposite):
         self.tenant_uuid = tenant_uuid
         self.template_dir = template_dir
-        self.last_used = datetime.datetime.utcnow()
+        self.last_used = datetime.datetime.now(tz=datetime.UTC)
         self.db_template = db_template
         self.template_id = self.db_template.template.id
         self.formats = dict()  # type: dict[str, Format]
@@ -216,7 +216,7 @@ class Template:
         return self.formats[format_uuid]
 
     def render(self, format_uuid: str, context: dict) -> DocumentFile:
-        self.last_used = datetime.datetime.utcnow()
+        self.last_used = datetime.datetime.now(tz=datetime.UTC)
         return self[format_uuid].execute(context)
 
 
@@ -293,7 +293,7 @@ class TemplateRegistry:
 
     def cleanup(self):
         # TODO: configurable
-        threshold = datetime.datetime.utcnow() - datetime.timedelta(days=7)
+        threshold = datetime.datetime.now(tz=datetime.UTC) - datetime.timedelta(days=7)
         for tenant_uuid, templates in self._templates.items():
             for template_id, template in templates.items():
                 if template.last_used < threshold:

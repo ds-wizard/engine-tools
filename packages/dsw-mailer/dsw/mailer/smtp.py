@@ -163,7 +163,7 @@ class SMTPSender:
         add_header('From', formataddr((mail.from_name, mail.from_mail)))
         add_header('To', ', '.join(mail.recipients))
         add_header('Subject', mail.subject)
-        add_header('Date', format_datetime(dt=datetime.datetime.utcnow()))
+        add_header('Date', format_datetime(dt=datetime.datetime.now(tz=datetime.UTC)))
         add_header('Message-ID', make_msgid(idstring=mail.msg_id, domain=mail.msg_domain))
         add_header('Language', mail.language)
         add_header('Importance', mail.importance)
