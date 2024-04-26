@@ -14,6 +14,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Fixed
 
 - Markdown filter in Jinja uses training backslashes for newlines
+- Use UTC timezone consistently
 
 
 ## [4.5.0]

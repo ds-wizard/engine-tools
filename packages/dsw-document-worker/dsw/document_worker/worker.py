@@ -103,7 +103,7 @@ class Job:
                 job_id=self.doc_uuid,
                 message='Document record not found in database',
             )
-        self.doc.retrieved_at = datetime.datetime.now()
+        self.doc.retrieved_at = datetime.datetime.now(tz=datetime.UTC)
         LOG.info(f'Job "{self.doc_uuid}" details received')
         # verify state
         state = self.doc.state
@@ -215,7 +215,7 @@ class Job:
         doc = self.safe_doc
         final_file = self.safe_final_file
         file_name = DocumentNameGiver.name_document(doc, final_file)
-        doc.finished_at = datetime.datetime.now()
+        doc.finished_at = datetime.datetime.now(tz=datetime.UTC)
         doc.file_name = file_name
         doc.content_type = final_file.content_type
         doc.file_size = final_file.byte_size
