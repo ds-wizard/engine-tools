@@ -20,7 +20,7 @@ setup(
     keywords="pandoc filter docx",
     py_modules=["docx_pagebreak"],
     install_requires=[
-        "panflute==2.3.0",
+        "panflute==2.3.1",
     ],
     entry_points={
         "console_scripts": [

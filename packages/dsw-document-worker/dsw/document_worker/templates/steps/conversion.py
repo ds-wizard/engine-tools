@@ -11,16 +11,27 @@ class WeasyPrintStep(Step):
     OUTPUT_FORMAT = FileFormats.PDF
 
     def __init__(self, template, options: dict):
+        import weasyprint
         super().__init__(template, options)
-        # Render options
-        self.wp_presentational_hints = options.get('render.presentational_hints', 'false').lower() == 'true'
-        self.wp_optimize_size = tuple(options.get('render.optimize_size', 'fonts').split(','))
-        self.wp_forms = options.get('render.forms', 'false').lower() == 'true'
         # PDF options
+        self.wp_options = weasyprint.DEFAULT_OPTIONS
+        self.wp_update_options(options)
         self.wp_zoom = float(options.get('pdf.zoom', '1'))
-        self.wp_variant = options.get('pdf.variant', None)
-        self.wp_version = options.get('pdf.version', None)
-        self.wp_custom_metadata = options.get('pdf.custom_metadata', 'false').lower() == 'true'
+
+    def wp_update_options(self, options: dict):
+        optimize_size = tuple(options.get('render.optimize_size', 'fonts').split(','))
+        self.wp_options.update({
+            'pdf_identifier': options.get('pdf.identifier', 'false').lower() == 'true',
+            'pdf_variant': options.get('pdf.variant', None),
+            'pdf_version': options.get('pdf.version', None),
+            'pdf_forms': options.get('render.forms', 'false').lower() == 'true',
+            'uncompressed_pdf': options.get('pdf.uncompressed', 'false').lower() == 'true',
+            'custom_metadata': options.get('pdf.custom_metadata', 'false').lower() == 'true',
+            'presentational_hints': options.get('render.presentational_hints', 'false').lower() == 'true',
+            'optimize_images': 'images' in optimize_size,
+            'jpeg_quality': int(options.get('render.jpeg_quality', '95')),
+            'dpi': int(options.get('render.dpi', '96')),
+        })
 
     def execute_first(self, context: dict) -> DocumentFile:
         return self.raise_exc(f'Step "{self.NAME}" cannot be first')
@@ -36,18 +47,11 @@ class WeasyPrintStep(Step):
             media_type='print',
             base_url=file_uri.as_uri(),
         )
-        data = wp_html.render(
-            stylesheets=[],  # not used now (should be in CSS)
-            presentational_hints=self.wp_presentational_hints,
-            optimize_size=self.wp_optimize_size,
+        data = wp_html.write_pdf(
+            zoom=self.wp_zoom,
             font_config=None,  # not used now (should be in CSS)
             counter_style=None,  # not used now (should be in CSS)
-            forms=self.wp_forms,
-        ).write_pdf(
-            zoom=self.wp_zoom,
-            variant=self.wp_variant,
-            version=self.wp_version,
-            custom_metadata=self.wp_custom_metadata,
+            options=self.options,
         )
         return DocumentFile(
             file_format=self.OUTPUT_FORMAT,

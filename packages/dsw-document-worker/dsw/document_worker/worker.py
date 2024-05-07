@@ -103,7 +103,7 @@ class Job:
                 job_id=self.doc_uuid,
                 message='Document record not found in database',
             )
-        self.doc.retrieved_at = datetime.datetime.now()
+        self.doc.retrieved_at = datetime.datetime.now(tz=datetime.UTC)
         LOG.info(f'Job "{self.doc_uuid}" details received')
         # verify state
         state = self.doc.state
@@ -215,7 +215,7 @@ class Job:
         doc = self.safe_doc
         final_file = self.safe_final_file
         file_name = DocumentNameGiver.name_document(doc, final_file)
-        doc.finished_at = datetime.datetime.now()
+        doc.finished_at = datetime.datetime.now(tz=datetime.UTC)
         doc.file_name = file_name
         doc.content_type = final_file.content_type
         doc.file_size = final_file.byte_size
@@ -340,11 +340,11 @@ class DocumentWorker(CommandWorker):
             built_at=built_at,
         )
 
-    def run(self):
+    def _run_preparation(self) -> CommandQueue:
         Context.get().app.db.connect()
         # prepare
         self._update_component_info()
-        # work in queue
+        # init queue
         LOG.info('Preparing command queue')
         queue = CommandQueue(
             worker=self,
@@ -353,7 +353,17 @@ class DocumentWorker(CommandWorker):
             component=CMD_COMPONENT,
             timeout=Context.get().app.cfg.db.queue_timout,
         )
+        return queue
+
+    def run(self):
+        LOG.info('Starting document worker (loop)')
+        queue = self._run_preparation()
         queue.run()
+
+    def run_once(self):
+        LOG.info('Starting document worker (once)')
+        queue = self._run_preparation()
+        queue.run_once()
 
     def work(self, cmd: PersistentCommand):
         Context.get().update_trace_id(cmd.uuid)
