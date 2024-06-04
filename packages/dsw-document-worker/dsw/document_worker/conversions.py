@@ -114,7 +114,8 @@ class RdfLibConvert:
 
     def __call__(self, source_format: FileFormat, target_format: FileFormat,
                  data: bytes, metadata: dict) -> bytes:
-        g = rdflib.Graph().parse(
+        g = rdflib.Dataset()
+        g.parse(
             data=data.decode(DEFAULT_ENCODING),
             format=self.FORMATS.get(source_format) or 'turtle',
         )
