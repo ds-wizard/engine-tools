@@ -22,8 +22,7 @@ from .documents import DocumentFile, DocumentNameGiver
 from .exceptions import create_job_exception, JobException
 from .limits import LimitsEnforcer
 from .templates import TemplateRegistry, Template, Format
-from .utils import timeout, JobTimeoutError,\
-    PdfWaterMarker, byte_size_format
+from .utils import timeout, JobTimeoutError, byte_size_format
 
 
 LOG = logging.getLogger(__name__)
@@ -135,14 +134,6 @@ class Job:
         # prepare format
         template.prepare_format(format_uuid)
         self.format = template.formats.get(format_uuid)
-        # check limits (PDF-only)
-        self.tenant_config = self.ctx.app.db.fetch_tenant_config(tenant_uuid=self.tenant_uuid)
-        self.tenant_limits = self.ctx.app.db.fetch_tenant_limits(tenant_uuid=self.tenant_uuid)
-        LimitsEnforcer.check_format(
-            job_id=self.doc_uuid,
-            doc_format=self.safe_format,
-            tenant_config=self.tenant_config,
-        )
         # finalize
         self.template = template
 
@@ -186,12 +177,6 @@ class Job:
             used_size=used_size,
             limit_size=limit_size,
         )
-        # watermark
-        if self.safe_format.is_pdf:
-            final_file.content = LimitsEnforcer.make_watermark(
-                doc_pdf=final_file.content,
-                tenant_config=self.tenant_config,
-            )
         # finalize
         self.final_file = final_file
 
@@ -315,10 +300,6 @@ class DocumentWorker(CommandWorker):
         )
         Context.get().update_trace_id('-')
         Context.get().update_document_id('-')
-        PdfWaterMarker.initialize(
-            watermark_filename=self.config.experimental.pdf_watermark,
-            watermark_top=self.config.experimental.pdf_watermark_top,
-        )
         if self.config.sentry.enabled and self.config.sentry.workers_dsn is not None:
             SentryReporter.initialize(
                 dsn=self.config.sentry.workers_dsn,

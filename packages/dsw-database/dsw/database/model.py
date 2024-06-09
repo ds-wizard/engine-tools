@@ -229,23 +229,10 @@ class DBTenantConfig:
     knowledge_model: Optional[dict]
     questionnaire: Optional[dict]
     submission: Optional[dict]
-    feature: Optional[dict]
     owl: Optional[dict]
     mail_config_uuid: Optional[str]
     created_at: datetime.datetime
     updated_at: datetime.datetime
-
-    @property
-    def feature_pdf_only(self) -> bool:
-        if self.feature is None:
-            return False
-        return self.feature.get('pdfOnlyEnabled', False)
-
-    @property
-    def feature_pdf_watermark(self) -> bool:
-        if self.feature is None:
-            return False
-        return self.feature.get('pdfWatermarkEnabled', False)
 
     @property
     def app_title(self) -> Optional[str]:
@@ -272,7 +259,6 @@ class DBTenantConfig:
             knowledge_model=data.get('knowledge_model', None),
             questionnaire=data.get('questionnaire', None),
             submission=data.get('submission', None),
-            feature=data.get('feature', None),
             owl=data.get('owl', None),
             mail_config_uuid=data.get('mail_config_uuid', None),
             created_at=data['created_at'],

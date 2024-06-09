@@ -1,9 +1,6 @@
-from dsw.database.database import DBTenantConfig
-
 from .context import Context
 from .exceptions import JobException
-from .templates.formats import Format
-from .utils import byte_size_format, PdfWaterMarker
+from .utils import byte_size_format
 
 from typing import Optional
 
@@ -44,24 +41,3 @@ class LimitsEnforcer:
             msg=f'Document generation exceeded time limit '
                 f'({job_timeout} seconds).'
         )
-
-    @staticmethod
-    def check_format(job_id: str, doc_format: Format,
-                     tenant_config: Optional[DBTenantConfig]):
-        pdf_only = Context.get().app.cfg.experimental.pdf_only
-        if tenant_config is not None:
-            pdf_only = pdf_only or tenant_config.feature_pdf_only
-        if not pdf_only or doc_format.is_pdf:
-            return
-        raise JobException(
-            job_id=job_id,
-            msg='Only PDF documents are allowed.'
-        )
-
-    @staticmethod
-    def make_watermark(doc_pdf: bytes,
-                       tenant_config: Optional[DBTenantConfig]) -> bytes:
-        watermark = Context.get().app.cfg.experimental.pdf_watermark
-        if watermark is None or tenant_config is None or not tenant_config.feature_pdf_watermark:
-            return doc_pdf
-        return PdfWaterMarker.create_watermark(doc_pdf=doc_pdf)
