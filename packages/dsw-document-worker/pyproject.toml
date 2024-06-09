@@ -28,7 +28,6 @@ dependencies = [
     'Markdown',
     'MarkupSafe',
     'pathvalidate',
-    'pdfrw',
     'python-dateutil',
     'python-slugify',
     'rdflib',

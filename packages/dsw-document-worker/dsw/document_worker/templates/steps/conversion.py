@@ -58,10 +58,6 @@ class WeasyPrintStep(Step):
             content=data,
         )
 
-    @property
-    def produces_only_pdf(self):
-        return True
-
 
 class PandocStep(Step):
     NAME = 'pandoc'

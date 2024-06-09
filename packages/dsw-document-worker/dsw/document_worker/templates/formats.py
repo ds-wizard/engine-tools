@@ -57,10 +57,6 @@ class Format:
                                         f'- {str(e)}')
         return steps
 
-    @property
-    def is_pdf(self) -> bool:
-        return self.steps[-1].produces_only_pdf
-
     def requires_via_extras(self, requirement: str) -> bool:
         return any(step.requires_via_extras(requirement)
                    for step in self.steps)
