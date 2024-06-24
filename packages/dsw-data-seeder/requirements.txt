@@ -5,8 +5,8 @@ psycopg==3.1.19
 psycopg-binary==3.1.19
 python-dateutil==2.9.0
 PyYAML==6.0.1
-sentry-sdk==2.5.1
+sentry-sdk==2.6.0
 six==1.16.0
-tenacity==8.3.0
+tenacity==8.4.1
 typing_extensions==4.12.2
-urllib3==2.2.1
+urllib3==2.2.2
