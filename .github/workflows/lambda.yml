@@ -101,7 +101,7 @@ jobs:
             suffix=${{ env.DOCKER_META_SUFFIX_LAMBDA }}
 
     - name: Docker build [test]
-      uses: docker/build-push-action@v5
+      uses: docker/build-push-action@v6
       with:
         context: ${{ env.DOCKER_META_CONTEXT }}
         file: ${{ env.DOCKER_META_FILE }}
@@ -132,7 +132,7 @@ jobs:
             suffix=${{ env.DOCKER_META_SUFFIX_LAMBDA }}
 
     - name: Docker build+push [dev]
-      uses: docker/build-push-action@v5
+      uses: docker/build-push-action@v6
       if: github.event_name != 'pull_request' && steps.meta-dev.outputs.tags != ''
       with:
         context: ${{ env.DOCKER_META_CONTEXT }}
@@ -159,7 +159,7 @@ jobs:
             suffix=${{ env.DOCKER_META_SUFFIX_LAMBDA }}
 
     - name: Docker build+push [public]
-      uses: docker/build-push-action@v5
+      uses: docker/build-push-action@v6
       if: github.event_name != 'pull_request' && steps.meta-public.outputs.tags != ''
       with:
         context: ${{ env.DOCKER_META_CONTEXT }}

@@ -3,7 +3,7 @@ from typing import List, Optional, Type
 
 from dsw.config import DSWConfigParser
 from dsw.config.keys import ConfigKey, ConfigKeys, ConfigKeysContainer,\
-    cast_str, cast_optional_int, cast_bool, cast_optional_str
+    cast_str, cast_optional_int
 from dsw.config.model import GeneralConfig, SentryConfig, DatabaseConfig,\
     S3Config, LoggingConfig, CloudConfig, ConfigModel
 
@@ -20,12 +20,6 @@ class _DocumentsKeys(ConfigKeysContainer):
 
 
 class _ExperimentalKeys(ConfigKeysContainer):
-    pdf_only = ConfigKey(
-        yaml_path=['experimental', 'pdfOnly'],
-        var_names=['EXPERIMENTAL_PDF_ONLY'],
-        default=False,
-        cast=cast_bool,
-    )
     job_timeout = ConfigKey(
         yaml_path=['experimental', 'jobTimeout'],
         var_names=['EXPERIMENTAL_JOB_TIMEOUT'],
@@ -37,18 +31,6 @@ class _ExperimentalKeys(ConfigKeysContainer):
         var_names=['EXPERIMENTAL_MAX_DOCUMENT_SIZE'],
         default=None,
         cast=cast_optional_int,
-    )
-    pdf_watermark = ConfigKey(
-        yaml_path=['experimental', 'pdfWatermark'],
-        var_names=['EXPERIMENTAL_PDF_WATERMARK'],
-        default='/home/user/data/watermark.pdf',
-        cast=cast_optional_str,
-    )
-    pdf_watermark_top = ConfigKey(
-        yaml_path=['experimental', 'pdfWatermarkTop'],
-        var_names=['EXPERIMENTAL_PDF_WATERMARK_TOP'],
-        default=True,
-        cast=cast_bool,
     )
 
 
@@ -87,14 +69,10 @@ class DocumentsConfig(ConfigModel):
 
 class ExperimentalConfig(ConfigModel):
 
-    def __init__(self, pdf_only: bool, job_timeout: Optional[int],
-                 max_doc_size: Optional[float],
-                 pdf_watermark: str, pdf_watermark_top: bool):
-        self.pdf_only = pdf_only
+    def __init__(self, job_timeout: Optional[int],
+                 max_doc_size: Optional[float]):
         self.job_timeout = job_timeout
         self.max_doc_size = max_doc_size
-        self.pdf_watermark = pdf_watermark
-        self.pdf_watermark_top = pdf_watermark_top
 
 
 class CommandConfig:
@@ -225,11 +203,8 @@ class DocumentWorkerConfigParser(DSWConfigParser):
     @property
     def experimental(self) -> ExperimentalConfig:
         return ExperimentalConfig(
-            pdf_only=self.get(self.keys.experimental.pdf_only),
             job_timeout=self.get(self.keys.experimental.job_timeout),
             max_doc_size=self.get(self.keys.experimental.max_doc_size),
-            pdf_watermark=self.get(self.keys.experimental.pdf_watermark),
-            pdf_watermark_top=self.get(self.keys.experimental.pdf_watermark_top),
         )
 
     @property
