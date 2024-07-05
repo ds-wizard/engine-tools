@@ -26,6 +26,7 @@ dependencies = [
     'click',
     'dkimpy',
     'Jinja2',
+    'Markdown',
     'pathvalidate',
     'python-dateutil',
     'sentry-sdk',
