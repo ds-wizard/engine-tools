@@ -4,7 +4,10 @@ import jinja2
 import jinja2.sandbox
 import json
 import logging
+import markdown
+import markupsafe
 import pathlib
+import re
 
 from typing import Optional, Union
 
@@ -77,6 +80,8 @@ class TemplateRegistry:
     def _set_filters(self):
         self.j2_env.filters.update({
             'datetime_format': datetime_format,
+            'markdown': xmarkdown,
+            'no_markdown': remove_markdown,
         })
 
     def _load_jinja2(self, file_path: pathlib.Path) -> Optional[jinja2.Template]:
@@ -170,3 +175,61 @@ def datetime_format(iso_timestamp: Union[None, datetime.datetime, str], fmt: str
     if not isinstance(iso_timestamp, datetime.datetime):
         iso_timestamp = dateutil.parser.isoparse(iso_timestamp)
     return iso_timestamp.strftime(fmt)
+
+
+class DSWMarkdownExt(markdown.extensions.Extension):
+    def extendMarkdown(self, md):
+        md.preprocessors.register(DSWMarkdownProcessor(md), 'dsw_markdown', 27)
+        md.registerExtension(self)
+
+
+class DSWMarkdownProcessor(markdown.preprocessors.Preprocessor):
+
+    def __init__(self, md):
+        super().__init__(md)
+        self.LI_RE = re.compile(r'^[ ]*((\d+\.)|[*+-])[ ]+.*')
+
+    def run(self, lines):
+        prev_li = False
+        new_lines = []
+
+        for line in lines:
+            # Add line break before the first list item
+            if self.LI_RE.match(line):
+                if not prev_li:
+                    new_lines.append('')
+                prev_li = True
+            elif line == '':
+                prev_li = False
+
+            # Replace trailing un-escaped backslash with (supported) two spaces
+            _line = line.rstrip('\\')
+            if line[-1:] == '\\' and (len(line) - len(_line)) % 2 == 1:
+                new_lines.append(f'{line[:-1]}  ')
+                continue
+
+            new_lines.append(line)
+
+        return new_lines
+
+
+def xmarkdown(md_text: str):
+    if md_text is None:
+        return ''
+    return markupsafe.Markup(markdown.markdown(
+        text=md_text,
+        extensions=[
+            DSWMarkdownExt(),
+        ]
+    ))
+
+
+def remove_markdown(md_text: str):
+    if md_text is None:
+        return ''
+    return re.sub(r'<[^>]*>', '', markdown.markdown(
+        text=md_text,
+        extensions=[
+            DSWMarkdownExt(),
+        ]
+    ))
