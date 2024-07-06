@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- Updated `instance_mail_config` to support Amazon SES configuration
+
 
 ## [4.8.1]
 

@@ -9,8 +9,6 @@ import markupsafe
 import pathlib
 import re
 
-from typing import Optional, Union
-
 from .config import MailerConfig, MailConfig
 from .consts import DEFAULT_ENCODING
 from .model import MailMessage, MailAttachment, MessageRequest,\
@@ -23,8 +21,8 @@ LOG = logging.getLogger(__name__)
 class MailTemplate:
 
     def __init__(self, name: str, descriptor: TemplateDescriptor,
-                 html_template: Optional[jinja2.Template],
-                 plain_template: Optional[jinja2.Template]):
+                 html_template: jinja2.Template | None,
+                 plain_template: jinja2.Template | None):
         self.name = name
         self.descriptor = descriptor
         self.html_template = html_template
@@ -32,7 +30,7 @@ class MailTemplate:
         self.attachments = list()  # type: list[MailAttachment]
         self.html_images = list()  # type: list[MailAttachment]
 
-    def render(self, rq: MessageRequest, mail_name: Optional[str], mail_from: str) -> MailMessage:
+    def render(self, rq: MessageRequest, mail_name: str | None, mail_from: str) -> MailMessage:
         ctx = rq.ctx
         msg = MailMessage()
         msg.recipients = rq.recipients
@@ -84,7 +82,7 @@ class TemplateRegistry:
             'no_markdown': remove_markdown,
         })
 
-    def _load_jinja2(self, file_path: pathlib.Path) -> Optional[jinja2.Template]:
+    def _load_jinja2(self, file_path: pathlib.Path) -> jinja2.Template | None:
         if file_path.exists() and file_path.is_file():
             return self.j2_env.get_template(
                 name=str(file_path.relative_to(self.workdir).as_posix()),
@@ -93,7 +91,7 @@ class TemplateRegistry:
 
     @staticmethod
     def _load_attachment(template_path: pathlib.Path,
-                         part: TemplateDescriptorPart) -> Optional[MailAttachment]:
+                         part: TemplateDescriptorPart) -> MailAttachment | None:
         file_path = template_path / part.file
         if file_path.exists() and file_path.is_file():
             binary_data = file_path.read_bytes()
@@ -105,7 +103,7 @@ class TemplateRegistry:
         return None
 
     @staticmethod
-    def _load_descriptor(path: pathlib.Path) -> Optional[TemplateDescriptor]:
+    def _load_descriptor(path: pathlib.Path) -> TemplateDescriptor | None:
         if not path.exists() or not path.is_file():
             return None
         try:
@@ -117,7 +115,7 @@ class TemplateRegistry:
             return None
 
     def _load_template(self, path: pathlib.Path,
-                       descriptor: TemplateDescriptor) -> Optional[MailTemplate]:
+                       descriptor: TemplateDescriptor) -> MailTemplate | None:
         html_template = None
         plain_template = None
         attachments = list()
@@ -169,7 +167,7 @@ class TemplateRegistry:
         )
 
 
-def datetime_format(iso_timestamp: Union[None, datetime.datetime, str], fmt: str):
+def datetime_format(iso_timestamp: None | datetime.datetime | str, fmt: str):
     if iso_timestamp is None:
         return ''
     if not isinstance(iso_timestamp, datetime.datetime):

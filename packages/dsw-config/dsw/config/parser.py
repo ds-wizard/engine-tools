@@ -5,7 +5,7 @@ from typing import List, Any, IO
 
 from .keys import ConfigKey, ConfigKeys
 from .model import GeneralConfig, SentryConfig, S3Config, \
-    DatabaseConfig, LoggingConfig, CloudConfig, MailConfig
+    DatabaseConfig, LoggingConfig, CloudConfig, AWSConfig
 
 
 class MissingConfigurationError(Exception):
@@ -129,21 +129,9 @@ class DSWConfigParser:
         )
 
     @property
-    def mail(self):
-        return MailConfig(
-            enabled=self.get(self.keys.mail.enabled),
-            name=self.get(self.keys.mail.name),
-            email=self.get(self.keys.mail.email),
-            host=self.get(self.keys.mail.host),
-            ssl=self.get(self.keys.mail.ssl),
-            port=self.get(self.keys.mail.port),
-            security=self.get(self.keys.mail.security),
-            auth_enabled=self.get(self.keys.mail.auth_enabled),
-            username=self.get(self.keys.mail.username),
-            password=self.get(self.keys.mail.password),
-            rate_limit_window=int(self.get(self.keys.mail.rate_limit_window)),
-            rate_limit_count=int(self.get(self.keys.mail.rate_limit_count)),
-            timeout=int(self.get(self.keys.mail.timeout)),
-            dkim_selector=self.get(self.keys.mail.dkim_selector),
-            dkim_privkey_file=self.get(self.keys.mail.dkim_privkey_file),
+    def aws(self) -> AWSConfig:
+        return AWSConfig(
+            access_key_id=self.get(self.keys.aws.access_key_id),
+            secret_access_key=self.get(self.keys.aws.secret_access_key),
+            region=self.get(self.keys.aws.region),
         )

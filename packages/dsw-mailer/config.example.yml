@@ -1,9 +1,6 @@
 database:
   connectionString: postgresql://postgres:postgres@postgres:5432/engine-wizard
-  stripeSize: 1 # used by SE only
   connectionTimeout: 30000
-  maxConnections: 10 # used by SE only
-  queueTimeout: 500 # used by DW only
 
 s3:
   url: http://minio:9000
@@ -16,29 +13,43 @@ logging:
   globalLevel: WARNING
 
 mail:
+  # enabled: if false = no emails are sent (mailer will not send it, dry run)
+  enabled: true
+  # from (name, email): default sender email address and name
   name:
   email:
-  host:
-  # port: default (empty) = based on security 25/465/587
-  port:
-  # security: plain | ssl | starttls
-  security: starttls
-  authEnabled: False
-  username: ''
-  password: ''
-  # legacy "ssl" flag (if security is missing)
-  #  - true = security: ssl
-  #  - false = security: plain
-  ssl: true
-  # legacy (if false, no emails are sent - dry-run)
-  enabled: true
+  # provider: smtp | amazonSes | none
+  provider: smtp
+  smtp:
+    host:
+    # port: default (empty) = based on security 25/465/587
+    port:
+    # security: plain | ssl | starttls | tls
+    security: starttls
+    username: ''
+    password: ''
+    # SMTP connection timeout (default: 5 seconds)
+    timeout: 5
+  amazonSes:
+    accessKeyId:
+    secretAccessKey:
+    region:
   rateLimit:
     # time windows in seconds, 0=disabled rate limit
     window: 300
     # max number of messages within the window
     count: 10
-  # SMTP connection timeout (default: 5 seconds)
-  timeout: 5
+  dkim:
+    # DKIM key selector
+    selector:
+    # DKIM private key file (path)
+    privkeyFile:
+
+# AWS Configuration used by server (fallback if not provided for mail)
+#aws:
+#  awsAccessKeyId:
+#  awsSecretAccessKey:
+#  awsRegion:
 
 #sentry:
 #  enabled:
