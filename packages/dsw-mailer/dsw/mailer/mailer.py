@@ -6,17 +6,15 @@ import pathlib
 import time
 import urllib.parse
 
-from typing import Optional
-
 from dsw.command_queue import CommandWorker, CommandQueue
 from dsw.config.sentry import SentryReporter
 from dsw.database.database import Database
-from dsw.database.model import PersistentCommand, DBInstanceConfigMail
+from dsw.database.model import PersistentCommand
 
 from .build_info import BUILD_INFO
-from .config import MailerConfig, MailConfig
+from .config import MailerConfig, MailConfig, merge_mail_configs
 from .consts import PROG_NAME
-from .smtp import SMTPSender
+from .sender import send
 from .consts import COMPONENT_NAME, CMD_CHANNEL, CMD_COMPONENT, \
     CMD_FUNCTION
 from .context import Context
@@ -44,7 +42,6 @@ class Mailer(CommandWorker):
             config=self.cfg,
             workdir=workdir,
             db=Database(cfg=self.cfg.db, connect=False),
-            sender=SMTPSender(cfg=self.cfg.mail),
         )
         SentryReporter.initialize(
             dsn=self.cfg.sentry.workers_dsn,
@@ -109,8 +106,9 @@ class Mailer(CommandWorker):
         if tenant_cfg is not None:
             rq.style.from_dict(tenant_cfg.look_and_feel)
         # get mailer config from DB
-        mail_cfg = _transform_mail_config(
-            cfg=app_ctx.db.get_mail_config(tenant_uuid=cmd.tenant_uuid),
+        mail_cfg = merge_mail_configs(
+            cfg=self.cfg,
+            db_cfg=app_ctx.db.get_mail_config(tenant_uuid=cmd.tenant_uuid),
         )
         LOG.debug(f'Mail config from DB: {mail_cfg}')
         # client URL
@@ -127,7 +125,7 @@ class Mailer(CommandWorker):
         LOG.info('Failed with unexpected error', exc_info=e)
         SentryReporter.capture_exception(e)
 
-    def send(self, rq: MessageRequest, cfg: Optional[MailConfig]):
+    def send(self, rq: MessageRequest, cfg: MailConfig):
         LOG.info(f'Sending request: {rq.template_name} ({rq.id})')
         # get template
         if not self.ctx.templates.has_template_for(rq):
@@ -137,30 +135,8 @@ class Mailer(CommandWorker):
         msg = self.ctx.templates.render(rq, cfg)
         # send
         LOG.info(f'Sending message: {rq.template_name}')
-        self.ctx.app.sender.send(msg, cfg)
+        send(msg, cfg)
         LOG.info('Message sent successfully')
-
-
-def _transform_mail_config(cfg: Optional[DBInstanceConfigMail]) -> Optional[MailConfig]:
-    if cfg is None:
-        return None
-    return MailConfig(
-        enabled=cfg.enabled,
-        name=cfg.sender_name,
-        email=cfg.sender_email,
-        host=cfg.host,
-        port=cfg.port,
-        security=cfg.security,
-        username=cfg.username,
-        password=cfg.password,
-        rate_limit_window=cfg.rate_limit_window,
-        rate_limit_count=cfg.rate_limit_count,
-        timeout=cfg.timeout,
-        ssl=None,
-        auth_enabled=None,
-        dkim_privkey_file=None,
-        dkim_selector=None,
-    )
 
 
 class RateLimiter:

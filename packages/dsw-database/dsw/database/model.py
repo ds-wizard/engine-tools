@@ -389,13 +389,17 @@ class DBInstanceConfigMail:
 
     uuid: str
     enabled: bool
+    provider: str
     sender_name: Optional[str]
     sender_email: Optional[str]
-    host: str
-    port: Optional[int]
-    security: Optional[str]
-    username: Optional[str]
-    password: Optional[str]
+    smtp_host: Optional[str]
+    smtp_port: Optional[int]
+    smtp_security: Optional[str]
+    smtp_username: Optional[str]
+    smtp_password: Optional[str]
+    aws_access_key_id: Optional[str]
+    aws_secret_access_key: Optional[str]
+    aws_region: Optional[str]
     rate_limit_window: Optional[int]
     rate_limit_count: Optional[int]
     timeout: Optional[int]
@@ -405,13 +409,17 @@ class DBInstanceConfigMail:
         return DBInstanceConfigMail(
             uuid=str(data['uuid']),
             enabled=data['enabled'],
+            provider=data['provider'],
             sender_name=data['sender_name'],
             sender_email=data['sender_email'],
-            host=data['host'],
-            port=data['port'],
-            security=data['security'],
-            username=data['username'],
-            password=data['password'],
+            smtp_host=data['smtp_host'],
+            smtp_port=data['smtp_port'],
+            smtp_security=data['smtp_security'],
+            smtp_username=data['smtp_username'],
+            smtp_password=data['smtp_password'],
+            aws_access_key_id=data['aws_access_key_id'],
+            aws_secret_access_key=data['aws_secret_access_key'],
+            aws_region=data['aws_region'],
             rate_limit_window=data['rate_limit_window'],
             rate_limit_count=data['rate_limit_count'],
             timeout=data['timeout'],
