@@ -1,60 +1,61 @@
+# pylint: disable=too-few-public-methods
 import collections
-
-from typing import Any, Optional, Generic, TypeVar, Callable
-
-
-T = TypeVar('T')
+import typing
 
 
-def cast_bool(value: Any) -> bool:
+T = typing.TypeVar('T')
+
+
+def cast_bool(value: typing.Any) -> bool:
     return bool(value)
 
 
-def cast_optional_bool(value: Any) -> Optional[bool]:
+def cast_optional_bool(value: typing.Any) -> bool | None:
     if value is None:
         return None
     return bool(value)
 
 
-def cast_int(value: Any) -> int:
+def cast_int(value: typing.Any) -> int:
     return int(value)
 
 
-def cast_optional_int(value: Any) -> Optional[int]:
+def cast_optional_int(value: typing.Any) -> int | None:
     if value is None:
         return None
     return int(value)
 
 
-def cast_float(value: Any) -> float:
+def cast_float(value: typing.Any) -> float:
     return float(value)
 
 
-def cast_optional_float(value: Any) -> Optional[float]:
+def cast_optional_float(value: typing.Any) -> float | None:
     if value is None:
         return None
     return float(value)
 
 
-def cast_str(value: Any) -> str:
+def cast_str(value: typing.Any) -> str:
     return str(value)
 
 
-def cast_optional_str(value: Any) -> Optional[str]:
+def cast_optional_str(value: typing.Any) -> str | None:
     if value is None:
         return None
     return str(value)
 
 
-def cast_optional_dict(value: Any) -> Optional[dict]:
+def cast_optional_dict(value: typing.Any) -> dict | None:
     if not isinstance(value, dict):
         return None
     return value
 
 
-class ConfigKey(Generic[T]):
+class ConfigKey(typing.Generic[T]):
 
-    def __init__(self, yaml_path: list[str], cast: Callable[[Any], T],
+    def __init__(self, *, yaml_path: list[str],
+                 cast: typing.Callable[[typing.Any], T],
                  var_names=None, default=None, required=False):
         self.yaml_path = yaml_path
         self.var_names = var_names or []  # type: list[str]
@@ -63,12 +64,13 @@ class ConfigKey(Generic[T]):
         self.cast = cast
 
     def __str__(self):
-        return 'ConfigKey: ' + '.'.join(self.yaml_path)
+        return f'ConfigKey: {".".join(self.yaml_path)}'
 
 
 class ConfigKeysMeta(type):
 
     @classmethod
+    # pylint: disable-next=unused-argument
     def __prepare__(mcs, name, bases, **kwargs):
         return collections.OrderedDict()
 

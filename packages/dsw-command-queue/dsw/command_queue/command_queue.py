@@ -1,13 +1,14 @@
 import abc
 import datetime
-import func_timeout
 import logging
 import os
 import platform
-import psycopg
-import psycopg.generators
 import select
 import signal
+
+import func_timeout
+import psycopg
+import psycopg.generators
 import tenacity
 
 from dsw.database import Database
@@ -22,22 +23,11 @@ RETRY_QUERY_TRIES = 3
 RETRY_QUEUE_MULTIPLIER = 0.5
 RETRY_QUEUE_TRIES = 5
 
-INTERRUPTED = False
 IS_LINUX = platform == 'Linux'
 
 if IS_LINUX:
     _QUEUE_PIPE_R, _QUEUE_PIPE_W = os.pipe()
     signal.set_wakeup_fd(_QUEUE_PIPE_W)
-
-
-def signal_handler(recv_signal, frame):
-    global INTERRUPTED
-    LOG.warning(f'Received interrupt signal: {recv_signal}')
-    INTERRUPTED = True
-
-
-signal.signal(signal.SIGINT, signal_handler)
-signal.signal(signal.SIGABRT, signal_handler)
 
 
 class CommandJobError(BaseException):
@@ -56,8 +46,7 @@ class CommandJobError(BaseException):
     def log_message(self):
         if self.exc is None:
             return self.message
-        else:
-            return f'{self.message} (caused by: [{type(self.exc).__name__}] {str(self.exc)})'
+        return f'{self.message} (caused by: [{type(self.exc).__name__}] {str(self.exc)})'
 
     def db_message(self):
         if self.exc is None:
@@ -82,7 +71,7 @@ class CommandJobError(BaseException):
 class CommandWorker:
 
     @abc.abstractmethod
-    def work(self, payload: PersistentCommand):
+    def work(self, command: PersistentCommand):
         pass
 
     def process_timeout(self, e: BaseException):
@@ -94,7 +83,7 @@ class CommandWorker:
 
 class CommandQueue:
 
-    def __init__(self, worker: CommandWorker, db: Database,
+    def __init__(self, *, worker: CommandWorker, db: Database,
                  channel: str, component: str, wait_timeout: float,
                  work_timeout: int | None = None):
         self.worker = worker
@@ -105,6 +94,10 @@ class CommandQueue:
         )
         self.wait_timeout = wait_timeout
         self.work_timeout = work_timeout
+        self._interrupted = False
+
+        signal.signal(signal.SIGINT, self._signal_handler)
+        signal.signal(signal.SIGABRT, self._signal_handler)
 
     @tenacity.retry(
         reraise=True,
@@ -131,19 +124,19 @@ class CommandQueue:
             LOG.debug('Waiting for notifications')
             w = select.select(fds, [], [], self.wait_timeout)
 
-            if INTERRUPTED:
+            if self._interrupted:
                 LOG.debug('Interrupt signal received, ending...')
                 break
 
             if w == ([], [], []):
-                LOG.debug(f'Nothing received in this cycle '
-                          f'(timeouted after {self.wait_timeout} seconds)')
+                LOG.debug('Nothing received in this cycle (timeout %s seconds)',
+                          self.wait_timeout)
             else:
                 notifications = 0
                 for n in psycopg.generators.notifies(queue_conn.connection.pgconn):
                     notifications += 1
                     LOG.debug(str(n))
-                LOG.info(f'Notifications received ({notifications} in total)')
+                LOG.info('Notifications received (%s in total)', notifications)
         LOG.debug('Exiting command queue')
 
     @tenacity.retry(
@@ -162,11 +155,12 @@ class CommandQueue:
         count = 0
         while self.fetch_and_process():
             count += 1
-        LOG.info(f'There are no more commands to process ({count} processed)')
+        LOG.info('There are no more commands to process (%s processed)',
+                 count)
 
     def accept_notification(self, payload: psycopg.Notify) -> bool:
-        LOG.debug(f'Accepting notification from channel "{payload.channel}" '
-                  f'(PID = {payload.pid}) {payload.payload}')
+        LOG.debug('Accepting notification from channel "%s" (PID = %s) %s',
+                  payload.channel, payload.pid, payload.payload)
         LOG.debug('Trying to fetch a new job')
         return self.fetch_and_process()
 
@@ -178,16 +172,25 @@ class CommandQueue:
         )
         result = cursor.fetchall()
         if len(result) != 1:
-            LOG.debug(f'Fetched {len(result)} persistent commands')
+            LOG.debug('Fetched %s persistent commands', len(result))
             return False
 
         command = PersistentCommand.from_dict_row(result[0])
-        LOG.info(f'Retrieved persistent command {command.uuid} for processing')
-        LOG.debug(f'Previous state: {command.state}')
-        LOG.debug(f'Attempts: {command.attempts} / {command.max_attempts}')
-        LOG.debug(f'Last error: {command.last_error_message}')
-        attempt_number = command.attempts + 1
+        LOG.info('Retrieved persistent command %s for processing', command.uuid)
+        LOG.debug('Previous state: %s', command.state)
+        LOG.debug('Attempts: %s / %s', command.attempts, command.max_attempts)
+        LOG.debug('Last error: %s', command.last_error_message)
 
+        self._process(command)
+
+        LOG.debug('Committing transaction')
+        self.db.conn_query.connection.commit()
+        cursor.close()
+        LOG.info('Notification processing finished')
+        return True
+
+    def _process(self, command: PersistentCommand):
+        attempt_number = command.attempts + 1
         try:
             self.db.execute_query(
                 query=self.queries.query_command_start(),
@@ -204,7 +207,8 @@ class CommandQueue:
                 LOG.info('Processing (without any timeout set)')
                 work()
             else:
-                LOG.info(f'Processing (with timeout set to {self.work_timeout} seconds)')
+                LOG.info('Processing (with timeout set to %s seconds)',
+                         self.work_timeout)
                 func_timeout.func_timeout(
                     timeout=self.work_timeout,
                     func=work,
@@ -260,8 +264,7 @@ class CommandQueue:
                 uuid=command.uuid,
             )
 
-        LOG.debug('Committing transaction')
-        self.db.conn_query.connection.commit()
-        cursor.close()
-        LOG.info('Notification processing finished')
-        return True
+    def _signal_handler(self, recv_signal, frame):
+        LOG.warning('Received interrupt signal: %s (frame: %s)',
+                    recv_signal, frame)
+        self._interrupted = True

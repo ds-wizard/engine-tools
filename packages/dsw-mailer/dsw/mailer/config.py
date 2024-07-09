@@ -1,3 +1,4 @@
+import dataclasses
 import enum
 import pathlib
 
@@ -10,6 +11,7 @@ from dsw.config.model import GeneralConfig, SentryConfig, \
 from dsw.database.model import DBInstanceConfigMail
 
 
+# pylint: disable-next=too-few-public-methods
 class _ExperimentalKeys(ConfigKeysContainer):
     job_timeout = ConfigKey(
         yaml_path=['experimental', 'jobTimeout'],
@@ -19,12 +21,12 @@ class _ExperimentalKeys(ConfigKeysContainer):
     )
 
 
+@dataclasses.dataclass
 class ExperimentalConfig(ConfigModel):
-
-    def __init__(self, job_timeout: int | None):
-        self.job_timeout = job_timeout
+    job_timeout: int | None
 
 
+# pylint: disable-next=too-few-public-methods
 class _MailKeys(ConfigKeysContainer):
     enabled = ConfigKey(
         yaml_path=['mail', 'enabled'],
@@ -76,6 +78,7 @@ class _MailKeys(ConfigKeysContainer):
     )
 
 
+# pylint: disable-next=too-few-public-methods
 class _MailLegacySMTPKeys(ConfigKeysContainer):
     host = ConfigKey(
         yaml_path=['mail', 'host'],
@@ -121,6 +124,7 @@ class _MailLegacySMTPKeys(ConfigKeysContainer):
     )
 
 
+# pylint: disable-next=too-few-public-methods
 class _MailSMTPKeys(ConfigKeysContainer):
     host = ConfigKey(
         yaml_path=['mail', 'smtp', 'host'],
@@ -156,6 +160,7 @@ class _MailSMTPKeys(ConfigKeysContainer):
     )
 
 
+# pylint: disable-next=too-few-public-methods
 class _MailAmazonSESKeys(ConfigKeysContainer):
     access_key_id = ConfigKey(
         yaml_path=['mail', 'amazonSes', 'accessKeyId'],
@@ -174,6 +179,7 @@ class _MailAmazonSESKeys(ConfigKeysContainer):
     )
 
 
+# pylint: disable-next=too-few-public-methods
 class MailerConfigKeys(ConfigKeys):
     mail = _MailKeys
     mail_legacy_smtp = _MailLegacySMTPKeys
@@ -204,7 +210,7 @@ class MailProvider(enum.Enum):
 
 class MailSMTPConfig:
 
-    def __init__(self, host: str | None = None, port: int | None = None,
+    def __init__(self, *, host: str | None = None, port: int | None = None,
                  security: str | None = None, ssl: bool | None = None,
                  username: str | None = None, password: str | None = None,
                  auth_enabled: bool | None = None, timeout: int = 10):
@@ -253,14 +259,11 @@ class MailSMTPConfig:
         return self.username is not None and self.password is not None
 
 
+@dataclasses.dataclass
 class MailAmazonSESConfig:
-
-    def __init__(self, access_key_id: str | None = None,
-                 secret_access_key: str | None = None,
-                 region: str | None = None):
-        self.access_key_id = access_key_id
-        self.secret_access_key = secret_access_key
-        self.region = region
+    access_key_id: str | None = None
+    secret_access_key: str | None = None
+    region: str | None = None
 
     def has_credentials(self) -> bool:
         return self.access_key_id is not None and self.secret_access_key is not None
@@ -268,7 +271,8 @@ class MailAmazonSESConfig:
 
 class MailConfig(ConfigModel):
 
-    def __init__(self, enabled: bool, name: str, email: str,
+    # pylint: disable-next=too-many-arguments
+    def __init__(self, *, enabled: bool, name: str, email: str,
                  provider: str, smtp: MailSMTPConfig, amazon_ses: MailAmazonSESConfig,
                  rate_limit_window: int, rate_limit_count: int,
                  dkim_selector: str | None = None, dkim_privkey_file: str | None = None):
@@ -322,7 +326,7 @@ class MailConfig(ConfigModel):
 
 class MailerConfig:
 
-    def __init__(self, db: DatabaseConfig, log: LoggingConfig,
+    def __init__(self, *, db: DatabaseConfig, log: LoggingConfig,
                  mail: MailConfig, sentry: SentryConfig,
                  general: GeneralConfig, aws: AWSConfig,
                  experimental: ExperimentalConfig):

@@ -1,7 +1,7 @@
+import typing
+
 import pathvalidate
 import slugify
-
-from typing import Optional
 
 from dsw.database.database import DBDocument
 
@@ -63,8 +63,16 @@ class FileFormats:
     TAR_GZIP = FileFormat('gzip', 'application/gzip', 'tar.gz')
     TAR_BZIP2 = FileFormat('bzip2', 'application/x-bzip2', 'tar.bz2')
     TAR_LZMA = FileFormat('lzma', 'application/x-lzma', 'tar.xz')
-    XLSX = FileFormat('xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'xlsx')
-    XLSM = FileFormat('xlsm', '	application/vnd.ms-excel.sheet.macroEnabled.12', 'xlsm')
+    XLSX = FileFormat(
+        'xlsx',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'xlsx',
+    )
+    XLSM = FileFormat(
+        'xlsm',
+        'application/vnd.ms-excel.sheet.macroEnabled.12',
+        'xlsm',
+    )
 
     @staticmethod
     def get(name: str):
@@ -107,7 +115,7 @@ class FileFormats:
 class DocumentFile:
 
     def __init__(self, file_format: FileFormat, content: bytes,
-                 encoding: Optional[str] = None):
+                 encoding: str | None = None):
         self.file_format = file_format
         self._content = content
         self.byte_size = len(content)
@@ -164,8 +172,8 @@ def _name_slugify(document: DBDocument) -> str:
 
 class DocumentNameGiver:
 
-    _FALLBACK = _name_uuid
-    _STRATEGIES = {
+    _FALLBACK: typing.Callable[[DBDocument], str] = _name_uuid
+    _STRATEGIES: dict[str, typing.Callable[[DBDocument], str]] = {
         DocumentNamingStrategy.UUID: _name_uuid,
         DocumentNamingStrategy.SANITIZE: _name_sanitize,
         DocumentNamingStrategy.SLUGIFY: _name_slugify,

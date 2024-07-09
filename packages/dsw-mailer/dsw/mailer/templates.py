@@ -1,17 +1,18 @@
 import datetime
-import dateutil.parser
-import jinja2
-import jinja2.sandbox
 import json
 import logging
-import markdown
-import markupsafe
 import pathlib
 import re
 
+import dateutil.parser
+import jinja2
+import jinja2.sandbox
+import markdown
+import markupsafe
+
 from .config import MailerConfig, MailConfig
 from .consts import DEFAULT_ENCODING
-from .model import MailMessage, MailAttachment, MessageRequest,\
+from .model import MailMessage, MailAttachment, MessageRequest, \
     TemplateDescriptor, TemplateDescriptorPart
 
 
@@ -27,8 +28,8 @@ class MailTemplate:
         self.descriptor = descriptor
         self.html_template = html_template
         self.plain_template = plain_template
-        self.attachments = list()  # type: list[MailAttachment]
-        self.html_images = list()  # type: list[MailAttachment]
+        self.attachments: list[MailAttachment] = []
+        self.html_images: list[MailAttachment] = []
 
     def render(self, rq: MessageRequest, mail_name: str | None, mail_from: str) -> MailMessage:
         ctx = rq.ctx
@@ -71,7 +72,7 @@ class TemplateRegistry:
             loader=jinja2.FileSystemLoader(searchpath=workdir),
             extensions=['jinja2.ext.do'],
         )
-        self.templates = dict()  # type: dict[str, MailTemplate]
+        self.templates: dict[str, MailTemplate] = {}
         self._set_filters()
         self._load_templates()
 
@@ -110,16 +111,16 @@ class TemplateRegistry:
             data = json.loads(path.read_text(encoding=DEFAULT_ENCODING))
             return TemplateDescriptor.load_from_file(data)
         except Exception as e:
-            LOG.warning(f'Cannot load template descriptor at {str(path)}'
-                        f'due to: {str(e)}')
+            LOG.warning('Cannot load template descriptor at %s: %s',
+                        path.as_posix(), str(e))
             return None
 
     def _load_template(self, path: pathlib.Path,
                        descriptor: TemplateDescriptor) -> MailTemplate | None:
         html_template = None
         plain_template = None
-        attachments = list()
-        html_images = list()
+        attachments = []
+        html_images = []
         for part in descriptor.parts:
             if part.type == 'html':
                 html_template = self._load_jinja2(path / part.file)
@@ -130,8 +131,8 @@ class TemplateRegistry:
             elif part.type == 'html_image':
                 html_images.append(self._load_attachment(path, part))
         if html_template is None and plain_template is None:
-            LOG.warning(f'Template "{descriptor.id}" from {str(path)}'
-                        f'does not have HTML nor Plain part - skipping')
+            LOG.warning('Template "%s" from %s has no HTML nor Plain part - skipping',
+                        descriptor.id, path.as_posix())
             return None
         template = MailTemplate(
             name=path.name,
@@ -152,11 +153,12 @@ class TemplateRegistry:
             template = self._load_template(path, descriptor)
             if template is None:
                 continue
-            LOG.info(f'Loaded template "{descriptor.id}" from {str(path)}')
+            LOG.info('Loaded template "%s" from %s',
+                     descriptor.id, path.as_posix())
             self.templates[descriptor.id] = template
 
     def has_template_for(self, rq: MessageRequest) -> bool:
-        return rq.template_name in self.templates.keys()
+        return rq.template_name in self.templates
 
     def render(self, rq: MessageRequest, cfg: MailConfig) -> MailMessage:
         used_cfg = cfg or self.cfg.mail
@@ -183,9 +185,10 @@ class DSWMarkdownExt(markdown.extensions.Extension):
 
 class DSWMarkdownProcessor(markdown.preprocessors.Preprocessor):
 
+    LI_RE = re.compile(r'^[ ]*((\d+\.)|[*+-])[ ]+.*')
+
     def __init__(self, md):
         super().__init__(md)
-        self.LI_RE = re.compile(r'^[ ]*((\d+\.)|[*+-])[ ]+.*')
 
     def run(self, lines):
         prev_li = False

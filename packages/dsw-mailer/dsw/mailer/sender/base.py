@@ -1,14 +1,14 @@
 import abc
 import datetime
-import dkim
 import logging
-import pathvalidate
 
 from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import formataddr, format_datetime, make_msgid
+
+import pathvalidate
 
 from ..config import MailConfig
 from ..consts import DEFAULT_ENCODING
@@ -71,6 +71,9 @@ class BaseMailSender(abc.ABC):
             add_header('Priority', mail.priority)
 
         if self.cfg.dkim_selector and self.cfg.dkim_privkey:
+            # pylint: disable=import-outside-toplevel
+            import dkim  # type: ignore
+
             sender_domain = mail.from_mail.split('@')[-1]
             signature = dkim.sign(
                 message=msg.as_bytes(),
@@ -147,4 +150,3 @@ class NoProviderSender(BaseMailSender):
 
     def send(self, message: MailMessage):
         LOG.info('No provider configured, not sending anything')
-        return

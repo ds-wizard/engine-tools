@@ -1,27 +1,26 @@
+# pylint: disable=too-many-arguments, too-many-locals, too-many-lines
 from .events import _KMEvent, Event
-
-from typing import Optional
 
 
 class Package:
 
-    def __init__(self, km_id: str, org_id: str, version: str, name: str,
-                 metamodel_version: int, description: str, license: str,
-                 readme: str, created_at: str, fork_pkg_id: Optional[str],
-                 merge_pkg_id: Optional[str], prev_pkg_id: Optional[str]):
+    def __init__(self, *, km_id: str, org_id: str, version: str, name: str,
+                 metamodel_version: int, description: str, pkg_license: str,
+                 readme: str, created_at: str, fork_pkg_id: str | None,
+                 merge_pkg_id: str | None, prev_pkg_id: str | None):
         self.km_id = km_id
         self.org_id = org_id
         self.version = version
         self.name = name
         self.metamodel_version = metamodel_version
         self.description = description
-        self.license = license
+        self.license = pkg_license
         self.readme = readme
         self.created_at = created_at
         self.fork_pkg_id = fork_pkg_id
         self.merge_pkg_id = merge_pkg_id
         self.prev_pkg_id = prev_pkg_id
-        self.events = list()  # type: list[_KMEvent]
+        self.events: list[_KMEvent] = []
 
     @property
     def id(self):
@@ -54,7 +53,7 @@ class Package:
             metamodel_version=data['metamodelVersion'],
             name=data['name'],
             description=data['description'],
-            license=data['license'],
+            pkg_license=data['license'],
             readme=data['readme'],
             created_at=data['createdAt'],
             fork_pkg_id=data['forkOfPackageId'],
@@ -68,14 +67,14 @@ class Package:
 
 class PackageBundle:
 
-    def __init__(self, km_id: str, org_id: str, version: str, name: str,
+    def __init__(self, *, km_id: str, org_id: str, version: str, name: str,
                  metamodel_version: int):
         self.km_id = km_id
         self.org_id = org_id
         self.version = version
         self.name = name
         self.metamodel_version = metamodel_version
-        self.packages = list()  # type: list[Package]
+        self.packages: list[Package] = []
 
     @property
     def id(self):

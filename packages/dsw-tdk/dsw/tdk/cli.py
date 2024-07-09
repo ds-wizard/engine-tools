@@ -1,17 +1,17 @@
+# pylint: disable=too-many-positional-arguments
 import asyncio
-import signal
-
-import click  # type: ignore
 import datetime
-import dotenv
-import humanize  # type: ignore
 import logging
 import mimetypes
 import pathlib
-import slugify
-import watchfiles  # type: ignore
+import signal
+import sys
 
-from typing import Dict
+import click
+import dotenv
+import humanize
+import slugify
+import watchfiles
 
 from .api_client import DSWCommunicationError
 from .core import TDKCore, TDKProcessingError
@@ -43,7 +43,7 @@ class ClickPrinter:
 
     @staticmethod
     def warning(message: str, **kwargs):
-        click.secho('WARNING', fg='yellow', bold=True, nl=False)
+        click.secho('WARNING', fg='yellow', bold=True, nl=False, **kwargs)
         click.echo(f': {message}')
 
     @staticmethod
@@ -62,7 +62,8 @@ class ClickPrinter:
         click.echo(f': {message}')
 
     @classmethod
-    def watch_change(cls, change_type: watchfiles.Change, filepath: pathlib.Path, root: pathlib.Path):
+    def watch_change(cls, change_type: watchfiles.Change, filepath: pathlib.Path,
+                     root: pathlib.Path):
         timestamp = datetime.datetime.now().isoformat(timespec='milliseconds')
         sign = cls.CHANGE_SIGNS[change_type]
         click.secho('WATCH', fg='blue', bold=True, nl=False)
@@ -93,10 +94,12 @@ def print_template_info(template: Template):
         click.echo(f' - {tfile.filename.as_posix()} [{filesize}]')
 
 
+# pylint: disable-next=unused-argument
 def rectify_url(ctx, param, value) -> str:
     return value.rstrip('/')
 
 
+# pylint: disable-next=unused-argument
 def rectify_key(ctx, param, value) -> str:
     return value.strip()
 
@@ -130,7 +133,7 @@ class ClickLogger(logging.Logger):
         name = logging.getLevelName(level)  # type: str
         if justify:
             name = name.ljust(8, ' ')
-        if self.colors and level in self.LEVEL_STYLES.keys():
+        if self.colors and level in self.LEVEL_STYLES:
             name = self.LEVEL_STYLES[level](name)
         return name
 
@@ -143,6 +146,7 @@ class ClickLogger(logging.Logger):
             click.echo(self._format_level(level, justify=self.show_timestamp) + sep, nl=False)
         click.echo(message)
 
+    # pylint: disable-next=unused-argument
     def _log(self, level, msg, *args, **kwargs):
         if not self.muted:
             # super()._log(level, msg, args, exc_info, extra, stack_info, stacklevel)
@@ -165,9 +169,9 @@ class AliasedGroup(click.Group):
                    if x.startswith(cmd_name)]
         if not matches:
             return None
-        elif len(matches) == 1:
+        if len(matches) == 1:
             return click.Group.get_command(self, ctx, matches[0])
-        ctx.fail('Too many matches: %s' % ', '.join(sorted(matches)))
+        return ctx.fail(f'Too many matches: {", ".join(sorted(matches))}')
 
 
 class CLIContext:
@@ -184,21 +188,26 @@ class CLIContext:
         self.logger.muted = True
 
 
-def interact_formats() -> Dict[str, FormatSpec]:
+def interact_formats() -> dict[str, FormatSpec]:
     add_format = click.confirm('Do you want to add a format?', default=True)
-    formats = dict()  # type: Dict[str, FormatSpec]
+    formats: dict[str, FormatSpec] = {}
     while add_format:
         format_spec = FormatSpec()
         prompt_fill('Format name', obj=format_spec, attr='name', default='HTML')
-        if format_spec.name not in formats.keys() or click.confirm(
+        if format_spec.name not in formats or click.confirm(
                 'There is already a format with this name. Do you want to change it?'
         ):
             prompt_fill('File extension', obj=format_spec, attr='file_extension',
                         default=format_spec.name.lower() if ' ' not in format_spec.name else None)
             prompt_fill('Content type', obj=format_spec, attr='content_type',
                         default=mimetypes.types_map.get(f'.{format_spec.file_extension}', None))
-            default_filename = str(pathlib.Path('src') / f'template.{format_spec.file_extension}.j2')
-            prompt_fill('Jinja2 filename', obj=format_spec, attr='filename', default=default_filename)
+            t_path = pathlib.Path('src') / f'template.{format_spec.file_extension}.j2'
+            prompt_fill(
+                text='Jinja2 filename',
+                obj=format_spec,
+                attr='filename',
+                default=str(t_path),
+            )
             formats[format_spec.name] = format_spec
         click.echo('=' * 60)
         add_format = click.confirm('Do you want to add yet another format?', default=False)
@@ -208,10 +217,14 @@ def interact_formats() -> Dict[str, FormatSpec]:
 def interact_builder(builder: TemplateBuilder):
     prompt_fill('Template name', obj=builder, attr='name')
     prompt_fill('Organization ID', obj=builder, attr='organization_id')
-    prompt_fill('Template ID', obj=builder, attr='template_id', default=slugify.slugify(builder.name))
-    prompt_fill('Version', obj=builder, attr='version', default='0.1.0')
-    prompt_fill('Description', obj=builder, attr='description', default='My custom template')
-    prompt_fill('License', obj=builder, attr='license', default='CC0')
+    prompt_fill('Template ID', obj=builder, attr='template_id',
+                default=slugify.slugify(builder.name))
+    prompt_fill('Version', obj=builder, attr='version',
+                default='0.1.0')
+    prompt_fill('Description', obj=builder, attr='description',
+                default='My custom template')
+    prompt_fill('License', obj=builder, attr='license',
+                default='CC0')
     click.echo('=' * 60)
     formats = interact_formats()
     for format_spec in formats.values():
@@ -224,19 +237,16 @@ def load_local(tdk: TDKCore, template_dir: pathlib.Path):
     except Exception as e:
         ClickPrinter.failure('Could not load local template')
         ClickPrinter.error(f'> {e}')
-        exit(1)
+        sys.exit(1)
 
 
 def dir_from_id(template_id: str) -> pathlib.Path:
     return pathlib.Path.cwd() / template_id.replace(':', '_')
 
 
-#############################################################################################################
-
-
 @click.group(cls=AliasedGroup)
-@click.option('-e', '--dot-env', default='.env', required=False, show_default=True,
-              type=click.Path(file_okay=True, dir_okay=False),
+@click.option('-e', '--dot-env', default='.env', required=False,
+              show_default=True, type=click.Path(file_okay=True, dir_okay=False),
               help='Provide file with environment variables.')
 @click.option('-q', '--quiet', is_flag=True,
               help='Hide additional information logs.')
@@ -266,7 +276,7 @@ def new_template(ctx, template_dir, force):
     except Exception:
         click.echo('')
         ClickPrinter.failure('Exited...')
-        exit(1)
+        sys.exit(1)
     tdk = TDKCore(template=builder.build(), logger=ctx.obj.logger)
     template_dir = template_dir or dir_from_id(tdk.safe_template.id)
     tdk.prepare_local(template_dir=template_dir)
@@ -276,7 +286,7 @@ def new_template(ctx, template_dir, force):
     except Exception as e:
         ClickPrinter.failure('Could not create new template project')
         ClickPrinter.error(f'> {e}')
-        exit(1)
+        sys.exit(1)
 
 
 @main.command(help='Download template from Wizard.', name='get')
@@ -309,30 +319,32 @@ def get_template(ctx, api_url, template_id, template_dir, api_key, force):
             ClickPrinter.error('Could not get template:', bold=True)
             ClickPrinter.error(f'> {e.reason}\n> {e.message}')
             await tdk.safe_client.close()
-            exit(1)
+            sys.exit(1)
         await tdk.safe_client.safe_close()
         if template_type == 'draft':
             tdk.prepare_local(template_dir=template_dir)
             try:
                 tdk.store_local(force=force)
-                ClickPrinter.success(f'Template draft {template_id} downloaded to {template_dir}')
+                ClickPrinter.success(f'Template draft {template_id} '
+                                     f'downloaded to {template_dir}')
             except Exception as e:
                 ClickPrinter.failure('Could not store template locally')
                 ClickPrinter.error(f'> {e}')
                 await tdk.safe_client.close()
-                exit(1)
+                sys.exit(1)
         elif template_type == 'bundle' and zip_data is not None:
             try:
                 tdk.extract_package(zip_data=zip_data, template_dir=template_dir, force=force)
-                ClickPrinter.success(f'Template {template_id} (released) downloaded to {template_dir}')
+                ClickPrinter.success(f'Template {template_id} (released) '
+                                     f'downloaded to {template_dir}')
             except Exception as e:
                 ClickPrinter.failure('Could not store template locally')
                 ClickPrinter.error(f'> {e}')
                 await tdk.safe_client.close()
-                exit(1)
+                sys.exit(1)
         else:
             ClickPrinter.failure(f'{template_id} is not released nor draft of a document template')
-            exit(1)
+            sys.exit(1)
 
     loop = asyncio.get_event_loop()
     loop.run_until_complete(main_routine())
@@ -345,8 +357,10 @@ def get_template(ctx, api_url, template_id, template_dir, api_key, force):
 @click.option('-k', '--api-key', metavar='API-KEY', envvar='DSW_API_KEY',
               prompt='API Key', help='API key for Wizard instance.', callback=rectify_key,
               hide_input=True)
-@click.option('-f', '--force', is_flag=True, help='Delete template if already exists.')
-@click.option('-w', '--watch', is_flag=True, help='Enter watch mode to continually upload changes.')
+@click.option('-f', '--force', is_flag=True,
+              help='Delete template if already exists.')
+@click.option('-w', '--watch', is_flag=True,
+              help='Enter watch mode to continually upload changes.')
 @click.pass_context
 def put_template(ctx, api_url, template_dir, api_key, force, watch):
     tdk = TDKCore(logger=ctx.obj.logger)
@@ -380,7 +394,7 @@ def put_template(ctx, api_url, template_dir, api_key, force, watch):
             ClickPrinter.failure('Could not upload template')
             ClickPrinter.error(f'> {e.message}\n> {e.hint}')
             await tdk.safe_client.safe_close()
-            exit(1)
+            sys.exit(1)
         except DSWCommunicationError as e:
             ClickPrinter.failure('Could not upload template')
             ClickPrinter.error(f'> {e.reason}\n> {e.message}')
@@ -388,8 +402,9 @@ def put_template(ctx, api_url, template_dir, api_key, force, watch):
                                'or template already exists...')
             ClickPrinter.error('> Check if you are using the matching version')
             await tdk.safe_client.safe_close()
-            exit(1)
+            sys.exit(1)
 
+    # pylint: disable-next=unused-argument
     def set_stop_event(signum, frame):
         signame = signal.Signals(signum).name
         ClickPrinter.warning(f'Got {signame}, finishing... Bye!')
@@ -417,7 +432,7 @@ def create_package(ctx, template_dir, output, force: bool):
     except Exception as e:
         ClickPrinter.failure('Failed to create the package')
         ClickPrinter.error(f'> {e}')
-        exit(1)
+        sys.exit(1)
     filename = click.style(output, bold=True)
     ClickPrinter.success(f'Package {filename} created')
 
@@ -440,7 +455,7 @@ def extract_package(ctx, template_package, output, force: bool):
     except Exception as e:
         ClickPrinter.failure('Failed to extract the package')
         ClickPrinter.error(f'> {e}')
-        exit(1)
+        sys.exit(1)
     ClickPrinter.success(f'Package {template_package} extracted')
 
 
@@ -484,7 +499,7 @@ def list_templates(ctx, api_url, api_key, output_format: str,
             ClickPrinter.failure('Failed to get list of templates')
             ClickPrinter.error(f'> {e.reason}\n> {e.message}')
             await tdk.safe_client.safe_close()
-            exit(1)
+            sys.exit(1)
 
     loop = asyncio.get_event_loop()
     loop.run_until_complete(main_routine())
@@ -529,4 +544,4 @@ def create_dot_env(ctx, template_dir, api_url, api_key, force):
     except Exception as e:
         ClickPrinter.failure('Failed to create dot-env file')
         ClickPrinter.error(f'> {e}')
-        exit(1)
+        sys.exit(1)

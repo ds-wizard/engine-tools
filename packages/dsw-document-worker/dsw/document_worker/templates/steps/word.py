@@ -1,67 +1,28 @@
 import pathlib
-import jinja2
 import shutil
 import zipfile
 
-from typing import Any, Optional
+import jinja2
 
 from ...consts import DEFAULT_ENCODING
-from ...context import Context
 from ...documents import DocumentFile, FileFormats
-from .base import Step, register_step, TMP_DIR
+from .base import register_step, TMP_DIR
+from .template import JinjaPoweredStep
 
 
-class EnrichDocxStep(Step):
+class EnrichDocxStep(JinjaPoweredStep):
     NAME = 'enrich-docx'
     INPUT_FORMAT = FileFormats.DOCX
     OUTPUT_FORMAT = FileFormats.DOCX
-
-    def _jinja_exception_msg(self, e: jinja2.exceptions.TemplateSyntaxError):
-        lines = [
-            'Failed loading Jinja2 template due to syntax error:',
-            f'- {e.message}',
-            f'- Filename: {e.name}',
-            f'- Line number: {e.lineno}',
-        ]
-        return '\n'.join(lines)
 
     def __init__(self, template, options: dict):
         super().__init__(template, options)
         self.rewrites = {k[8:]: v
                          for k, v in options.items()
                          if k.startswith('rewrite:')}
-        # TODO: shared part with Jinja2Step
-        try:
-            self.j2_env = jinja2.Environment(
-                loader=jinja2.FileSystemLoader(searchpath=template.template_dir),
-                extensions=['jinja2.ext.do'],
-            )
-            self._add_j2_enhancements()
-        except jinja2.exceptions.TemplateSyntaxError as e:
-            self.raise_exc(self._jinja_exception_msg(e))
-        except Exception as e:
-            self.raise_exc(f'Failed loading Jinja2 template: {e}')
-
-    def _add_j2_enhancements(self):
-        # TODO: shared part with Jinja2Step
-        from ..filters import filters
-        from ..tests import tests
-        from ...model.http import RequestsWrapper
-        self.j2_env.filters.update(filters)
-        self.j2_env.tests.update(tests)
-        template_cfg = Context.get().app.cfg.templates.get_config(
-            self.template.template_id,
-        )
-        if template_cfg is not None:
-            global_vars = {'secrets': template_cfg.secrets}  # type: dict[str, Any]
-            if template_cfg.requests.enabled:
-                global_vars['requests'] = RequestsWrapper(
-                    template_cfg=template_cfg,
-                )
-            self.j2_env.globals.update(global_vars)
 
     def _render_rewrite(self, rewrite_template: str, context: dict,
-                        existing_content: Optional[str]) -> str:
+                        existing_content: str | None) -> str:
         try:
             j2_template = self.j2_env.get_template(rewrite_template)
             return j2_template.render(
@@ -76,16 +37,17 @@ class EnrichDocxStep(Step):
 
     def _static_rewrite(self, rewrite_file: str) -> str:
         try:
-            path = self.template.template_dir / rewrite_file  # type: pathlib.Path
+            path: pathlib.Path = self.template.template_dir / rewrite_file
             return path.read_text(encoding=DEFAULT_ENCODING)
         except Exception as e:
             self.raise_exc(f'Failed loading Jinja2 template: {e}')
         return ''
 
-    def _get_rewrite(self, rewrite: str, context: dict, existing_content: Optional[str]) -> str:
+    def _get_rewrite(self, rewrite: str, context: dict,
+                     existing_content: str | None) -> str:
         if rewrite.startswith('static:'):
             return self._static_rewrite(rewrite[7:])
-        elif rewrite.startswith('render:'):
+        if rewrite.startswith('render:'):
             return self._render_rewrite(rewrite[7:], context, existing_content)
         return ''
 

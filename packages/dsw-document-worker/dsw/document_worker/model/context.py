@@ -1,12 +1,13 @@
-# TODO: move to dsw-models
+# pylint: disable=too-many-lines, unused-argument, too-many-arguments,
+import abc
 import datetime
-import dateutil.parser as dp
+import typing
 
-from typing import Optional, Iterable, Union, ItemsView
+import dateutil.parser as dp
 
 from ..consts import NULL_UUID
 
-AnnotationsT = dict[str, Union[str, list[str]]]
+AnnotationsT = dict[str, str | list[str]]
 TODO_LABEL_UUID = "615b9028-5e3f-414f-b245-12d2ae2eeb20"
 
 
@@ -15,12 +16,12 @@ def _datetime(timestamp: str) -> datetime.datetime:
 
 
 def _load_annotations(annotations: list[dict[str, str]]) -> AnnotationsT:
-    result = {}  # type: AnnotationsT
-    semi_result = {}  # type: dict[str, list[str]]
+    result: AnnotationsT = {}
+    semi_result: dict[str, list[str]] = {}
     for item in annotations:
         key = item.get('key', '')
         value = item.get('value', '')
-        if key in semi_result.keys():
+        if key in semi_result:
             semi_result[key].append(value)
         else:
             semi_result[key] = [value]
@@ -32,14 +33,94 @@ def _load_annotations(annotations: list[dict[str, str]]) -> AnnotationsT:
     return result
 
 
+class SimpleAuthor:
+
+    def __init__(self, *, uuid: str, first_name: str, last_name: str,
+                 image_url: str | None, gravatar_hash: str | None):
+        self.uuid = uuid
+        self.first_name = first_name
+        self.last_name = last_name
+        self.image_url = image_url
+        self.gravatar_hash = gravatar_hash
+
+    @staticmethod
+    def load(data: dict | None, **options):
+        if data is None:
+            return None
+        return SimpleAuthor(
+            uuid=data['uuid'],
+            first_name=data['firstName'],
+            last_name=data['lastName'],
+            image_url=data['imageUrl'],
+            gravatar_hash=data['gravatarHash'],
+        )
+
+
+class User:
+
+    def __init__(self, *, uuid: str, first_name: str, last_name: str, email: str,
+                 role: str, created_at: datetime.datetime, updated_at: datetime.datetime,
+                 affiliation: str | None, permissions: list[str], sources: list[str],
+                 image_url: str | None):
+        self.uuid = uuid
+        self.first_name = first_name
+        self.last_name = last_name
+        self.email = email
+        self.role = role
+        self.image_url = image_url
+        self.affiliation = affiliation
+        self.permissions = permissions
+        self.sources = sources
+        self.created_at = created_at
+        self.updated_at = updated_at
+
+    @staticmethod
+    def load(data: dict, **options):
+        if data is None:
+            return None
+        return User(
+            uuid=data['uuid'],
+            first_name=data['firstName'],
+            last_name=data['lastName'],
+            email=data['email'],
+            role=data['role'],
+            image_url=data['imageUrl'],
+            affiliation=data['affiliation'],
+            permissions=data['permissions'],
+            sources=data['sources'],
+            created_at=_datetime(data['createdAt']),
+            updated_at=_datetime(data['updatedAt']),
+        )
+
+
+class Organization:
+
+    def __init__(self, *, org_id: str, name: str, description: str | None,
+                 affiliations: list[str]):
+        self.id = org_id
+        self.name = name
+        self.description = description
+        self.affiliations = affiliations
+
+    @staticmethod
+    def load(data: dict, **options):
+        return Organization(
+            org_id=data['organizationId'],
+            name=data['name'],
+            description=data['description'],
+            affiliations=data['affiliations'],
+        )
+
+
 class Tag:
 
-    def __init__(self, uuid, name, description, color, annotations):
-        self.uuid = uuid  # type: str
-        self.name = name  # type: str
-        self.description = description  # type: Optional[str]
-        self.color = color  # type: str
-        self.annotations = annotations  # type: AnnotationsT
+    def __init__(self, *, uuid: str, name: str, description: str | None,
+                 color: str, annotations: AnnotationsT):
+        self.uuid = uuid
+        self.name = name
+        self.description = description
+        self.color = color
+        self.annotations = annotations
 
     @property
     def a(self):
@@ -63,17 +144,18 @@ class Tag:
 
 class ResourceCollection:
 
-    def __init__(self, uuid, title, page_uuids, annotations):
-        self.uuid = uuid  # type: str
-        self.title = title  # type: str
-        self.page_uuids = page_uuids  # type: list[str]
-        self.pages = list()  # type: list[ResourcePage]
-        self.annotations = annotations  # type: AnnotationsT
+    def __init__(self, *, uuid: str, title: str, page_uuids: list[str],
+                 annotations: AnnotationsT):
+        self.uuid = uuid
+        self.title = title
+        self.page_uuids = page_uuids
+        self.annotations = annotations
+        self.pages: list[ResourcePage] = []
 
-    def _resolve_links(self, ctx):
+    def resolve_links(self, ctx):
         self.pages = [ctx.e.resource_pages[key]
                       for key in self.page_uuids
-                      if key in ctx.e.resource_pages.keys()]
+                      if key in ctx.e.resource_pages]
         for page in self.pages:
             page.collection = self
 
@@ -93,12 +175,14 @@ class ResourceCollection:
 
 class ResourcePage:
 
-    def __init__(self, uuid, title, content, annotations):
-        self.uuid = uuid  # type: str
-        self.title = title  # type: str
-        self.content = content  # type: str
-        self.collection = None  # type: Optional[ResourceCollection]
-        self.annotations = annotations  # type: AnnotationsT
+    def __init__(self, *, uuid: str, title: str, content: str,
+                 annotations: AnnotationsT):
+        self.uuid = uuid
+        self.title = title
+        self.content = content
+        self.annotations = annotations
+
+        self.collection: ResourceCollection | None = None
 
     @property
     def a(self):
@@ -114,24 +198,25 @@ class ResourcePage:
         )
 
 
-class Integration:
+class Integration(abc.ABC):
 
-    def __init__(self, uuid, name, logo, integration_id, item_url, props,
-                 integration_type, annotations):
-        self.uuid = uuid  # type: str
-        self.name = name  # type: str
-        self.id = integration_id  # type: str
-        self.item_url = item_url  # type: Optional[str]
-        self.logo = logo  # type: Optional[str]
-        self.props = props  # type: list[str]
-        self.type = integration_type  # type: str
-        self.annotations = annotations  # type: AnnotationsT
+    def __init__(self, *, uuid: str, name: str, integration_id: str,
+                 item_url: str | None, logo: str | None, props: list[str],
+                 integration_type: str, annotations: AnnotationsT):
+        self.uuid = uuid
+        self.name = name
+        self.id = integration_id
+        self.item_url = item_url
+        self.logo = logo
+        self.props = props
+        self.type = integration_type
+        self.annotations = annotations
 
     @property
     def a(self):
         return self.annotations
 
-    def item(self, item_id: str) -> Optional[str]:
+    def item(self, item_id: str) -> str | None:
         if self.item_url is None:
             return None
         return self.item_url.replace('${id}', item_id)
@@ -141,12 +226,20 @@ class Integration:
             return False
         return other.uuid == self.uuid
 
+    @staticmethod
+    @abc.abstractmethod
+    def load(data: dict, **options):
+        pass
+
 
 class ApiIntegration(Integration):
 
-    def __init__(self, uuid, name, logo, integration_id, item_url, props, rq_body,
-                 rq_headers, rq_method, rq_url, rs_list_field, rs_item_id,
-                 rs_item_template, annotations):
+    def __init__(self, *, uuid: str, name: str, integration_id: str,
+                 item_url: str | None, logo: str | None,
+                 props: list[str], rq_body: str, rq_method: str,
+                 rq_headers: dict[str, str], rq_url: str, rs_list_field: str | None,
+                 rs_item_id: str | None, rs_item_template: str,
+                 annotations: AnnotationsT):
         super().__init__(
             uuid=uuid,
             name=name,
@@ -157,13 +250,13 @@ class ApiIntegration(Integration):
             annotations=annotations,
             integration_type='ApiIntegration',
         )
-        self.rq_body = rq_body  # type: str
-        self.rq_method = rq_method  # type: str
-        self.rq_url = rq_url  # type: str
-        self.rq_headers = rq_headers  # type: dict[str, str]
-        self.rs_list_field = rs_list_field  # type: Optional[str]
-        self.rs_item_id = rs_item_id  # type: Optional[str]
-        self.rs_item_template = rs_item_template  # type: str
+        self.rq_body = rq_body
+        self.rq_method = rq_method
+        self.rq_url = rq_url
+        self.rq_headers = rq_headers
+        self.rs_list_field = rs_list_field
+        self.rs_item_id = rs_item_id
+        self.rs_item_template = rs_item_template
 
     @staticmethod
     def default():
@@ -206,8 +299,9 @@ class ApiIntegration(Integration):
 
 class WidgetIntegration(Integration):
 
-    def __init__(self, uuid, name, logo, integration_id, item_url, props,
-                 widget_url, annotations):
+    def __init__(self, *, uuid: str, name: str, integration_id: str,
+                 item_url: str | None, logo: str | None, props: list[str],
+                 widget_url: str, annotations: AnnotationsT):
         super().__init__(
             uuid=uuid,
             name=name,
@@ -218,7 +312,7 @@ class WidgetIntegration(Integration):
             annotations=annotations,
             integration_type='WidgetIntegration',
         )
-        self.widget_url = widget_url  # type: str
+        self.widget_url = widget_url
 
     @staticmethod
     def load(data: dict, **options):
@@ -236,12 +330,13 @@ class WidgetIntegration(Integration):
 
 class Phase:
 
-    def __init__(self, uuid, title, description, annotations, order=0):
-        self.uuid = uuid  # type: str
-        self.title = title  # type: str
-        self.description = description  # type: Optional[str]
-        self.order = order  # type: int
-        self.annotations = annotations  # type: AnnotationsT
+    def __init__(self, *, uuid: str, title: str, description: str | None,
+                 annotations: AnnotationsT, order: int = 0):
+        self.uuid = uuid
+        self.title = title
+        self.description = description
+        self.order = order
+        self.annotations = annotations
 
     @property
     def a(self):
@@ -273,12 +368,13 @@ PHASE_NEVER = Phase(
 
 class Metric:
 
-    def __init__(self, uuid, title, description, abbreviation, annotations):
-        self.uuid = uuid  # type: str
-        self.title = title  # type: str
-        self.description = description  # type: Optional[str]
-        self.abbreviation = abbreviation  # type: str
-        self.annotations = annotations  # type: AnnotationsT
+    def __init__(self, *, uuid: str, title: str, description: str | None,
+                 abbreviation: str, annotations: AnnotationsT):
+        self.uuid = uuid
+        self.title = title
+        self.description = description
+        self.abbreviation = abbreviation
+        self.annotations = annotations
 
     @property
     def a(self):
@@ -302,14 +398,15 @@ class Metric:
 
 class MetricMeasure:
 
-    def __init__(self, measure, weight, metric_uuid):
-        self.measure = measure  # type: float
-        self.weight = weight  # type: float
-        self.metric_uuid = metric_uuid  # type: str
-        self.metric = None  # type: Optional[Metric]
+    def __init__(self, *, measure: float, weight: float, metric_uuid: str):
+        self.measure = measure
+        self.weight = weight
+        self.metric_uuid = metric_uuid
 
-    def _resolve_links(self, ctx):
-        if self.metric_uuid in ctx.e.metrics.keys():
+        self.metric: Metric | None = None
+
+    def resolve_links(self, ctx):
+        if self.metric_uuid in ctx.e.metrics:
             self.metric = ctx.e.metrics[self.metric_uuid]
 
     @staticmethod
@@ -321,12 +418,12 @@ class MetricMeasure:
         )
 
 
-class Reference:
+class Reference(abc.ABC):
 
-    def __init__(self, uuid, ref_type, annotations):
-        self.uuid = uuid  # type: str
-        self.type = ref_type  # type: str
-        self.annotations = annotations  # type: AnnotationsT
+    def __init__(self, *, uuid: str, ref_type: str, annotations: AnnotationsT):
+        self.uuid = uuid
+        self.type = ref_type
+        self.annotations = annotations
 
     @property
     def a(self):
@@ -337,16 +434,26 @@ class Reference:
             return False
         return other.uuid == self.uuid
 
-    def _resolve_links(self, ctx):
+    def resolve_links(self, ctx):
+        pass
+
+    @staticmethod
+    @abc.abstractmethod
+    def load(data: dict, **options):
         pass
 
 
 class CrossReference(Reference):
 
-    def __init__(self, uuid, target_uuid, description, annotations):
-        super().__init__(uuid, 'CrossReference', annotations)
-        self.target_uuid = target_uuid  # type: str
-        self.description = description  # type: str
+    def __init__(self, *, uuid: str, target_uuid: str, description: str,
+                 annotations: AnnotationsT):
+        super().__init__(
+            uuid=uuid,
+            ref_type='CrossReference',
+            annotations=annotations,
+        )
+        self.target_uuid = target_uuid
+        self.description = description
 
     @staticmethod
     def load(data: dict, **options):
@@ -360,10 +467,15 @@ class CrossReference(Reference):
 
 class URLReference(Reference):
 
-    def __init__(self, uuid, label, url, annotations):
-        super().__init__(uuid, 'URLReference', annotations)
-        self.label = label  # type: str
-        self.url = url  # type: str
+    def __init__(self, *, uuid: str, label: str, url: str,
+                 annotations: AnnotationsT):
+        super().__init__(
+            uuid=uuid,
+            ref_type='URLReference',
+            annotations=annotations,
+        )
+        self.label = label
+        self.url = url
 
     @staticmethod
     def load(data: dict, **options):
@@ -377,13 +489,19 @@ class URLReference(Reference):
 
 class ResourcePageReference(Reference):
 
-    def __init__(self, uuid, resource_page_uuid, annotations):
-        super().__init__(uuid, 'ResourcePageReference', annotations)
-        self.resource_page_uuid = resource_page_uuid  # type: Optional[str]
-        self.resource_page = None  # type: Optional[ResourcePage]
+    def __init__(self, *, uuid: str, resource_page_uuid: str | None,
+                 annotations: AnnotationsT):
+        super().__init__(
+            uuid=uuid,
+            ref_type='ResourcePageReference',
+            annotations=annotations,
+        )
+        self.resource_page_uuid = resource_page_uuid
 
-    def _resolve_links(self, ctx):
-        if self.resource_page_uuid in ctx.e.resource_pages.keys():
+        self.resource_page: ResourcePage | None = None
+
+    def resolve_links(self, ctx):
+        if self.resource_page_uuid in ctx.e.resource_pages:
             self.resource_page = ctx.e.resource_pages[self.resource_page_uuid]
 
     @staticmethod
@@ -397,11 +515,12 @@ class ResourcePageReference(Reference):
 
 class Expert:
 
-    def __init__(self, uuid, name, email, annotations):
-        self.uuid = uuid  # type: str
-        self.name = name  # type: str
-        self.email = email  # type: str
-        self.annotations = annotations  # type: AnnotationsT
+    def __init__(self, *, uuid: str, name: str, email: str,
+                 annotations: AnnotationsT):
+        self.uuid = uuid
+        self.name = name
+        self.email = email
+        self.annotations = annotations
 
     @property
     def a(self):
@@ -422,40 +541,54 @@ class Expert:
         )
 
 
-class Reply:
+class Reply(abc.ABC):
 
-    def __init__(self, path, created_at, created_by, reply_type):
-        self.path = path  # type: str
-        self.fragments = path.split('.')  # type: list[str]
-        self.created_at = created_at  # type: datetime.datetime
-        self.created_by = created_by  # type: Optional[SimpleAuthor]
-        self.type = reply_type  # type: str
-        self.question = None  # type: Optional[Question]
+    def __init__(self, *, path: str, created_at: datetime.datetime,
+                 created_by: SimpleAuthor | None, reply_type: str):
+        self.path = path
+        self.created_at = created_at
+        self.created_by = created_by
+        self.type = reply_type
 
-    def _resolve_links_parent(self, ctx):
+        self.question: Question | None = None
+        self.fragments: list[str] = path.split('.')
+
+    def resolve_links_parent(self, ctx):
         question_uuid = self.fragments[-1]
-        if question_uuid in ctx.e.questions.keys():
+        if question_uuid in ctx.e.questions:
             self.question = ctx.e.questions.get(question_uuid, None)
             if self.question is not None:
                 self.question.replies[self.path] = self
 
-    def _resolve_links(self, ctx):
+    def resolve_links(self, ctx):
+        pass
+
+    @staticmethod
+    @abc.abstractmethod
+    def load(path: str, data: dict, **options):
         pass
 
 
 class AnswerReply(Reply):
 
-    def __init__(self, path, created_at, created_by, answer_uuid):
-        super().__init__(path, created_at, created_by, 'AnswerReply')
-        self.answer_uuid = answer_uuid  # type: str
-        self.answer = None  # type: Optional[Answer]
+    def __init__(self, *, path: str, created_at: datetime.datetime,
+                 created_by: SimpleAuthor | None, answer_uuid: str):
+        super().__init__(
+            path=path,
+            created_at=created_at,
+            created_by=created_by,
+            reply_type='AnswerReply',
+        )
+        self.answer_uuid = answer_uuid
+
+        self.answer: Answer | None = None
 
     @property
-    def value(self) -> Optional[str]:
+    def value(self) -> str | None:
         return self.answer_uuid
 
-    def _resolve_links(self, ctx):
-        super()._resolve_links_parent(ctx)
+    def resolve_links(self, ctx):
+        super().resolve_links_parent(ctx)
         self.answer = ctx.e.answers.get(self.answer_uuid, None)
 
     @staticmethod
@@ -470,26 +603,32 @@ class AnswerReply(Reply):
 
 class StringReply(Reply):
 
-    def __init__(self, path, created_at, created_by, value):
-        super().__init__(path, created_at, created_by, 'StringReply')
-        self.value = value  # type: str
+    def __init__(self, *, path: str, created_at: datetime.datetime,
+                 created_by: SimpleAuthor | None, value: str):
+        super().__init__(
+            path=path,
+            created_at=created_at,
+            created_by=created_by,
+            reply_type='StringReply',
+        )
+        self.value = value
 
     @property
-    def as_number(self) -> Optional[float]:
+    def as_number(self) -> float | None:
         try:
             return float(self.value)
         except Exception:
             return None
 
     @property
-    def as_datetime(self) -> Optional[datetime.datetime]:
+    def as_datetime(self) -> datetime.datetime | None:
         try:
             return dp.parse(self.value)
         except Exception:
             return None
 
-    def _resolve_links(self, ctx):
-        super()._resolve_links_parent(ctx)
+    def resolve_links(self, ctx):
+        super().resolve_links_parent(ctx)
 
     @staticmethod
     def load(path: str, data: dict, **options):
@@ -503,9 +642,15 @@ class StringReply(Reply):
 
 class ItemListReply(Reply):
 
-    def __init__(self, path, created_at, created_by, items):
-        super().__init__(path, created_at, created_by, 'ItemListReply')
-        self.items = items  # type: list[str]
+    def __init__(self, *, path: str, created_at: datetime.datetime,
+                 created_by: SimpleAuthor | None, items: list[str]):
+        super().__init__(
+            path=path,
+            created_at=created_at,
+            created_by=created_by,
+            reply_type='ItemListReply',
+        )
+        self.items = items
 
     @property
     def value(self) -> list[str]:
@@ -517,8 +662,8 @@ class ItemListReply(Reply):
     def __len__(self):
         return len(self.items)
 
-    def _resolve_links(self, ctx):
-        super()._resolve_links_parent(ctx)
+    def resolve_links(self, ctx):
+        super().resolve_links_parent(ctx)
 
     @staticmethod
     def load(path: str, data: dict, **options):
@@ -532,10 +677,17 @@ class ItemListReply(Reply):
 
 class MultiChoiceReply(Reply):
 
-    def __init__(self, path, created_at, created_by, choice_uuids):
-        super().__init__(path, created_at, created_by, 'MultiChoiceReply')
-        self.choice_uuids = choice_uuids  # type: list[str]
-        self.choices = list()  # type: list[Choice]
+    def __init__(self, *, path: str, created_at: datetime.datetime,
+                 created_by: SimpleAuthor | None, choice_uuids: list[str]):
+        super().__init__(
+            path=path,
+            created_at=created_at,
+            created_by=created_by,
+            reply_type='MultiChoiceReply',
+        )
+        self.choice_uuids = choice_uuids
+
+        self.choices: list[Choice] = []
 
     @property
     def value(self) -> list[str]:
@@ -547,11 +699,11 @@ class MultiChoiceReply(Reply):
     def __len__(self):
         return len(self.choices)
 
-    def _resolve_links(self, ctx):
-        super()._resolve_links_parent(ctx)
+    def resolve_links(self, ctx):
+        super().resolve_links_parent(ctx)
         self.choices = [ctx.e.choices[key]
                         for key in self.choice_uuids
-                        if key in ctx.e.choices.keys()]
+                        if key in ctx.e.choices]
 
     @staticmethod
     def load(path: str, data: dict, **options):
@@ -565,13 +717,19 @@ class MultiChoiceReply(Reply):
 
 class IntegrationReply(Reply):
 
-    def __init__(self, path, created_at, created_by, item_id, value):
-        super().__init__(path, created_at, created_by, 'IntegrationReply')
-        self.item_id = item_id  # type: Optional[str]
-        self.value = value  # type: str
+    def __init__(self, *, path: str, created_at: datetime.datetime,
+                 created_by: SimpleAuthor | None, item_id: str | None, value: str):
+        super().__init__(
+            path=path,
+            created_at=created_at,
+            created_by=created_by,
+            reply_type='IntegrationReply',
+        )
+        self.item_id = item_id
+        self.value = value
 
     @property
-    def id(self) -> Optional[str]:
+    def id(self) -> str | None:
         return self.item_id
 
     @property
@@ -583,7 +741,7 @@ class IntegrationReply(Reply):
         return not self.is_plain
 
     @property
-    def url(self) -> Optional[str]:
+    def url(self) -> str | None:
         if not self.is_integration or self.item_id is None:
             return None
         if isinstance(self.question, IntegrationQuestion) \
@@ -591,8 +749,8 @@ class IntegrationReply(Reply):
             return self.question.integration.item(self.item_id)
         return None
 
-    def _resolve_links(self, ctx):
-        super()._resolve_links_parent(ctx)
+    def resolve_links(self, ctx):
+        super().resolve_links_parent(ctx)
 
     @staticmethod
     def load(path: str, data: dict, **options):
@@ -607,17 +765,23 @@ class IntegrationReply(Reply):
 
 class ItemSelectReply(Reply):
 
-    def __init__(self, path, created_at, created_by, item_uuid):
-        super().__init__(path, created_at, created_by, 'ItemSelectReply')
-        self.item_uuid = item_uuid  # type: str
-        self.item_title = 'Item'  # type: str
+    def __init__(self, *, path: str, created_at: datetime.datetime,
+                 created_by: SimpleAuthor | None, item_uuid: str):
+        super().__init__(
+            path=path,
+            created_at=created_at,
+            created_by=created_by,
+            reply_type='ItemSelectReply',
+        )
+        self.item_uuid = item_uuid
+        self.item_title: str = 'Item'
 
     @property
     def value(self) -> str:
         return self.item_uuid
 
-    def _resolve_links(self, ctx):
-        super()._resolve_links_parent(ctx)
+    def resolve_links(self, ctx):
+        super().resolve_links_parent(ctx)
 
     @staticmethod
     def load(path: str, data: dict, **options):
@@ -631,17 +795,23 @@ class ItemSelectReply(Reply):
 
 class FileReply(Reply):
 
-    def __init__(self, path, created_at, created_by, file_uuid):
-        super().__init__(path, created_at, created_by, 'FileReply')
-        self.file_uuid = file_uuid  # type: str
-        self.file = None  # type: Optional[QuestionnaireFile]
+    def __init__(self, *, path: str, created_at: datetime.datetime,
+                 created_by: SimpleAuthor | None, file_uuid: str):
+        super().__init__(
+            path=path,
+            created_at=created_at,
+            created_by=created_by,
+            reply_type='FileReply',
+        )
+        self.file_uuid = file_uuid
+        self.file: QuestionnaireFile | None = None
 
     @property
     def value(self) -> str:
         return self.file_uuid
 
-    def _resolve_links(self, ctx):
-        super()._resolve_links_parent(ctx)
+    def resolve_links(self, ctx):
+        super().resolve_links(ctx)
         self.file = ctx.questionnaire.files.get(self.file_uuid, None)
         if self.file is not None:
             self.file.reply = self
@@ -658,16 +828,18 @@ class FileReply(Reply):
 
 class Answer:
 
-    def __init__(self, uuid, label, advice, metric_measures, followup_uuids,
-                 annotations):
-        self.uuid = uuid  # type: str
-        self.label = label  # type: str
-        self.advice = advice  # type: Optional[str]
-        self.metric_measures = metric_measures  # type: list[MetricMeasure]
-        self.followup_uuids = followup_uuids  # type: list[str]
-        self.followups = list()  # type: list[Question]
-        self.parent = None  # type: Optional[OptionsQuestion]
-        self.annotations = annotations  # type: AnnotationsT
+    def __init__(self, *, uuid: str, label: str, advice: str | None,
+                 metric_measures: list[MetricMeasure], followup_uuids: list[str],
+                 annotations: AnnotationsT):
+        self.uuid = uuid
+        self.label = label
+        self.advice = advice
+        self.metric_measures = metric_measures
+        self.followup_uuids = followup_uuids
+        self.annotations = annotations
+
+        self.followups: list[Question] = []
+        self.parent: OptionsQuestion | None = None
 
     @property
     def a(self):
@@ -678,15 +850,15 @@ class Answer:
             return False
         return other.uuid == self.uuid
 
-    def _resolve_links(self, ctx):
+    def resolve_links(self, ctx):
         self.followups = [ctx.e.questions[key]
                           for key in self.followup_uuids
-                          if key in ctx.e.questions.keys()]
+                          if key in ctx.e.questions]
         for followup in self.followups:
             followup.parent = self
-            followup._resolve_links(ctx)
+            followup.resolve_links(ctx)
         for mm in self.metric_measures:
-            mm._resolve_links(ctx)
+            mm.resolve_links(ctx)
 
     @staticmethod
     def load(data: dict, **options):
@@ -704,11 +876,12 @@ class Answer:
 
 class Choice:
 
-    def __init__(self, uuid, label, annotations):
-        self.uuid = uuid  # type: str
-        self.label = label  # type: str
-        self.parent = None  # type: Optional[MultiChoiceQuestion]
-        self.annotations = annotations  # type: AnnotationsT
+    def __init__(self, *, uuid: str, label: str, annotations: AnnotationsT):
+        self.uuid = uuid
+        self.label = label
+        self.annotations = annotations
+
+        self.parent: MultiChoiceQuestion | None = None
 
     @property
     def a(self):
@@ -728,26 +901,29 @@ class Choice:
         )
 
 
-class Question:
+class Question(abc.ABC):
 
-    def __init__(self, uuid, q_type, title, text, tag_uuids, reference_uuids,
-                 expert_uuids, required_phase_uuid, annotations):
-        self.uuid = uuid  # type: str
-        self.type = q_type  # type: str
-        self.title = title  # type: str
-        self.text = text  # type: Optional[str]
-        self.tag_uuids = tag_uuids  # type: list[str]
-        self.tags = list()  # type: list[Tag]
-        self.reference_uuids = reference_uuids  # type: list[str]
-        self.references = list()  # type: list[Reference]
-        self.expert_uuids = expert_uuids  # type: list[str]
-        self.experts = list()  # type: list[Expert]
-        self.required_phase_uuid = required_phase_uuid  # type: Optional[str]
-        self.required_phase = PHASE_NEVER  # type: Phase
-        self.replies = dict()  # type: dict[str, Reply]  # added from replies
-        self.is_required = None  # type: Optional[bool]
-        self.parent = None  # type: Optional[Union[Chapter, ListQuestion, Answer]]
-        self.annotations = annotations  # type: AnnotationsT
+    def __init__(self, *, uuid: str, q_type: str, title: str, text: str | None,
+                 tag_uuids: list[str], reference_uuids: list[str],
+                 expert_uuids: list[str], required_phase_uuid: str | None,
+                 annotations: AnnotationsT):
+        self.uuid = uuid
+        self.type = q_type
+        self.title = title
+        self.text = text
+        self.tag_uuids = tag_uuids
+        self.reference_uuids = reference_uuids
+        self.expert_uuids = expert_uuids
+        self.required_phase_uuid = required_phase_uuid
+        self.annotations = annotations
+
+        self.is_required: bool | None = None
+        self.parent: Chapter | ListQuestion | Answer | None = None
+        self.replies: dict[str, Reply] = {}
+        self.tags: list[Tag] = []
+        self.references: list[Reference] = []
+        self.experts: list[Expert] = []
+        self.required_phase: Phase = PHASE_NEVER
 
     @property
     def a(self):
@@ -758,25 +934,25 @@ class Question:
             return False
         return other.uuid == self.uuid
 
-    def _resolve_links_parent(self, ctx):
+    def resolve_links_parent(self, ctx):
         self.tags = [ctx.e.tags[key]
                      for key in self.tag_uuids
-                     if key in ctx.e.tags.keys()]
+                     if key in ctx.e.tags]
         self.experts = [ctx.e.experts[key]
                         for key in self.expert_uuids
-                        if key in ctx.e.experts.keys()]
+                        if key in ctx.e.experts]
         self.references = [ctx.e.references[key]
                            for key in self.reference_uuids
-                           if key in ctx.e.references.keys()]
+                           if key in ctx.e.references]
         for ref in self.references:
-            ref._resolve_links(ctx)
+            ref.resolve_links(ctx)
         if self.required_phase_uuid is None or ctx.current_phase is None:
             self.is_required = False
         else:
             self.required_phase = ctx.e.phases.get(self.required_phase_uuid, PHASE_NEVER)
             self.is_required = ctx.current_phase.order >= self.required_phase.order
 
-    def _resolve_links(self, ctx):
+    def resolve_links(self, ctx):
         pass
 
     @property
@@ -790,6 +966,11 @@ class Question:
     @property
     def cross_references(self) -> list[CrossReference]:
         return [r for r in self.references if isinstance(r, CrossReference)]
+
+    @staticmethod
+    @abc.abstractmethod
+    def load(data: dict, **options):
+        pass
 
 
 class ValueQuestionValidation:
@@ -826,7 +1007,7 @@ class ValueQuestionValidation:
         'DomainQuestionValidation': str,
     }
 
-    def __init__(self, validation_type: str, value: str | int | float | None = None):
+    def __init__(self, *, validation_type: str, value: str | int | float | None = None):
         self.type = self.SHORT_TYPE.get(validation_type, 'unknown')
         self.full_type = validation_type
         self.value = value
@@ -841,13 +1022,23 @@ class ValueQuestionValidation:
 
 class ValueQuestion(Question):
 
-    def __init__(self, uuid, title, text, tag_uuids, reference_uuids,
-                 expert_uuids, required_phase_uuid, value_type, annotations):
-        super().__init__(uuid, 'ValueQuestion', title, text, tag_uuids,
-                         reference_uuids, expert_uuids, required_phase_uuid,
-                         annotations)
-        self.value_type = value_type  # type: str
-        self.validations = list()  # type: list[ValueQuestionValidation]
+    def __init__(self, *, uuid: str, title: str, text: str | None,
+                 tag_uuids: list[str], reference_uuids: list[str],
+                 expert_uuids: list[str], required_phase_uuid: str | None,
+                 value_type: str, annotations: AnnotationsT):
+        super().__init__(
+            uuid=uuid,
+            q_type='ValueQuestion',
+            title=title,
+            text=text,
+            tag_uuids=tag_uuids,
+            reference_uuids=reference_uuids,
+            expert_uuids=expert_uuids,
+            required_phase_uuid=required_phase_uuid,
+            annotations=annotations,
+        )
+        self.value_type = value_type
+        self.validations: list[ValueQuestionValidation] = []
 
     @property
     def a(self):
@@ -889,8 +1080,8 @@ class ValueQuestion(Question):
     def is_date(self):
         return self.value_type == 'DateQuestionValueType'
 
-    def _resolve_links(self, ctx):
-        super()._resolve_links_parent(ctx)
+    def resolve_links(self, ctx):
+        super().resolve_links_parent(ctx)
 
     @staticmethod
     def load(data: dict, **options):
@@ -912,23 +1103,33 @@ class ValueQuestion(Question):
 
 class OptionsQuestion(Question):
 
-    def __init__(self, uuid, title, text, tag_uuids, reference_uuids,
-                 expert_uuids, required_phase_uuid, answer_uuids,
-                 annotations):
-        super().__init__(uuid, 'OptionsQuestion', title, text, tag_uuids,
-                         reference_uuids, expert_uuids, required_phase_uuid,
-                         annotations)
-        self.answer_uuids = answer_uuids  # type: list[str]
-        self.answers = list()  # type: list[Answer]
+    def __init__(self, *, uuid: str, title: str, text: str | None,
+                 tag_uuids: list[str], reference_uuids: list[str],
+                 expert_uuids: list[str], required_phase_uuid: str | None,
+                 answer_uuids: list[str], annotations: AnnotationsT):
+        super().__init__(
+            uuid=uuid,
+            q_type='OptionsQuestion',
+            title=title,
+            text=text,
+            tag_uuids=tag_uuids,
+            reference_uuids=reference_uuids,
+            expert_uuids=expert_uuids,
+            required_phase_uuid=required_phase_uuid,
+            annotations=annotations,
+        )
+        self.answer_uuids = answer_uuids
 
-    def _resolve_links(self, ctx):
-        super()._resolve_links_parent(ctx)
+        self.answers: list[Answer] = []
+
+    def resolve_links(self, ctx):
+        super().resolve_links_parent(ctx)
         self.answers = [ctx.e.answers[key]
                         for key in self.answer_uuids
-                        if key in ctx.e.answers.keys()]
+                        if key in ctx.e.answers]
         for answer in self.answers:
             answer.parent = self
-            answer._resolve_links(ctx)
+            answer.resolve_links(ctx)
 
     @staticmethod
     def load(data: dict, **options):
@@ -947,20 +1148,30 @@ class OptionsQuestion(Question):
 
 class MultiChoiceQuestion(Question):
 
-    def __init__(self, uuid, title, text, tag_uuids, reference_uuids,
-                 expert_uuids, required_phase_uuid, choice_uuids,
-                 annotations):
-        super().__init__(uuid, 'MultiChoiceQuestion', title, text, tag_uuids,
-                         reference_uuids, expert_uuids, required_phase_uuid,
-                         annotations)
-        self.choice_uuids = choice_uuids  # type: list[str]
-        self.choices = list()  # type: list[Choice]
+    def __init__(self, *, uuid: str, title: str, text: str | None,
+                 tag_uuids: list[str], reference_uuids: list[str],
+                 expert_uuids: list[str], required_phase_uuid: str | None,
+                 choice_uuids: list[str], annotations: AnnotationsT):
+        super().__init__(
+            uuid=uuid,
+            q_type='MultiChoiceQuestion',
+            title=title,
+            text=text,
+            tag_uuids=tag_uuids,
+            reference_uuids=reference_uuids,
+            expert_uuids=expert_uuids,
+            required_phase_uuid=required_phase_uuid,
+            annotations=annotations,
+        )
+        self.choice_uuids = choice_uuids
 
-    def _resolve_links(self, ctx):
-        super()._resolve_links_parent(ctx)
+        self.choices: list[Choice] = []
+
+    def resolve_links(self, ctx):
+        super().resolve_links_parent(ctx)
         self.choices = [ctx.e.choices[key]
                         for key in self.choice_uuids
-                        if key in ctx.e.choices.keys()]
+                        if key in ctx.e.choices]
         for choice in self.choices:
             choice.parent = self
 
@@ -981,23 +1192,33 @@ class MultiChoiceQuestion(Question):
 
 class ListQuestion(Question):
 
-    def __init__(self, uuid, title, text, tag_uuids, reference_uuids,
-                 expert_uuids, required_phase_uuid, followup_uuids,
-                 annotations):
-        super().__init__(uuid, 'ListQuestion', title, text, tag_uuids,
-                         reference_uuids, expert_uuids, required_phase_uuid,
-                         annotations)
-        self.followup_uuids = followup_uuids  # type: list[str]
-        self.followups = list()  # type: list[Question]
+    def __init__(self, *, uuid: str, title: str, text: str,
+                 tag_uuids: list[str], reference_uuids: list[str],
+                 expert_uuids: list[str], required_phase_uuid: str | None,
+                 followup_uuids: list[str], annotations: AnnotationsT):
+        super().__init__(
+            uuid=uuid,
+            q_type='ListQuestion',
+            title=title,
+            text=text,
+            tag_uuids=tag_uuids,
+            reference_uuids=reference_uuids,
+            expert_uuids=expert_uuids,
+            required_phase_uuid=required_phase_uuid,
+            annotations=annotations,
+        )
+        self.followup_uuids = followup_uuids
 
-    def _resolve_links(self, ctx):
-        super()._resolve_links_parent(ctx)
+        self.followups: list[Question] = []
+
+    def resolve_links(self, ctx):
+        super().resolve_links_parent(ctx)
         self.followups = [ctx.e.questions[key]
                           for key in self.followup_uuids
-                          if key in ctx.e.questions.keys()]
+                          if key in ctx.e.questions]
         for followup in self.followups:
             followup.parent = self
-            followup._resolve_links(ctx)
+            followup.resolve_links(ctx)
 
     @staticmethod
     def load(data: dict, **options):
@@ -1016,18 +1237,29 @@ class ListQuestion(Question):
 
 class IntegrationQuestion(Question):
 
-    def __init__(self, uuid, title, text, tag_uuids, reference_uuids, props,
-                 expert_uuids, required_phase_uuid, integration_uuid,
-                 annotations):
-        super().__init__(uuid, 'IntegrationQuestion', title, text, tag_uuids,
-                         reference_uuids, expert_uuids, required_phase_uuid,
-                         annotations)
-        self.props = props  # type: dict[str, str]
-        self.integration_uuid = integration_uuid  # type: str
-        self.integration = None  # type: Optional[Integration]
+    def __init__(self, *, uuid: str, title: str, text: str | None,
+                 tag_uuids: list[str], reference_uuids: list[str],
+                 expert_uuids: list[str], required_phase_uuid: str | None,
+                 integration_uuid: str | None, props: dict[str, str],
+                 annotations: AnnotationsT):
+        super().__init__(
+            uuid=uuid,
+            q_type='IntegrationQuestion',
+            title=title,
+            text=text,
+            tag_uuids=tag_uuids,
+            reference_uuids=reference_uuids,
+            expert_uuids=expert_uuids,
+            required_phase_uuid=required_phase_uuid,
+            annotations=annotations,
+        )
+        self.props = props
+        self.integration_uuid = integration_uuid
 
-    def _resolve_links(self, ctx):
-        super()._resolve_links_parent(ctx)
+        self.integration: Integration | None = None
+
+    def resolve_links(self, ctx):
+        super().resolve_links_parent(ctx)
         self.integration = ctx.e.integrations.get(
             self.integration_uuid,
             ApiIntegration.default(),
@@ -1051,17 +1283,26 @@ class IntegrationQuestion(Question):
 
 class ItemSelectQuestion(Question):
 
-    def __init__(self, uuid, title, text, tag_uuids, reference_uuids,
-                 expert_uuids, required_phase_uuid, list_question_uuid,
-                 annotations):
-        super().__init__(uuid, 'ItemSelectQuestion', title, text, tag_uuids,
-                         reference_uuids, expert_uuids, required_phase_uuid,
-                         annotations)
-        self.list_question_uuid = list_question_uuid  # type: str
-        self.list_question = None  # type: Optional[ListQuestion]
+    def __init__(self, *, uuid: str, title: str, text: str | None,
+                 tag_uuids: list[str], reference_uuids: list[str],
+                 expert_uuids: list[str], required_phase_uuid: str | None,
+                 list_question_uuid: str | None, annotations: AnnotationsT):
+        super().__init__(
+            uuid=uuid,
+            q_type='ItemSelectQuestion',
+            title=title,
+            text=text,
+            tag_uuids=tag_uuids,
+            reference_uuids=reference_uuids,
+            expert_uuids=expert_uuids,
+            required_phase_uuid=required_phase_uuid,
+            annotations=annotations,
+        )
+        self.list_question_uuid = list_question_uuid
+        self.list_question = None
 
-    def _resolve_links(self, ctx):
-        super()._resolve_links_parent(ctx)
+    def resolve_links(self, ctx):
+        super().resolve_links_parent(ctx)
         self.list_question = ctx.e.questions.get(self.list_question_uuid, None)
 
     @staticmethod
@@ -1081,17 +1322,22 @@ class ItemSelectQuestion(Question):
 
 class FileQuestion(Question):
 
-    def __init__(self, uuid, title, text, tag_uuids, reference_uuids,
+    def __init__(self, *, uuid, title, text, tag_uuids, reference_uuids,
                  expert_uuids, required_phase_uuid, max_size, file_types,
                  annotations):
-        super().__init__(uuid, 'FileQuestion', title, text, tag_uuids,
-                         reference_uuids, expert_uuids, required_phase_uuid,
-                         annotations)
+        super().__init__(
+            uuid=uuid,
+            q_type='FileQuestion',
+            title=title,
+            text=text,
+            tag_uuids=tag_uuids,
+            reference_uuids=reference_uuids,
+            expert_uuids=expert_uuids,
+            required_phase_uuid=required_phase_uuid,
+            annotations=annotations,
+        )
         self.max_size = max_size
         self.file_types = file_types
-
-    def _resolve_links(self, ctx):
-        super()._resolve_links_parent(ctx)
 
     @staticmethod
     def load(data: dict, **options):
@@ -1111,14 +1357,16 @@ class FileQuestion(Question):
 
 class Chapter:
 
-    def __init__(self, uuid, title, text, question_uuids, annotations):
-        self.uuid = uuid  # type: str
-        self.title = title  # type: str
-        self.text = text  # type: Optional[str]
-        self.question_uuids = question_uuids  # type: list[str]
-        self.questions = list()  # type: list[Question]
-        self.reports = list()  # type: list[ReportItem]
-        self.annotations = annotations  # type: AnnotationsT
+    def __init__(self, *, uuid: str, title: str, text: str | None,
+                 question_uuids: list[str], annotations: AnnotationsT):
+        self.uuid = uuid
+        self.title = title
+        self.text = text
+        self.question_uuids = question_uuids
+        self.annotations = annotations
+
+        self.questions: list[Question] = []
+        self.reports: list[ReportItem] = []
 
     @property
     def a(self):
@@ -1129,13 +1377,13 @@ class Chapter:
             return False
         return other.uuid == self.uuid
 
-    def _resolve_links(self, ctx):
+    def resolve_links(self, ctx):
         self.questions = [ctx.e.questions[key]
                           for key in self.question_uuids
-                          if key in ctx.e.questions.keys()]
+                          if key in ctx.e.questions]
         for question in self.questions:
             question.parent = self
-            question._resolve_links(ctx)
+            question.resolve_links(ctx)
 
     @staticmethod
     def load(data: dict, **options):
@@ -1148,75 +1396,88 @@ class Chapter:
         )
 
 
+_QUESTION_TYPES: dict[str, type[Question]] = {
+    'OptionsQuestion': OptionsQuestion,
+    'ListQuestion': ListQuestion,
+    'ValueQuestion': ValueQuestion,
+    'MultiChoiceQuestion': MultiChoiceQuestion,
+    'IntegrationQuestion': IntegrationQuestion,
+    'ItemSelectQuestion': ItemSelectQuestion,
+    'FileQuestion': FileQuestion,
+}
+
+
+_REFERENCE_TYPES: dict[str, type[Reference]] = {
+    'URLReference': URLReference,
+    'ResourcePageReference': ResourcePageReference,
+    'CrossReference': CrossReference,
+}
+
+
+_INTEGRATION_TYPES: dict[str, type[Integration]] = {
+    'ApiIntegration': ApiIntegration,
+    'WidgetIntegration': WidgetIntegration,
+}
+
+
+_REPLY_TYPES: dict[str, type[Reply]] = {
+    'AnswerReply': AnswerReply,
+    'StringReply': StringReply,
+    'ItemListReply': ItemListReply,
+    'MultiChoiceReply': MultiChoiceReply,
+    'IntegrationReply': IntegrationReply,
+    'ItemSelectReply': ItemSelectReply,
+    'FileReply': FileReply,
+}
+
+
 def _load_question(data: dict, **options):
-    if data['questionType'] == 'OptionsQuestion':
-        return OptionsQuestion.load(data, **options)
-    if data['questionType'] == 'ListQuestion':
-        return ListQuestion.load(data, **options)
-    if data['questionType'] == 'ValueQuestion':
-        return ValueQuestion.load(data, **options)
-    if data['questionType'] == 'MultiChoiceQuestion':
-        return MultiChoiceQuestion.load(data, **options)
-    if data['questionType'] == 'IntegrationQuestion':
-        return IntegrationQuestion.load(data, **options)
-    if data['questionType'] == 'ItemSelectQuestion':
-        return ItemSelectQuestion.load(data, **options)
-    if data['questionType'] == 'FileQuestion':
-        return FileQuestion.load(data, **options)
-    raise ValueError(f'Unknown question type: {data["questionType"]}')
+    question_type = data['questionType']
+    question_class = _QUESTION_TYPES.get(question_type, None)
+    if question_class is None:
+        raise ValueError(f'Unknown question type: {question_type}')
+    return question_class.load(data, **options)
 
 
 def _load_reference(data: dict, **options):
-    if data['referenceType'] == 'URLReference':
-        return URLReference.load(data, **options)
-    if data['referenceType'] == 'ResourcePageReference':
-        return ResourcePageReference.load(data, **options)
-    if data['referenceType'] == 'CrossReference':
-        return CrossReference.load(data, **options)
-    raise ValueError(f'Unknown reference type: {data["referenceType"]}')
+    reference_type = data['referenceType']
+    reference_class = _REFERENCE_TYPES.get(reference_type, None)
+    if reference_class is None:
+        raise ValueError(f'Unknown reference type: {reference_type}')
+    return reference_class.load(data, **options)
 
 
 def _load_integration(data: dict, **options):
-    if data['integrationType'] == 'ApiIntegration':
-        return ApiIntegration.load(data, **options)
-    if data['integrationType'] == 'WidgetIntegration':
-        return WidgetIntegration.load(data, **options)
-    raise ValueError(f'Unknown integration type: {data["integrationType"]}')
+    integration_type = data['integrationType']
+    integration_class = _INTEGRATION_TYPES.get(integration_type, None)
+    if integration_class is None:
+        raise ValueError(f'Unknown integration type: {integration_type}')
+    return integration_class.load(data, **options)
 
 
 def _load_reply(path: str, data: dict, **options):
-    if data['value']['type'] == 'AnswerReply':
-        return AnswerReply.load(path, data, **options)
-    if data['value']['type'] == 'StringReply':
-        return StringReply.load(path, data, **options)
-    if data['value']['type'] == 'ItemListReply':
-        return ItemListReply.load(path, data, **options)
-    if data['value']['type'] == 'MultiChoiceReply':
-        return MultiChoiceReply.load(path, data, **options)
-    if data['value']['type'] == 'IntegrationReply':
-        return IntegrationReply.load(path, data, **options)
-    if data['value']['type'] == 'ItemSelectReply':
-        return ItemSelectReply.load(path, data, **options)
-    if data['value']['type'] == 'FileReply':
-        return FileReply.load(path, data, **options)
-    raise ValueError(f'Unknown reply type: {data["value"]["type"]}')
+    reply_type = data['value']['type']
+    reply_class = _REPLY_TYPES.get(reply_type, None)
+    if reply_class is None:
+        raise ValueError(f'Unknown reply type: {reply_type}')
+    return reply_class.load(path, data, **options)
 
 
 class KnowledgeModelEntities:
 
     def __init__(self):
-        self.chapters = dict()  # type: dict[str, Chapter]
-        self.questions = dict()  # type: dict[str, Question]
-        self.answers = dict()  # type: dict[str, Answer]
-        self.choices = dict()  # type: dict[str, Choice]
-        self.resource_collections = dict()  # type: dict[str, ResourceCollection]
-        self.resource_pages = dict()  # type: dict[str, ResourcePage]
-        self.references = dict()  # type: dict[str, Reference]
-        self.experts = dict()  # type: dict[str, Expert]
-        self.tags = dict()  # type: dict[str, Tag]
-        self.metrics = dict()  # type: dict[str, Metric]
-        self.phases = dict()  # type: dict[str, Phase]
-        self.integrations = dict()  # type: dict[str, Integration]
+        self.chapters: dict[str, Chapter] = {}
+        self.questions: dict[str, Question] = {}
+        self.answers: dict[str, Answer] = {}
+        self.choices: dict[str, Choice] = {}
+        self.resource_collections: dict[str, ResourceCollection] = {}
+        self.resource_pages: dict[str, ResourcePage] = {}
+        self.references: dict[str, Reference] = {}
+        self.experts: dict[str, Expert] = {}
+        self.tags: dict[str, Tag] = {}
+        self.metrics: dict[str, Metric] = {}
+        self.phases: dict[str, Phase] = {}
+        self.integrations: dict[str, Integration] = {}
 
     @staticmethod
     def load(data: dict, **options):
@@ -1250,24 +1511,26 @@ class KnowledgeModelEntities:
 
 class KnowledgeModel:
 
-    def __init__(self, uuid, chapter_uuids, tag_uuids, metric_uuids,
-                 phase_uuids, integration_uuids, resource_collection_uuids,
-                 entities, annotations):
-        self.uuid = uuid  # type: str
-        self.entities = entities  # type: KnowledgeModelEntities
-        self.chapter_uuids = chapter_uuids  # type: list[str]
-        self.chapters = list()  # type: list[Chapter]
-        self.tag_uuids = tag_uuids  # type: list[str]
-        self.tags = list()  # type: list[Tag]
-        self.metric_uuids = metric_uuids  # type: list[str]
-        self.metrics = list()  # type: list[Metric]
-        self.phase_uuids = phase_uuids  # type: list[str]
-        self.phases = list()  # type: list[Phase]
-        self.resource_collection_uuids = resource_collection_uuids  # type: list[str]
-        self.resource_collections = list()  # type: list[ResourceCollection]
-        self.integration_uuids = integration_uuids  # type: list[str]
-        self.integrations = list()  # type: list[Integration]
-        self.annotations = annotations  # type: AnnotationsT
+    def __init__(self, *, uuid: str, chapter_uuids: list[str], tag_uuids: list[str],
+                 metric_uuids: list[str], phase_uuids: list[str], integration_uuids: list[str],
+                 resource_collection_uuids: list[str], entities: KnowledgeModelEntities,
+                 annotations: AnnotationsT):
+        self.uuid = uuid
+        self.entities = entities
+        self.chapter_uuids = chapter_uuids
+        self.tag_uuids = tag_uuids
+        self.metric_uuids = metric_uuids
+        self.phase_uuids = phase_uuids
+        self.resource_collection_uuids = resource_collection_uuids
+        self.integration_uuids = integration_uuids
+        self.annotations = annotations
+
+        self.chapters: list[Chapter] = []
+        self.tags: list[Tag] = []
+        self.metrics: list[Metric] = []
+        self.phases: list[Phase] = []
+        self.resource_collections: list[ResourceCollection] = []
+        self.integrations: list[Integration] = []
 
     @property
     def a(self):
@@ -1277,31 +1540,31 @@ class KnowledgeModel:
     def e(self):
         return self.entities
 
-    def _resolve_links(self, ctx):
+    def resolve_links(self, ctx):
         self.chapters = [ctx.e.chapters[key]
                          for key in self.chapter_uuids
-                         if key in ctx.e.chapters.keys()]
+                         if key in ctx.e.chapters]
         self.tags = [ctx.e.tags[key]
                      for key in self.tag_uuids
-                     if key in ctx.e.tags.keys()]
+                     if key in ctx.e.tags]
         self.metrics = [ctx.e.metrics[key]
                         for key in self.metric_uuids
-                        if key in ctx.e.metrics.keys()]
+                        if key in ctx.e.metrics]
         self.phases = [ctx.e.phases[key]
                        for key in self.phase_uuids
-                       if key in ctx.e.phases.keys()]
+                       if key in ctx.e.phases]
         self.resource_collections = [ctx.e.resource_collections[key]
                                      for key in self.resource_collection_uuids
-                                     if key in ctx.e.resource_collections.keys()]
+                                     if key in ctx.e.resource_collections]
         self.integrations = [ctx.e.integrations[key]
                              for key in self.integration_uuids
-                             if key in ctx.e.integrations.keys()]
+                             if key in ctx.e.integrations]
         for index, phase in enumerate(self.phases, start=1):
             phase.order = index
         for chapter in self.chapters:
-            chapter._resolve_links(ctx)
+            chapter.resolve_links(ctx)
         for resource_collection in self.resource_collections:
-            resource_collection._resolve_links(ctx)
+            resource_collection.resolve_links(ctx)
 
     @staticmethod
     def load(data: dict, **options):
@@ -1320,8 +1583,8 @@ class KnowledgeModel:
 
 class ContextConfig:
 
-    def __init__(self, client_url):
-        self.client_url = client_url  # type: str
+    def __init__(self, *, client_url: str | None):
+        self.client_url = client_url
 
     @staticmethod
     def load(data: dict, **options):
@@ -1332,14 +1595,14 @@ class ContextConfig:
 
 class Document:
 
-    def __init__(self, uuid, name, document_template_id, format_uuid,
-                 created_by, created_at):
-        self.uuid = uuid  # type: str
-        self.name = name  # type: str
-        self.document_template_id = document_template_id  # type: str
-        self.format_uuid = format_uuid  # type: str
-        self.created_by = created_by  # type: Optional[User]
-        self.created_at = created_at  # type: datetime.datetime
+    def __init__(self, *, uuid: str, name: str, document_template_id: str, format_uuid: str,
+                 created_by: User | None, created_at: datetime.datetime):
+        self.uuid = uuid
+        self.name = name
+        self.document_template_id = document_template_id
+        self.format_uuid = format_uuid
+        self.created_by = created_by
+        self.created_at = created_at
 
     @staticmethod
     def load(data: dict, **options):
@@ -1353,39 +1616,18 @@ class Document:
         )
 
 
-class SimpleAuthor:
-
-    def __init__(self, uuid, first_name, last_name, image_url, gravatar_hash):
-        self.uuid = uuid  # type: str
-        self.first_name = first_name  # type: str
-        self.last_name = last_name  # type: str
-        self.image_url = image_url  # type: Optional[str]
-        self.gravatar_hash = gravatar_hash  # type: Optional[str]
-
-    @staticmethod
-    def load(data: Optional[dict], **options):
-        if data is None:
-            return None
-        return SimpleAuthor(
-            uuid=data['uuid'],
-            first_name=data['firstName'],
-            last_name=data['lastName'],
-            image_url=data['imageUrl'],
-            gravatar_hash=data['gravatarHash'],
-        )
-
-
 class QuestionnaireVersion:
 
-    def __init__(self, uuid, event_uuid, name, description,
-                 created_at, updated_at, created_by):
-        self.uuid = uuid  # type: str
-        self.event_uuid = event_uuid  # type: str
-        self.name = name  # type: str
-        self.description = description  # type: str
-        self.created_at = created_at  # type: datetime.datetime
-        self.updated_at = updated_at  # type: datetime.datetime
-        self.created_by = created_by  # type: Optional[SimpleAuthor]
+    def __init__(self, *, uuid: str, event_uuid: str, name: str, description: str | None,
+                 created_at: datetime.datetime, updated_at: datetime.datetime,
+                 created_by: SimpleAuthor | None):
+        self.uuid = uuid
+        self.event_uuid = event_uuid
+        self.name = name
+        self.description = description
+        self.created_at = created_at
+        self.updated_at = updated_at
+        self.created_by = created_by
 
     @staticmethod
     def load(data: dict, **options):
@@ -1402,53 +1644,53 @@ class QuestionnaireVersion:
 
 class RepliesContainer:
 
-    def __init__(self, replies: dict[str, Reply]):
+    def __init__(self, *, replies: dict[str, Reply]):
         self.replies = replies
 
-    def __getitem__(self, path: str) -> Optional[Reply]:
+    def __getitem__(self, path: str) -> Reply | None:
         return self.get(path)
 
     def __len__(self) -> int:
         return len(self.replies)
 
-    def get(self, path: str, default=None) -> Optional[Reply]:
+    def get(self, path: str, default=None) -> Reply | None:
         return self.replies.get(path, default)
 
-    def iterate_by_prefix(self, path_prefix: str) -> Iterable[Reply]:
+    def iterate_by_prefix(self, path_prefix: str) -> typing.Iterable[Reply]:
         return (r for path, r in self.replies.items() if path.startswith(path_prefix))
 
-    def iterate_by_suffix(self, path_suffix: str) -> Iterable[Reply]:
+    def iterate_by_suffix(self, path_suffix: str) -> typing.Iterable[Reply]:
         return (r for path, r in self.replies.items() if path.endswith(path_suffix))
 
-    def values(self) -> Iterable[Reply]:
+    def values(self) -> typing.Iterable[Reply]:
         return self.replies.values()
 
-    def keys(self) -> Iterable[str]:
-        return self.replies.keys()
+    def keys(self) -> typing.Iterable[str]:
+        return self.replies
 
-    def items(self) -> ItemsView[str, Reply]:
+    def items(self) -> typing.ItemsView[str, Reply]:
         return self.replies.items()
 
 
 class QuestionnaireFile:
 
-    def __init__(self, uuid, file_name, file_size, content_type):
-        self.uuid = uuid  # type: str
-        self.name = file_name  # type: str
-        self.size = file_size  # type: int
-        self.content_type = content_type  # type: str
+    def __init__(self, *, uuid: str, file_name: str, file_size: int,
+                 content_type: str):
+        self.uuid = uuid
+        self.name = file_name
+        self.size = file_size
+        self.content_type = content_type
 
-        self.reply = None  # type: Optional[FileReply]
-        self.download_url = ''  # type: str
+        self.reply: FileReply | None = None
+        self.download_url: str = ''
 
-    def _resolve_links(self, ctx):
-        # Update the download URL: /projects/<projectUuid>/files/<fileUuid>/download
+    def resolve_links(self, ctx):
         project_uuid = ctx.questionnaire.uuid
         client_url = ctx.config.client_url
         self.download_url = f'{client_url}/projects/{project_uuid}/files/{self.uuid}/download'
 
     @staticmethod
-    def load(data: dict, questionnaire_uuid: str, **options):
+    def load(data: dict, **options):
         return QuestionnaireFile(
             uuid=data['uuid'],
             file_name=data['fileName'],
@@ -1459,28 +1701,31 @@ class QuestionnaireFile:
 
 class Questionnaire:
 
-    def __init__(self, uuid, name, description, created_by, phase_uuid,
-                 created_at, updated_at):
-        self.uuid = uuid  # type: str
-        self.name = name  # type: str
-        self.description = description  # type: str
-        self.version = None  # type: Optional[QuestionnaireVersion]
-        self.versions = list()  # type: list[QuestionnaireVersion]
-        self.files = dict()  # type: dict[str, QuestionnaireFile]
-        self.todos = list()  # type: list[str]
-        self.created_by = created_by  # type: User
-        self.phase_uuid = phase_uuid  # type: Optional[str]
-        self.phase = PHASE_NEVER  # type: Phase
-        self.project_tags = list()  # type: list[str]
-        self.replies = RepliesContainer(dict())  # type: RepliesContainer
+    def __init__(self, *, uuid: str, name: str, description: str | None,
+                 created_by: User, phase_uuid: str | None,
+                 created_at: datetime.datetime, updated_at: datetime.datetime):
+        self.uuid = uuid
+        self.name = name
+        self.description = description
+        self.created_by = created_by
+        self.phase_uuid = phase_uuid
         self.created_at = created_at
         self.updated_at = updated_at
 
-    def _resolve_links(self, ctx):
+        self.version: QuestionnaireVersion | None = None
+        self.versions: list[QuestionnaireVersion] = []
+        self.files: dict[str, QuestionnaireFile] = {}
+        self.todos: list[str] = []
+        self.project_tags: list[str] = []
+        self.phase: Phase = PHASE_NEVER
+
+        self.replies: RepliesContainer = RepliesContainer(replies={})
+
+    def resolve_links(self, ctx):
         for reply in self.replies.values():
-            reply._resolve_links(ctx)
-        for file in self.files.values():
-            file._resolve_links(ctx)
+            reply.resolve_links(ctx)
+        for questionnaire_file in self.files.values():
+            questionnaire_file.resolve_links(ctx)
 
     @staticmethod
     def load(data: dict, **options):
@@ -1490,7 +1735,7 @@ class Questionnaire:
         version = None
         replies = {p: _load_reply(p, d, **options)
                    for p, d in data['replies'].items()}
-        files = {d['uuid']: QuestionnaireFile.load(d, questionnaire_uuid, **options)
+        files = {d['uuid']: QuestionnaireFile.load(d, **options)
                  for d in data.get('files', [])}
         for v in versions:
             if v.uuid == data['versionUuid']:
@@ -1515,15 +1760,17 @@ class Questionnaire:
 
 class Package:
 
-    def __init__(self, org_id, km_id, version, versions, name, description, created_at):
-        self.organization_id = org_id  # type: str
-        self.km_id = km_id  # type: str
-        self.version = version  # type: str
-        self.id = f'{org_id}:{km_id}:{version}'
-        self.versions = versions  # type: list[str]
-        self.name = name  # type: str
-        self.description = description  # type: str
-        self.created_at = created_at  # type: datetime.datetime
+    def __init__(self, *, org_id: str, km_id: str, version: str, versions: list[str],
+                 name: str, description: str, created_at: datetime.datetime):
+        self.organization_id = org_id
+        self.km_id = km_id
+        self.version = version
+        self.versions = versions
+        self.name = name
+        self.description = description
+        self.created_at = created_at
+
+        self.id: str = f'{org_id}:{km_id}:{version}'
 
     @property
     def org_id(self):
@@ -1544,10 +1791,10 @@ class Package:
 
 class ReportIndication:
 
-    def __init__(self, indication_type, answered, unanswered):
-        self.indication_type = indication_type  # type: str
-        self.answered = answered  # type: int
-        self.unanswered = unanswered  # type: int
+    def __init__(self, *, indication_type: str, answered: int, unanswered: int):
+        self.indication_type = indication_type
+        self.answered = answered
+        self.unanswered = unanswered
 
     @property
     def total(self) -> int:
@@ -1578,13 +1825,14 @@ class ReportIndication:
 
 class ReportMetric:
 
-    def __init__(self, measure, metric_uuid):
-        self.measure = measure  # type: float
-        self.metric_uuid = metric_uuid  # type: str
-        self.metric = None  # type: Optional[Metric]
+    def __init__(self, *, measure: float, metric_uuid: str):
+        self.measure = measure
+        self.metric_uuid = metric_uuid
 
-    def _resolve_links(self, ctx):
-        if self.metric_uuid in ctx.e.metrics.keys():
+        self.metric: Metric | None = None
+
+    def resolve_links(self, ctx):
+        if self.metric_uuid in ctx.e.metrics:
             self.metric = ctx.e.metrics[self.metric_uuid]
 
     @staticmethod
@@ -1597,16 +1845,18 @@ class ReportMetric:
 
 class ReportItem:
 
-    def __init__(self, indications, metrics, chapter_uuid):
-        self.indications = indications  # type: list[ReportIndication]
-        self.metrics = metrics  # type: list[ReportMetric]
-        self.chapter_uuid = chapter_uuid  # type: Optional[str]
-        self.chapter = None  # type: Optional[Chapter]
+    def __init__(self, *, indications: list[ReportIndication], metrics: list[ReportMetric],
+                 chapter_uuid: str | None):
+        self.indications = indications
+        self.metrics = metrics
+        self.chapter_uuid = chapter_uuid
 
-    def _resolve_links(self, ctx):
+        self.chapter: Chapter | None = None
+
+    def resolve_links(self, ctx):
         for m in self.metrics:
-            m._resolve_links(ctx)
-        if self.chapter_uuid is not None and self.chapter_uuid in ctx.e.chapters.keys():
+            m.resolve_links(ctx)
+        if self.chapter_uuid is not None and self.chapter_uuid in ctx.e.chapters:
             self.chapter = ctx.e.chapters[self.chapter_uuid]
             if self.chapter is not None:
                 self.chapter.reports.append(self)
@@ -1624,17 +1874,19 @@ class ReportItem:
 
 class Report:
 
-    def __init__(self, uuid, created_at, updated_at, chapter_reports, total_report):
-        self.uuid = uuid  # type: str
-        self.created_at = created_at  # type: datetime.datetime
-        self.updated_at = updated_at  # type: datetime.datetime
-        self.total_report = total_report  # type: ReportItem
-        self.chapter_reports = chapter_reports  # type: list[ReportItem]
+    def __init__(self, *, uuid: str, created_at: datetime.datetime,
+                 updated_at: datetime.datetime, chapter_reports: list[ReportItem],
+                 total_report: ReportItem):
+        self.uuid = uuid
+        self.created_at = created_at
+        self.updated_at = updated_at
+        self.total_report = total_report
+        self.chapter_reports = chapter_reports
 
-    def _resolve_links(self, ctx):
-        self.total_report._resolve_links(ctx)
+    def resolve_links(self, ctx):
+        self.total_report.resolve_links(ctx)
         for report in self.chapter_reports:
-            report._resolve_links(ctx)
+            report.resolve_links(ctx)
 
     @staticmethod
     def load(data: dict, **options):
@@ -1648,70 +1900,18 @@ class Report:
         )
 
 
-class User:
-
-    def __init__(self, uuid, first_name, last_name, email, role, created_at,
-                 updated_at, affiliation, permissions, sources, image_url):
-        self.uuid = uuid  # type: str
-        self.first_name = first_name  # type: str
-        self.last_name = last_name  # type: str
-        self.email = email  # type: str
-        self.role = role  # type: str
-        self.image_url = image_url  # type: Optional[str]
-        self.affiliation = affiliation  # type: Optional[str]
-        self.permissions = permissions  # type: list[str]
-        self.sources = sources  # type: list[str]
-        self.created_at = created_at  # type: datetime.datetime
-        self.updated_at = updated_at  # type: datetime.datetime
-
-    @staticmethod
-    def load(data: dict, **options):
-        if data is None:
-            return None
-        return User(
-            uuid=data['uuid'],
-            first_name=data['firstName'],
-            last_name=data['lastName'],
-            email=data['email'],
-            role=data['role'],
-            image_url=data['imageUrl'],
-            affiliation=data['affiliation'],
-            permissions=data['permissions'],
-            sources=data['sources'],
-            created_at=_datetime(data['createdAt']),
-            updated_at=_datetime(data['updatedAt']),
-        )
-
-
-class Organization:
-
-    def __init__(self, org_id, name, description, affiliations):
-        self.id = org_id  # type: str
-        self.name = name  # type: str
-        self.description = description  # type: Optional[str]
-        self.affiliations = affiliations  # type: list[str]
-
-    @staticmethod
-    def load(data: dict, **options):
-        return Organization(
-            org_id=data['organizationId'],
-            name=data['name'],
-            description=data['description'],
-            affiliations=data['affiliations'],
-        )
-
-
 class UserGroup:
 
-    def __init__(self, uuid, name, description, private,
-                 created_at, updated_at):
-        self.uuid = uuid  # type: str
-        self.name = name  # type: str
-        self.description = description  # type: Optional[str]
-        self.private = private  # type: bool
-        self.members = list()  # type: list[UserGroupMember]
-        self.created_at = created_at  # type: datetime.datetime
-        self.updated_at = updated_at  # type: datetime.datetime
+    def __init__(self, *, uuid: str, name: str, description: str | None, private: bool,
+                 created_at: datetime.datetime, updated_at: datetime.datetime):
+        self.uuid = uuid
+        self.name = name
+        self.description = description
+        self.private = private
+        self.created_at = created_at
+        self.updated_at = updated_at
+
+        self.members: list[UserGroupMember] = []
 
     @staticmethod
     def load(data: dict, **options):
@@ -1730,14 +1930,14 @@ class UserGroup:
 
 class UserGroupMember:
 
-    def __init__(self, uuid, first_name, last_name, gravatar_hash,
-                 image_url, membership_type):
-        self.uuid = uuid  # type: str
-        self.first_name = first_name  # type: str
-        self.last_name = last_name  # type: str
-        self.gravatar_hash = gravatar_hash  # type: str
-        self.image_url = image_url  # type: Optional[str]
-        self.membership_type = membership_type  # type: str
+    def __init__(self, *, uuid: str, first_name: str, last_name: str, gravatar_hash: str,
+                 image_url: str | None, membership_type: str):
+        self.uuid = uuid
+        self.first_name = first_name
+        self.last_name = last_name
+        self.gravatar_hash = gravatar_hash
+        self.image_url = image_url
+        self.membership_type = membership_type
 
     @staticmethod
     def load(data: dict, **options):
@@ -1756,9 +1956,9 @@ class UserGroupMember:
 
 class DocumentContextUserPermission:
 
-    def __init__(self, user, permissions):
-        self.user = user  # type: Optional[User]
-        self.permissions = permissions  # type: list[str]
+    def __init__(self, *, user: User | None, permissions: list[str]):
+        self.user = user
+        self.permissions = permissions
 
     @property
     def is_viewer(self):
@@ -1786,9 +1986,9 @@ class DocumentContextUserPermission:
 
 class DocumentContextUserGroupPermission:
 
-    def __init__(self, group, permissions):
-        self.group = group  # type: Optional[UserGroup]
-        self.permissions = permissions  # type: list[str]
+    def __init__(self, *, group: UserGroup | None, permissions: list[str]):
+        self.group = group
+        self.permissions = permissions
 
     @property
     def is_viewer(self):
@@ -1818,7 +2018,7 @@ class DocumentContext:
     """Document Context smart representation"""
     METAMODEL_VERSION = 16
 
-    def __init__(self, ctx, **options):
+    def __init__(self, *, ctx, **options):
         self.metamodel_version = int(ctx.get('metamodelVersion', '0'))
         if self.metamodel_version != self.METAMODEL_VERSION:
             raise ValueError(f'Unsupported metamodel version: {self.metamodel_version} '
@@ -1831,7 +2031,7 @@ class DocumentContext:
         self.document = Document.load(ctx['document'], **options)
         self.package = Package.load(ctx['package'], **options)
         self.organization = Organization.load(ctx['organization'], **options)
-        self.current_phase = PHASE_NEVER  # type: Phase
+        self.current_phase: Phase = PHASE_NEVER
 
         self.users = [DocumentContextUserPermission.load(d, **options)
                       for d in ctx['users']]
@@ -1866,16 +2066,16 @@ class DocumentContext:
     def replies(self) -> RepliesContainer:
         return self.questionnaire.replies
 
-    def _resolve_links(self):
+    def resolve_links(self):
         phase_uuid = self.questionnaire.phase_uuid
-        if phase_uuid is not None and phase_uuid in self.e.phases.keys():
+        if phase_uuid is not None and phase_uuid in self.e.phases:
             self.current_phase = self.e.phases[phase_uuid]
         self.questionnaire.phase = self.current_phase
-        self.km._resolve_links(self)
-        self.report._resolve_links(self)
-        self.questionnaire._resolve_links(self)
+        self.km.resolve_links(self)
+        self.report.resolve_links(self)
+        self.questionnaire.resolve_links(self)
 
-        rv = ReplyVisitor(self)
+        rv = ReplyVisitor(context=self)
         rv.visit()
         for reply in self.replies.values():
             if isinstance(reply, ItemSelectReply):
@@ -1884,9 +2084,9 @@ class DocumentContext:
 
 class ReplyVisitor:
 
-    def __init__(self, context: DocumentContext):
-        self.item_titles = dict()  # type: dict[str, str]
-        self._set_also = dict()  # type: dict[str, list[str]]
+    def __init__(self, *, context: DocumentContext):
+        self.item_titles: dict[str, str] = {}
+        self._set_also: dict[str, list[str]] = {}
         self.context = context
 
     def visit(self):
@@ -1902,7 +2102,7 @@ class ReplyVisitor:
         if isinstance(question, ListQuestion):
             self._visit_list_question(question, new_path)
         elif isinstance(question, OptionsQuestion):
-            self._visit_options_question(question, new_path)
+            self._visit_options_question(new_path)
 
     def _visit_list_question(self, question: ListQuestion, path: str):
         reply = self.context.replies.get(path)
@@ -1912,30 +2112,31 @@ class ReplyVisitor:
             self.item_titles[item_uuid] = f'Item {n}'
             item_path = f'{path}.{item_uuid}'
 
-            # title
             if len(question.followups) > 0:
                 title_path = f'{item_path}.{question.followups[0].uuid}'
                 title_reply = self.context.replies.get(title_path)
                 if title_reply is not None and isinstance(title_reply, StringReply):
                     self.item_titles[item_uuid] = title_reply.value
                 elif title_reply is not None and isinstance(title_reply, IntegrationReply):
-                    non_empty_lines = list(filter(lambda line: len(line) > 0, title_reply.value.split('\n')))
+                    non_empty_lines = list(filter(
+                        lambda line: len(line) > 0,
+                        title_reply.value.split('\n'),
+                    ))
                     if len(non_empty_lines) > 0:
                         self.item_titles[item_uuid] = non_empty_lines[0]
                 elif title_reply is not None and isinstance(title_reply, ItemSelectReply):
                     ref_item_uuid = title_reply.item_uuid
-                    if ref_item_uuid in self.item_titles.keys():
+                    if ref_item_uuid in self.item_titles:
                         self.item_titles[item_uuid] = self.item_titles[ref_item_uuid]
                     else:
                         self._set_also.setdefault(ref_item_uuid, []).append(item_uuid)
             for set_also in self._set_also.get(item_uuid, []):
                 self.item_titles[set_also] = self.item_titles[item_uuid]
 
-            # followups
             for followup in question.followups:
                 self._visit_question(followup, path=item_path)
 
-    def _visit_options_question(self, question: OptionsQuestion, path: str):
+    def _visit_options_question(self, path: str):
         reply = self.context.replies.get(path)
         if reply is None or not isinstance(reply, AnswerReply) or reply.answer is None:
             return

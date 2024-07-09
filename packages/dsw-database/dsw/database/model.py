@@ -1,21 +1,20 @@
 import dataclasses
 import datetime
+import enum
 import json
-
-from typing import Optional
 
 
 NULL_UUID = '00000000-0000-0000-0000-000000000000'
 
 
-class DocumentState:
+class DocumentState(enum.Enum):
     QUEUED = 'QueuedDocumentState'
     PROCESSING = 'InProgressDocumentState'
     FAILED = 'ErrorDocumentState'
     FINISHED = 'DoneDocumentState'
 
 
-class DocumentTemplatePhase:
+class DocumentTemplatePhase(enum.Enum):
     RELEASED = 'ReleasedTemplatePhase'
     DEPRECATED = 'DeprecatedTemplatePhase'
     DRAFT = 'DraftTemplatePhase'
@@ -55,8 +54,8 @@ class DBDocument:
     content_type: str
     worker_log: str
     created_by: str
-    retrieved_at: Optional[datetime.datetime]
-    finished_at: Optional[datetime.datetime]
+    retrieved_at: datetime.datetime | None
+    finished_at: datetime.datetime | None
     created_at: datetime.datetime
     tenant_uuid: str
     file_size: int
@@ -191,11 +190,11 @@ class PersistentCommand:
     component: str
     function: str
     body: dict
-    last_error_message: Optional[str]
+    last_error_message: str | None
     attempts: int
     max_attempts: int
     tenant_uuid: str
-    created_by: Optional[str]
+    created_by: str | None
     created_at: datetime.datetime
     updated_at: datetime.datetime
 
@@ -220,28 +219,28 @@ class PersistentCommand:
 @dataclasses.dataclass
 class DBTenantConfig:
     uuid: str
-    organization: Optional[dict]
-    authentication: Optional[dict]
-    privacy_and_support: Optional[dict]
-    dashboard: Optional[dict]
-    look_and_feel: Optional[dict]
-    registry: Optional[dict]
-    knowledge_model: Optional[dict]
-    questionnaire: Optional[dict]
-    submission: Optional[dict]
-    owl: Optional[dict]
-    mail_config_uuid: Optional[str]
+    organization: dict | None
+    authentication: dict | None
+    privacy_and_support: dict | None
+    dashboard: dict | None
+    look_and_feel: dict | None
+    registry: dict | None
+    knowledge_model: dict | None
+    questionnaire: dict | None
+    submission: dict | None
+    owl: dict | None
+    mail_config_uuid: str | None
     created_at: datetime.datetime
     updated_at: datetime.datetime
 
     @property
-    def app_title(self) -> Optional[str]:
+    def app_title(self) -> str | None:
         if self.look_and_feel is None:
             return None
         return self.look_and_feel.get('appTitle', None)
 
     @property
-    def support_email(self) -> Optional[str]:
+    def support_email(self) -> str | None:
         if self.privacy_and_support is None:
             return None
         return self.privacy_and_support.get('supportEmail', None)
@@ -269,7 +268,7 @@ class DBTenantConfig:
 @dataclasses.dataclass
 class DBTenantLimits:
     tenant_uuid: str
-    storage: Optional[int]
+    storage: int | None
 
     @staticmethod
     def from_dict_row(data: dict):
@@ -390,19 +389,19 @@ class DBInstanceConfigMail:
     uuid: str
     enabled: bool
     provider: str
-    sender_name: Optional[str]
-    sender_email: Optional[str]
-    smtp_host: Optional[str]
-    smtp_port: Optional[int]
-    smtp_security: Optional[str]
-    smtp_username: Optional[str]
-    smtp_password: Optional[str]
-    aws_access_key_id: Optional[str]
-    aws_secret_access_key: Optional[str]
-    aws_region: Optional[str]
-    rate_limit_window: Optional[int]
-    rate_limit_count: Optional[int]
-    timeout: Optional[int]
+    sender_name: str | None
+    sender_email: str | None
+    smtp_host: str | None
+    smtp_port: int | None
+    smtp_security: str | None
+    smtp_username: str | None
+    smtp_password: str | None
+    aws_access_key_id: str | None
+    aws_secret_access_key: str | None
+    aws_region: str | None
+    rate_limit_window: int | None
+    rate_limit_count: int | None
+    timeout: int | None
 
     @staticmethod
     def from_dict_row(data: dict):

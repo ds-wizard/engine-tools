@@ -1,15 +1,18 @@
-import typing as t
+import json
+import typing
 
+import gettext
 import jinja2
 import jinja2.exceptions
 import jinja2.sandbox
-import json
-
-from typing import Any
+import rdflib
 
 from ...consts import DEFAULT_ENCODING
 from ...context import Context
 from ...documents import DocumentFile, FileFormat, FileFormats
+from ...model.http import RequestsWrapper
+from ..filters import filters
+from ..tests import tests
 from .base import Step, register_step
 
 
@@ -30,7 +33,7 @@ class JSONStep(Step):
 
 class JinjaEnvironment(jinja2.sandbox.SandboxedEnvironment):
 
-    def is_safe_attribute(self, obj: t.Any, attr: str, value: t.Any) -> bool:
+    def is_safe_attribute(self, obj: typing.Any, attr: str, value: typing.Any) -> bool:
         if attr in ['os', 'subprocess', 'eval', 'exec', 'popen', 'system']:
             return False
         if attr == '__setitem__' and isinstance(obj, dict):
@@ -38,32 +41,14 @@ class JinjaEnvironment(jinja2.sandbox.SandboxedEnvironment):
         return super().is_safe_attribute(obj, attr, value)
 
 
-class Jinja2Step(Step):
-    NAME = 'jinja'
-    DEFAULT_FORMAT = FileFormats.HTML
-
-    OPTION_ROOT_FILE = 'template'
-    OPTION_CONTENT_TYPE = 'content-type'
-    OPTION_EXTENSION = 'extension'
+class JinjaPoweredStep(Step):
     OPTION_JINJA_EXT = 'jinja-ext'
     OPTION_I18N_DIR = 'i18n-dir'
     OPTION_I18N_DOMAIN = 'i18n-domain'
     OPTION_I18N_LANG = 'i18n-lang'
 
-    def _jinja_exception_msg(self, e: jinja2.exceptions.TemplateSyntaxError):
-        lines = [
-            'Failed loading Jinja2 template due to syntax error:',
-            f'- {e.message}',
-            f'- Filename: {e.name}',
-            f'- Line number: {e.lineno}',
-        ]
-        return '\n'.join(lines)
-
-    def __init__(self, template, options: dict):
+    def __init__(self, template, options):
         super().__init__(template, options)
-        self.root_file = self.options[self.OPTION_ROOT_FILE]
-        self.content_type = self.options.get(self.OPTION_CONTENT_TYPE, self.DEFAULT_FORMAT.content_type)
-        self.extension = self.options.get(self.OPTION_EXTENSION, self.DEFAULT_FORMAT.file_extension)
         self.jinja_ext = frozenset(
             map(lambda x: x.strip(), self.options.get(self.OPTION_JINJA_EXT, '').split(','))
         )
@@ -71,7 +56,6 @@ class Jinja2Step(Step):
         self.i18n_domain = self.options.get(self.OPTION_I18N_DOMAIN, 'default')
         self.i18n_lang = self.options.get(self.OPTION_I18N_LANG, None)
 
-        self.output_format = FileFormat(self.extension, self.content_type, self.extension)
         try:
             self.j2_env = JinjaEnvironment(
                 loader=jinja2.FileSystemLoader(searchpath=template.template_dir),
@@ -86,21 +70,29 @@ class Jinja2Step(Step):
                 self.j2_env.add_extension('jinja2.ext.debug')
             self._apply_policies(options)
             self._add_j2_enhancements()
-            self.j2_root_template = self.j2_env.get_template(self.root_file)
         except jinja2.exceptions.TemplateSyntaxError as e:
             self.raise_exc(self._jinja_exception_msg(e))
         except Exception as e:
             self.raise_exc(f'Failed loading Jinja2 template: {e}')
 
+    def _jinja_exception_msg(self, e: jinja2.exceptions.TemplateSyntaxError):
+        lines = [
+            'Failed loading Jinja2 template due to syntax error:',
+            f'- {e.message}',
+            f'- Filename: {e.name}',
+            f'- Line number: {e.lineno}',
+        ]
+        return '\n'.join(lines)
+
     def _apply_policies(self, options: dict):
         # https://jinja.palletsprojects.com/en/3.0.x/api/#policies
-        policies = {
+        policies: dict[str, typing.Any] = {
             'policy.urlize.target': '_blank',
             'json.dumps_kwargs': {
                 'allow_nan': False,
                 'ensure_ascii': False,
             },
-        }  # type: dict[str,Any]
+        }
         if 'policy.truncate.leeway' in options:
             policies['truncate.leeway'] = options['policy.truncate.leeway']
         if 'policy.urlize.rel' in options:
@@ -127,23 +119,19 @@ class Jinja2Step(Step):
         # https://jinja.palletsprojects.com/en/3.1.x/extensions/#i18n-extension
         self.j2_env.add_extension('jinja2.ext.i18n')
         if self.i18n_dir is not None and self.i18n_lang is not None:
-            import gettext
             locale_path = template.template_dir / self.i18n_dir
             translations = gettext.translation(
                 domain=self.i18n_domain,
                 localedir=locale_path,
                 languages=map(lambda x: x.strip(), self.i18n_lang.split(',')),
             )
+            # pylint: disable-next=no-member
             self.j2_env.install_gettext_translations(translations, newstyle=True)  # type: ignore
         else:
+            # pylint: disable-next=no-member
             self.j2_env.install_null_translations(newstyle=True)  # type: ignore
 
     def _add_j2_enhancements(self):
-        from ..filters import filters
-        from ..tests import tests
-        from ...model.http import RequestsWrapper
-        import rdflib
-        import json
         self.j2_env.filters.update(filters)
         self.j2_env.tests.update(tests)
         template_cfg = Context.get().app.cfg.templates.get_config(
@@ -151,12 +139,37 @@ class Jinja2Step(Step):
         )
         self.j2_env.globals.update({'rdflib': rdflib, 'json': json})
         if template_cfg is not None:
-            global_vars = {'secrets': template_cfg.secrets}  # type: dict[str,Any]
+            global_vars: dict[str, typing.Any] = {'secrets': template_cfg.secrets}
             if template_cfg.requests.enabled:
                 global_vars['requests'] = RequestsWrapper(
                     template_cfg=template_cfg,
                 )
             self.j2_env.globals.update(global_vars)
+
+
+class Jinja2Step(JinjaPoweredStep):
+    NAME = 'jinja'
+    DEFAULT_FORMAT = FileFormats.HTML
+
+    OPTION_ROOT_FILE = 'template'
+    OPTION_CONTENT_TYPE = 'content-type'
+    OPTION_EXTENSION = 'extension'
+
+    def __init__(self, template, options: dict):
+        super().__init__(template, options)
+        self.root_file = self.options[self.OPTION_ROOT_FILE]
+        self.content_type = self.options.get(self.OPTION_CONTENT_TYPE,
+                                             self.DEFAULT_FORMAT.content_type)
+        self.extension = self.options.get(self.OPTION_EXTENSION,
+                                          self.DEFAULT_FORMAT.file_extension)
+
+        self.output_format = FileFormat(self.extension, self.content_type, self.extension)
+        try:
+            self.j2_root_template = self.j2_env.get_template(self.root_file)
+        except jinja2.exceptions.TemplateSyntaxError as e:
+            self.raise_exc(self._jinja_exception_msg(e))
+        except Exception as e:
+            self.raise_exc(f'Failed loading Jinja2 template: {e}')
 
     def _execute(self, **jinja_args):
         def asset_fetcher(file_name):

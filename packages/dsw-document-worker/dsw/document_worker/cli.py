@@ -1,7 +1,8 @@
-import click
 import pathlib
+import sys
+import typing
 
-from typing import IO, Optional
+import click
 
 from dsw.config.parser import MissingConfigurationError
 from dsw.config.sentry import SentryReporter
@@ -9,13 +10,14 @@ from dsw.config.sentry import SentryReporter
 from .config import DocumentWorkerConfig, DocumentWorkerConfigParser
 from .consts import (VERSION, VAR_APP_CONFIG_PATH, VAR_WORKDIR_PATH,
                      DEFAULT_ENCODING)
+from .worker import DocumentWorker
 
 
 def load_config_str(config_str: str) -> DocumentWorkerConfig:
     parser = DocumentWorkerConfigParser()
     if not parser.can_read(config_str):
         click.echo('Error: Cannot parse config file', err=True)
-        exit(1)
+        sys.exit(1)
 
     try:
         parser.read_string(config_str)
@@ -24,14 +26,15 @@ def load_config_str(config_str: str) -> DocumentWorkerConfig:
         click.echo('Error: Missing configuration', err=True)
         for missing_item in e.missing:
             click.echo(f' - {missing_item}', err=True)
-        exit(1)
+        sys.exit(1)
 
     config = parser.config
     config.log.apply()
     return config
 
 
-def validate_config(ctx, param, value: Optional[IO]):
+# pylint: disable-next=unused-argument
+def validate_config(ctx, param, value: typing.IO | None):
     content = ''
     if value is not None:
         content = value.read()
@@ -46,17 +49,16 @@ def validate_config(ctx, param, value: Optional[IO]):
                 type=click.File('r', encoding=DEFAULT_ENCODING))
 @click.argument('workdir', envvar=VAR_WORKDIR_PATH,)
 def main(config: DocumentWorkerConfig, workdir: str):
-    from .worker import DocumentWorker
     config.log.apply()
     workdir_path = pathlib.Path(workdir)
     workdir_path.mkdir(parents=True, exist_ok=True)
     if not workdir_path.is_dir():
         click.echo(f'Workdir {workdir_path.as_posix()} is not usable')
-        exit(2)
+        sys.exit(2)
     try:
         worker = DocumentWorker(config, workdir_path)
         worker.run()
     except Exception as e:
         SentryReporter.capture_exception(e)
         click.echo(f'Ended with error: {e}')
-        exit(2)
+        sys.exit(2)

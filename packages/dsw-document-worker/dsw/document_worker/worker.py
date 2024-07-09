@@ -1,17 +1,16 @@
 import datetime
-import dateutil.parser
 import functools
 import logging
 import pathlib
-import sentry_sdk.types as sentry
+import typing
 
-from typing import Optional
+import dateutil.parser
+import sentry_sdk.types as sentry
 
 from dsw.command_queue import CommandWorker, CommandQueue
 from dsw.config.sentry import SentryReporter
 from dsw.database.database import Database
-from dsw.database.model import DBDocument, DBTenantConfig, \
-    DBTenantLimits, PersistentCommand
+from dsw.database.model import DBDocument, PersistentCommand
 from dsw.storage import S3Storage
 
 from .build_info import BUILD_INFO
@@ -37,11 +36,12 @@ def handle_job_step(message):
                 return func(job, *args, **kwargs)
             except Exception as e:
                 LOG.debug('Handling exception', exc_info=True)
-                raise create_job_exception(
+                new_exception = create_job_exception(
                     job_id=job.doc_uuid,
                     message=message,
                     exc=e,
                 )
+                raise new_exception from e
         return handled_step
     return decorator
 
@@ -50,16 +50,16 @@ class Job:
 
     def __init__(self, command: PersistentCommand, document_uuid: str):
         self.ctx = Context.get()
-        self.template = None  # type: Optional[Template]
-        self.format = None  # type: Optional[Format]
-        self.tenant_uuid = command.tenant_uuid  # type: str
-        self.doc_uuid = document_uuid  # type: str
-        self.doc_context = command.body  # type: dict
-        self.doc = None  # type: Optional[DBDocument]
-        self.final_file = None  # type: Optional[DocumentFile]
-        self.template_config = None  # type: Optional[TemplateConfig]
-        self.tenant_config = self.ctx.app.db.get_tenant_config(self.tenant_uuid)  # type: Optional[DBTenantConfig]
-        self.tenant_limits = self.ctx.app.db.fetch_tenant_limits(self.tenant_uuid)  # type: Optional[DBTenantLimits]
+        self.template: Template | None = None
+        self.format: Format | None = None
+        self.tenant_uuid: str = command.tenant_uuid
+        self.doc_uuid: str = document_uuid
+        self.doc_context: dict = command.body
+        self.doc: DBDocument | None = None
+        self.final_file: DocumentFile | None = None
+        self.template_config: TemplateConfig | None = None
+        self.tenant_config = self.ctx.app.db.get_tenant_config(self.tenant_uuid)
+        self.tenant_limits = self.ctx.app.db.fetch_tenant_limits(self.tenant_uuid)
 
     @property
     def safe_doc(self) -> DBDocument:
@@ -93,8 +93,8 @@ class Job:
             format='?',
         )
         if self.tenant_uuid != NULL_UUID:
-            LOG.info(f'Limiting to tenant with UUID: {self.tenant_uuid}')
-        LOG.info(f'Getting the document "{self.doc_uuid}" details from DB')
+            LOG.info('Limiting to tenant with UUID: %s', self.tenant_uuid)
+        LOG.info('Getting the document "%s" details from DB', self.doc_uuid)
         self.doc = self.ctx.app.db.fetch_document(
             document_uuid=self.doc_uuid,
             tenant_uuid=self.tenant_uuid,
@@ -105,10 +105,10 @@ class Job:
                 message='Document record not found in database',
             )
         self.doc.retrieved_at = datetime.datetime.now(tz=datetime.UTC)
-        LOG.info(f'Job "{self.doc_uuid}" details received')
+        LOG.info('Job "%s" details received', self.doc_uuid)
         # verify state
         state = self.doc.state
-        LOG.info(f'Original state of job is {state}')
+        LOG.info('Original state of job is %s', state)
         if state == DocumentState.FINISHED:
             raise create_job_exception(
                 job_id=self.doc_uuid,
@@ -124,7 +124,8 @@ class Job:
         SentryReporter.set_tags(phase='prepare')
         template_id = self.safe_doc.document_template_id
         format_uuid = self.safe_doc.format_uuid
-        LOG.info(f'Document uses template {template_id} with format {format_uuid}')
+        LOG.info('Document uses template %s with format %s',
+                 template_id, format_uuid)
         # update Sentry info
         SentryReporter.set_tags(
             template=template_id,
@@ -144,7 +145,7 @@ class Job:
         self.template_config = self.ctx.app.cfg.templates.get_config(template_id)
 
     def _enrich_context(self):
-        extras = dict()
+        extras: dict[str, typing.Any] = {}
         if self.safe_format.requires_via_extras('submissions'):
             submissions = self.ctx.app.db.fetch_questionnaire_submissions(
                 questionnaire_uuid=self.safe_doc.questionnaire_uuid,
@@ -203,16 +204,17 @@ class Job:
         SentryReporter.set_tags(phase='store')
         s3_id = self.ctx.app.s3.identification
         final_file = self.safe_final_file
-        LOG.info(f'Preparing S3 bucket {s3_id}')
+        LOG.info('Preparing S3 bucket %s', s3_id)
         self.ctx.app.s3.ensure_bucket()
-        LOG.info(f'Storing document to S3 bucket {s3_id}')
+        LOG.info('Storing document to S3 bucket %s', s3_id)
         self.ctx.app.s3.store_document(
             tenant_uuid=self.tenant_uuid,
             file_name=self.doc_uuid,
             content_type=final_file.object_content_type,
             data=final_file.content,
         )
-        LOG.info(f'Document {self.doc_uuid} stored in S3 bucket {s3_id}')
+        LOG.info('Document %s stored in S3 bucket %s',
+                 self.doc_uuid, s3_id)
 
     @handle_job_step('Failed to finalize document generation')
     def finalize(self):
@@ -235,7 +237,7 @@ class Job:
             ),
             document_uuid=self.doc_uuid,
         )
-        LOG.info(f'Document {self.doc_uuid} record finalized')
+        LOG.info('Document %s record finalized', self.doc_uuid)
 
     def set_job_state(self, state: str, message: str) -> bool:
         return self.ctx.app.db.update_document_state(
@@ -249,7 +251,8 @@ class Job:
             return self.set_job_state(state, message)
         except Exception as e:
             SentryReporter.capture_exception(e)
-            LOG.warning(f'Tried to set state of {self.doc_uuid} to {state} but failed: {e}')
+            LOG.warning('Tried to set state of %s to %s but failed: %s',
+                        self.doc_uuid, state, str(e))
             return False
 
     def _run(self):
@@ -264,9 +267,9 @@ class Job:
 
     def _set_failed(self, message: str):
         if self.try_set_job_state(DocumentState.FAILED, message):
-            LOG.info(f'Set state to {DocumentState.FAILED}')
+            LOG.info('Set state to FAILED')
         else:
-            msg = f'Could not set state to {DocumentState.FAILED}'
+            msg = 'Could not set state to FAILED'
             SentryReporter.capture_message(msg)
             LOG.error(msg)
             raise RuntimeError(msg)
@@ -295,7 +298,7 @@ class DocumentWorker(CommandWorker):
     def __init__(self, config: DocumentWorkerConfig, workdir: pathlib.Path):
         self.config = config
         self._init_context(workdir=workdir)
-        self.current_job = None  # type: Job | None
+        self.current_job: Job | None = None
 
     def _init_context(self, workdir: pathlib.Path):
         Context.initialize(
@@ -319,10 +322,11 @@ class DocumentWorker(CommandWorker):
         )
 
         def filter_templates(event: sentry.Event, hint: sentry.Hint) -> sentry.Event | None:
-            LOG.debug(f'Filtering Sentry event (template, {event.get("event_id")}, {hint})')
+            LOG.debug('Filtering Sentry event (template, %s, %s)',
+                      event.get('event_id'), hint)
             template = event.get('tags', {}).get('template')
             phase = event.get('tags', {}).get('phase')
-            if (phase == 'render' or phase == 'prepare') and template is not None:
+            if phase in ('render', 'prepare') and template is not None:
                 template_config = Context.get().app.cfg.templates.get_config(template)
                 if template_config is not None and not template_config.send_sentry:
                     return None
@@ -333,8 +337,8 @@ class DocumentWorker(CommandWorker):
     @staticmethod
     def _update_component_info():
         built_at = dateutil.parser.parse(BUILD_INFO.built_at)
-        LOG.info(f'Updating component info ({BUILD_INFO.version}, '
-                 f'{built_at.isoformat(timespec="seconds")})')
+        LOG.info('Updating component info (%s, %s)',
+                 BUILD_INFO.version, built_at.isoformat(timespec="seconds"))
         Context.get().app.db.update_component_info(
             name=COMPONENT_NAME,
             version=BUILD_INFO.version,
@@ -367,18 +371,18 @@ class DocumentWorker(CommandWorker):
         queue = self._run_preparation()
         queue.run_once()
 
-    def work(self, cmd: PersistentCommand):
-        document_uuid = cmd.body['document']['uuid']
-        Context.get().update_trace_id(cmd.uuid)
+    def work(self, command: PersistentCommand):
+        document_uuid = command.body['document']['uuid']
+        Context.get().update_trace_id(command.uuid)
         Context.get().update_document_id(document_uuid)
         SentryReporter.set_tags(
-            command_uuid=cmd.uuid,
-            tenant_uuid=cmd.tenant_uuid,
+            command_uuid=command.uuid,
+            tenant_uuid=command.tenant_uuid,
             document_uuid=document_uuid,
             phase='init',
         )
-        LOG.info(f'Running job #{cmd.uuid}')
-        self.current_job = Job(command=cmd, document_uuid=document_uuid)
+        LOG.info('Running job #%s', command.uuid)
+        self.current_job = Job(command=command, document_uuid=document_uuid)
         self.current_job.run()
         self.current_job = None
         SentryReporter.set_tags(

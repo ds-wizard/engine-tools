@@ -1,15 +1,15 @@
+# pylint: disable=too-many-arguments, too-many-locals, too-many-lines
 import abc
-
-from typing import Generic, Optional, TypeVar, Any
+import typing
 
 # https://github.com/ds-wizard/engine-backend/blob/develop/engine-shared/src/Shared/Model/Event/
 
-T = TypeVar('T')
+T = typing.TypeVar('T')
 
 
 class MetricMeasure:
 
-    def __init__(self, metric_uuid: str, measure: float, weight: float):
+    def __init__(self, *, metric_uuid: str, measure: float, weight: float):
         self.metric_uuid = metric_uuid
         self.measure = measure
         self.weight = weight
@@ -30,9 +30,9 @@ class MetricMeasure:
         )
 
 
-class EventField(Generic[T]):
+class EventField(typing.Generic[T]):
 
-    def __init__(self, changed: bool, value: Optional[T]):
+    def __init__(self, *, changed: bool, value: T | None):
         self.changed = changed
         self.value = value
 
@@ -59,7 +59,7 @@ class EventField(Generic[T]):
 
 class MapEntry:
 
-    def __init__(self, key: str, value: str):
+    def __init__(self, *, key: str, value: str):
         self.key = key
         self.value = value
 
@@ -84,7 +84,7 @@ class _KMEvent(abc.ABC):
     TYPE = 'UNKNOWN'
     METAMODEL_VERSION = 14
 
-    def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
+    def __init__(self, *, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str):
         self.event_uuid = event_uuid
         self.entity_uuid = entity_uuid
@@ -108,7 +108,7 @@ class _KMEvent(abc.ABC):
 class _KMAddEvent(_KMEvent, abc.ABC):
     TYPE = 'ADD'
 
-    def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
+    def __init__(self, *, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str, annotations: list[MapEntry]):
         super().__init__(
             event_uuid=event_uuid,
@@ -129,7 +129,7 @@ class _KMAddEvent(_KMEvent, abc.ABC):
 class _KMEditEvent(_KMEvent, abc.ABC):
     TYPE = 'EDIT'
 
-    def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
+    def __init__(self, *, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str, annotations: EventField[list[MapEntry]]):
         super().__init__(
             event_uuid=event_uuid,
@@ -154,7 +154,7 @@ class _KMDeleteEvent(_KMEvent, abc.ABC):
 class _KMMoveEvent(_KMEvent, abc.ABC):
     TYPE = 'MOVE'
 
-    def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
+    def __init__(self, *, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str, target_uuid: str):
         super().__init__(
             event_uuid=event_uuid,
@@ -172,7 +172,7 @@ class _KMMoveEvent(_KMEvent, abc.ABC):
         return result
 
 
-EVENT_TYPES = {}  # type: dict[str, Any]
+EVENT_TYPES: dict[str, typing.Any] = {}
 
 
 def event_class(cls):
@@ -206,7 +206,7 @@ class AddKnowledgeModelEvent(_KMAddEvent):
 @event_class
 class EditKnowledgeModelEvent(_KMEditEvent):
 
-    def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
+    def __init__(self, *, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str, annotations: EventField[list[MapEntry]],
                  chapter_uuids:  EventField[list[str]], tag_uuids:  EventField[list[str]],
                  integration_uuids:  EventField[list[str]], metric_uuids:  EventField[list[str]],
@@ -260,9 +260,9 @@ class EditKnowledgeModelEvent(_KMEditEvent):
 @event_class
 class AddChapterEvent(_KMAddEvent):
 
-    def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
+    def __init__(self, *, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str, annotations: list[MapEntry],
-                 title: str, text: Optional[str]):
+                 title: str, text: str | None):
         super().__init__(
             event_uuid=event_uuid,
             entity_uuid=entity_uuid,
@@ -300,9 +300,9 @@ class AddChapterEvent(_KMAddEvent):
 @event_class
 class EditChapterEvent(_KMEditEvent):
 
-    def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
+    def __init__(self, *, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str, annotations: EventField[list[MapEntry]],
-                 title:  EventField[str], text:  EventField[Optional[str]],
+                 title:  EventField[str], text:  EventField[str | None],
                  question_uuids: EventField[list[str]]):
         super().__init__(
             event_uuid=event_uuid,
@@ -369,9 +369,9 @@ class DeleteChapterEvent(_KMDeleteEvent):
 @event_class
 class AddQuestionEvent(_KMAddEvent, abc.ABC):
 
-    def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
+    def __init__(self, *, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str, annotations: list[MapEntry],
-                 title: str, text: Optional[str], required_phase_uuid: Optional[str],
+                 title: str, text: str | None, required_phase_uuid: str | None,
                  tag_uuids: list[str]):
         super().__init__(
             event_uuid=event_uuid,
@@ -416,22 +416,6 @@ class AddQuestionEvent(_KMAddEvent, abc.ABC):
 
 class AddOptionsQuestionEvent(AddQuestionEvent):
 
-    def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
-                 created_at: str, annotations: list[MapEntry],
-                 title: str, text: Optional[str], required_phase_uuid: Optional[str],
-                 tag_uuids: list[str]):
-        super().__init__(
-            event_uuid=event_uuid,
-            entity_uuid=entity_uuid,
-            parent_uuid=parent_uuid,
-            created_at=created_at,
-            annotations=annotations,
-            title=title,
-            text=text,
-            required_phase_uuid=required_phase_uuid,
-            tag_uuids=tag_uuids,
-        )
-
     def to_dict(self) -> dict:
         result = super().to_dict()
         result.update({
@@ -459,22 +443,6 @@ class AddOptionsQuestionEvent(AddQuestionEvent):
 
 
 class AddMultiChoiceQuestionEvent(AddQuestionEvent):
-
-    def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
-                 created_at: str, annotations: list[MapEntry],
-                 title: str, text: Optional[str], required_phase_uuid: Optional[str],
-                 tag_uuids: list[str]):
-        super().__init__(
-            event_uuid=event_uuid,
-            entity_uuid=entity_uuid,
-            parent_uuid=parent_uuid,
-            created_at=created_at,
-            annotations=annotations,
-            title=title,
-            text=text,
-            required_phase_uuid=required_phase_uuid,
-            tag_uuids=tag_uuids,
-        )
 
     def to_dict(self) -> dict:
         result = super().to_dict()
@@ -504,22 +472,6 @@ class AddMultiChoiceQuestionEvent(AddQuestionEvent):
 
 class AddListQuestionEvent(AddQuestionEvent):
 
-    def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
-                 created_at: str, annotations: list[MapEntry],
-                 title: str, text: Optional[str], required_phase_uuid: Optional[str],
-                 tag_uuids: list[str]):
-        super().__init__(
-            event_uuid=event_uuid,
-            entity_uuid=entity_uuid,
-            parent_uuid=parent_uuid,
-            created_at=created_at,
-            annotations=annotations,
-            title=title,
-            text=text,
-            required_phase_uuid=required_phase_uuid,
-            tag_uuids=tag_uuids,
-        )
-
     def to_dict(self) -> dict:
         result = super().to_dict()
         result.update({
@@ -548,9 +500,9 @@ class AddListQuestionEvent(AddQuestionEvent):
 
 class AddValueQuestionEvent(AddQuestionEvent):
 
-    def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
+    def __init__(self, *, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str, annotations: list[MapEntry],
-                 title: str, text: Optional[str], required_phase_uuid: Optional[str],
+                 title: str, text: str | None, required_phase_uuid: str | None,
                  tag_uuids: list[str], value_type: str):
         super().__init__(
             event_uuid=event_uuid,
@@ -595,9 +547,9 @@ class AddValueQuestionEvent(AddQuestionEvent):
 
 class AddIntegrationQuestionEvent(AddQuestionEvent):
 
-    def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
+    def __init__(self, *, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str, annotations: list[MapEntry],
-                 title: str, text: Optional[str], required_phase_uuid: Optional[str],
+                 title: str, text: str | None, required_phase_uuid: str | None,
                  tag_uuids: list[str], integration_uuid: str, props: dict[str, str]):
         super().__init__(
             event_uuid=event_uuid,
@@ -646,10 +598,10 @@ class AddIntegrationQuestionEvent(AddQuestionEvent):
 @event_class
 class EditQuestionEvent(_KMEditEvent, abc.ABC):
 
-    def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
+    def __init__(self, *, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str, annotations: EventField[list[MapEntry]],
-                 title: EventField[str], text: EventField[Optional[str]],
-                 required_phase_uuid: EventField[Optional[str]],
+                 title: EventField[str], text: EventField[str | None],
+                 required_phase_uuid: EventField[str | None],
                  tag_uuids: EventField[list[str]], expert_uuids: EventField[list[str]],
                  reference_uuids: EventField[list[str]]):
         super().__init__(
@@ -699,10 +651,10 @@ class EditQuestionEvent(_KMEditEvent, abc.ABC):
 
 class EditOptionsQuestionEvent(EditQuestionEvent):
 
-    def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
+    def __init__(self, *, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str, annotations: EventField[list[MapEntry]],
-                 title: EventField[str], text: EventField[Optional[str]],
-                 required_phase_uuid: EventField[Optional[str]],
+                 title: EventField[str], text: EventField[str | None],
+                 required_phase_uuid: EventField[str | None],
                  tag_uuids: EventField[list[str]], expert_uuids: EventField[list[str]],
                  reference_uuids: EventField[list[str]],
                  answer_uuids: EventField[list[str]]):
@@ -756,10 +708,10 @@ class EditOptionsQuestionEvent(EditQuestionEvent):
 
 class EditMultiChoiceQuestionEvent(EditQuestionEvent):
 
-    def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
+    def __init__(self, *, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str, annotations: EventField[list[MapEntry]],
-                 title: EventField[str], text: EventField[Optional[str]],
-                 required_phase_uuid: EventField[Optional[str]],
+                 title: EventField[str], text: EventField[str | None],
+                 required_phase_uuid: EventField[str | None],
                  tag_uuids: EventField[list[str]], expert_uuids: EventField[list[str]],
                  reference_uuids: EventField[list[str]],
                  choice_uuids: EventField[list[str]]):
@@ -813,10 +765,10 @@ class EditMultiChoiceQuestionEvent(EditQuestionEvent):
 
 class EditListQuestionEvent(EditQuestionEvent):
 
-    def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
+    def __init__(self, *, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str, annotations: EventField[list[MapEntry]],
-                 title: EventField[str], text: EventField[Optional[str]],
-                 required_phase_uuid: EventField[Optional[str]],
+                 title: EventField[str], text: EventField[str | None],
+                 required_phase_uuid: EventField[str | None],
                  tag_uuids: EventField[list[str]], expert_uuids: EventField[list[str]],
                  reference_uuids: EventField[list[str]],
                  item_template_question_uuids: EventField[list[str]]):
@@ -870,10 +822,10 @@ class EditListQuestionEvent(EditQuestionEvent):
 
 class EditValueQuestionEvent(EditQuestionEvent):
 
-    def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
+    def __init__(self, *, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str, annotations: EventField[list[MapEntry]],
-                 title: EventField[str], text: EventField[Optional[str]],
-                 required_phase_uuid: EventField[Optional[str]],
+                 title: EventField[str], text: EventField[str | None],
+                 required_phase_uuid: EventField[str | None],
                  tag_uuids: EventField[list[str]], expert_uuids: EventField[list[str]],
                  reference_uuids: EventField[list[str]], value_type: EventField[str]):
         super().__init__(
@@ -926,10 +878,10 @@ class EditValueQuestionEvent(EditQuestionEvent):
 
 class EditIntegrationQuestionEvent(EditQuestionEvent):
 
-    def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
+    def __init__(self, *, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str, annotations: EventField[list[MapEntry]],
-                 title: EventField[str], text: EventField[Optional[str]],
-                 required_phase_uuid: EventField[Optional[str]],
+                 title: EventField[str], text: EventField[str | None],
+                 required_phase_uuid: EventField[str | None],
                  tag_uuids: EventField[list[str]], expert_uuids: EventField[list[str]],
                  reference_uuids: EventField[list[str]], integration_uuid: EventField[str],
                  props: EventField[dict[str, str]]):
@@ -1009,9 +961,9 @@ class DeleteQuestionEvent(_KMDeleteEvent):
 @event_class
 class AddAnswerEvent(_KMAddEvent):
 
-    def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
+    def __init__(self, *, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str, annotations: list[MapEntry],
-                 label: str, advice: Optional[str], metric_measures: list[MetricMeasure]):
+                 label: str, advice: str | None, metric_measures: list[MetricMeasure]):
         super().__init__(
             event_uuid=event_uuid,
             entity_uuid=entity_uuid,
@@ -1052,9 +1004,9 @@ class AddAnswerEvent(_KMAddEvent):
 @event_class
 class EditAnswerEvent(_KMEditEvent):
 
-    def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
+    def __init__(self, *, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str, annotations: EventField[list[MapEntry]],
-                 label: EventField[str], advice: EventField[Optional[str]],
+                 label: EventField[str], advice: EventField[str | None],
                  follow_up_uuids: EventField[list[str]],
                  metric_measures: EventField[list[MetricMeasure]]):
         super().__init__(
@@ -1128,7 +1080,7 @@ class DeleteAnswerEvent(_KMDeleteEvent):
 @event_class
 class AddChoiceEvent(_KMAddEvent):
 
-    def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
+    def __init__(self, *, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str, annotations: list[MapEntry],
                  label: str):
         super().__init__(
@@ -1165,7 +1117,7 @@ class AddChoiceEvent(_KMAddEvent):
 @event_class
 class EditChoiceEvent(_KMEditEvent):
 
-    def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
+    def __init__(self, *, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str, annotations: EventField[list[MapEntry]],
                  label: EventField[str]):
         super().__init__(
@@ -1227,7 +1179,7 @@ class DeleteChoiceEvent(_KMDeleteEvent):
 @event_class
 class AddExpertEvent(_KMAddEvent):
 
-    def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
+    def __init__(self, *, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str, annotations: list[MapEntry],
                  name: str, email: str):
         super().__init__(
@@ -1267,7 +1219,7 @@ class AddExpertEvent(_KMAddEvent):
 @event_class
 class EditExpertEvent(_KMEditEvent):
 
-    def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
+    def __init__(self, *, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str, annotations: EventField[list[MapEntry]],
                  name: EventField[str], email: EventField[str]):
         super().__init__(
@@ -1332,16 +1284,6 @@ class DeleteExpertEvent(_KMDeleteEvent):
 @event_class
 class AddReferenceEvent(_KMAddEvent, abc.ABC):
 
-    def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
-                 created_at: str, annotations: list[MapEntry]):
-        super().__init__(
-            event_uuid=event_uuid,
-            entity_uuid=entity_uuid,
-            parent_uuid=parent_uuid,
-            created_at=created_at,
-            annotations=annotations,
-        )
-
     def to_dict(self) -> dict:
         result = super().to_dict()
         result.update({
@@ -1365,7 +1307,7 @@ class AddReferenceEvent(_KMAddEvent, abc.ABC):
 
 class AddResourcePageReferenceEvent(AddReferenceEvent):
 
-    def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
+    def __init__(self, *, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str, annotations: list[MapEntry],
                  short_uuid: str):
         super().__init__(
@@ -1403,7 +1345,7 @@ class AddResourcePageReferenceEvent(AddReferenceEvent):
 
 class AddURLReferenceEvent(AddReferenceEvent):
 
-    def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
+    def __init__(self, *, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str, annotations: list[MapEntry],
                  url: str, label: str):
         super().__init__(
@@ -1444,7 +1386,7 @@ class AddURLReferenceEvent(AddReferenceEvent):
 
 class AddCrossReferenceEvent(AddReferenceEvent):
 
-    def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
+    def __init__(self, *, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str, annotations: list[MapEntry],
                  target_uuid: str, description: str):
         super().__init__(
@@ -1486,16 +1428,6 @@ class AddCrossReferenceEvent(AddReferenceEvent):
 @event_class
 class EditReferenceEvent(_KMEditEvent, abc.ABC):
 
-    def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
-                 created_at: str, annotations: EventField[list[MapEntry]]):
-        super().__init__(
-            event_uuid=event_uuid,
-            entity_uuid=entity_uuid,
-            parent_uuid=parent_uuid,
-            created_at=created_at,
-            annotations=annotations,
-        )
-
     def to_dict(self) -> dict:
         result = super().to_dict()
         result.update({
@@ -1519,7 +1451,7 @@ class EditReferenceEvent(_KMEditEvent, abc.ABC):
 
 class EditResourcePageReferenceEvent(EditReferenceEvent):
 
-    def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
+    def __init__(self, *, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str, annotations: EventField[list[MapEntry]],
                  short_uuid: EventField[str]):
         super().__init__(
@@ -1560,7 +1492,7 @@ class EditResourcePageReferenceEvent(EditReferenceEvent):
 
 class EditURLReferenceEvent(EditReferenceEvent):
 
-    def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
+    def __init__(self, *, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str, annotations: EventField[list[MapEntry]],
                  url: EventField[str], label: EventField[str]):
         super().__init__(
@@ -1604,7 +1536,7 @@ class EditURLReferenceEvent(EditReferenceEvent):
 
 class EditCrossReferenceEvent(EditReferenceEvent):
 
-    def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
+    def __init__(self, *, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str, annotations: EventField[list[MapEntry]],
                  target_uuid: EventField[str], description: EventField[str]):
         super().__init__(
@@ -1671,9 +1603,9 @@ class DeleteReferenceEvent(_KMDeleteEvent):
 @event_class
 class AddTagEvent(_KMAddEvent):
 
-    def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
+    def __init__(self, *, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str, annotations: list[MapEntry],
-                 name: str, description: Optional[str], color: str):
+                 name: str, description: str | None, color: str):
         super().__init__(
             event_uuid=event_uuid,
             entity_uuid=entity_uuid,
@@ -1714,9 +1646,9 @@ class AddTagEvent(_KMAddEvent):
 @event_class
 class EditTagEvent(_KMEditEvent):
 
-    def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
+    def __init__(self, *, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str, annotations: EventField[list[MapEntry]],
-                 name: EventField[str], description: EventField[Optional[str]],
+                 name: EventField[str], description: EventField[str | None],
                  color: EventField[str]):
         super().__init__(
             event_uuid=event_uuid,
@@ -1783,10 +1715,10 @@ class DeleteTagEvent(_KMDeleteEvent):
 @event_class
 class AddIntegrationEvent(_KMAddEvent, abc.ABC):
 
-    def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
+    def __init__(self, *, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str, annotations: list[MapEntry],
-                 integration_id: str, name: str, props: list[str], logo: Optional[str],
-                 item_url: Optional[str]):
+                 integration_id: str, name: str, props: list[str], logo: str | None,
+                 item_url: str | None):
         super().__init__(
             event_uuid=event_uuid,
             entity_uuid=entity_uuid,
@@ -1826,12 +1758,12 @@ class AddIntegrationEvent(_KMAddEvent, abc.ABC):
 
 class AddApiIntegrationEvent(AddIntegrationEvent):
 
-    def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
+    def __init__(self, *, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str, annotations: list[MapEntry],
-                 integration_id: str, name: str, props: list[str], logo: Optional[str],
-                 item_url: Optional[str], rq_method: str, rq_url: str,
+                 integration_id: str, name: str, props: list[str], logo: str | None,
+                 item_url: str | None, rq_method: str, rq_url: str,
                  rq_headers: list[MapEntry], rq_body: str, rq_empty_search: bool,
-                 rs_list_field: Optional[str], rs_item_id: Optional[str],
+                 rs_list_field: str | None, rs_item_id: str | None,
                  rs_item_template: str):
         super().__init__(
             event_uuid=event_uuid,
@@ -1899,10 +1831,10 @@ class AddApiIntegrationEvent(AddIntegrationEvent):
 
 class AddWidgetIntegrationEvent(AddIntegrationEvent):
 
-    def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
+    def __init__(self, *, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str, annotations: list[MapEntry],
-                 integration_id: str, name: str, props: list[str], logo: Optional[str],
-                 item_url: Optional[str], widget_url: str):
+                 integration_id: str, name: str, props: list[str], logo: str | None,
+                 item_url: str | None, widget_url: str):
         super().__init__(
             event_uuid=event_uuid,
             entity_uuid=entity_uuid,
@@ -1949,11 +1881,11 @@ class AddWidgetIntegrationEvent(AddIntegrationEvent):
 @event_class
 class EditIntegrationEvent(_KMEditEvent, abc.ABC):
 
-    def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
+    def __init__(self, *, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str, annotations: EventField[list[MapEntry]],
                  integration_id: EventField[str], name: EventField[str],
-                 props: EventField[list[str]], logo: EventField[Optional[str]],
-                 item_url: EventField[Optional[str]]):
+                 props: EventField[list[str]], logo: EventField[str | None],
+                 item_url: EventField[str | None]):
         super().__init__(
             event_uuid=event_uuid,
             entity_uuid=entity_uuid,
@@ -1993,14 +1925,14 @@ class EditIntegrationEvent(_KMEditEvent, abc.ABC):
 
 class EditApiIntegrationEvent(EditIntegrationEvent):
 
-    def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
+    def __init__(self, *, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str, annotations: EventField[list[MapEntry]],
                  integration_id: EventField[str], name: EventField[str],
-                 props: EventField[list[str]], logo: EventField[Optional[str]],
-                 item_url: EventField[Optional[str]], rq_method: EventField[str],
+                 props: EventField[list[str]], logo: EventField[str | None],
+                 item_url: EventField[str | None], rq_method: EventField[str],
                  rq_url: EventField[str], rq_headers: EventField[list[MapEntry]],
                  rq_body: EventField[str], rq_empty_search: EventField[bool],
-                 rs_list_field: EventField[Optional[str]], rs_item_id: EventField[Optional[str]],
+                 rs_list_field: EventField[str | None], rs_item_id: EventField[str | None],
                  rs_item_template: EventField[str]):
         super().__init__(
             event_uuid=event_uuid,
@@ -2074,11 +2006,11 @@ class EditApiIntegrationEvent(EditIntegrationEvent):
 
 class EditWidgetIntegrationEvent(EditIntegrationEvent):
 
-    def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
+    def __init__(self, *, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str, annotations: EventField[list[MapEntry]],
                  integration_id: EventField[str], name: EventField[str],
-                 props: EventField[list[str]], logo: EventField[Optional[str]],
-                 item_url: EventField[Optional[str]], widget_url: EventField[str]):
+                 props: EventField[list[str]], logo: EventField[str | None],
+                 item_url: EventField[str | None], widget_url: EventField[str]):
         super().__init__(
             event_uuid=event_uuid,
             entity_uuid=entity_uuid,
@@ -2150,9 +2082,9 @@ class DeleteIntegrationEvent(_KMDeleteEvent):
 @event_class
 class AddMetricEvent(_KMAddEvent):
 
-    def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
+    def __init__(self, *, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str, annotations: list[MapEntry],
-                 title: str, abbreviation: Optional[str], description: Optional[str]):
+                 title: str, abbreviation: str | None, description: str | None):
         super().__init__(
             event_uuid=event_uuid,
             entity_uuid=entity_uuid,
@@ -2193,10 +2125,10 @@ class AddMetricEvent(_KMAddEvent):
 @event_class
 class EditMetricEvent(_KMEditEvent):
 
-    def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
+    def __init__(self, *, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str, annotations: EventField[list[MapEntry]],
-                 title: EventField[str], abbreviation: EventField[Optional[str]],
-                 description: EventField[Optional[str]]):
+                 title: EventField[str], abbreviation: EventField[str | None],
+                 description: EventField[str | None]):
         super().__init__(
             event_uuid=event_uuid,
             entity_uuid=entity_uuid,
@@ -2262,9 +2194,9 @@ class DeleteMetricEvent(_KMDeleteEvent):
 @event_class
 class AddPhaseEvent(_KMAddEvent):
 
-    def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
+    def __init__(self, *, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str, annotations: list[MapEntry],
-                 title: str, description: Optional[str]):
+                 title: str, description: str | None):
         super().__init__(
             event_uuid=event_uuid,
             entity_uuid=entity_uuid,
@@ -2302,9 +2234,9 @@ class AddPhaseEvent(_KMAddEvent):
 @event_class
 class EditPhaseEvent(_KMEditEvent):
 
-    def __init__(self, event_uuid: str, entity_uuid: str, parent_uuid: str,
+    def __init__(self, *, event_uuid: str, entity_uuid: str, parent_uuid: str,
                  created_at: str, annotations: EventField[list[MapEntry]],
-                 title:  EventField[str], description:  EventField[Optional[str]]):
+                 title:  EventField[str], description:  EventField[str | None]):
         super().__init__(
             event_uuid=event_uuid,
             entity_uuid=entity_uuid,
@@ -2484,7 +2416,7 @@ class Event:
     @classmethod
     def from_dict(cls, data: dict):
         event_type = data['eventType']
-        if event_type not in EVENT_TYPES.keys():
+        if event_type not in EVENT_TYPES:
             raise ValueError(f'Unknown event type: {event_type}')
         t = EVENT_TYPES[event_type]
         if not hasattr(t, 'from_dict'):

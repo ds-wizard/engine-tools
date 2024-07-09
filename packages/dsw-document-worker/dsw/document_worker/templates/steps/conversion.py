@@ -5,13 +5,19 @@ from ...documents import DocumentFile, FileFormats
 from .base import Step, register_step
 
 
+def _is_true(value: str) -> bool:
+    return value.lower() == 'true'
+
+
 class WeasyPrintStep(Step):
     NAME = 'weasyprint'
     INPUT_FORMAT = FileFormats.HTML
     OUTPUT_FORMAT = FileFormats.PDF
 
     def __init__(self, template, options: dict):
+        # pylint: disable-next=import-outside-toplevel
         import weasyprint
+
         super().__init__(template, options)
         # PDF options
         self.wp_options = weasyprint.DEFAULT_OPTIONS
@@ -21,13 +27,13 @@ class WeasyPrintStep(Step):
     def wp_update_options(self, options: dict):
         optimize_size = tuple(options.get('render.optimize_size', 'fonts').split(','))
         self.wp_options.update({
-            'pdf_identifier': options.get('pdf.identifier', 'false').lower() == 'true',
+            'pdf_identifier': _is_true(options.get('pdf.identifier', 'false')),
             'pdf_variant': options.get('pdf.variant', None),
             'pdf_version': options.get('pdf.version', None),
-            'pdf_forms': options.get('render.forms', 'false').lower() == 'true',
-            'uncompressed_pdf': options.get('pdf.uncompressed', 'false').lower() == 'true',
-            'custom_metadata': options.get('pdf.custom_metadata', 'false').lower() == 'true',
-            'presentational_hints': options.get('render.presentational_hints', 'false').lower() == 'true',
+            'pdf_forms': _is_true(options.get('render.forms', 'false')),
+            'uncompressed_pdf': _is_true(options.get('pdf.uncompressed', 'false')),
+            'custom_metadata': _is_true(options.get('pdf.custom_metadata', 'false')),
+            'presentational_hints': _is_true(options.get('render.presentational_hints', 'false')),
             'optimize_images': 'images' in optimize_size,
             'jpeg_quality': int(options.get('render.jpeg_quality', '95')),
             'dpi': int(options.get('render.dpi', '96')),
@@ -37,9 +43,12 @@ class WeasyPrintStep(Step):
         return self.raise_exc(f'Step "{self.NAME}" cannot be first')
 
     def execute_follow(self, document: DocumentFile, context: dict) -> DocumentFile:
+        # pylint: disable-next=import-outside-toplevel
         import weasyprint
+
         if document.file_format != FileFormats.HTML:
-            self.raise_exc(f'WeasyPrint does not support {document.file_format.name} format as input')
+            self.raise_exc(f'WeasyPrint does not support {document.file_format.name}'
+                           f' format as input')
         file_uri = self.template.template_dir / '_file.html'
         wp_html = weasyprint.HTML(
             string=document.content.decode(DEFAULT_ENCODING),
@@ -113,13 +122,15 @@ class PandocStep(Step):
             self.raise_exc(f'Unknown output format "{self.output_format.name}"')
         self.pandoc = Pandoc(
             config=Context.get().app.cfg,
-            filter_names=self._extract_filter_names(options.get(self.OPTION_FILTERS, '')),
-            template_name=options.get(self.OPTION_TEMPLATE, None)
+            filter_names=self._extract_filter_names(
+                filters=options.get(self.OPTION_FILTERS, ''),
+            ),
+            template_name=options.get(self.OPTION_TEMPLATE, None),
         )
 
     @staticmethod
     def _extract_filter_names(filters: str) -> list[str]:
-        names = list()
+        names: list[str] = []
         for name in filters.split(','):
             name = name.strip()
             if name:
@@ -182,7 +193,10 @@ class RdfLibConvertStep(Step):
                            f'as input for rdflib-convert '
                            f'(expecting {self.input_format.name})')
         data = self.rdflib_convert(
-            self.input_format, self.output_format, document.content, self.options
+            source_format=self.input_format,
+            target_format=self.output_format,
+            data=document.content,
+            metadata=self.options,
         )
         return DocumentFile(
             file_format=self.output_format,
