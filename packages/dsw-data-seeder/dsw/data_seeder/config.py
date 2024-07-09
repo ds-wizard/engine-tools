@@ -60,7 +60,7 @@ class SeederConfigParser(DSWConfigParser):
     @property
     def extra_dbs(self) -> dict[str, DatabaseConfig]:
         result = {}
-        for db_id, val in self.cfg.get('extraDatabases', {}).items():
+        for db_id in self.cfg.get('extraDatabases', {}).keys():
             result[db_id] = DatabaseConfig(
                 connection_string=self.get(
                     key=ConfigKey(

@@ -1,8 +1,9 @@
-import click  # type: ignore
 import json
 import pathlib
+import typing
+import sys
 
-from typing import IO
+import click
 
 from dsw.config.parser import MissingConfigurationError
 
@@ -16,7 +17,7 @@ def load_config_str(config_str: str) -> MailerConfig:
     parser = MailerConfigParser()
     if not parser.can_read(config_str):
         click.echo('Error: Cannot parse config file', err=True)
-        exit(1)
+        sys.exit(1)
 
     try:
         parser.read_string(config_str)
@@ -25,14 +26,14 @@ def load_config_str(config_str: str) -> MailerConfig:
         click.echo('Error: Missing configuration', err=True)
         for missing_item in e.missing:
             click.echo(f' - {missing_item}', err=True)
-        exit(1)
+        sys.exit(1)
 
     config = parser.config
     config.log.apply()
     return config
 
 
-def validate_config(ctx, param, value: IO | None):
+def validate_config(ctx, param, value: typing.IO | None):
     content = ''
     if value is not None:
         content = value.read()
@@ -40,14 +41,14 @@ def validate_config(ctx, param, value: IO | None):
     return load_config_str(content)
 
 
-def extract_message_request(ctx, param, value: IO):
+def extract_message_request(ctx, param, value: typing.IO):
     data = json.load(value)
     try:
         return MessageRequest.load_from_file(data)
     except Exception as e:
         click.echo('Error: Cannot parse message request', err=True)
         click.echo(f'{type(e).__name__}: {str(e)}')
-        exit(1)
+        sys.exit(1)
 
 
 @click.group(name='dsw-mailer', help='Mailer for sending emails from DSW')
@@ -74,7 +75,7 @@ def cli(ctx, config: MailerConfig, workdir: str):
               type=click.File('r', encoding=DEFAULT_ENCODING))
 def send(ctx, msg_request: MessageRequest, config: MailerConfig):
     from .mailer import Mailer
-    mailer = ctx.obj['mailer']  # type: Mailer
+    mailer: Mailer = ctx.obj['mailer']
     mailer.send(rq=msg_request, cfg=config.mail)
 
 
@@ -82,7 +83,7 @@ def send(ctx, msg_request: MessageRequest, config: MailerConfig):
 @click.pass_context
 def run(ctx):
     from .mailer import Mailer
-    mailer = ctx.obj['mailer']  # type: Mailer
+    mailer: Mailer = ctx.obj['mailer']
     mailer.run()
 
 

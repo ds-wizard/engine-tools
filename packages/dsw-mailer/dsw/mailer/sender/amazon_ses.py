@@ -1,5 +1,6 @@
-import boto3
 import logging
+
+import boto3
 
 from .base import BaseMailSender
 from ..config import MailConfig
@@ -19,7 +20,8 @@ class AmazonSESSender(BaseMailSender):
             raise ValueError('Missing region for Amazon SES')
 
     def send(self, message: MailMessage):
-        LOG.info(f'Sending via Amazon SES (region {self.cfg.amazon_ses.region})')
+        LOG.info('Sending via Amazon SES (region %s)',
+                 self.cfg.amazon_ses.region)
         self._send(message, self.cfg)
 
     def _send(self, mail: MailMessage, cfg: MailConfig):

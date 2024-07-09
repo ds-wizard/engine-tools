@@ -1,9 +1,10 @@
 import logging
 import smtplib
 import ssl
-import tenacity
 
 from email.utils import formataddr
+
+import tenacity
 
 from .base import BaseMailSender
 from ..config import MailConfig
@@ -32,7 +33,8 @@ class SMTPSender(BaseMailSender):
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
     def send(self, message: MailMessage):
-        LOG.info(f'Sending via SMTP (server {self.cfg.smtp.host}:{self.cfg.smtp.port})')
+        LOG.info('Sending via SMTP (server %s:%s)',
+                 self.cfg.smtp.host, self.cfg.smtp.port)
         if self.cfg.smtp.is_ssl:
             self._send_smtp_ssl(mail=message)
         else:

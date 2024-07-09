@@ -1,5 +1,6 @@
 import os
 import pathlib
+import sys
 
 from .cli import load_config_str
 from .consts import VAR_APP_CONFIG_PATH, VAR_WORKDIR_PATH, VAR_SEEDER_RECIPE
@@ -13,7 +14,7 @@ def lambda_handler(event, context):
 
     if recipe_name is None:
         print(f'Error: Missing recipe name (environment variable {VAR_SEEDER_RECIPE})')
-        exit(1)
+        sys.exit(1)
 
     config = load_config_str(config_path.read_text())
     seeder = DataSeeder(config, workdir_path)

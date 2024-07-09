@@ -1,5 +1,4 @@
 import shlex
-from typing import List, Optional
 
 from dsw.config import DSWConfigParser
 from dsw.config.keys import ConfigKey, ConfigKeys, ConfigKeysContainer, \
@@ -69,8 +68,7 @@ class DocumentsConfig(ConfigModel):
 
 class ExperimentalConfig(ConfigModel):
 
-    def __init__(self, job_timeout: Optional[int],
-                 max_doc_size: Optional[float]):
+    def __init__(self, job_timeout: int | None, max_doc_size: float | None):
         self.job_timeout = job_timeout
         self.max_doc_size = max_doc_size
 
@@ -83,7 +81,7 @@ class CommandConfig:
         self.timeout = timeout
 
     @property
-    def command(self) -> List[str]:
+    def command(self) -> list[str]:
         return [self.executable] + shlex.split(self.args)
 
 
@@ -105,7 +103,7 @@ class TemplateRequestsConfig:
 
 class TemplateConfig:
 
-    def __init__(self, ids: List[str], requests: TemplateRequestsConfig,
+    def __init__(self, ids: list[str], requests: TemplateRequestsConfig,
                  secrets: dict[str, str], send_sentry: bool):
         self.ids = ids
         self.requests = requests
@@ -126,10 +124,10 @@ class TemplateConfig:
 
 class TemplatesConfig:
 
-    def __init__(self, templates: List[TemplateConfig]):
+    def __init__(self, templates: list[TemplateConfig]):
         self.templates = templates
 
-    def get_config(self, template_id: str) -> Optional[TemplateConfig]:
+    def get_config(self, template_id: str) -> TemplateConfig | None:
         for template in self.templates:
             if any((template_id.startswith(prefix)
                     for prefix in template.ids)):

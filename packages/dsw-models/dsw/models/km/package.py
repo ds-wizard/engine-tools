@@ -1,14 +1,12 @@
 from .events import _KMEvent, Event
 
-from typing import Optional
-
 
 class Package:
 
     def __init__(self, km_id: str, org_id: str, version: str, name: str,
                  metamodel_version: int, description: str, license: str,
-                 readme: str, created_at: str, fork_pkg_id: Optional[str],
-                 merge_pkg_id: Optional[str], prev_pkg_id: Optional[str]):
+                 readme: str, created_at: str, fork_pkg_id: str | None,
+                 merge_pkg_id: str | None, prev_pkg_id: str | None):
         self.km_id = km_id
         self.org_id = org_id
         self.version = version
@@ -21,7 +19,7 @@ class Package:
         self.fork_pkg_id = fork_pkg_id
         self.merge_pkg_id = merge_pkg_id
         self.prev_pkg_id = prev_pkg_id
-        self.events = list()  # type: list[_KMEvent]
+        self.events: list[_KMEvent] = list()
 
     @property
     def id(self):

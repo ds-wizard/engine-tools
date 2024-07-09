@@ -72,10 +72,9 @@ class ArchiveStep(Step):
         return self.TYPE_ZIP
 
     def _rectify_compression_level(self):
-        if self.compression_level < 0:
-            self.compression_level = 0
-        if self.compression_level > 9:
-            self.compression_level = 9
+        self.compression_level = max(self.compression_level, 0)
+        self.compression_level = min(self.compression_level, 9)
+
         if self.mode == self.MODE_BZIP2 and self.compression_level == 0:
             self.compression_level = 1
 
@@ -114,7 +113,7 @@ class ArchiveStep(Step):
         tar_format = self.FORMATS_TAR[self.format]
         tar_file = TMP_DIR / 'result.tar'
         extra_opts = {}
-        if compression == 'gz' or compression == 'bz2':
+        if compression in ('gz', 'bz2'):
             extra_opts['compresslevel'] = self.compression_level
         with tarfile.open(
             name=str(tar_file),

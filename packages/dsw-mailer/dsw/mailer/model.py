@@ -14,8 +14,7 @@ class Color:
         l2 = color2.luminance + 0.05
         if l1 > l2:
             return l1 / l2
-        else:
-            return l2 / l1
+        return l2 / l1
 
     def __init__(self, color_hex: str = '#000000', default: str = '#000000'):
         color_hex = self.parse_color_to_hex(color_hex) or default
@@ -46,8 +45,7 @@ class Color:
             c = component / 255
             if c <= 0.03928:
                 return c / 12.92
-            else:
-                return ((c + 0.055) / 1.055) ** 2.4
+            return ((c + 0.055) / 1.055) ** 2.4
 
         r = _luminance_component(self.red)
         g = _luminance_component(self.green)
@@ -66,8 +64,7 @@ class Color:
     def contrast_color(self) -> 'Color':
         if self.contrast_ratio(self, Color('#ffffff')) > 3:
             return Color('#ffffff')
-        else:
-            return Color('#000000')
+        return Color('#000000')
 
     def __str__(self):
         return self.hex
@@ -83,7 +80,7 @@ class StyleConfig:
         self.illustrations_color = Color(illustrations_color, Color.DEFAULT_ILLUSTRATIONS_HEX)
 
     def from_dict(self, data: dict | None):
-        data = data or dict()
+        data = data or {}
         if data.get('logoUrl', None) is not None:
             self.logo_url = data.get('logoUrl')
         if data.get('primaryColor', None) is not None:
@@ -134,7 +131,7 @@ class TemplateDescriptorPart:
         self.content_type = ''
         self.encoding = ''
 
-    def _update_from_data(self, data: dict):
+    def update_from_data(self, data: dict):
         for field in self.FIELDS:
             target_field = field.replace('-', '_')
             if field in data.keys():
@@ -150,7 +147,7 @@ class TemplateDescriptorPart:
             part_type=data.get('type', 'unknown'),
             file=data.get('file', ''),
         )
-        part._update_from_data(data)
+        part.update_from_data(data)
         return part
 
 
@@ -222,21 +219,21 @@ class MessageRequest:
 class MailMessage:
 
     def __init__(self):
-        self.from_mail = ''  # type: str
-        self.from_name = None  # type: str | None
-        self.recipients = list()  # type: list[str]
-        self.subject = ''  # type: str
-        self.plain_body = None  # type: str | None
-        self.html_body = None  # type: str | None
-        self.html_images = list()  # type: list[MailAttachment]
-        self.attachments = list()  # type: list[MailAttachment]
-        self.msg_id = None  # type: str | None
-        self.msg_domain = None  # type: str | None
-        self.language = 'en'  # type: str
-        self.importance = 'normal'  # type: str
-        self.sensitivity = None  # type: str | None
-        self.priority = None  # type: str | None
-        self.client_url = ''  # type: str
+        self.from_mail: str = ''
+        self.from_name: str | None = None
+        self.recipients: list[str] = []
+        self.subject: str = ''
+        self.plain_body: str | None = None
+        self.html_body: str | None = None
+        self.html_images: list[MailAttachment] = []
+        self.attachments: list[MailAttachment] = []
+        self.msg_id: str | None = None
+        self.msg_domain: str | None = None
+        self.language: str = 'en'
+        self.importance: str = 'normal'
+        self.sensitivity: str | None = None
+        self.priority: str | None = None
+        self.client_url: str = ''
 
 
 class MailAttachment:

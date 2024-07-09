@@ -1,14 +1,15 @@
 import abc
 import datetime
-import dkim
 import logging
-import pathvalidate
 
 from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import formataddr, format_datetime, make_msgid
+
+import dkim
+import pathvalidate
 
 from ..config import MailConfig
 from ..consts import DEFAULT_ENCODING
@@ -147,4 +148,3 @@ class NoProviderSender(BaseMailSender):
 
     def send(self, message: MailMessage):
         LOG.info('No provider configured, not sending anything')
-        return

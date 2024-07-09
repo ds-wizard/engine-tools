@@ -1,13 +1,12 @@
 import contextlib
 import io
 import logging
-import minio  # type: ignore
-import minio.error  # type: ignore
 import pathlib
 import tempfile
-import tenacity
 
-from typing import Optional
+import minio
+import minio.error
+import tenacity
 
 from dsw.config.model import S3Config
 
@@ -71,7 +70,7 @@ class S3Storage:
     )
     def store_document(self, tenant_uuid: str, file_name: str,
                        content_type: str, data: bytes,
-                       metadata: Optional[dict] = None):
+                       metadata: dict | None = None):
         object_name = f'{DOCUMENTS_DIR}/{file_name}'
         if self.multi_tenant:
             object_name = f'{tenant_uuid}/{object_name}'
@@ -114,7 +113,7 @@ class S3Storage:
     )
     def store_object(self, tenant_uuid: str, object_name: str,
                      content_type: str, data: bytes,
-                     metadata: Optional[dict] = None):
+                     metadata: dict | None = None):
         if self.multi_tenant:
             object_name = f'{tenant_uuid}/{object_name}'
         with io.BytesIO(data) as file:

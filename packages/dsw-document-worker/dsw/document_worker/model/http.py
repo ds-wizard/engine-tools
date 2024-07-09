@@ -17,16 +17,13 @@ class RequestsWrapper:
 
     def get(self, url, params=None, **kwargs) -> requests.Response:
         self._prepare_for_request()
-        kwargs.update(timeout=self.timeout)
-        resp = requests.get(url=url, params=params, **kwargs)
+        resp = requests.get(url=url, params=params, timeout=self.timeout, **kwargs)
         return resp
 
     def post(self, url, data=None, json=None, **kwargs) -> requests.Response:
         self._prepare_for_request()
-        kwargs.update(timeout=self.timeout)
-        return requests.post(url=url, data=data, json=json, **kwargs)
+        return requests.post(url=url, data=data, json=json, timeout=self.timeout, **kwargs)
 
     def request(self, method: str, url: str, **kwargs) -> requests.Response:
         self._prepare_for_request()
-        kwargs.update(timeout=self.timeout)
-        return requests.request(method=method, url=url, **kwargs)
+        return requests.request(method=method, url=url, timeout=self.timeout, **kwargs)

@@ -1,5 +1,3 @@
-from typing import Optional
-
 from .logging import prepare_logging, LOG_FILTER
 
 
@@ -29,8 +27,8 @@ class GeneralConfig(ConfigModel):
 
 class SentryConfig(ConfigModel):
 
-    def __init__(self, enabled: bool, workers_dsn: Optional[str],
-                 traces_sample_rate: Optional[float], max_breadcrumbs: Optional[int]):
+    def __init__(self, enabled: bool, workers_dsn: str | None,
+                 traces_sample_rate: float | None, max_breadcrumbs: int | None):
         self.enabled = enabled
         self.workers_dsn = workers_dsn
         self.traces_sample_rate = traces_sample_rate
@@ -60,7 +58,7 @@ class S3Config(ConfigModel):
 class LoggingConfig(ConfigModel):
 
     def __init__(self, level: str, global_level: str, message_format: str,
-                 dict_config: Optional[dict] = None):
+                 dict_config: dict | None = None):
         self.level = level
         self.global_level = global_level
         self.message_format = message_format
@@ -76,8 +74,8 @@ class LoggingConfig(ConfigModel):
 
 class AWSConfig(ConfigModel):
 
-    def __init__(self, access_key_id: Optional[str], secret_access_key: Optional[str],
-                 region: Optional[str]):
+    def __init__(self, access_key_id: str | None, secret_access_key: str | None,
+                 region: str | None):
         self.access_key_id = access_key_id
         self.secret_access_key = secret_access_key
         self.region = region
