@@ -1,6 +1,6 @@
-certifi==2024.6.2
+certifi==2024.7.4
 minio==7.2.7
 PyYAML==6.0.1
-sentry-sdk==2.6.0
-tenacity==8.4.1
+sentry-sdk==2.8.0
+tenacity==8.5.0
 urllib3==2.2.2
