@@ -1,13 +1,12 @@
 import contextlib
 import io
 import logging
-import minio  # type: ignore
-import minio.error  # type: ignore
 import pathlib
 import tempfile
-import tenacity
 
-from typing import Optional
+import minio
+import minio.error
+import tenacity
 
 from dsw.config.model import S3Config
 
@@ -35,7 +34,7 @@ class S3Storage:
         parts = url.split('://', maxsplit=1)
         return parts[0] if len(parts) == 1 else parts[1]
 
-    def __init__(self, cfg: S3Config, multi_tenant: bool):
+    def __init__(self, *, cfg: S3Config, multi_tenant: bool):
         self.cfg = cfg
         self.multi_tenant = multi_tenant
         self.client = minio.Minio(
@@ -69,9 +68,9 @@ class S3Storage:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def store_document(self, tenant_uuid: str, file_name: str,
+    def store_document(self, *, tenant_uuid: str, file_name: str,
                        content_type: str, data: bytes,
-                       metadata: Optional[dict] = None):
+                       metadata: dict | None = None):
         object_name = f'{DOCUMENTS_DIR}/{file_name}'
         if self.multi_tenant:
             object_name = f'{tenant_uuid}/{object_name}'
@@ -92,7 +91,7 @@ class S3Storage:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def download_file(self, file_name: str, target_path: pathlib.Path) -> bool:
+    def download_file(self, *, file_name: str, target_path: pathlib.Path) -> bool:
         try:
             self.client.fget_object(
                 bucket_name=self.cfg.bucket,
@@ -112,9 +111,9 @@ class S3Storage:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def store_object(self, tenant_uuid: str, object_name: str,
+    def store_object(self, *, tenant_uuid: str, object_name: str,
                      content_type: str, data: bytes,
-                     metadata: Optional[dict] = None):
+                     metadata: dict | None = None):
         if self.multi_tenant:
             object_name = f'{tenant_uuid}/{object_name}'
         with io.BytesIO(data) as file:

@@ -1,4 +1,7 @@
-class CommandState:
+import enum
+
+
+class CommandState(enum.Enum):
     NEW = 'NewPersistentCommandState'
     DONE = 'DonePersistentCommandState'
     ERROR = 'ErrorPersistentCommandState'
@@ -20,9 +23,11 @@ class CommandQueries:
             FROM persistent_command
             WHERE component = '{self.component}'
               AND attempts < max_attempts
-              AND state != '{CommandState.DONE}'
-              AND state != '{CommandState.IGNORE}'
-              AND (updated_at AT TIME ZONE 'UTC') < (%(now)s - ({exp} ^ attempts - 1) * INTERVAL '{interval}')
+              AND state != '{CommandState.DONE.value}'
+              AND state != '{CommandState.IGNORE.value}'
+              AND (updated_at AT TIME ZONE 'UTC')
+                    <
+                  (%(now)s - ({exp} ^ attempts - 1) * INTERVAL '{interval}')
             ORDER BY attempts ASC, updated_at DESC
             LIMIT 1 FOR UPDATE SKIP LOCKED;
         """
@@ -33,7 +38,7 @@ class CommandQueries:
             UPDATE persistent_command
             SET attempts = %(attempts)s,
                 last_error_message = %(error_message)s,
-                state = '{CommandState.ERROR}',
+                state = '{CommandState.ERROR.value}',
                 updated_at = %(updated_at)s
             WHERE uuid = %(uuid)s;
         """
@@ -55,7 +60,7 @@ class CommandQueries:
         return f"""
             UPDATE persistent_command
             SET attempts = %(attempts)s,
-                state = '{CommandState.DONE}',
+                state = '{CommandState.DONE.value}',
                 updated_at = %(updated_at)s
             WHERE uuid = %(uuid)s;
         """

@@ -11,8 +11,7 @@ class JobException(Exception):
     def log_message(self):
         if self.exc is None:
             return self.msg
-        else:
-            return f'{self.msg}: [{type(self.exc).__name__}] {str(self.exc)}'
+        return f'{self.msg}: [{type(self.exc).__name__}] {str(self.exc)}'
 
     def db_message(self):
         if self.exc is None:

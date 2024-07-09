@@ -1,23 +1,22 @@
 import base64
 import datetime
-import dateutil.parser
 import io
 import json
 import pathlib
+import typing
 
+import dateutil.parser
 import xlsxwriter
 from xlsxwriter.chart import Chart
 from xlsxwriter.format import Format
 from xlsxwriter.worksheet import Worksheet
 
-from typing import Any
-
 from ...documents import DocumentFile, FileFormats
 from .base import Step, register_step, TMP_DIR, FormatStepException
 
 
-_EMPTY_DICT = {}  # type: dict[str, Any]
-_EMPTY_LIST = []  # type: list[Any]
+_EMPTY_DICT: dict[str, typing.Any] = {}
+_EMPTY_LIST: list[typing.Any] = []
 
 
 def _b64img2io(b64bytes: str) -> io.BytesIO:
@@ -76,7 +75,7 @@ def _cell_writer_formula(worksheet: Worksheet, pos_args, item, cell_format):
 def _cell_writer_blank(worksheet: Worksheet, pos_args, item, cell_format):
     worksheet.write_blank(
         *pos_args,
-        blank=None,
+        blank=item,
         cell_format=cell_format,
     )
 
@@ -115,36 +114,37 @@ class WorkbookBuilder:
 
     def __init__(self, workbook: xlsxwriter.Workbook):
         self.workbook = workbook
-        self.sheets = list()  # type: list[Worksheet]
-        self.formats = dict()  # type: dict[str, Format]
-        self.charts = dict()  # type: dict[str, Chart]
+        self.sheets: list[Worksheet] = []
+        self.formats: dict[str, Format] = {}
+        self.charts: dict[str, Chart] = {}
+        self.byte_streams: list[io.BytesIO] = []
 
     def _add_workbook_options(self, data: dict):
         # customized options not in regular 'constructor options'
         options = data.get('options', _EMPTY_DICT)
-        if 'active_sheet' in options.keys():
+        if 'active_sheet' in options:
             sheet_index = options['active_sheet']
             if 0 <= sheet_index < len(self.sheets):
                 self.sheets[sheet_index].activate()
-        if 'vba_name' in options.keys():
+        if 'vba_name' in options:
             self.workbook.set_vba_name(options['vba_name'])
-        if 'size' in options.keys():
+        if 'size' in options:
             self.workbook.set_size(
                 width=options['size'].get('width'),
                 height=options['size'].get('height'),
             )
-        if 'tab_ratio' in options.keys():
+        if 'tab_ratio' in options:
             self.workbook.set_tab_ratio(options['tab_ratio'])
 
     def _add_workbook_properties(self, data: dict):
         props = data.get('properties', _EMPTY_DICT)
-        if 'document' in props.keys():
+        if 'document' in props:
             if 'created' in props['document']:
                 props['document']['created'] = dateutil.parser.parse(
                     timestr=props['document']['created'],
                 )
             self.workbook.set_properties(props['document'])
-        if 'custom' in props.keys():
+        if 'custom' in props:
             for prop in props['custom']:
                 name = prop.get('name', 'unnamed')
                 value = prop.get('value', '')
@@ -181,51 +181,51 @@ class WorkbookBuilder:
 
     def _add_chart_axis(self, chart: Chart, data: dict):
         axis = data.get('axis', _EMPTY_DICT)
-        if 'x' in axis.keys():
+        if 'x' in axis:
             chart.set_x_axis(axis['x'])
-        if 'x2' in axis.keys():
+        if 'x2' in axis:
             chart.set_x2_axis(axis['x2'])
-        if 'y' in axis.keys():
+        if 'y' in axis:
             chart.set_y_axis(axis['y'])
-        if 'y2' in axis.keys():
+        if 'y2' in axis:
             chart.set_y2_axis(axis['y2'])
 
     def _add_chart_basic(self, chart: Chart, data: dict):
-        if 'size' in data.keys():
+        if 'size' in data:
             chart.set_size(data['size'])
-        if 'title' in data.keys():
+        if 'title' in data:
             chart.set_title(data['title'])
-        if 'legend' in data.keys():
+        if 'legend' in data:
             chart.set_legend(data['legend'])
-        if 'chartarea' in data.keys():
+        if 'chartarea' in data:
             chart.set_chartarea(data['chartarea'])
-        if 'plotarea' in data.keys():
+        if 'plotarea' in data:
             chart.set_plotarea(data['plotarea'])
-        if 'style' in data.keys():
+        if 'style' in data:
             chart.set_style(data['style'])
-        if 'table' in data.keys():
+        if 'table' in data:
             chart.set_table(data['table'])
 
     def _add_chart_advanced(self, chart: Chart, data: dict):
-        if 'combine' in data.keys():
+        if 'combine' in data:
             other = data['combine']
-            if other in self.charts.keys():
+            if other in self.charts:
                 chart.combine(self.charts[other])
-        if 'up_down_bars' in data.keys():
+        if 'up_down_bars' in data:
             chart.set_up_down_bars(data['up_down_bars'])
-        if 'drop_lines' in data.keys():
+        if 'drop_lines' in data:
             chart.set_drop_lines(data['drop_lines'])
-        if 'high_low_lines' in data.keys():
+        if 'high_low_lines' in data:
             chart.set_high_low_lines(data['high_low_lines'])
-        if 'show_blanks_as' in data.keys():
+        if 'show_blanks_as' in data:
             chart.show_blanks_as(data['show_blanks_as'])
-        if 'show_hidden_data' in data.keys():
+        if 'show_hidden_data' in data:
             chart.show_hidden_data()
 
     def _add_chartsheet(self, data: dict):
         name = data.get('name', None)
         chart_name = data.get('chart', '')
-        if chart_name not in self.charts.keys():
+        if chart_name not in self.charts:
             return  # ignore if chart is missing
         sheet = self.workbook.add_chartsheet(name)
         sheet.set_chart(self.charts[chart_name])
@@ -258,7 +258,8 @@ class WorkbookBuilder:
             item_type = item.get('type', None)
             if item_type is None:
                 continue
-            elif item_type == 'cell':
+
+            if item_type == 'cell':
                 self._add_data_cell(worksheet, item)
             elif item_type == 'row':
                 self._add_data_row(worksheet, item)
@@ -274,7 +275,7 @@ class WorkbookBuilder:
     def _add_data_cell(self, worksheet: Worksheet, item: dict):
         subtype = item.get('subtype', '')
         cell_format = self.formats.get(item.get('format', ''), None)
-        if 'cell' in item.keys():
+        if 'cell' in item:
             pos_args = [item['cell']]
         else:
             pos_args = [
@@ -287,7 +288,7 @@ class WorkbookBuilder:
         item.pop('cell', None)
         item.pop('row', None)
         item.pop('col', None)
-        if subtype in _CELL_WRITERS.keys():
+        if subtype in _CELL_WRITERS:
             _CELL_WRITERS[subtype](worksheet, pos_args, item, cell_format)
         elif subtype == 'rich_string':
             parts = []
@@ -307,7 +308,7 @@ class WorkbookBuilder:
 
     def _add_data_row(self, worksheet: Worksheet, item: dict):
         cell_format = self.formats.get(item.get('format', ''), None)
-        if 'cell' in item.keys():
+        if 'cell' in item:
             worksheet.write_row(
                 item['cell'],
                 data=item.get('data', []),
@@ -323,7 +324,7 @@ class WorkbookBuilder:
 
     def _add_data_column(self, worksheet: Worksheet, item: dict):
         cell_format = self.formats.get(item.get('format', ''), None)
-        if 'cell' in item.keys():
+        if 'cell' in item:
             worksheet.write_column(
                 item['cell'],
                 data=item.get('data', []),
@@ -355,7 +356,7 @@ class WorkbookBuilder:
         chart = self.charts.get(item.get('chart', ''), None)
         if chart is None:
             return
-        if 'cell' in item.keys():
+        if 'cell' in item:
             worksheet.insert_chart(
                 item['cell'],
                 chart=chart,
@@ -371,7 +372,7 @@ class WorkbookBuilder:
 
     @staticmethod
     def _add_data_comment(worksheet: Worksheet, item: dict):
-        if 'cell' in item.keys():
+        if 'cell' in item:
             worksheet.write_comment(
                 item['cell'],
                 comment=item.get('comment', ''),
@@ -387,7 +388,7 @@ class WorkbookBuilder:
 
     @staticmethod
     def _add_data_textbox(worksheet: Worksheet, item: dict):
-        if 'cell' in item.keys():
+        if 'cell' in item:
             worksheet.insert_textbox(
                 item['cell'],
                 text=item.get('text', ''),
@@ -403,7 +404,7 @@ class WorkbookBuilder:
 
     @staticmethod
     def _add_data_button(worksheet: Worksheet, item: dict):
-        if 'cell' in item.keys():
+        if 'cell' in item:
             worksheet.insert_button(
                 item['cell'],
                 options=item.get('options', None),
@@ -415,15 +416,14 @@ class WorkbookBuilder:
                 options=item.get('options', None),
             )
 
-    @staticmethod
-    def _add_data_image(worksheet: Worksheet, item: dict):
-        bytes_io = io.BytesIO()
-        if 'b64bytes' in item.keys():
-            if 'options' not in item.keys():
-                item['options'] = dict()
+    def _add_data_image(self, worksheet: Worksheet, item: dict):
+        if 'b64bytes' in item:
+            if 'options' not in item:
+                item['options'] = {}
             bytes_io = _b64img2io(item['b64bytes'])
             item['options']['image_data'] = bytes_io
-        if 'cell' in item.keys():
+            self.byte_streams.append(bytes_io)
+        if 'cell' in item:
             worksheet.insert_image(
                 item['cell'],
                 filename=item.get('filename', ''),
@@ -436,14 +436,13 @@ class WorkbookBuilder:
                 filename=item.get('filename', ''),
                 options=item.get('options', None),
             )
-        # TODO: check closed io at the end (cannot close before closing Excel)
 
     def _add_data_array_formula(self, worksheet: Worksheet, item: dict):
         method = worksheet.write_array_formula
         if item.get('dynamic', False):
             method = worksheet.write_dynamic_array_formula
         cell_format = self.formats.get(item.get('format', ''), None)
-        if 'range' in item.keys():
+        if 'range' in item:
             method(
                 item['range'],
                 formula=item.get('formula', ''),
@@ -463,23 +462,23 @@ class WorkbookBuilder:
 
     @classmethod
     def _setup_worksheet_print(cls, worksheet: Worksheet, data: dict):
-        if 'orientation' in data.keys():
+        if 'orientation' in data:
             if data['orientation'] == 'landscape':
                 worksheet.set_landscape()
             elif data['orientation'] == 'portrait':
                 worksheet.set_portrait()
-        if 'paper' in data.keys():
+        if 'paper' in data:
             worksheet.set_paper(data['paper'])
-        if 'margins' in data.keys():
+        if 'margins' in data:
             worksheet.set_margins(**data['margins'])
-        if 'header' in data.keys():
+        if 'header' in data:
             options = data['header'].get('options', None)
             cls._fix_footer_header_images(options)
             worksheet.set_header(
                 header=data['header'].get('content', ''),
                 options=options,
             )
-        if 'footer' in data.keys():
+        if 'footer' in data:
             options = data['footer'].get('options', None)
             cls._fix_footer_header_images(options)
             worksheet.set_footer(
@@ -496,12 +495,12 @@ class WorkbookBuilder:
         if not isinstance(options, dict):
             return
         for key in ('image_data_left', 'image_data_center', 'image_data_right'):
-            if key in options.keys():
+            if key in options:
                 options[key] = _b64img2io(options[key])
 
     @classmethod
-    def _setup_worksheet_common(cls, worksheet: Worksheet, data: dict):
-        data = data.get('options', None)
+    def _setup_worksheet_common(cls, worksheet: Worksheet, container: dict):
+        data: dict | None = container.get('options', None)
         if data is None:
             return
         if data.get('select', False):
@@ -510,21 +509,21 @@ class WorkbookBuilder:
             worksheet.hide()
         if data.get('first_sheet', False):
             worksheet.set_first_sheet()
-        if 'protect' in data.keys():
+        if 'protect' in data:
             worksheet.protect(
                 password=data['protect'].get('password', ''),
                 options=data['protect'].get('options', None),
             )
-        if 'zoom' in data.keys():
+        if 'zoom' in data:
             worksheet.set_zoom(data['zoom'])
-        if 'tab_color' in data.keys():
+        if 'tab_color' in data:
             worksheet.set_tab_color(data['tab_color'])
         if data.get('page_view', False):
             worksheet.set_page_view()
         cls._setup_worksheet_print(worksheet, data)
 
-    def _setup_worksheet_data(self, worksheet: Worksheet, data: dict):
-        data = data.get('options', None)
+    def _setup_worksheet_data(self, worksheet: Worksheet, container: dict):
+        data: dict | None = container.get('options', None)
         if data is None:
             return
         self._setup_worksheet_basic(worksheet, data)
@@ -545,7 +544,7 @@ class WorkbookBuilder:
 
     @staticmethod
     def _setup_worksheet_basic(worksheet: Worksheet, data: dict):
-        if 'comments_author' in data.keys():
+        if 'comments_author' in data:
             worksheet.set_comments_author(data['comments_author'])
         if data.get('hide_zero', False):
             worksheet.hide_zero()
@@ -553,18 +552,18 @@ class WorkbookBuilder:
             worksheet.hide_row_col_headers()
         if data.get('right_to_left', False):
             worksheet.right_to_left()
-        if 'hide_gridlines' in data.keys():
+        if 'hide_gridlines' in data:
             worksheet.hide_gridlines(data['hide_gridlines'])
-        if 'ignore_errors' in data.keys():
+        if 'ignore_errors' in data:
             worksheet.ignore_errors(data['ignore_errors'])
-        if 'vba_name' in data.keys():
+        if 'vba_name' in data:
             worksheet.set_vba_name(data['vba_name'])
 
     @staticmethod
     def _setup_worksheet_printing(worksheet: Worksheet, data: dict):
         if data.get('print_row_col_headers', False):
             worksheet.print_row_col_headers()
-        if 'print_area' in data.keys():
+        if 'print_area' in data:
             area = data['print_area']
             if isinstance(area, dict):
                 worksheet.print_area(**area)
@@ -572,27 +571,27 @@ class WorkbookBuilder:
                 worksheet.print_area(area)
         if data.get('print_across', False):
             worksheet.print_across()
-        if 'fit_to_pages' in data.keys():
+        if 'fit_to_pages' in data:
             worksheet.fit_to_pages(
                 width=data['fit_to_pages'].get('width', 1),
                 height=data['fit_to_pages'].get('height', 1),
             )
-        if 'start_page' in data.keys():
+        if 'start_page' in data:
             worksheet.set_start_page(data['start_page'])
-        if 'print_scale' in data.keys():
+        if 'print_scale' in data:
             worksheet.set_print_scale(data['print_scale'])
         if data.get('print_black_and_white', False):
             worksheet.print_black_and_white()
 
     @staticmethod
     def _setup_worksheet_special_ranges(worksheet: Worksheet, data: dict):
-        if 'unprotect_ranges' in data.keys():
+        if 'unprotect_ranges' in data:
             for r in data['unprotect_ranges']:
                 worksheet.unprotect_range(
                     cell_range=r.get('range', 'A1'),
                     range_name=r.get('name', None),
                 )
-        if 'top_left_cell' in data.keys():
+        if 'top_left_cell' in data:
             if isinstance(data['top_left_cell'], str):
                 worksheet.set_top_left_cell(data['top_left_cell'])
             else:
@@ -600,7 +599,7 @@ class WorkbookBuilder:
                     row=data['top_left_cell'].get('row', 0),
                     col=data['top_left_cell'].get('col', 0),
                 )
-        if 'selection' in data.keys():
+        if 'selection' in data:
             if isinstance(data['selection'], str):
                 worksheet.set_selection(data['selection'])
             else:
@@ -615,17 +614,17 @@ class WorkbookBuilder:
 
     @staticmethod
     def _setup_worksheet_repeats(worksheet: Worksheet, data: dict):
-        if 'repeat_rows' in data.keys():
+        if 'repeat_rows' in data:
             worksheet.repeat_rows(
                 first_row=data['repeat_rows'].get('first_row', 0),
                 last_row=data['repeat_rows'].get('last_row', None),
             )
-        if 'repeat_columns' in data.keys():
+        if 'repeat_columns' in data:
             worksheet.repeat_columns(
                 first_row=data['repeat_columns'].get('first_col', 0),
                 last_row=data['repeat_columns'].get('last_col', None),
             )
-        if 'default_row' in data.keys():
+        if 'default_row' in data:
             worksheet.set_default_row(
                 height=data['default_row'].get('height', 15),
                 hide_unused_rows=data['default_row'].get('hide_unused_rows', False),
@@ -633,11 +632,11 @@ class WorkbookBuilder:
 
     @staticmethod
     def _setup_worksheet_paging(worksheet: Worksheet, data: dict):
-        if 'h_pagebreaks' in data.keys():
+        if 'h_pagebreaks' in data:
             worksheet.set_h_pagebreaks(data['h_pagebreaks'])
-        if 'v_pagebreaks' in data.keys():
+        if 'v_pagebreaks' in data:
             worksheet.set_v_pagebreaks(data['v_pagebreaks'])
-        if 'outline_settings' in data.keys():
+        if 'outline_settings' in data:
             worksheet.outline_settings(
                 visible=data['outline_settings'].get('visible', True),
                 symbols_below=data['outline_settings'].get('symbols_below', True),
@@ -647,14 +646,14 @@ class WorkbookBuilder:
 
     @staticmethod
     def _setup_worksheet_panes(worksheet: Worksheet, data: dict):
-        if 'split_panes' in data.keys():
+        if 'split_panes' in data:
             worksheet.split_panes(
                 x=data['split_panes'].get('x', 0),
                 y=data['split_panes'].get('y', 0),
                 top_row=data['split_panes'].get('top_row', 0),
                 left_col=data['split_panes'].get('left_col', 0),
             )
-        if 'freeze_panes' in data.keys():
+        if 'freeze_panes' in data:
             worksheet.split_panes(
                 x=data['split_panes'].get('x', 0),
                 y=data['split_panes'].get('y', 0),
@@ -664,19 +663,19 @@ class WorkbookBuilder:
 
     @staticmethod
     def _setup_worksheet_filters(worksheet: Worksheet, data: dict):
-        if 'filter_column_lists' in data.keys():
+        if 'filter_column_lists' in data:
             for f in data['filter_column_list']:
                 worksheet.filter_column_list(
                     col=f.get('col', 0),
                     filters=f.get('filters', _EMPTY_LIST),
                 )
-        if 'filter_columns' in data.keys():
+        if 'filter_columns' in data:
             for f in data['filter_column_list']:
                 worksheet.filter_column(
                     col=f.get('col', 0),
                     criteria=f.get('criteria', _EMPTY_LIST),
                 )
-        if 'autofilter' in data.keys():
+        if 'autofilter' in data:
             if isinstance(data['autofilter'], str):
                 worksheet.set_selection(data['autofilter'])
             else:
@@ -688,10 +687,10 @@ class WorkbookBuilder:
                 )
 
     def _setup_worksheet_merge_ranges(self, worksheet: Worksheet, data: dict):
-        if 'merge_ranges' in data.keys():
+        if 'merge_ranges' in data:
             for item in data['merge_ranges']:
                 cell_format = self.formats.get(item.get('format', ''), None)
-                if 'range' in item.keys():
+                if 'range' in item:
                     worksheet.merge_range(
                         item['range'],
                         data=item.get('data', ''),
@@ -709,9 +708,9 @@ class WorkbookBuilder:
 
     @staticmethod
     def _setup_worksheet_data_validations(worksheet: Worksheet, data: dict):
-        if 'data_validations' in data.keys():
+        if 'data_validations' in data:
             for item in data['data_validations']:
-                if 'range' in item.keys():
+                if 'range' in item:
                     worksheet.data_validation(
                         item['range'],
                         options=item.get('options', ''),
@@ -726,11 +725,11 @@ class WorkbookBuilder:
                     )
 
     def _setup_worksheet_conditional_formats(self, worksheet: Worksheet, data: dict):
-        if 'conditional_formats' in data.keys():
+        if 'conditional_formats' in data:
             for item in data['conditional_formats']:
-                if 'format' in item.keys():
+                if 'format' in item:
                     item['format'] = self.formats.get(item['format'], None)
-                if 'range' in item.keys():
+                if 'range' in item:
                     worksheet.conditional_format(
                         item['range'],
                         options=item.get('options', ''),
@@ -745,13 +744,13 @@ class WorkbookBuilder:
                     )
 
     def _setup_worksheet_tables(self, worksheet: Worksheet, data: dict):
-        if 'tables' in data.keys():
+        if 'tables' in data:
             for item in data['tables']:
                 self._replace_nested_formats(
                     data=item,
                     keys=frozenset(['format', 'header_format']),
                 )
-                if 'range' in item.keys():
+                if 'range' in item:
                     worksheet.add_table(
                         item['range'],
                         options=item.get('options', ''),
@@ -767,9 +766,9 @@ class WorkbookBuilder:
 
     @staticmethod
     def _setup_worksheet_sparklines(worksheet: Worksheet, data: dict):
-        if 'sparklines' in data.keys():
+        if 'sparklines' in data:
             for item in data['sparklines']:
-                if 'cell' in item.keys():
+                if 'cell' in item:
                     worksheet.add_sparkline(
                         item['cell'],
                         options=item.get('options', ''),
@@ -782,9 +781,9 @@ class WorkbookBuilder:
                     )
 
     def _setup_worksheet_row_sizing(self, worksheet: Worksheet, data: dict):
-        if 'row_pixels' in data.keys():
+        if 'row_pixels' in data:
             for item in data['row_pixels']:
-                if 'format' in item.keys():
+                if 'format' in item:
                     item['format'] = self.formats.get(item['format'], None)
                 worksheet.set_row_pixels(
                     row=item.get('row', 0),
@@ -792,9 +791,9 @@ class WorkbookBuilder:
                     cell_format=item.get('format', None),
                     options=item.get('options', None),
                 )
-        if 'rows' in data.keys():
+        if 'rows' in data:
             for item in data['rows']:
-                if 'format' in item.keys():
+                if 'format' in item:
                     item['format'] = self.formats.get(item['format'], None)
                 worksheet.set_row(
                     row=item.get('row', 0),
@@ -804,9 +803,9 @@ class WorkbookBuilder:
                 )
 
     def _setup_worksheet_col_sizing(self, worksheet: Worksheet, data: dict):
-        if 'column_pixels' in data.keys():
+        if 'column_pixels' in data:
             for item in data['column_pixels']:
-                if 'format' in item.keys():
+                if 'format' in item:
                     item['format'] = self.formats.get(item['format'], None)
                 first_col = item.get('first_col', item.get('col', 0))
                 worksheet.set_column_pixels(
@@ -816,9 +815,9 @@ class WorkbookBuilder:
                     cell_format=item.get('format', None),
                     options=item.get('options', None),
                 )
-        if 'columns' in data.keys():
+        if 'columns' in data:
             for item in data['columns']:
-                if 'format' in item.keys():
+                if 'format' in item:
                     item['format'] = self.formats.get(item['format'], None)
                 first_col = item.get('first_col', item.get('col', 0))
                 worksheet.set_column(
@@ -831,13 +830,13 @@ class WorkbookBuilder:
 
     @staticmethod
     def _setup_worksheet_background(worksheet: Worksheet, data: dict):
-        if 'background' in data.keys():
-            if 'filename' in data['background'].keys():
+        if 'background' in data:
+            if 'filename' in data['background']:
                 worksheet.set_background(
                     filename=data['background']['filename'],
                     is_byte_stream=False,
                 )
-            elif 'b64bytes' in data['background'].keys():
+            elif 'b64bytes' in data['background']:
                 bytes_io = _b64img2io(data['background']['b64bytes'])
                 worksheet.set_background(
                     bytes_io,
@@ -880,6 +879,10 @@ class WorkbookBuilder:
             else:
                 self._add_worksheet(sheet_data)
 
+    def cleanup(self):
+        for stream in self.byte_streams:
+            stream.close()
+
     @staticmethod
     def build_to_bytes(tmp_file: pathlib.Path, input_data: dict) -> bytes:
         options = input_data.get('options', None)
@@ -889,6 +892,7 @@ class WorkbookBuilder:
             builder.build(data=input_data)
         data = tmp_file.read_bytes()
         tmp_file.unlink()
+        builder.cleanup()
         return data
 
     @staticmethod
@@ -938,7 +942,7 @@ class ExcelStep(Step):
             )
         except Exception as e:
             raise FormatStepException(f'Failed to construct Excel document '
-                                      f'due to: {str(e)}')
+                                      f'due to: {str(e)}') from e
 
 
 register_step(ExcelStep.NAME, ExcelStep)

@@ -1,3 +1,4 @@
+# pylint: disable=too-few-public-methods
 CMD_CHANNEL = 'doc_worker'
 CMD_COMPONENT = 'doc_worker'
 COMPONENT_NAME = 'Document Worker'
@@ -49,5 +50,5 @@ class DocumentNamingStrategy:
     }
 
     @classmethod
-    def get(cls, name: str):
+    def get(cls, name: str) -> str:
         return cls._NAMES.get(name.lower(), cls._DEFAULT)

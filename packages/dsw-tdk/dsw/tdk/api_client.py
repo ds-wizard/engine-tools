@@ -1,10 +1,9 @@
-import aiohttp
-import aiohttp.client_exceptions
 import functools
 import pathlib
 import urllib.parse
 
-from typing import List, Optional
+import aiohttp
+import aiohttp.client_exceptions
 
 from .consts import DEFAULT_ENCODING, APP, VERSION
 from .model import Template, TemplateFile, TemplateFileType
@@ -36,30 +35,31 @@ def handle_client_errors(func):
             raise DSWCommunicationError(
                 reason='Unexpected response type',
                 message=e.message
-            )
+            ) from e
         except aiohttp.client_exceptions.ClientResponseError as e:
             raise DSWCommunicationError(
                 reason='Error response status',
                 message=f'Server responded with error HTTP status {e.status}: {e.message}'
-            )
+            ) from e
         except aiohttp.client_exceptions.InvalidURL as e:
             raise DSWCommunicationError(
                 reason='Invalid URL',
                 message=f'Provided API URL seems invalid: {e.url}'
-            )
+            ) from e
         except aiohttp.client_exceptions.ClientConnectorError as e:
             raise DSWCommunicationError(
                 reason='Server unreachable',
                 message=f'Desired server is not reachable (errno {e.os_error.errno})'
-            )
+            ) from e
         except Exception as e:
             raise DSWCommunicationError(
                 reason='Communication error',
                 message=f'Communication with server failed ({e})'
-            )
+            ) from e
     return handled_client_call
 
 
+# pylint: disable-next=too-many-public-methods
 class DSWAPIClient:
 
     def _headers(self, extra=None):
@@ -91,7 +91,9 @@ class DSWAPIClient:
         """
         self.api_url = api_url
         self.token = api_key
-        self.session = session or aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False))
+        self.session = session or aiohttp.ClientSession(
+            connector=aiohttp.TCPConnector(ssl=False),
+        )
 
     @property
     def templates_endpoint(self):
@@ -112,31 +114,48 @@ class DSWAPIClient:
             return False
 
     async def _post_json(self, endpoint, json) -> dict:
-        async with self.session.post(f'{self.api_url}{endpoint}', json=json, headers=self._headers()) as r:
+        async with self.session.post(
+                url=f'{self.api_url}{endpoint}',
+                json=json,
+                headers=self._headers(),
+        ) as r:
             self._check_status(r, expected_status=201)
             return await r.json()
 
     async def _put_json(self, endpoint, json) -> dict:
-        async with self.session.put(f'{self.api_url}{endpoint}', json=json, headers=self._headers()) as r:
+        async with self.session.put(
+                url=f'{self.api_url}{endpoint}',
+                json=json,
+                headers=self._headers(),
+        ) as r:
             self._check_status(r, expected_status=200)
             return await r.json()
 
     async def _get_json(self, endpoint) -> dict:
-        async with self.session.get(f'{self.api_url}{endpoint}', headers=self._headers()) as r:
+        async with self.session.get(
+                url=f'{self.api_url}{endpoint}',
+                headers=self._headers(),
+        ) as r:
             self._check_status(r, expected_status=200)
             return await r.json()
 
     async def _get_bytes(self, endpoint) -> bytes:
-        async with self.session.get(f'{self.api_url}{endpoint}', headers=self._headers()) as r:
+        async with self.session.get(
+                url=f'{self.api_url}{endpoint}',
+                headers=self._headers(),
+        ) as r:
             self._check_status(r, expected_status=200)
             return await r.read()
 
     async def _delete(self, endpoint) -> bool:
-        async with self.session.delete(f'{self.api_url}{endpoint}', headers=self._headers()) as r:
+        async with self.session.delete(
+                url=f'{self.api_url}{endpoint}',
+                headers=self._headers(),
+        ) as r:
             return r.status == 204
 
     @handle_client_errors
-    async def login(self, email: str, password: str) -> Optional[str]:
+    async def login(self, email: str, password: str) -> str | None:
         req = {'email': email, 'password': password}
         body = await self._post_json('/tokens', json=req)
         self.token = body.get('token', None)
@@ -148,7 +167,10 @@ class DSWAPIClient:
 
     @handle_client_errors
     async def check_template_exists(self, remote_id: str) -> bool:
-        async with self.session.get(f'{self.templates_endpoint}/{remote_id}', headers=self._headers()) as r:
+        async with self.session.get(
+                url=f'{self.templates_endpoint}/{remote_id}',
+                headers=self._headers(),
+        ) as r:
             if r.status == 404:
                 return False
             self._check_status(r, expected_status=200)
@@ -156,20 +178,22 @@ class DSWAPIClient:
 
     @handle_client_errors
     async def check_draft_exists(self, remote_id: str) -> bool:
-        async with self.session.get(f'{self.drafts_endpoint}/{remote_id}', headers=self._headers()) as r:
+        async with self.session.get(
+                url=f'{self.drafts_endpoint}/{remote_id}',
+                headers=self._headers(),
+        ) as r:
             if r.status == 404:
                 return False
             self._check_status(r, expected_status=200)
             return True
 
     @handle_client_errors
-    async def get_templates(self) -> List[Template]:
+    async def get_templates(self) -> list[Template]:
         body = await self._get_json('/document-templates/all')
         return list(map(_load_remote_template, body))
 
     @handle_client_errors
-    async def get_drafts(self) -> List[Template]:
-        # TODO: better paging
+    async def get_drafts(self) -> list[Template]:
         body = await self._get_json('/document-template-drafts?size=10000')
         drafts = body.get('_embedded', {}).get('documentTemplateDrafts', [])
         return list(map(_load_remote_template, drafts))
@@ -191,7 +215,7 @@ class DSWAPIClient:
         return _load_remote_template(body)
 
     @handle_client_errors
-    async def get_template_draft_files(self, remote_id: str) -> List[TemplateFile]:
+    async def get_template_draft_files(self, remote_id: str) -> list[TemplateFile]:
         body = await self._get_json(f'/document-template-drafts/{remote_id}/files')
         result = []
         for file_body in body:
@@ -206,7 +230,7 @@ class DSWAPIClient:
         return _load_remote_file(body)
 
     @handle_client_errors
-    async def get_template_draft_assets(self, remote_id: str) -> List[TemplateFile]:
+    async def get_template_draft_assets(self, remote_id: str) -> list[TemplateFile]:
         body = await self._get_json(f'/document-template-drafts/{remote_id}/assets')
         result = []
         for file_body in body:
@@ -217,8 +241,10 @@ class DSWAPIClient:
 
     @handle_client_errors
     async def get_template_draft_asset(self, remote_id: str, asset_id: str) -> TemplateFile:
-        body = await self._get_json(f'/document-template-drafts/{remote_id}/assets/{asset_id}')
-        content = await self._get_bytes(f'/document-template-drafts/{remote_id}/assets/{asset_id}/content')
+        body = await self._get_json(f'/document-template-drafts/{remote_id}'
+                                    f'/assets/{asset_id}')
+        content = await self._get_bytes(f'/document-template-drafts/{remote_id}'
+                                        f'/assets/{asset_id}/content')
         return _load_remote_asset(body, content)
 
     @handle_client_errors
@@ -258,7 +284,8 @@ class DSWAPIClient:
     async def put_template_draft_file_content(self, remote_id: str, tfile: TemplateFile):
         self.session.headers.update(self._headers())
         async with self.session.put(
-                f'{self.api_url}/document-template-drafts/{remote_id}/files/{tfile.remote_id}/content',
+                f'{self.api_url}/document-template-drafts/{remote_id}'
+                f'/files/{tfile.remote_id}/content',
                 data=tfile.content,
                 headers={'Content-Type': 'text/plain;charset=UTF-8'},
         ) as r:
@@ -302,7 +329,8 @@ class DSWAPIClient:
             value=tfile.filename.as_posix(),
         )
         async with self.session.put(
-                f'{self.api_url}/document-template-drafts/{remote_id}/assets/{tfile.remote_id}/content',
+                f'{self.api_url}/document-template-drafts/{remote_id}'
+                f'/assets/{tfile.remote_id}/content',
                 data=data,
                 headers=self._headers()
         ) as r:
@@ -338,11 +366,11 @@ class DSWAPIClient:
 
 
 def _load_remote_file(data: dict) -> TemplateFile:
-    content = data.get('content', None)  # type: str
-    filename = str(data.get('fileName', ''))  # type: str
+    content: str = data.get('content', '')
+    filename: str = str(data.get('fileName', ''))
     template_file = TemplateFile(
         remote_id=data.get('uuid', None),
-        remote_type=TemplateFileType.file,
+        remote_type=TemplateFileType.FILE,
         filename=pathlib.Path(urllib.parse.unquote(filename)),
         content=content.encode(encoding=DEFAULT_ENCODING),
     )
@@ -353,7 +381,7 @@ def _load_remote_asset(data: dict, content: bytes) -> TemplateFile:
     filename = str(data.get('fileName', ''))
     template_file = TemplateFile(
         remote_id=data.get('uuid', None),
-        remote_type=TemplateFileType.asset,
+        remote_type=TemplateFileType.ASSET,
         filename=pathlib.Path(urllib.parse.unquote(filename)),
         content_type=data.get('contentType', None),
         content=content,

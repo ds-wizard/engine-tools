@@ -16,7 +16,7 @@ class SentryReporter:
     filters = []  # type: list[EventProcessor]
 
     @classmethod
-    def initialize(cls, config: SentryConfig, prog_name: str, release: str,
+    def initialize(cls, *, config: SentryConfig, prog_name: str, release: str,
                    breadcrumb_level: int | None = logging.INFO,
                    event_level: int | None = logging.ERROR):
         cls.report = config.enabled and config.workers_dsn is not None

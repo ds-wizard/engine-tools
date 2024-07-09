@@ -1,10 +1,9 @@
 import base64
+import dataclasses
 import datetime
 import logging
 import pathlib
 import shutil
-
-from typing import Optional
 
 from dsw.database.database import DBDocumentTemplate, \
     DBDocumentTemplateFile, DBDocumentTemplateAsset
@@ -47,12 +46,11 @@ class Asset:
         return f'data:{self.content_type};base64,{self.data_base64}'
 
 
+@dataclasses.dataclass
 class TemplateComposite:
-
-    def __init__(self, db_template, db_files, db_assets):
-        self.template = db_template  # type: DBDocumentTemplate
-        self.files = db_files  # type: dict[str, DBDocumentTemplateFile]
-        self.assets = db_assets  # type: dict[str, DBDocumentTemplateAsset]
+    template: DBDocumentTemplate
+    files: dict[str, DBDocumentTemplateFile]
+    assets: dict[str, DBDocumentTemplateAsset]
 
 
 class Template:
@@ -64,7 +62,7 @@ class Template:
         self.last_used = datetime.datetime.now(tz=datetime.UTC)
         self.db_template = db_template
         self.template_id = self.db_template.template.id
-        self.formats = dict()  # type: dict[str, Format]
+        self.formats: dict[str, Format] = {}
         self.asset_prefix = f'templates/{self.db_template.template.id}'
         if Context.get().app.cfg.cloud.multi_tenant:
             self.asset_prefix = f'{self.tenant_uuid}/{self.asset_prefix}'
@@ -72,8 +70,8 @@ class Template:
     def raise_exc(self, message: str):
         raise TemplateException(self.template_id, message)
 
-    def fetch_asset(self, file_name: str) -> Optional[Asset]:
-        LOG.info(f'Fetching asset "{file_name}"')
+    def fetch_asset(self, file_name: str) -> Asset | None:
+        LOG.info('Fetching asset "%s"', file_name)
         file_path = self.template_dir / file_name
         asset = None
         for a in self.db_template.assets.values():
@@ -81,7 +79,7 @@ class Template:
                 asset = a
                 break
         if asset is None or not file_path.exists():
-            LOG.error(f'Asset "{file_name}" not found')
+            LOG.error('Asset "%s" not found', file_name)
             return None
         return Asset(
             asset_uuid=asset.uuid,
@@ -94,16 +92,16 @@ class Template:
         return str(self.template_dir / filename)
 
     def _store_asset(self, asset: DBDocumentTemplateAsset):
-        LOG.debug(f'Storing asset {asset.uuid} ({asset.file_name})')
+        LOG.debug('Storing asset %s (%s)', asset.uuid, asset.file_name)
         remote_path = f'{self.asset_prefix}/{asset.uuid}'
         local_path = self.template_dir / asset.file_name
         local_path.parent.mkdir(parents=True, exist_ok=True)
         result = Context.get().app.s3.download_file(remote_path, local_path)
         if not result:
-            LOG.error(f'Asset "{local_path.name}" cannot be retrieved')
+            LOG.error('Asset "%s" cannot be retrieved', local_path.name)
 
     def _store_file(self, file: DBDocumentTemplateFile):
-        LOG.debug(f'Storing file {file.uuid} ({file.file_name})')
+        LOG.debug('Storing file %s (%s)', file.uuid, file.file_name)
         local_path = self.template_dir / file.file_name
         local_path.parent.mkdir(parents=True, exist_ok=True)
         local_path.write_text(
@@ -112,45 +110,45 @@ class Template:
         )
 
     def _delete_asset(self, asset: DBDocumentTemplateAsset):
-        LOG.debug(f'Deleting asset {asset.uuid} ({asset.file_name})')
+        LOG.debug('Deleting asset %s (%s)', asset.uuid, asset.file_name)
         local_path = self.template_dir / asset.file_name
         local_path.unlink(missing_ok=True)
 
     def _delete_file(self, file: DBDocumentTemplateFile):
-        LOG.debug(f'Deleting file {file.uuid} ({file.file_name})')
+        LOG.debug('Deleting file %s (%s)', file.uuid, file.file_name)
         local_path = self.template_dir / file.file_name
         local_path.unlink(missing_ok=True)
 
     def _update_asset(self, asset: DBDocumentTemplateAsset):
-        LOG.debug(f'Updating asset {asset.uuid} ({asset.file_name})')
+        LOG.debug('Updating asset %s (%s)', asset.uuid, asset.file_name)
         old_asset = self.db_template.assets[asset.uuid]
         local_path = self.template_dir / asset.file_name
         if old_asset.updated_at == asset.updated_at and local_path.exists():
-            LOG.debug(f'- Asset {asset.uuid} ({asset.file_name}) did not change')
+            LOG.debug('- Asset %s (%s) did not change', asset.uuid, asset.file_name)
             return
         self._store_asset(asset)
 
     def _update_file(self, file: DBDocumentTemplateFile):
-        LOG.debug(f'Updating file {file.uuid} ({file.file_name})')
+        LOG.debug('Updating file %s (%s)', file.uuid, file.file_name)
         old_file = self.db_template.files[file.uuid]
         local_path = self.template_dir / file.file_name
         if old_file.updated_at == file.updated_at and local_path.exists():
-            LOG.debug(f'- File {file.uuid} ({file.file_name}) did not change')
+            LOG.debug('- File %s (%s) did not change', file.uuid, file.file_name)
             return
         self._store_file(file)
 
     def prepare_all_template_files(self):
-        LOG.info(f'Storing all files of template {self.template_id} locally')
+        LOG.info('Storing all files of template %s locally', self.template_id)
         for file in self.db_template.files.values():
             self._store_file(file)
 
     def prepare_all_template_assets(self):
-        LOG.info(f'Storing all assets of template {self.template_id} locally')
+        LOG.info('Storing all assets of template %s locally', self.template_id)
         for asset in self.db_template.assets.values():
             self._store_asset(asset)
 
     def prepare_fs(self):
-        LOG.info(f'Preparing directory for template {self.template_id}')
+        LOG.info('Preparing directory for template %s', self.template_id)
         if self.template_dir.exists():
             shutil.rmtree(self.template_dir)
         self.template_dir.mkdir(parents=True)
@@ -165,7 +163,7 @@ class Template:
         return to_add, to_del, to_chk
 
     def update_template_files(self, db_files: dict[str, DBDocumentTemplateFile]):
-        LOG.info(f'Updating files of template {self.template_id}')
+        LOG.info('Updating files of template %s', self.template_id)
         to_add, to_del, to_chk = self._resolve_change(
             old_keys=frozenset(self.db_template.files.keys()),
             new_keys=frozenset(db_files.keys()),
@@ -179,7 +177,7 @@ class Template:
         self.db_template.files = db_files
 
     def update_template_assets(self, db_assets: dict[str, DBDocumentTemplateAsset]):
-        LOG.info(f'Updating assets of template {self.template_id}')
+        LOG.info('Updating assets of template %s', self.template_id)
         to_add, to_del, to_chk = self._resolve_change(
             old_keys=frozenset(self.db_template.assets.keys()),
             new_keys=frozenset(db_assets.keys()),
@@ -231,15 +229,15 @@ class TemplateRegistry:
         return cls._instance
 
     def __init__(self):
-        self._templates = dict()  # type: dict[str, dict[str, Template]]
+        self._templates: dict[str, dict[str, Template]] = {}
 
     def has_template(self, tenant_uuid: str, template_id: str) -> bool:
-        return tenant_uuid in self._templates.keys() and \
-               template_id in self._templates[tenant_uuid].keys()
+        return tenant_uuid in self._templates and \
+               template_id in self._templates[tenant_uuid]
 
     def _set_template(self, tenant_uuid: str, template_id: str, template: Template):
-        if tenant_uuid not in self._templates.keys():
-            self._templates[tenant_uuid] = dict()
+        if tenant_uuid not in self._templates:
+            self._templates[tenant_uuid] = {}
         self._templates[tenant_uuid][template_id] = template
 
     def get_template(self, tenant_uuid: str, template_id: str) -> Template:
@@ -264,19 +262,19 @@ class TemplateRegistry:
 
     def prepare_template(self, tenant_uuid: str, template_id: str) -> Template:
         ctx = Context.get()
-        query_args = dict(
-            template_id=template_id,
-            tenant_uuid=tenant_uuid,
-        )
+        query_args = {
+            'template_id': template_id,
+            'tenant_uuid': tenant_uuid,
+        }
         db_template = ctx.app.db.fetch_template(**query_args)
         if db_template is None:
             raise RuntimeError(f'Template {template_id} not found in database')
         db_files = ctx.app.db.fetch_template_files(**query_args)
         db_assets = ctx.app.db.fetch_template_assets(**query_args)
         template_composite = TemplateComposite(
-            db_template=db_template,
-            db_files={f.uuid: f for f in db_files},
-            db_assets={f.uuid: f for f in db_assets},
+            template=db_template,
+            files={f.uuid: f for f in db_files},
+            assets={f.uuid: f for f in db_assets},
         )
 
         if self.has_template(tenant_uuid, template_id):
@@ -292,7 +290,6 @@ class TemplateRegistry:
             shutil.rmtree(template.template_dir)
 
     def cleanup(self):
-        # TODO: configurable
         threshold = datetime.datetime.now(tz=datetime.UTC) - datetime.timedelta(days=7)
         for tenant_uuid, templates in self._templates.items():
             for template_id, template in templates.items():

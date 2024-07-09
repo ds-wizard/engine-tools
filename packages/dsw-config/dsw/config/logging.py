@@ -28,6 +28,8 @@ class DSWLogger(logging.Logger):
 
 
 def prepare_logging(logging_cfg):
+    # pylint: disable-next=no-member
+    logger_dict = logging.root.manager.loggerDict
     if logging_cfg.dict_config is not None:
         logging.config.dictConfig(logging_cfg.dict_config)
     else:
@@ -36,15 +38,13 @@ def prepare_logging(logging_cfg):
             level=logging_cfg.global_level,
             format=logging_cfg.message_format
         )
-        dsw_loggers = (logging.getLogger(name)
-                       for name in logging.root.manager.loggerDict.keys()
+        dsw_loggers = (logging.getLogger(name) for name in logger_dict
                        if name.lower().startswith('dsw'))
         for logger in dsw_loggers:
             logger.setLevel(logging_cfg.level)
     # Set for all existing loggers
     logging.getLogger().addFilter(filter=LOG_FILTER)
-    loggers = (logging.getLogger(name)
-               for name in logging.root.manager.loggerDict.keys())
+    loggers = (logging.getLogger(name) for name in logger_dict)
     for logger in loggers:
         logger.addFilter(filter=LOG_FILTER)
     # Set for any future loggers

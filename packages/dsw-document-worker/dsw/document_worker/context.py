@@ -1,11 +1,10 @@
+import dataclasses
 import pathlib
 
-from typing import Optional, TYPE_CHECKING
+from dsw.database import Database
+from dsw.storage import S3Storage
 
-if TYPE_CHECKING:
-    from .config import DocumentWorkerConfig
-    from dsw.database import Database
-    from dsw.storage import S3Storage
+from .config import DocumentWorkerConfig
 
 
 class ContextNotInitializedError(RuntimeError):
@@ -14,19 +13,17 @@ class ContextNotInitializedError(RuntimeError):
         super().__init__('Context cannot be retrieved, not initialized')
 
 
+@dataclasses.dataclass
 class AppContext:
-
-    def __init__(self, db, s3, cfg, workdir):
-        self.db = db  # type: Database
-        self.s3 = s3  # type: S3Storage
-        self.cfg = cfg  # type: DocumentWorkerConfig
-        self.workdir = workdir  # type: pathlib.Path
+    db: Database
+    s3: S3Storage
+    cfg: DocumentWorkerConfig
+    workdir: pathlib.Path
 
 
+@dataclasses.dataclass
 class JobContext:
-
-    def __init__(self, trace_id: str):
-        self.trace_id = trace_id
+    trace_id: str
 
 
 class _Context:
@@ -49,7 +46,7 @@ class _Context:
 
 class Context:
 
-    _instance = None  # type: Optional[_Context]
+    _instance: _Context | None = None
 
     @classmethod
     def get(cls) -> _Context:

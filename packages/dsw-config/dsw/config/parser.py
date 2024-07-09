@@ -1,7 +1,7 @@
 import os
-import yaml
+import typing
 
-from typing import List, Any, IO
+import yaml
 
 from .keys import ConfigKey, ConfigKeys
 from .model import GeneralConfig, SentryConfig, S3Config, \
@@ -10,14 +10,14 @@ from .model import GeneralConfig, SentryConfig, S3Config, \
 
 class MissingConfigurationError(Exception):
 
-    def __init__(self, missing: List[str]):
+    def __init__(self, missing: list[str]):
         self.missing = missing
 
 
 class DSWConfigParser:
 
     def __init__(self, keys=ConfigKeys):
-        self.cfg = dict()
+        self.cfg = {}
         self.keys = keys
 
     @staticmethod
@@ -28,7 +28,7 @@ class DSWConfigParser:
         except Exception:
             return False
 
-    def read_file(self, fp: IO):
+    def read_file(self, fp: typing.IO):
         self.cfg = yaml.load(fp, Loader=yaml.FullLoader) or self.cfg
 
     def read_string(self, content: str):
@@ -50,12 +50,12 @@ class DSWConfigParser:
         if self.has_value_for_path(key.yaml_path):
             return True
         for var_name in key.var_names:
-            if var_name in os.environ.keys() or \
-                    self._prefix_var(var_name) in os.environ.keys():
+            if var_name in os.environ or self._prefix_var(var_name) in os.environ:
                 return True
+        return False
 
     def get_or_default(self, key: ConfigKey):
-        x = self.cfg  # type: Any
+        x: typing.Any = self.cfg
         for p in key.yaml_path:
             if not hasattr(x, 'keys') or p not in x.keys():
                 return key.default
@@ -64,9 +64,9 @@ class DSWConfigParser:
 
     def get(self, key: ConfigKey):
         for var_name in key.var_names:
-            if var_name in os.environ.keys():
+            if var_name in os.environ:
                 return key.cast(os.environ[var_name])
-            if self._prefix_var(var_name) in os.environ.keys():
+            if self._prefix_var(var_name) in os.environ:
                 return key.cast(os.environ[self._prefix_var(var_name)])
         return key.cast(self.get_or_default(key))
 

@@ -15,55 +15,82 @@ class ValidationError(BaseException):
 
 def _validate_required(field_name: str, value) -> List[ValidationError]:
     if value is None:
-        return [ValidationError(field_name, 'Missing but it is required')]
+        return [ValidationError(
+            field_name=field_name,
+            message='Missing but it is required',
+        )]
     return []
 
 
 def _validate_non_empty(field_name: str, value) -> List[ValidationError]:
     if value is not None and len(value.strip()) == 0:
-        return [ValidationError(field_name, 'Cannot be empty or only-whitespace')]
+        return [ValidationError(
+            field_name=field_name,
+            message='Cannot be empty or only-whitespace',
+        )]
     return []
 
 
 def _validate_content_type(field_name: str, value) -> List[ValidationError]:
     if value is not None and re.match(REGEX_MIME_TYPE, value) is None:
-        return [ValidationError(field_name, 'Content type should be valid IANA media type')]
+        return [ValidationError(
+            field_name=field_name,
+            message='Content type should be valid IANA media type',
+        )]
     return []
 
 
 def _validate_extension(field_name: str, value) -> List[ValidationError]:
     if value is not None and re.match(REGEX_ORGANIZATION_ID, value) is None:
-        return [ValidationError(field_name, 'File extension should contain only letters, numbers and dots (inside-only)')]
+        return [ValidationError(
+            field_name=field_name,
+            message='File extension should contain only letters, numbers and dots (inside-only)',
+        )]
     return []
 
 
 def _validate_organization_id(field_name: str, value) -> List[ValidationError]:
     if value is not None and re.match(REGEX_ORGANIZATION_ID, value) is None:
-        return [ValidationError(field_name, 'Organization ID may contain only letters, numbers, and period (inside-only)')]
+        return [ValidationError(
+            field_name=field_name,
+            message='Organization ID may contain only letters, numbers, and period (inside-only)',
+        )]
     return []
 
 
 def _validate_template_id(field_name: str, value) -> List[ValidationError]:
     if value is not None and re.match(REGEX_TEMPLATE_ID, value) is None:
-        return [ValidationError(field_name, 'Template ID may contain only letters, numbers, and dash (inside-only)')]
+        return [ValidationError(
+            field_name=field_name,
+            message='Template ID may contain only letters, numbers, and dash (inside-only)',
+        )]
     return []
 
 
 def _validate_km_id(field_name: str, value) -> List[ValidationError]:
     if value is not None and re.match(REGEX_KM_ID, value) is None:
-        return [ValidationError(field_name, 'KM ID may contain only letters, numbers, and dash (inside-only)')]
+        return [ValidationError(
+            field_name=field_name,
+            message='KM ID may contain only letters, numbers, and dash (inside-only)',
+        )]
     return []
 
 
 def _validate_version(field_name: str, value) -> List[ValidationError]:
     if value is not None and re.match(REGEX_SEMVER, value) is None:
-        return [ValidationError(field_name, 'Version must be in semver format <NUM>.<NUM>.<NUM>')]
+        return [ValidationError(
+            field_name=field_name,
+            message='Version must be in semver format <NUM>.<NUM>.<NUM>',
+        )]
     return []
 
 
 def _validate_natural(field_name: str, value) -> List[ValidationError]:
     if value is not None and (not isinstance(value, int) or value < 1):
-        return [ValidationError(field_name, 'It must be positive integer')]
+        return [ValidationError(
+            field_name=field_name,
+            message='It must be positive integer',
+        )]
     return []
 
 
@@ -72,16 +99,31 @@ def _validate_package_id(field_name: str, value: str) -> List[ValidationError]:
     if value is None:
         return res
     if not isinstance(value, str):
-        return [ValidationError(field_name, 'Package ID is not a string')]
+        return [ValidationError(
+            field_name=field_name,
+            message='Package ID is not a string',
+        )]
     parts = value.split(':')
     if len(parts) != 3:
-        res.append(ValidationError(field_name, 'Package ID is not valid (only {len(parts)} parts)'))
+        res.append(ValidationError(
+            field_name=field_name,
+            message='Package ID is not valid (only {len(parts)} parts)',
+        ))
     if re.match(REGEX_ORGANIZATION_ID, parts[0]) is None:
-        res.append(ValidationError(field_name, 'Package ID contains invalid organization id'))
+        res.append(ValidationError(
+            field_name=field_name,
+            message='Package ID contains invalid organization id',
+        ))
     if re.match(REGEX_KM_ID, parts[1]) is None:
-        res.append(ValidationError(field_name, 'Package ID contains invalid KM id'))
+        res.append(ValidationError(
+            field_name=field_name,
+            message='Package ID contains invalid KM id',
+        ))
     if re.match(REGEX_SEMVER, parts[2]) is None:
-        res.append(ValidationError(field_name, 'Package ID contains invalid version'))
+        res.append(ValidationError(
+            field_name=field_name,
+            message='Package ID contains invalid version',
+        ))
     return res
 
 
@@ -91,11 +133,20 @@ def _validate_jinja_options(field_name: str, value: Dict[str, str]) -> List[Vali
         return res
     for k in ('template', 'content-type', 'extension'):
         if k not in value.keys():
-            res.append(ValidationError(field_name, 'Jinja option cannot be left out'))
+            res.append(ValidationError(
+                field_name=field_name,
+                message='Jinja option cannot be left out',
+            ))
         elif value[k] is None or not isinstance(value[k], str) or len(value[k]) == 0:
-            res.append(ValidationError(field_name, 'Jinja option cannot be empty'))
+            res.append(ValidationError(
+                field_name=field_name,
+                message='Jinja option cannot be empty',
+            ))
     if 'content-type' in value.keys():
-        res.extend(_validate_content_type(f'{field_name}.content-type', value['content-type']))
+        res.extend(_validate_content_type(
+            field_name=f'{field_name}.content-type',
+            value=value['content-type'],
+        ))
     return res
 
 
@@ -129,7 +180,10 @@ class GenericValidator:
             if field_name.startswith('__'):
                 continue
             for validator in validators:
-                result.extend(validator(field_name_prefix + field_name, getattr(entity, field_name)))
+                result.extend(validator(
+                    field_name=f'{field_name_prefix}{field_name}',
+                    value=getattr(entity, field_name),
+                ))
         if '__all' in self.rules.keys():
             result.extend(self.rules['__all'](field_name_prefix, entity))
         return result

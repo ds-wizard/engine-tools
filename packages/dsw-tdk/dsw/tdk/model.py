@@ -3,29 +3,30 @@ import json
 import logging
 import mimetypes
 import pathlib
-import pathspec  # type: ignore
 
 from collections import OrderedDict
-from typing import List, Dict, Optional, Tuple, Any
+from typing import Any
 
-from .consts import VERSION, DEFAULT_ENCODING, METAMODEL_VERSION, PATHSPEC_FACTORY
+import pathspec
+
+from .consts import VERSION, DEFAULT_ENCODING, METAMODEL_VERSION, PathspecFactory
 
 mimetypes.init()
 
 
 class TemplateFileType(enum.Enum):
-    asset = 'asset'
-    file = 'file'
+    ASSET = 'asset'
+    FILE = 'file'
 
 
 class PackageFilter:
 
-    def __init__(self, *, organization_id=None, km_id=None, min_version=None,
-                 max_version=None):
-        self.organization_id = organization_id  # type: Optional[str]
-        self.km_id = km_id  # type: Optional[str]
-        self.min_version = min_version  # type: Optional[str]
-        self.max_version = max_version  # type: Optional[str]
+    def __init__(self, *, organization_id: str | None = None, km_id: str | None = None,
+                 min_version: str | None = None, max_version: str | None = None):
+        self.organization_id = organization_id
+        self.km_id = km_id
+        self.min_version = min_version
+        self.max_version = max_version
 
     @classmethod
     def load(cls, data):
@@ -47,9 +48,10 @@ class PackageFilter:
 
 class Step:
 
-    def __init__(self, *, name=None, options=None):
-        self.name = name  # type: str
-        self.options = options or dict()  # type: Dict[str, str]
+    def __init__(self, *, name: str | None = None,
+                 options: dict[str, str] | None = None):
+        self.name = name
+        self.options = options or {}
 
     @classmethod
     def load(cls, data):
@@ -69,11 +71,12 @@ class Format:
 
     DEFAULT_ICON = 'fas fa-file'
 
-    def __init__(self, *, uuid=None, name=None, icon=None):
-        self.uuid = uuid  # type: str
-        self.name = name  # type: str
-        self.icon = icon or self.DEFAULT_ICON  # type: str
-        self.steps = []  # type: List[Step]
+    def __init__(self, *, uuid: str | None = None, name: str | None = None,
+                 icon: str | None = None):
+        self.uuid = uuid
+        self.name = name
+        self.icon: str = icon or self.DEFAULT_ICON
+        self.steps: list[Step] = []
 
     @classmethod
     def load(cls, data):
@@ -100,11 +103,12 @@ class TDKConfig:
     DEFAULT_README = 'README.md'
     DEFAULT_FILES = ['*']
 
-    def __init__(self, *, version=None, readme_file=None, files=None):
-        self.version = version or VERSION  # type: str
-        readme_file_str = readme_file or self.DEFAULT_README  # type: str
-        self.readme_file = pathlib.Path(readme_file_str)  # type: pathlib.Path
-        self.files = files or []  # type: List[str]
+    def __init__(self, *, version: str | None = None, readme_file: str | None = None,
+                 files: list[str] | None = None):
+        self.version: str = version or VERSION
+        readme_file_str: str = readme_file or self.DEFAULT_README
+        self.readme_file: pathlib.Path = pathlib.Path(readme_file_str)
+        self.files: list[str] = files or []
 
     @classmethod
     def load(cls, data):
@@ -127,19 +131,19 @@ class TemplateFile:
     DEFAULT_CONTENT_TYPE = 'application/octet-stream'
     TEMPLATE_EXTENSIONS = ('.j2', '.jinja', '.jinja2', '.jnj')
 
-    def __init__(self, *, remote_id=None, remote_type=None, filename=None,
-                 content_type=None, content=None):
-        self.remote_id = remote_id  # type: Optional[str]
-        self.filename = filename  # type: pathlib.Path
-        self.content = content  # type: bytes
-        self.content_type = content_type or self.guess_type()  # type: str
-        self.remote_type = remote_type or self.guess_tfile_type()  # type: TemplateFileType
+    def __init__(self, *, filename: pathlib.Path,
+                 remote_id: str | None = None, remote_type: TemplateFileType | None = None,
+                 content_type: str | None = None, content: bytes = b''):
+        self.remote_id = remote_id
+        self.filename = filename
+        self.content = content
+        self.content_type: str = content_type or self.guess_type()
+        self.remote_type: TemplateFileType = remote_type or self.guess_tfile_type()
 
     def guess_tfile_type(self):
-        return TemplateFileType.file if self.is_text else TemplateFileType.asset
+        return TemplateFileType.FILE if self.is_text else TemplateFileType.ASSET
 
     def guess_type(self) -> str:
-        # TODO: add own map of file extensions
         filename = self.filename.name
         for ext in self.TEMPLATE_EXTENSIONS:
             if filename.endswith(ext):
@@ -151,8 +155,7 @@ class TemplateFile:
 
     @property
     def is_text(self):
-        # TODO: custom mapping (also some starting with "application" are textual)
-        if getattr(self, 'remote_type', None) == TemplateFileType.file:
+        if getattr(self, 'remote_type', None) == TemplateFileType.FILE:
             return True
         return self.content_type.startswith('text')
 
@@ -163,6 +166,7 @@ class TemplateFile:
 
 class Template:
 
+    # pylint: disable-next=too-many-arguments
     def __init__(self, *, template_id=None, organization_id=None, version=None, name=None,
                  description=None, readme=None, template_license=None,
                  metamodel_version=None, tdk_config=None, loaded_json=None):
@@ -173,13 +177,13 @@ class Template:
         self.description = description  # type: str
         self.readme = readme  # type: str
         self.license = template_license  # type: str
-        self.metamodel_version = metamodel_version or METAMODEL_VERSION  # type: int
-        self.allowed_packages = []  # type: List[PackageFilter]
-        self.formats = []  # type: List[Format]
-        self.files = {}  # type: Dict[str, TemplateFile]
-        self.extras = []  # type: List[TemplateFile]
-        self.tdk_config = tdk_config or TDKConfig()  # type: TDKConfig
-        self.loaded_json = loaded_json or OrderedDict()  # type: OrderedDict
+        self.metamodel_version: int = metamodel_version or METAMODEL_VERSION
+        self.allowed_packages: list[PackageFilter] = []
+        self.formats: list[Format] = []
+        self.files: dict[str, TemplateFile] = {}
+        self.extras: list[TemplateFile] = []
+        self.tdk_config: TDKConfig = tdk_config or TDKConfig()
+        self.loaded_json: OrderedDict = loaded_json or OrderedDict()
 
     @property
     def id(self) -> str:
@@ -200,8 +204,8 @@ class Template:
                 org_id = data['organizationId']
                 tmp_id = data['templateId']
                 version = data['version']
-            except KeyError:
-                raise RuntimeError('Cannot retrieve template ID')
+            except KeyError as e:
+                raise RuntimeError('Cannot retrieve template ID') from e
         template = Template(
             template_id=tmp_id,
             organization_id=org_id,
@@ -244,7 +248,7 @@ class Template:
         self.loaded_json['_tdk'] = self.tdk_config.serialize()
         return self.loaded_json
 
-    def serialize_remote(self) -> Dict[str, Any]:
+    def serialize_remote(self) -> dict[str, Any]:
         return {
             'id': self.id,
             'templateId': self.template_id,
@@ -260,7 +264,7 @@ class Template:
             'phase': 'DraftDocumentTemplatePhase',
         }
 
-    def serialize_for_update(self) -> Dict[str, Any]:
+    def serialize_for_update(self) -> dict[str, Any]:
         return {
             'templateId': self.template_id,
             'version': self.version,
@@ -274,7 +278,7 @@ class Template:
             'phase': 'DraftDocumentTemplatePhase',
         }
 
-    def serialize_for_create(self, based_on: Optional[str] = None) -> Dict[str, Any]:
+    def serialize_for_create(self, based_on: str | None = None) -> dict[str, Any]:
         return {
             'basedOn': based_on,
             'name': self.name,
@@ -282,7 +286,7 @@ class Template:
             'version': self.version,
         }
 
-    def serialize_local_new(self) -> Dict[str, Any]:
+    def serialize_local_new(self) -> dict[str, Any]:
         return {
             'templateId': self.template_id,
             'organizationId': self.organization_id,
@@ -297,7 +301,7 @@ class Template:
         }
 
 
-def _to_ordered_dict(tuples: List[Tuple[str, Any]]) -> OrderedDict:
+def _to_ordered_dict(tuples: list[tuple[str, Any]]) -> OrderedDict:
     return OrderedDict(tuples)
 
 
@@ -309,12 +313,12 @@ class TemplateProject:
 
     json_decoder = json.JSONDecoder(object_pairs_hook=_to_ordered_dict)
 
-    def __init__(self, template_dir, logger):
-        self.template_dir = pathlib.Path(template_dir)  # type: pathlib.Path
+    def __init__(self, template_dir: pathlib.Path, logger: logging.Logger):
+        self.template_dir = pathlib.Path(template_dir)
         self.descriptor_path = self.template_dir / self.TEMPLATE_FILE
-        self.template = None  # type: Optional[Template]
-        self.used_readme = None  # type: Optional[pathlib.Path]
-        self._logger = logger  # type: logging.Logger
+        self.template: Template | None = None
+        self.used_readme: pathlib.Path | None = None
+        self._logger = logger
 
     @property
     def logger(self) -> logging.Logger:
@@ -332,8 +336,8 @@ class TemplateProject:
         try:
             content = self.descriptor_path.read_text(encoding=DEFAULT_ENCODING)
             self.template = Template.load_local(self.json_decoder.decode(content))
-        except Exception:
-            raise RuntimeError(f'Unable to load template using {self.descriptor_path}.')
+        except Exception as e:
+            raise RuntimeError(f'Unable to load template using {self.descriptor_path}.') from e
 
     def load_readme(self):
         readme = self.safe_template.tdk_config.readme_file
@@ -342,7 +346,7 @@ class TemplateProject:
                 self.used_readme = self.template_dir / readme
                 self.safe_template.readme = self.used_readme.read_text(encoding=DEFAULT_ENCODING)
             except Exception as e:
-                raise RuntimeWarning(f'README file "{readme}" cannot be loaded: {e}')
+                raise RuntimeWarning(f'README file "{readme}" cannot be loaded: {e}') from e
 
     def load_file(self, filepath: pathlib.Path) -> TemplateFile:
         try:
@@ -354,7 +358,7 @@ class TemplateProject:
             self.safe_template.files[filepath.as_posix()] = tfile
             return tfile
         except Exception as e:
-            raise RuntimeWarning(f'Failed to load template file {filepath}: {e}')
+            raise RuntimeWarning(f'Failed to load template file {filepath}: {e}') from e
 
     def load_files(self):
         self.safe_template.files.clear()
@@ -363,22 +367,24 @@ class TemplateProject:
 
     @property
     def files_pathspec(self) -> pathspec.PathSpec:
-        # TODO: make this more efficient (reload only when tdk_config changes, otherwise cache)
         patterns = self.safe_template.tdk_config.files + self.DEFAULT_PATTERNS
-        return pathspec.PathSpec.from_lines(PATHSPEC_FACTORY, patterns)
+        return pathspec.PathSpec.from_lines(PathspecFactory, patterns)
 
-    def list_files(self) -> List[pathlib.Path]:
-        files = (pathlib.Path(p) for p in self.files_pathspec.match_tree_files(str(self.template_dir)))
+    def list_files(self) -> list[pathlib.Path]:
+        files = (pathlib.Path(p)
+                 for p in self.files_pathspec.match_tree_files(str(self.template_dir)))
         if self.used_readme is not None:
             return list(p for p in files if p != self.used_readme.relative_to(self.template_dir))
         return list(files)
 
-    def _relative_paths_eq(self, filepath1: Optional[pathlib.Path], filepath2: Optional[pathlib.Path]) -> bool:
+    def _relative_paths_eq(self, filepath1: pathlib.Path | None,
+                           filepath2: pathlib.Path | None) -> bool:
         if filepath1 is None or filepath2 is None:
             return False
         return filepath1.relative_to(self.template_dir) == filepath2.relative_to(self.template_dir)
 
-    def is_template_file(self, filepath: pathlib.Path, include_descriptor: bool = False, include_readme: bool = False):
+    def is_template_file(self, filepath: pathlib.Path, include_descriptor: bool = False,
+                         include_readme: bool = False):
         if include_readme and self._relative_paths_eq(filepath, self.used_readme):
             return True
         if include_descriptor and self._relative_paths_eq(filepath, self.descriptor_path):
@@ -401,7 +407,7 @@ class TemplateProject:
         filename = tfile.filename.as_posix()
         self.safe_template.files[filename] = tfile
 
-    def get_template_file(self, filepath: pathlib.Path) -> Optional[TemplateFile]:
+    def get_template_file(self, filepath: pathlib.Path) -> TemplateFile | None:
         if filepath.is_absolute():
             filepath = filepath.relative_to(self.template_dir)
         return self.safe_template.files.get(filepath.as_posix(), None)
@@ -420,7 +426,10 @@ class TemplateProject:
     def store_descriptor(self, force: bool):
         self._write_file(
             filepath=self.descriptor_path,
-            contents=json.dumps(self.safe_template.serialize_local(), indent=4).encode(encoding=DEFAULT_ENCODING),
+            contents=json.dumps(
+                obj=self.safe_template.serialize_local(),
+                indent=4
+            ).encode(encoding=DEFAULT_ENCODING),
             force=force,
         )
 

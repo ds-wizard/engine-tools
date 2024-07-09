@@ -1,6 +1,7 @@
 import pathlib
-import pathspec  # type: ignore
 import re
+
+import pathspec
 
 APP = 'dsw-tdk'
 VERSION = '4.13.0'
@@ -17,4 +18,4 @@ DEFAULT_ENCODING = 'utf-8'
 DEFAULT_README = pathlib.Path('README.md')
 
 TEMPLATE_FILE = 'template.json'
-PATHSPEC_FACTORY = pathspec.patterns.GitWildMatchPattern
+PathspecFactory = pathspec.patterns.GitWildMatchPattern

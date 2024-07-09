@@ -1,8 +1,7 @@
-import jinja2  # type: ignore
 import pathlib
 import uuid
 
-from typing import List, Set, Optional
+import jinja2
 
 from .consts import DEFAULT_ENCODING, DEFAULT_README
 from .model import Template, TemplateFile, Format, Step, PackageFilter
@@ -20,10 +19,10 @@ j2_env = jinja2.Environment(
 
 class UUIDGen:
 
-    _uuids = set()  # type: Set[uuid.UUID]
+    _uuids: set[uuid.UUID] = set()
 
     @classmethod
-    def used(cls) -> Set[uuid.UUID]:
+    def used(cls) -> set[uuid.UUID]:
         return cls._uuids
 
     @classmethod
@@ -91,10 +90,10 @@ class TemplateBuilder:
 
     def __init__(self):
         self.template = Template()
-        self._formats = []  # type: List[FormatSpec]
+        self._formats: list[FormatSpec] = []
 
     @property
-    def formats(self) -> List[FormatSpec]:
+    def formats(self) -> list[FormatSpec]:
         return self._formats
 
     def _validate_field(self, field_name: str):
@@ -177,13 +176,13 @@ class TemplateBuilder:
         license_file = j2_env.get_template('LICENSE.j2').render(template=self.template)
         self.template.tdk_config.files.append('LICENSE')
         self.template.files['LICENSE'] = TemplateFile(
-            filename='LICENSE',
+            filename=pathlib.Path('LICENSE'),
             content_type='text/plain',
             content=license_file.encode(encoding=DEFAULT_ENCODING),
         )
 
         self.template.files['.env'] = TemplateFile(
-            filename='.env',
+            filename=pathlib.Path('.env'),
             content_type='text/plain',
             content=create_dot_env().encode(encoding=DEFAULT_ENCODING),
         )
@@ -191,7 +190,7 @@ class TemplateBuilder:
         return self.template
 
 
-def create_dot_env(api_url: Optional[str] = None, api_key: Optional[str] = None) -> str:
+def create_dot_env(api_url: str | None = None, api_key: str | None = None) -> str:
     return j2_env.get_template('env.j2').render(api_url=api_url, api_key=api_key)
 
 

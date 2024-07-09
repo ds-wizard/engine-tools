@@ -1,7 +1,8 @@
-import click  # type: ignore
 import pathlib
+import sys
+import typing
 
-from typing import IO, Optional
+import click
 
 from dsw.config.parser import MissingConfigurationError
 
@@ -15,7 +16,7 @@ def load_config_str(config_str: str) -> SeederConfig:
     parser = SeederConfigParser()
     if not parser.can_read(config_str):
         click.echo('Error: Cannot parse config file', err=True)
-        exit(1)
+        sys.exit(1)
 
     try:
         parser.read_string(config_str)
@@ -24,14 +25,15 @@ def load_config_str(config_str: str) -> SeederConfig:
         click.echo('Error: Missing configuration', err=True)
         for missing_item in e.missing:
             click.echo(f' - {missing_item}', err=True)
-        exit(1)
+        sys.exit(1)
 
     config = parser.config
     config.log.apply()
     return config
 
 
-def validate_config(ctx, param, value: Optional[IO]):
+# pylint: disable-next=unused-argument
+def validate_config(ctx, param, value: typing.IO | None):
     content = ''
     if value is not None:
         content = value.read()
@@ -75,7 +77,7 @@ def seed(ctx: click.Context, recipe: str, tenant_uuid: str):
 
 @cli.command(name='list', help='List recipes for data seeding.')
 @click.pass_context
-def list(ctx: click.Context):
+def recipes_list(ctx: click.Context):
     workdir = ctx.obj['workdir']
     recipes = SeedRecipe.load_from_dir(workdir)
     for recipe in recipes.values():
@@ -84,4 +86,5 @@ def list(ctx: click.Context):
 
 
 def main():
-    cli(obj=dict())
+    # pylint: disable-next=no-value-for-parameter
+    cli(obj={})

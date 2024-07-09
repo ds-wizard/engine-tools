@@ -1,12 +1,12 @@
 import datetime
 import logging
+import typing
+
 import psycopg
 import psycopg.conninfo
 import psycopg.rows
 import psycopg.types.json
 import tenacity
-
-from typing import List, Iterable, Optional
 
 from dsw.config.model import DatabaseConfig
 
@@ -28,46 +28,56 @@ def wrap_json_data(data: dict):
     return psycopg.types.json.Json(data)
 
 
+# pylint: disable-next=too-many-public-methods
 class Database:
 
-    # TODO: refactor queries and models
-    SELECT_DOCUMENT = 'SELECT * FROM document WHERE uuid = %s AND tenant_uuid = %s LIMIT 1;'
-    SELECT_QTN_DOCUMENTS = 'SELECT * FROM document WHERE questionnaire_uuid = %s AND tenant_uuid = %s;'
-    SELECT_DOCUMENT_SUBMISSIONS = 'SELECT * FROM submission WHERE document_uuid = %s AND tenant_uuid = %s;'
-    SELECT_QTN_SUBMISSIONS = 'SELECT s.* FROM document d JOIN submission s ON d.uuid = s.document_uuid ' \
-                             'WHERE d.questionnaire_uuid = %s AND d.tenant_uuid = %s;'
-    SELECT_QTN_SIMPLE = 'SELECT qtn.* FROM questionnaire qtn ' \
-                        'WHERE qtn.uuid = %s AND qtn.tenant_uuid = %s;'
-    SELECT_TENANT_CONFIG = 'SELECT * FROM tenant_config WHERE uuid = %(tenant_uuid)s LIMIT 1;'
-    SELECT_TENANT_LIMIT = 'SELECT uuid, storage FROM tenant_limit_bundle WHERE uuid = %(tenant_uuid)s LIMIT 1;'
+    SELECT_DOCUMENT = ('SELECT * FROM document '
+                       'WHERE uuid = %s AND tenant_uuid = %s LIMIT 1;')
+    SELECT_QTN_DOCUMENTS = ('SELECT * FROM document '
+                            'WHERE questionnaire_uuid = %s AND tenant_uuid = %s;')
+    SELECT_DOCUMENT_SUBMISSIONS = ('SELECT * FROM submission '
+                                   'WHERE document_uuid = %s AND tenant_uuid = %s;')
+    SELECT_QTN_SUBMISSIONS = ('SELECT s.* '
+                              'FROM document d JOIN submission s ON d.uuid = s.document_uuid '
+                              'WHERE d.questionnaire_uuid = %s AND d.tenant_uuid = %s;')
+    SELECT_QTN_SIMPLE = ('SELECT qtn.* FROM questionnaire qtn '
+                         'WHERE qtn.uuid = %s AND qtn.tenant_uuid = %s;')
+    SELECT_TENANT_CONFIG = ('SELECT * FROM tenant_config '
+                            'WHERE uuid = %(tenant_uuid)s LIMIT 1;')
+    SELECT_TENANT_LIMIT = ('SELECT uuid, storage FROM tenant_limit_bundle '
+                           'WHERE uuid = %(tenant_uuid)s LIMIT 1;')
     UPDATE_DOCUMENT_STATE = 'UPDATE document SET state = %s, worker_log = %s WHERE uuid = %s;'
     UPDATE_DOCUMENT_RETRIEVED = 'UPDATE document SET retrieved_at = %s, state = %s WHERE uuid = %s;'
-    UPDATE_DOCUMENT_FINISHED = 'UPDATE document SET finished_at = %s, state = %s, ' \
-                               'file_name = %s, content_type = %s, worker_log = %s, ' \
-                               'file_size = %s WHERE uuid = %s;'
-    SELECT_TEMPLATE = 'SELECT * FROM document_template WHERE id = %s AND tenant_uuid = %s LIMIT 1;'
-    SELECT_TEMPLATE_FILES = 'SELECT * FROM document_template_file ' \
-                            'WHERE document_template_id = %s AND tenant_uuid = %s;'
-    SELECT_TEMPLATE_ASSETS = 'SELECT * FROM document_template_asset ' \
-                             'WHERE document_template_id = %s AND tenant_uuid = %s;'
-    CHECK_TABLE_EXISTS = 'SELECT EXISTS(SELECT * FROM information_schema.tables' \
-                         '                       WHERE table_name = %(table_name)s)'
-    SELECT_MAIL_CONFIG = 'SELECT icm.* ' \
-                         'FROM tenant_config tc JOIN instance_config_mail icm ' \
-                         'ON tc.mail_config_uuid = icm.uuid ' \
-                         'WHERE tc.uuid = %(tenant_uuid)s;'
-    UPDATE_COMPONENT_INFO = 'INSERT INTO component (name, version, built_at, created_at, updated_at) ' \
-                            'VALUES (%(name)s, %(version)s, %(built_at)s, %(created_at)s, %(updated_at)s)' \
-                            'ON CONFLICT (name) DO ' \
-                            'UPDATE SET version = %(version)s, built_at = %(built_at)s, updated_at = %(updated_at)s;'
+    UPDATE_DOCUMENT_FINISHED = ('UPDATE document SET finished_at = %s, state = %s, '
+                                'file_name = %s, content_type = %s, worker_log = %s, '
+                                'file_size = %s WHERE uuid = %s;')
+    SELECT_TEMPLATE = ('SELECT * FROM document_template '
+                       'WHERE id = %s AND tenant_uuid = %s LIMIT 1;')
+    SELECT_TEMPLATE_FILES = ('SELECT * FROM document_template_file '
+                             'WHERE document_template_id = %s AND tenant_uuid = %s;')
+    SELECT_TEMPLATE_ASSETS = ('SELECT * FROM document_template_asset '
+                              'WHERE document_template_id = %s AND tenant_uuid = %s;')
+    CHECK_TABLE_EXISTS = ('SELECT EXISTS(SELECT * FROM information_schema.tables'
+                          '                       WHERE table_name = %(table_name)s)')
+    SELECT_MAIL_CONFIG = ('SELECT icm.* '
+                          'FROM tenant_config tc JOIN instance_config_mail icm '
+                          'ON tc.mail_config_uuid = icm.uuid '
+                          'WHERE tc.uuid = %(tenant_uuid)s;')
+    UPDATE_COMPONENT_INFO = ('INSERT INTO component '
+                             '(name, version, built_at, created_at, updated_at) '
+                             'VALUES (%(name)s, %(version)s, %(built_at)s, '
+                             '%(created_at)s, %(updated_at)s)'
+                             'ON CONFLICT (name) DO '
+                             'UPDATE SET version = %(version)s, built_at = %(built_at)s, '
+                             'updated_at = %(updated_at)s;')
     SELECT_COMPONENT_INFO = 'SELECT * FROM component WHERE name = %(name)s;'
-    SUM_FILE_SIZES = 'SELECT (SELECT COALESCE(SUM(file_size)::bigint, 0) ' \
-                     'FROM document WHERE tenant_uuid = %(tenant_uuid)s) ' \
-                     '+ (SELECT COALESCE(SUM(file_size)::bigint, 0) ' \
-                     'FROM document_template_asset WHERE tenant_uuid = %(tenant_uuid)s) ' \
-                     '+ (SELECT COALESCE(SUM(file_size)::bigint, 0) ' \
-                     'FROM questionnaire_file WHERE tenant_uuid = %(tenant_uuid)s) ' \
-                     'AS result;'
+    SUM_FILE_SIZES = ('SELECT (SELECT COALESCE(SUM(file_size)::bigint, 0) '
+                      'FROM document WHERE tenant_uuid = %(tenant_uuid)s) '
+                      '+ (SELECT COALESCE(SUM(file_size)::bigint, 0) '
+                      'FROM document_template_asset WHERE tenant_uuid = %(tenant_uuid)s) '
+                      '+ (SELECT COALESCE(SUM(file_size)::bigint, 0) '
+                      'FROM questionnaire_file WHERE tenant_uuid = %(tenant_uuid)s) '
+                      'AS result;')
 
     def __init__(self, cfg: DatabaseConfig, connect: bool = True,
                  with_queue: bool = True):
@@ -123,7 +133,7 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def fetch_document(self, document_uuid: str, tenant_uuid: str) -> Optional[DBDocument]:
+    def fetch_document(self, document_uuid: str, tenant_uuid: str) -> DBDocument | None:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
                 query=self.SELECT_DOCUMENT,
@@ -141,7 +151,7 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def fetch_tenant_config(self, tenant_uuid: str) -> Optional[DBTenantConfig]:
+    def fetch_tenant_config(self, tenant_uuid: str) -> DBTenantConfig | None:
         return self.get_tenant_config(tenant_uuid)
 
     @tenacity.retry(
@@ -151,7 +161,7 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def fetch_tenant_limits(self, tenant_uuid: str) -> Optional[DBTenantLimits]:
+    def fetch_tenant_limits(self, tenant_uuid: str) -> DBTenantLimits | None:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
                 query=self.SELECT_TENANT_LIMIT,
@@ -171,7 +181,7 @@ class Database:
     )
     def fetch_template(
             self, template_id: str, tenant_uuid: str
-    ) -> Optional[DBDocumentTemplate]:
+    ) -> DBDocumentTemplate | None:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
                 query=self.SELECT_TEMPLATE,
@@ -191,7 +201,7 @@ class Database:
     )
     def fetch_template_files(
             self, template_id: str, tenant_uuid: str
-    ) -> List[DBDocumentTemplateFile]:
+    ) -> list[DBDocumentTemplateFile]:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
                 query=self.SELECT_TEMPLATE_FILES,
@@ -208,7 +218,7 @@ class Database:
     )
     def fetch_template_assets(
             self, template_id: str, tenant_uuid: str
-    ) -> List[DBDocumentTemplateAsset]:
+    ) -> list[DBDocumentTemplateAsset]:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
                 query=self.SELECT_TEMPLATE_ASSETS,
@@ -223,7 +233,8 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def fetch_qtn_documents(self, questionnaire_uuid: str, tenant_uuid: str) -> List[DBDocument]:
+    def fetch_qtn_documents(self, questionnaire_uuid: str,
+                            tenant_uuid: str) -> list[DBDocument]:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
                 query=self.SELECT_QTN_DOCUMENTS,
@@ -238,7 +249,8 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def fetch_document_submissions(self, document_uuid: str, tenant_uuid: str) -> List[DBSubmission]:
+    def fetch_document_submissions(self, document_uuid: str,
+                                   tenant_uuid: str) -> list[DBSubmission]:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
                 query=self.SELECT_DOCUMENT_SUBMISSIONS,
@@ -253,7 +265,8 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def fetch_questionnaire_submissions(self, questionnaire_uuid: str, tenant_uuid: str) -> List[DBSubmission]:
+    def fetch_questionnaire_submissions(self, questionnaire_uuid: str,
+                                        tenant_uuid: str) -> list[DBSubmission]:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
                 query=self.SELECT_QTN_SUBMISSIONS,
@@ -268,7 +281,8 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def fetch_questionnaire_simple(self, questionnaire_uuid: str, tenant_uuid: str) -> DBQuestionnaireSimple:
+    def fetch_questionnaire_simple(self, questionnaire_uuid: str,
+                                   tenant_uuid: str) -> DBQuestionnaireSimple:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
                 query=self.SELECT_QTN_SIMPLE,
@@ -305,7 +319,7 @@ class Database:
                 query=self.UPDATE_DOCUMENT_RETRIEVED,
                 params=(
                     retrieved_at,
-                    DocumentState.PROCESSING,
+                    DocumentState.PROCESSING.value,
                     document_uuid,
                 ),
             )
@@ -319,7 +333,7 @@ class Database:
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
     def update_document_finished(
-            self, finished_at: datetime.datetime, file_name: str, file_size: int,
+            self, *, finished_at: datetime.datetime, file_name: str, file_size: int,
             content_type: str,  worker_log: str, document_uuid: str
     ) -> bool:
         with self.conn_query.new_cursor() as cursor:
@@ -327,7 +341,7 @@ class Database:
                 query=self.UPDATE_DOCUMENT_FINISHED,
                 params=(
                     finished_at,
-                    DocumentState.FINISHED,
+                    DocumentState.FINISHED.value,
                     file_name,
                     content_type,
                     worker_log,
@@ -360,7 +374,7 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def get_tenant_config(self, tenant_uuid: str) -> Optional[DBTenantConfig]:
+    def get_tenant_config(self, tenant_uuid: str) -> DBTenantConfig | None:
         if not self._check_table_exists(table_name='tenant_config'):
             return None
         with self.conn_query.new_cursor(use_dict=True) as cursor:
@@ -372,8 +386,8 @@ class Database:
                 result = cursor.fetchone()
                 return DBTenantConfig.from_dict_row(data=result)
             except Exception as e:
-                LOG.warning(f'Could not retrieve tenant_config for tenant'
-                            f' "{tenant_uuid}": {str(e)}')
+                LOG.warning('Could not retrieve tenant_config for tenant "%s": %s',
+                            tenant_uuid, str(e))
                 return None
 
     @tenacity.retry(
@@ -383,7 +397,7 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def get_mail_config(self, tenant_uuid: str) -> Optional[DBInstanceConfigMail]:
+    def get_mail_config(self, tenant_uuid: str) -> DBInstanceConfigMail | None:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             if not self._check_table_exists(table_name='instance_config_mail'):
                 return None
@@ -397,8 +411,8 @@ class Database:
                     return None
                 return DBInstanceConfigMail.from_dict_row(data=result)
             except Exception as e:
-                LOG.warning(f'Could not retrieve instance_config_mail for tenant'
-                            f' "{tenant_uuid}": {str(e)}')
+                LOG.warning('Could not retrieve instance_config_mail for tenant "%s": %s',
+                            tenant_uuid, str(e))
                 return None
 
     @tenacity.retry(
@@ -411,7 +425,7 @@ class Database:
     def update_component_info(self, name: str, version: str, built_at: datetime.datetime):
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             if not self._check_table_exists(table_name='component'):
-                return None
+                return
             ts_now = datetime.datetime.now(tz=datetime.UTC)
             try:
                 cursor.execute(
@@ -426,7 +440,7 @@ class Database:
                 )
                 self.conn_query.connection.commit()
             except Exception as e:
-                LOG.warning(f'Could not update component info: {str(e)}')
+                LOG.warning('Could not update component info: %s', str(e))
 
     @tenacity.retry(
         reraise=True,
@@ -435,7 +449,7 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def get_component_info(self, name: str) -> Optional[DBComponent]:
+    def get_component_info(self, name: str) -> DBComponent | None:
         if not self._check_table_exists(table_name='component'):
             return None
         with self.conn_query.new_cursor(use_dict=True) as cursor:
@@ -449,7 +463,7 @@ class Database:
                     return None
                 return DBComponent.from_dict_row(data=result)
             except Exception as e:
-                LOG.warning(f'Could not get component info: {str(e)}')
+                LOG.warning('Could not get component info: %s', str(e))
                 return None
 
     @tenacity.retry(
@@ -459,7 +473,7 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def execute_queries(self, queries: Iterable[str]):
+    def execute_queries(self, queries: typing.Iterable[str]):
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             for query in queries:
                 cursor.execute(query=query)
@@ -486,7 +500,7 @@ class PostgresConnection:
             connect_timeout=timeout,
         )
         self.autocommit = autocommit
-        self._connection = None  # type: Optional[psycopg.Connection]
+        self._connection: psycopg.Connection | None = None
 
     @tenacity.retry(
         reraise=True,
@@ -496,11 +510,15 @@ class PostgresConnection:
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
     def _connect_db(self):
-        LOG.info(f'Creating connection to PostgreSQL database "{self.name}"')
+        LOG.info('Creating connection to PostgreSQL database "%s"', self.name)
         try:
-            connection = psycopg.connect(conninfo=self.dsn, autocommit=self.autocommit)  # type: psycopg.Connection
+            connection: psycopg.Connection = psycopg.connect(
+                conninfo=self.dsn,
+                autocommit=self.autocommit,
+            )
         except Exception as e:
-            LOG.error(f'Failed to connect to PostgreSQL database "{self.name}": {str(e)}')
+            LOG.error('Failed to connect to PostgreSQL database "%s": %s',
+                      self.name, str(e))
             raise e
         # test connection
         cursor = connection.cursor()
@@ -508,7 +526,7 @@ class PostgresConnection:
         result = cursor.fetchone()
         if result is None:
             raise RuntimeError('Failed to verify DB connection')
-        LOG.debug(f'DB connection verified (result={result[0]})')
+        LOG.debug('DB connection verified (result=%s)', result[0])
         cursor.close()
         connection.commit()
         self._connection = connection
@@ -534,6 +552,6 @@ class PostgresConnection:
 
     def close(self):
         if self._connection:
-            LOG.info(f'Closing connection to PostgreSQL database "{self.name}"')
+            LOG.info('Closing connection to PostgreSQL database "%s"', self.name)
             self._connection.close()
         self._connection = None
