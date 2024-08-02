@@ -7,6 +7,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+
+## [4.9.0]
+
 ### Added
 
 - Included AWS-specific configuration that `engine-backend` uses
@@ -14,7 +17,6 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Changed
 
 - Moved `mail` configuration to `dsw-mailer` package
-
 
 ## [4.8.1]
 
@@ -235,3 +237,4 @@ Released for version consistency with other DSW tools.
 [4.7.0]: /../../tree/v4.7.0
 [4.8.0]: /../../tree/v4.8.0
 [4.8.1]: /../../tree/v4.8.1
+[4.9.0]: /../../tree/v4.9.0
