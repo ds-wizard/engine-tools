@@ -2,7 +2,7 @@ import click  # type: ignore
 import json
 import pathlib
 
-from typing import IO, Optional
+from typing import IO
 
 from dsw.config.parser import MissingConfigurationError
 
@@ -32,7 +32,7 @@ def load_config_str(config_str: str) -> MailerConfig:
     return config
 
 
-def validate_config(ctx, param, value: Optional[IO]):
+def validate_config(ctx, param, value: IO | None):
     content = ''
     if value is not None:
         content = value.read()
@@ -69,10 +69,13 @@ def cli(ctx, config: MailerConfig, workdir: str):
 @click.pass_context
 @click.argument('msg-request', type=click.File('r', encoding=DEFAULT_ENCODING),
                 callback=extract_message_request)
-def send(ctx, msg_request: MessageRequest):
+@click.option('-c', '--config', envvar=VAR_APP_CONFIG_PATH,
+              required=False, callback=validate_config,
+              type=click.File('r', encoding=DEFAULT_ENCODING))
+def send(ctx, msg_request: MessageRequest, config: MailerConfig):
     from .mailer import Mailer
     mailer = ctx.obj['mailer']  # type: Mailer
-    mailer.send(rq=msg_request, cfg=None)
+    mailer.send(rq=msg_request, cfg=config.mail)
 
 
 @cli.command(name='run', help='Run mailer worker processing message jobs.')

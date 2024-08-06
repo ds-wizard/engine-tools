@@ -4,9 +4,10 @@ import jinja2
 import jinja2.sandbox
 import json
 import logging
+import markdown
+import markupsafe
 import pathlib
-
-from typing import Optional, Union
+import re
 
 from .config import MailerConfig, MailConfig
 from .consts import DEFAULT_ENCODING
@@ -20,8 +21,8 @@ LOG = logging.getLogger(__name__)
 class MailTemplate:
 
     def __init__(self, name: str, descriptor: TemplateDescriptor,
-                 html_template: Optional[jinja2.Template],
-                 plain_template: Optional[jinja2.Template]):
+                 html_template: jinja2.Template | None,
+                 plain_template: jinja2.Template | None):
         self.name = name
         self.descriptor = descriptor
         self.html_template = html_template
@@ -29,7 +30,7 @@ class MailTemplate:
         self.attachments = list()  # type: list[MailAttachment]
         self.html_images = list()  # type: list[MailAttachment]
 
-    def render(self, rq: MessageRequest, mail_name: Optional[str], mail_from: str) -> MailMessage:
+    def render(self, rq: MessageRequest, mail_name: str | None, mail_from: str) -> MailMessage:
         ctx = rq.ctx
         msg = MailMessage()
         msg.recipients = rq.recipients
@@ -77,9 +78,11 @@ class TemplateRegistry:
     def _set_filters(self):
         self.j2_env.filters.update({
             'datetime_format': datetime_format,
+            'markdown': xmarkdown,
+            'no_markdown': remove_markdown,
         })
 
-    def _load_jinja2(self, file_path: pathlib.Path) -> Optional[jinja2.Template]:
+    def _load_jinja2(self, file_path: pathlib.Path) -> jinja2.Template | None:
         if file_path.exists() and file_path.is_file():
             return self.j2_env.get_template(
                 name=str(file_path.relative_to(self.workdir).as_posix()),
@@ -88,7 +91,7 @@ class TemplateRegistry:
 
     @staticmethod
     def _load_attachment(template_path: pathlib.Path,
-                         part: TemplateDescriptorPart) -> Optional[MailAttachment]:
+                         part: TemplateDescriptorPart) -> MailAttachment | None:
         file_path = template_path / part.file
         if file_path.exists() and file_path.is_file():
             binary_data = file_path.read_bytes()
@@ -100,7 +103,7 @@ class TemplateRegistry:
         return None
 
     @staticmethod
-    def _load_descriptor(path: pathlib.Path) -> Optional[TemplateDescriptor]:
+    def _load_descriptor(path: pathlib.Path) -> TemplateDescriptor | None:
         if not path.exists() or not path.is_file():
             return None
         try:
@@ -112,7 +115,7 @@ class TemplateRegistry:
             return None
 
     def _load_template(self, path: pathlib.Path,
-                       descriptor: TemplateDescriptor) -> Optional[MailTemplate]:
+                       descriptor: TemplateDescriptor) -> MailTemplate | None:
         html_template = None
         plain_template = None
         attachments = list()
@@ -164,9 +167,67 @@ class TemplateRegistry:
         )
 
 
-def datetime_format(iso_timestamp: Union[None, datetime.datetime, str], fmt: str):
+def datetime_format(iso_timestamp: None | datetime.datetime | str, fmt: str):
     if iso_timestamp is None:
         return ''
     if not isinstance(iso_timestamp, datetime.datetime):
         iso_timestamp = dateutil.parser.isoparse(iso_timestamp)
     return iso_timestamp.strftime(fmt)
+
+
+class DSWMarkdownExt(markdown.extensions.Extension):
+    def extendMarkdown(self, md):
+        md.preprocessors.register(DSWMarkdownProcessor(md), 'dsw_markdown', 27)
+        md.registerExtension(self)
+
+
+class DSWMarkdownProcessor(markdown.preprocessors.Preprocessor):
+
+    def __init__(self, md):
+        super().__init__(md)
+        self.LI_RE = re.compile(r'^[ ]*((\d+\.)|[*+-])[ ]+.*')
+
+    def run(self, lines):
+        prev_li = False
+        new_lines = []
+
+        for line in lines:
+            # Add line break before the first list item
+            if self.LI_RE.match(line):
+                if not prev_li:
+                    new_lines.append('')
+                prev_li = True
+            elif line == '':
+                prev_li = False
+
+            # Replace trailing un-escaped backslash with (supported) two spaces
+            _line = line.rstrip('\\')
+            if line[-1:] == '\\' and (len(line) - len(_line)) % 2 == 1:
+                new_lines.append(f'{line[:-1]}  ')
+                continue
+
+            new_lines.append(line)
+
+        return new_lines
+
+
+def xmarkdown(md_text: str):
+    if md_text is None:
+        return ''
+    return markupsafe.Markup(markdown.markdown(
+        text=md_text,
+        extensions=[
+            DSWMarkdownExt(),
+        ]
+    ))
+
+
+def remove_markdown(md_text: str):
+    if md_text is None:
+        return ''
+    return re.sub(r'<[^>]*>', '', markdown.markdown(
+        text=md_text,
+        extensions=[
+            DSWMarkdownExt(),
+        ]
+    ))

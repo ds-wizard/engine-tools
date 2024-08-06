@@ -1,12 +1,11 @@
 import pathlib
 
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from .templates import TemplateRegistry
 
 if TYPE_CHECKING:
     from .config import MailerConfig
-    from .connection import SMTPSender
     from dsw.database import Database
 
 
@@ -18,10 +17,9 @@ class ContextNotInitializedError(RuntimeError):
 
 class AppContext:
 
-    def __init__(self, db, cfg, sender, workdir):
+    def __init__(self, db, cfg, workdir):
         self.db = db  # type: Database
         self.cfg = cfg  # type: MailerConfig
-        self.sender = sender  # type: SMTPSender
         self.workdir = workdir  # type: pathlib.Path
 
 
@@ -49,7 +47,7 @@ class _Context:
 
 class Context:
 
-    _instance = None  # type: Optional[_Context]
+    _instance = None  # type: _Context | None
 
     @classmethod
     def get(cls) -> _Context:
@@ -58,13 +56,12 @@ class Context:
         return cls._instance
 
     @classmethod
-    def initialize(cls, db, config, sender, workdir):
+    def initialize(cls, db, config, workdir):
         cls._instance = _Context(
             app=AppContext(
                 db=db,
                 cfg=config,
                 workdir=workdir,
-                sender=sender,
             ),
             job=JobContext(
                 trace_id='-',

@@ -7,7 +7,7 @@ charset-normalizer==3.3.2
 click==8.1.7
 colorama==0.4.6
 frozenlist==1.4.1
-humanize==4.9.0
+humanize==4.10.0
 idna==3.7
 Jinja2==3.1.4
 MarkupSafe==2.1.5

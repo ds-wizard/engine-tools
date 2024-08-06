@@ -1,8 +1,6 @@
 import os
 import re
 
-from typing import Optional
-
 
 class Color:
     DEFAULT_PRIMARY_HEX = os.getenv('DEFAULT_PRIMARY_COLOR', '#0033aa')
@@ -25,7 +23,7 @@ class Color:
         self.red, self.green, self.blue = tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
 
     @staticmethod
-    def parse_color_to_hex(color: str) -> Optional[str]:
+    def parse_color_to_hex(color: str) -> str | None:
         color = color.strip()
         if re.match(r'^#[0-9a-fA-F]{6}$', color):
             return color
@@ -78,13 +76,13 @@ class Color:
 class StyleConfig:
     _DEFAULT = None
 
-    def __init__(self, logo_url: Optional[str], primary_color: str,
+    def __init__(self, logo_url: str | None, primary_color: str,
                  illustrations_color: str):
         self.logo_url = logo_url
         self.primary_color = Color(primary_color, Color.DEFAULT_PRIMARY_HEX)
         self.illustrations_color = Color(illustrations_color, Color.DEFAULT_ILLUSTRATIONS_HEX)
 
-    def from_dict(self, data: Optional[dict]):
+    def from_dict(self, data: dict | None):
         data = data or dict()
         if data.get('logoUrl', None) is not None:
             self.logo_url = data.get('logoUrl')
@@ -159,9 +157,9 @@ class TemplateDescriptorPart:
 class TemplateDescriptor:
 
     def __init__(self, message_id: str, subject: str, subject_prefix: bool,
-                 default_sender_name: Optional[str], language: str,
-                 importance: str, sensitivity: Optional[str],
-                 priority: Optional[str]):
+                 default_sender_name: str | None, language: str,
+                 importance: str, sensitivity: str | None,
+                 priority: str | None):
         self.id = message_id
         self.subject = subject
         self.use_subject_prefix = subject_prefix
@@ -194,13 +192,13 @@ class TemplateDescriptor:
 class MessageRequest:
 
     def __init__(self, message_id: str, template_name: str, trigger: str,
-                 ctx: dict, recipients: list[str], style: Optional[StyleConfig] = None):
+                 ctx: dict, recipients: list[str], style: StyleConfig | None = None):
         self.id = message_id
         self.template_name = template_name
         self.trigger = trigger
         self.ctx = ctx
         self.recipients = recipients
-        self.domain = None  # type: Optional[str]
+        self.domain = None  # type: str | None
         self.client_url = ''  # type: str
         self.style = style or StyleConfig.default()
         self.ctx['style'] = self.style
@@ -225,19 +223,19 @@ class MailMessage:
 
     def __init__(self):
         self.from_mail = ''  # type: str
-        self.from_name = None  # type: Optional[str]
+        self.from_name = None  # type: str | None
         self.recipients = list()  # type: list[str]
         self.subject = ''  # type: str
-        self.plain_body = None  # type: Optional[str]
-        self.html_body = None  # type: Optional[str]
+        self.plain_body = None  # type: str | None
+        self.html_body = None  # type: str | None
         self.html_images = list()  # type: list[MailAttachment]
         self.attachments = list()  # type: list[MailAttachment]
-        self.msg_id = None  # type: Optional[str]
-        self.msg_domain = None  # type: Optional[str]
+        self.msg_id = None  # type: str | None
+        self.msg_domain = None  # type: str | None
         self.language = 'en'  # type: str
         self.importance = 'normal'  # type: str
-        self.sensitivity = None  # type: Optional[str]
-        self.priority = None  # type: Optional[str]
+        self.sensitivity = None  # type: str | None
+        self.priority = None  # type: str | None
         self.client_url = ''  # type: str
 
 

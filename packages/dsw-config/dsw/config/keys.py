@@ -232,99 +232,30 @@ class _S3Keys(ConfigKeysContainer):
     )
 
 
-class _MailKeys(ConfigKeysContainer):
-    enabled = ConfigKey(
-        yaml_path=['mail', 'enabled'],
-        var_names=['MAIL_ENABLED'],
-        default=True,
-        cast=cast_bool,
-    )
-    name = ConfigKey(
-        yaml_path=['mail', 'name'],
-        var_names=['MAIL_NAME'],
-        default='',
-        cast=cast_str,
-    )
-    email = ConfigKey(
-        yaml_path=['mail', 'email'],
-        var_names=['MAIL_EMAIL'],
-        default='',
-        cast=cast_str,
-    )
-    host = ConfigKey(
-        yaml_path=['mail', 'host'],
-        var_names=['MAIL_HOST'],
-        default='',
-        cast=cast_str,
-    )
-    port = ConfigKey(
-        yaml_path=['mail', 'port'],
-        var_names=['MAIL_PORT'],
-        cast=cast_str,
-    )
-    ssl = ConfigKey(
-        yaml_path=['mail', 'ssl'],
-        var_names=[],
+class _AWSKeys(ConfigKeysContainer):
+    access_key_id = ConfigKey(
+        yaml_path=['aws', 'awsAccessKeyId'],
+        var_names=['AWS_AWS_ACCESS_KEY_ID'],
         cast=cast_optional_str,
     )
-    security = ConfigKey(
-        yaml_path=['mail', 'security'],
-        var_names=['MAIL_SECURITY'],
+    secret_access_key = ConfigKey(
+        yaml_path=['aws', 'awsSecretAccessKey'],
+        var_names=['AWS_AWS_SECRET_ACCESS_KEY'],
         cast=cast_optional_str,
     )
-    auth_enabled = ConfigKey(
-        yaml_path=['mail', 'authEnabled'],
-        var_names=[],
-        cast=cast_optional_bool,
-    )
-    username = ConfigKey(
-        yaml_path=['mail', 'username'],
-        var_names=['MAIL_USERNAME'],
-        cast=cast_optional_str,
-    )
-    password = ConfigKey(
-        yaml_path=['mail', 'password'],
-        var_names=['MAIL_PASSWORD'],
-        cast=cast_optional_str,
-    )
-    rate_limit_window = ConfigKey(
-        yaml_path=['mail', 'rateLimit', 'window'],
-        var_names=['MAIL_RATE_LIMIT_WINDOW'],
-        default=0,
-        cast=cast_int,
-    )
-    rate_limit_count = ConfigKey(
-        yaml_path=['mail', 'rateLimit', 'count'],
-        var_names=['MAIL_RATE_LIMIT_COUNT'],
-        default=0,
-        cast=cast_int,
-    )
-    timeout = ConfigKey(
-        yaml_path=['mail', 'timeout'],
-        var_names=['MAIL_TIMEOUT'],
-        default=10,
-        cast=cast_int,
-    )
-    dkim_selector = ConfigKey(
-        yaml_path=['mail', 'dkim', 'selector'],
-        var_names=['MAIL_DKIM_SELECTOR'],
-        default=None,
-        cast=cast_optional_str,
-    )
-    dkim_privkey_file = ConfigKey(
-        yaml_path=['mail', 'dkim', 'privkey_file'],
-        var_names=['MAIL_DKIM_PRIVKEY_FILE'],
-        default=None,
+    region = ConfigKey(
+        yaml_path=['aws', 'awsRegion'],
+        var_names=['AWS_AWS_REGION'],
         cast=cast_optional_str,
     )
 
 
 class ConfigKeys(ConfigKeysContainer):
+    aws = _AWSKeys
     cloud = _CloudKeys
     database = _DatabaseKeys
     general = _GeneralKeys
     logging = _LoggingKeys
-    mail = _MailKeys
     s3 = _S3Keys
     sentry = _SentryKeys
 

@@ -1,0 +1,133 @@
+{% extends '_common/layout.html.j2' %}
+{% block body %}
+{%- set projectGroups = ctx.notifications|sort(attribute='questionnaireName')|groupby('questionnaireUuid') -%}
+{%- set spThread = 'threads' if ctx.notifications|length > 1 else 'thread' -%}
+{%- macro threadLink(projectUuid, path, threadUuid) -%}
+{{ ctx.clientUrl }}/projects/{{ projectUuid }}?questionPath={{ path }}&commentThreadUuid={{ threadUuid }}
+{%- endmacro -%}
+{%- macro projectLink(projectUuid) -%}
+{{ ctx.clientUrl }}/projects/{{ projectUuid }}
+{%- endmacro -%}
+<table border="0" cellpadding="0" cellspacing="0" width="100%" class="dswTextBlock" style="min-width: 100%; border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;">
+  <tbody class="dswTextBlockOuter">
+    <tr>
+      <td valign="top" class="dswTextBlockInner" style="padding-top: 0px; mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;">
+        <!--[if mso]>
+        <table align="left" border="0" cellspacing="0" cellpadding="0" width="100%" style="width:100%;">
+        <tr>
+        <![endif]-->
+        <!--[if mso]>
+        <td valign="top" width="600" style="width:600px;">
+        <![endif]-->
+        <table align="left" border="0" cellpadding="0" cellspacing="0" style="max-width: 100%; min-width: 100%; border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;" width="100%" class="dswTextContentContainer">
+          <tbody>
+            <tr>
+              <td valign="top" class="dswTextContent" style="padding-top: 0; padding-right: 18px; padding-bottom: 9px; padding-left: 18px; mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; word-break: break-word; color: #757575; font-family: Helvetica; font-size: 16px; line-height: 150%; text-align: left;">
+                <p dir="ltr"
+                  style="margin: 10px 0; padding: 0; mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; color: #212529; font-family: Helvetica; font-size: 14px; line-height: 150%; text-align: left;">
+                  Hello {{ ctx.userFirstName }},<br><br>
+                  You have been assigned to the following comment {{ spThread }}{% if projectGroups|length > 1 %} within {{ projectGroups|length }} projects{% endif %}:
+                </p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <!--[if mso]>
+        </td>
+        <![endif]-->
+        <!--[if mso]>
+        </tr>
+        </table>
+        <![endif]-->
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+{% for qtnUuid, items in projectGroups %}
+<table border="0" cellpadding="0" cellspacing="0" width="100%" class="dswButtonBlock" style="min-width: 100%; border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;">
+  <tbody class="dswButtonBlockOuter">
+    <tr>
+      <td style="padding: 0; mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;" valign="top" align="center">
+        <table align="left" border="0" cellpadding="0" cellspacing="0" style="max-width: 100%; min-width: 100%; border-collapse: separate !important;  mso-table-lspace: 0pt; mso-table-rspace: 0pt; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;  margin-bottom: 10px;" width="100%" class="dswTextContentContainer">
+          <tbody>
+            <tr>
+              <td valign="top" class="dswTextContent" style="padding-top: 0; padding-right: 18px; padding-bottom: 9px; padding-left: 18px; mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; word-break: break-word; color: #757575; font-family: Helvetica; font-size: 16px; line-height: 150%; text-align: left;">
+                  <p dir="ltr"
+                  style="margin: 0 0 10px 0; padding: 0; mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; color: #212529; font-family: Helvetica; font-size: 14px; line-height: 150%; text-align: left; font-weight: bold;">
+                    <strong>{{ items[0].questionnaireName }}</strong>
+                  </p>
+                  {% for item in items %}
+                    <table align="left" border="0" cellpadding="0" cellspacing="0" style="max-width:100%;min-width:100%;border-collapse: separate !important;border: 1px solid #dee2e6; border-radius: 4px; margin-bottom: 10px;" width="100%">
+                      <tbody>
+                        <tr>
+                          <td align="left" valign="middle" style="padding: 10px 15px;">
+                              <p dir="ltr" style="margin: 0; padding: 0; mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; color: #212529; font-family: Helvetica; font-size: 14px; line-height: 150%; text-align: left; font-weight: normal;">
+                                  {{ item.text|no_markdown|truncate(140, False, '...') }}
+                              </p>
+                              <table width="100%" style="border-collapse: separate !important; border: 1px none; mso-table-lspace: 0pt; mso-table-rspace: 0pt; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; width: 100%">
+                                  <tbody>
+                                  <tr>
+                                      <td style="padding: 0; mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; word-break: break-word; color: #91989E; font-family: Helvetica; font-size: 14px; line-height: 150%; text-align: left; font-style: italic;">
+                                          <i>Assigned by {{ item.assignedBy.firstName }} {{ item.assignedBy.lastName }}</i>
+                                      </td>
+                                      <td align="right" valign="middle" class="dswButtonContent" style="font-family: Helvetica; font-size: 14px; mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%; text-align: right">
+                                          <a href="{{ threadLink(qtnUuid, item.path, item.commentThreadUuid) }}" target="_blank" style="mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; color: #f15a24; font-weight: bold; text-decoration: none;"><strong>Open</strong></a>
+                                      </td>
+                                  </tr>
+                                  </tbody>
+                              </table>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  {% endfor %}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </td>
+    </tr>
+  </tbody>
+</table>
+{% endfor %}
+<table border="0" cellpadding="0" cellspacing="0" width="100%" class="dswTextBlock" style="min-width: 100%; border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt;-ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;">
+  <tbody class="dswTextBlockOuter">
+    <tr>
+      <td valign="top" class="dswTextBlockInner" style="mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;">
+        <!--[if mso]>
+        <table align="left" border="0" cellspacing="0" cellpadding="0" width="100%" style="width:100%;">
+        <tr>
+        <![endif]-->
+        <!--[if mso]>
+        <td valign="top" width="600" style="width:600px;">
+        <![endif]-->
+        <table align="left" border="0" cellpadding="0" cellspacing="0" style="max-width: 100%; min-width: 100%; border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt;-ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;" width="100%" class="dswTextContentContainer">
+          <tbody>
+            <tr>
+              <td valign="top" class="dswTextContent" style="padding: 0px 18px 9px; line-height: 150%; mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; word-break: break-word; color: #212529; font-family: Helvetica; font-size: 16px; text-align: left;">
+                <p dir="ltr" style="line-height: 150%; margin: 0; padding: 0; mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; color: #212529; font-family: Helvetica; font-size: 14px; text-align: left;">
+                  <strong><a href="{{ ctx.clientUrl }}/comments?resolved=false" style="mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; color: #f15a24; font-weight: bold; text-decoration: none;">View all comment threads assigned to you</a></strong>
+                  <br><br><br>
+                  {% if ctx.supportEmail %}
+                  If any problem occurs contact us via <a href="mailto:{{ ctx.supportEmail }}" style="mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; color: #f15a24; font-weight: normal; text-decoration: none;">{{ ctx.supportEmail }}</a>.<br><br>
+                  {% endif %}
+                  Thank you for using DSW!<br><br>
+                  {% if ctx.appTitle %}<strong>{{ ctx.appTitle }}</strong> team{% endif %}
+                </p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <!--[if mso]>
+        </td>
+        <![endif]-->
+        <!--[if mso]>
+        </tr>
+        </table>
+        <![endif]-->
+      </td>
+    </tr>
+  </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,24 @@
+{%- set projectGroups = ctx.notifications|sort(attribute='questionnaireName')|groupby('questionnaireUuid') -%}
+{%- set spThread = 'threads' if ctx.notifications|length > 1 else 'thread' -%}
+{%- macro threadLink(projectUuid, path, threadUuid) -%}
+{{ ctx.clientUrl }}/projects/{{ projectUuid }}?questionPath={{ path }}&commentThreadUuid={{ threadUuid }}
+{%- endmacro -%}
+{%- macro projectLink(projectUuid) -%}
+{{ ctx.clientUrl }}/projects/{{ projectUuid }}
+{%- endmacro -%}
+
+Hello {{ ctx.userFirstName }},
+
+You have been assigned to the following comment {{ spThread }}{% if projectGroups|length > 1 %} (within {{ projectGroups|length }} projects){% endif %}:
+
+{% for qtnUuid, items in projectGroups %}
+{{ items[0].questionnaireName }} ({{ projectLink(qtnUuid) }})
+{% for item in items %}
+- {{ item.text|truncate(100, False, '...') }}
+  Assigned by: {{ item.assignedBy.firstName }} {{ item.assignedBy.lastName }}, {% if item.resolved %}already resolved{% else %}unresolved{% endif %}{% if item.private %}, private editor note{% endif %})
+  {{ threadLink(item.questionnaireUuid, item.path, item.commentThreadUuid) }}
+{% endfor %}
+--------------------
+{% endfor %}
+
+{% include '_common/footer.txt.j2' %}

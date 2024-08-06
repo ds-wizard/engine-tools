@@ -1,6 +1,7 @@
 import datetime
 import logging
 import psycopg
+import psycopg.conninfo
 import psycopg.rows
 import psycopg.types.json
 import tenacity
@@ -494,9 +495,11 @@ class PostgresConnection:
     )
     def _connect_db(self):
         LOG.info(f'Creating connection to PostgreSQL database "{self.name}"')
-        connection = psycopg.connect(conninfo=self.dsn, autocommit=self.autocommit)
-        if connection is None:
-            raise RuntimeError('Failed to init DB connection')
+        try:
+            connection = psycopg.connect(conninfo=self.dsn, autocommit=self.autocommit)  # type: psycopg.Connection
+        except Exception as e:
+            LOG.error(f'Failed to connect to PostgreSQL database "{self.name}": {str(e)}')
+            raise e
         # test connection
         cursor = connection.cursor()
         cursor.execute(query='SELECT 1;')
