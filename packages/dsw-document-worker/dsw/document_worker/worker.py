@@ -16,7 +16,7 @@ from dsw.storage import S3Storage
 from .build_info import BUILD_INFO
 from .config import DocumentWorkerConfig
 from .consts import DocumentState, COMPONENT_NAME, NULL_UUID, \
-    CMD_COMPONENT, CMD_CHANNEL, PROG_NAME
+    CMD_COMPONENT, CMD_CHANNEL, PROG_NAME, CURRENT_METAMODEL
 from .context import Context
 from .documents import DocumentFile, DocumentNameGiver
 from .exceptions import create_job_exception, JobException
@@ -49,12 +49,12 @@ def handle_job_step(message):
 
 class Job:
 
-    def __init__(self, command: PersistentCommand):
+    def __init__(self, command: PersistentCommand, document_uuid: str):
         self.ctx = Context.get()
         self.template = None  # type: Optional[Template]
         self.format = None  # type: Optional[Format]
         self.tenant_uuid = command.tenant_uuid  # type: str
-        self.doc_uuid = command.body['uuid']  # type: str
+        self.doc_uuid = document_uuid  # type: str
         self.doc_context = command.body  # type: dict
         self.doc = None  # type: Optional[DBDocument]
         self.final_file = None  # type: Optional[DocumentFile]
@@ -347,11 +347,18 @@ class DocumentWorker(CommandWorker):
         queue.run_once()
 
     def work(self, cmd: PersistentCommand):
+        metamodel_version = int(cmd.body.get('metamodelVersion', '0'))
+        if metamodel_version != CURRENT_METAMODEL:
+            LOG.error('Command with metamodel version %d  is not supported '
+                      'by this worker (version %d)', metamodel_version, CURRENT_METAMODEL)
+            raise RuntimeError('Unsupported metamodel version')
+        document_uuid = cmd.body['document']['uuid']
+
         Context.get().update_trace_id(cmd.uuid)
-        Context.get().update_document_id(cmd.body['uuid'])
+        Context.get().update_document_id(document_uuid)
         SentryReporter.set_context('cmd_uuid', cmd.uuid)
         LOG.info(f'Running job #{cmd.uuid}')
-        job = Job(command=cmd)
+        job = Job(command=cmd, document_uuid=document_uuid)
         job.run()
         Context.get().update_trace_id('-')
         Context.get().update_document_id('-')
