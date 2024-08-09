@@ -1,4 +1,4 @@
-FROM datastewardshipwizard/python-base:4.8.1-3.11-basic as builder
+FROM datastewardshipwizard/python-base:4.9.1-3.11-basic as builder
 
 WORKDIR /app
 
@@ -8,7 +8,7 @@ RUN python -m pip wheel --no-cache-dir --wheel-dir=/app/wheels -r /app/packages/
  && python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/app/wheels /app/packages/dsw-tdk
 
 
-FROM datastewardshipwizard/python-base:4.8.1-3.11-basic
+FROM datastewardshipwizard/python-base:4.9.1-3.11-basic
 
 ENV PATH "/home/user/.local/bin:$PATH"
 
