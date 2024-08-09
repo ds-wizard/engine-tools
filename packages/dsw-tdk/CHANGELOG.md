@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
+## [4.8.2]
+
+Released for version consistency with other DSW tools.
+
 ## [4.8.1]
 
 ### Changed
@@ -441,3 +445,4 @@ Initial DSW Template Development Kit (versioned as part of the [DSW platform](ht
 [4.7.0]: /../../tree/v4.7.0
 [4.8.0]: /../../tree/v4.8.0
 [4.8.1]: /../../tree/v4.8.1
+[4.8.2]: /../../tree/v4.8.2
