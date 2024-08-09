@@ -6,6 +6,7 @@ from typing import Optional, Iterable, Union, ItemsView
 from ..consts import NULL_UUID
 
 AnnotationsT = dict[str, Union[str, list[str]]]
+TODO_LABEL_UUID = "615b9028-5e3f-414f-b245-12d2ae2eeb20"
 
 
 def _datetime(timestamp: str) -> datetime.datetime:
@@ -1087,17 +1088,24 @@ class ContextConfig:
 
 class Document:
 
-    def __init__(self, uuid, created_at, updated_at):
+    def __init__(self, uuid, name, document_template_id, format_uuid,
+                 created_by, created_at):
         self.uuid = uuid  # type: str
+        self.name = name  # type: str
+        self.document_template_id = document_template_id  # type: str
+        self.format_uuid = format_uuid  # type: str
+        self.created_by = created_by  # type: Optional[User]
         self.created_at = created_at  # type: datetime.datetime
-        self.updated_at = updated_at  # type: datetime.datetime
 
     @staticmethod
     def load(data: dict, **options):
         return Document(
             uuid=data['uuid'],
+            name=data['name'],
+            document_template_id=data['documentTemplateId'],
+            format_uuid=data['formatUuid'],
+            created_by=User.load(data['createdBy'], **options),
             created_at=_datetime(data['createdAt']),
-            updated_at=_datetime(data['updatedAt']),
         )
 
 
@@ -1178,19 +1186,75 @@ class RepliesContainer:
         return self.replies.items()
 
 
+class Comment:
+
+    def __init__(self, uuid, text, created_at, updated_at, created_by):
+        self.uuid = uuid  # type: str
+        self.text = text  # type: str
+        self.created_at = created_at
+        self.updated_at = updated_at
+        self.created_by = created_by  # type: Optional[SimpleAuthor]
+
+    @staticmethod
+    def load(data: dict, **options):
+        return Comment(
+            uuid=data['uuid'],
+            text=data['text'],
+            created_at=_datetime(data['createdAt']),
+            updated_at=_datetime(data['updatedAt']),
+            created_by=SimpleAuthor.load(data['createdBy'], **options),
+        )
+
+
+class CommentThread:
+
+    def __init__(self, path, uuid, private, resolved, created_at, updated_at,
+                 assigned_to, created_by):
+        self.path = path  # type: str
+        self.uuid = uuid  # type: str
+        self.private = private  # type: bool
+        self.resolved = resolved  # type: bool
+        self.created_at = created_at
+        self.updated_at = updated_at
+        self.assigned_to = assigned_to  # type: Optional[SimpleAuthor]
+        self.created_by = created_by  # type: Optional[SimpleAuthor]
+        self.comments = list()  # type: list[Comment]
+
+    @staticmethod
+    def load(data: dict, **options):
+        thread = CommentThread(
+            path=data['path'],
+            uuid=data['uuid'],
+            private=data['private'],
+            resolved=data['resolved'],
+            created_at=_datetime(data['createdAt']),
+            updated_at=_datetime(data['updatedAt']),
+            assigned_to=SimpleAuthor.load(data['assignedTo'], **options),
+            created_by=SimpleAuthor.load(data['createdBy'], **options),
+        )
+        thread.comments = [Comment.load(d, **options) for d in data['comments']]
+        thread.comments.sort(key=lambda c: c.created_at)
+        return thread
+
+
 class Questionnaire:
 
-    def __init__(self, uuid, name, description, created_by, phase_uuid):
+    def __init__(self, uuid, name, description, created_by, phase_uuid,
+                 created_at, updated_at):
         self.uuid = uuid  # type: str
         self.name = name  # type: str
         self.description = description  # type: str
         self.version = None  # type: Optional[QuestionnaireVersion]
         self.versions = list()  # type: list[QuestionnaireVersion]
+        self.todos = list()  # type: list[str]
+        self.comments = dict()  # type: dict[str, list[CommentThread]]
         self.created_by = created_by  # type: User
         self.phase_uuid = phase_uuid  # type: Optional[str]
         self.phase = PHASE_NEVER  # type: Phase
         self.project_tags = list()  # type: list[str]
         self.replies = RepliesContainer(dict())  # type: RepliesContainer
+        self.created_at = created_at
+        self.updated_at = updated_at
 
     def _resolve_links(self, ctx):
         for reply in self.replies.values():
@@ -1199,24 +1263,29 @@ class Questionnaire:
     @staticmethod
     def load(data: dict, **options):
         versions = [QuestionnaireVersion.load(d, **options)
-                    for d in data['questionnaireVersions']]
+                    for d in data['versions']]
         version = None
         replies = {p: _load_reply(p, d, **options)
-                   for p, d in data['questionnaireReplies'].items()}
+                   for p, d in data['replies'].items()}
         for v in versions:
-            if v.uuid == data['questionnaireVersion']:
+            if v.uuid == data['versionUuid']:
                 version = v
         qtn = Questionnaire(
-            uuid=data['questionnaireUuid'],
-            name=data['questionnaireName'],
-            description=data['questionnaireDescription'] or '',
+            uuid=data['uuid'],
+            name=data['name'],
+            description=data['description'] or '',
             created_by=User.load(data['createdBy'], **options),
             phase_uuid=data['phaseUuid'],
+            created_at=_datetime(data['createdAt']),
+            updated_at=_datetime(data['updatedAt']),
         )
         qtn.version = version
         qtn.versions = versions
-        qtn.project_tags = data.get('questionnaireProjectTags', [])
+        qtn.project_tags = data.get('projectTags', [])
         qtn.replies.replies = replies
+        qtn.todos = [k for k, v in data.get('labels', {}).items() if TODO_LABEL_UUID in v]
+        for path, threads in data.get('comments', {}).items():
+            qtn.comments[path] = [CommentThread.load(d, **options) for d in threads]
         return qtn
 
 
@@ -1408,18 +1477,106 @@ class Organization:
         )
 
 
+class UserGroup:
+
+    def __init__(self, uuid, name, description, private):
+        self.uuid = uuid  # type: str
+        self.name = name  # type: str
+        self.description = description  # type: Optional[str]
+        self.private = private  # type: bool
+
+    @staticmethod
+    def load(data: dict, **options):
+        return UserGroup(
+            uuid=data['uuid'],
+            name=data['name'],
+            description=data['description'],
+            private=data['private'],
+        )
+
+
+class DocumentContextUserPermission:
+
+    def __init__(self, user, permissions):
+        self.user = user  # type: Optional[SimpleAuthor]
+        self.permissions = permissions  # type: list[str]
+
+    @property
+    def is_viewer(self):
+        return 'VIEW' in self.permissions
+
+    @property
+    def is_commenter(self):
+        return 'COMMENT' in self.permissions
+
+    @property
+    def is_editor(self):
+        return 'EDIT' in self.permissions
+
+    @property
+    def is_owner(self):
+        return 'ADMIN' in self.permissions
+
+    @staticmethod
+    def load(data: dict, **options):
+        return DocumentContextUserPermission(
+            user=User.load(data['user'], **options),
+            permissions=data['perms'],
+        )
+
+
+class DocumentContextUserGroupPermission:
+
+    def __init__(self, group, permissions):
+        self.group = group  # type: Optional[UserGroup]
+        self.permissions = permissions  # type: list[str]
+
+    @property
+    def is_viewer(self):
+        return 'VIEW' in self.permissions
+
+    @property
+    def is_commenter(self):
+        return 'COMMENT' in self.permissions
+
+    @property
+    def is_editor(self):
+        return 'EDIT' in self.permissions
+
+    @property
+    def is_owner(self):
+        return 'ADMIN' in self.permissions
+
+    @staticmethod
+    def load(data: dict, **options):
+        return DocumentContextUserPermission(
+            user=UserGroup.load(data['group'], **options),
+            permissions=data['perms'],
+        )
+
+
 class DocumentContext:
     """Document Context smart representation"""
+    METAMODEL_VERSION = 14
 
     def __init__(self, ctx, **options):
+        self.metamodel_version = int(ctx.get('metamodelVersion', '0'))
+        if self.metamodel_version != self.METAMODEL_VERSION:
+            raise ValueError(f'Unsupported metamodel version: {self.metamodel_version}')
+
         self.config = ContextConfig.load(ctx['config'], **options)
         self.km = KnowledgeModel.load(ctx['knowledgeModel'], **options)
-        self.questionnaire = Questionnaire.load(ctx, **options)
+        self.questionnaire = Questionnaire.load(ctx['questionnaire'], **options)
         self.report = Report.load(ctx['report'], **options)
-        self.document = Document.load(ctx, **options)
+        self.document = Document.load(ctx['document'], **options)
         self.package = Package.load(ctx['package'], **options)
         self.organization = Organization.load(ctx['organization'], **options)
         self.current_phase = PHASE_NEVER  # type: Phase
+
+        self.users = [DocumentContextUserPermission.load(d, **options)
+                      for d in ctx['users']]
+        self.groups = [DocumentContextUserGroupPermission.load(d, **options)
+                       for d in ctx['groups']]
 
     @property
     def e(self) -> KnowledgeModelEntities:
