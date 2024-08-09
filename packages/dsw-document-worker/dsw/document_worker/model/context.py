@@ -1087,17 +1087,26 @@ class ContextConfig:
 
 class Document:
 
-    def __init__(self, uuid, created_at, updated_at):
+    def __init__(self, uuid, name, description, document_template_id,
+                 format_uuid, created_by, created_at):
         self.uuid = uuid  # type: str
+        self.name = name  # type: str
+        self.description = description  # type: Optional[str]
+        self.document_template_id = document_template_id  # type: str
+        self.format_uuid = format_uuid  # type: str
+        self.created_by = created_by  # type: Optional[SimpleAuthor]
         self.created_at = created_at  # type: datetime.datetime
-        self.updated_at = updated_at  # type: datetime.datetime
 
     @staticmethod
     def load(data: dict, **options):
         return Document(
             uuid=data['uuid'],
+            name=data['name'],
+            description=data['description'],
+            document_template_id=data['documentTemplateId'],
+            format_uuid=data['formatUuid'],
+            created_by=SimpleAuthor.load(data['createdBy'], **options),
             created_at=_datetime(data['createdAt']),
-            updated_at=_datetime(data['updatedAt']),
         )
 
 
@@ -1180,7 +1189,8 @@ class RepliesContainer:
 
 class Questionnaire:
 
-    def __init__(self, uuid, name, description, created_by, phase_uuid):
+    def __init__(self, uuid, name, description, created_by, phase_uuid,
+                 created_at, updated_at):
         self.uuid = uuid  # type: str
         self.name = name  # type: str
         self.description = description  # type: str
@@ -1191,6 +1201,8 @@ class Questionnaire:
         self.phase = PHASE_NEVER  # type: Phase
         self.project_tags = list()  # type: list[str]
         self.replies = RepliesContainer(dict())  # type: RepliesContainer
+        self.created_at = created_at
+        self.updated_at = updated_at
 
     def _resolve_links(self, ctx):
         for reply in self.replies.values():
@@ -1199,23 +1211,25 @@ class Questionnaire:
     @staticmethod
     def load(data: dict, **options):
         versions = [QuestionnaireVersion.load(d, **options)
-                    for d in data['questionnaireVersions']]
+                    for d in data['versions']]
         version = None
         replies = {p: _load_reply(p, d, **options)
-                   for p, d in data['questionnaireReplies'].items()}
+                   for p, d in data['replies'].items()}
         for v in versions:
-            if v.uuid == data['questionnaireVersion']:
+            if v.uuid == data['versionUuid']:
                 version = v
         qtn = Questionnaire(
-            uuid=data['questionnaireUuid'],
-            name=data['questionnaireName'],
-            description=data['questionnaireDescription'] or '',
+            uuid=data['uuid'],
+            name=data['name'],
+            description=data['description'] or '',
             created_by=User.load(data['createdBy'], **options),
             phase_uuid=data['phaseUuid'],
+            created_at=_datetime(data['createdAt']),
+            updated_at=_datetime(data['updatedAt']),
         )
         qtn.version = version
         qtn.versions = versions
-        qtn.project_tags = data.get('questionnaireProjectTags', [])
+        qtn.project_tags = data.get('projectTags', [])
         qtn.replies.replies = replies
         return qtn
 
@@ -1412,14 +1426,20 @@ class DocumentContext:
     """Document Context smart representation"""
 
     def __init__(self, ctx, **options):
+        self.metamodel_version = int(ctx.get('metamodelVersion', '0'))
+        # TODO: check metamodel version
+
         self.config = ContextConfig.load(ctx['config'], **options)
         self.km = KnowledgeModel.load(ctx['knowledgeModel'], **options)
-        self.questionnaire = Questionnaire.load(ctx, **options)
+        self.questionnaire = Questionnaire.load(ctx['questionnaire'], **options)
         self.report = Report.load(ctx['report'], **options)
-        self.document = Document.load(ctx, **options)
+        self.document = Document.load(ctx['document'], **options)
         self.package = Package.load(ctx['package'], **options)
         self.organization = Organization.load(ctx['organization'], **options)
         self.current_phase = PHASE_NEVER  # type: Phase
+
+        self.users = []  # TODO
+        self.groups = []  # TODO
 
     @property
     def e(self) -> KnowledgeModelEntities:
