@@ -1,3 +1,4 @@
+# TODO: move to dsw-models
 import datetime
 import dateutil.parser as dp
 
@@ -56,6 +57,51 @@ class Tag:
             name=data['name'],
             description=data['description'],
             color=data['color'],
+            annotations=_load_annotations(data['annotations']),
+        )
+
+
+class ResourceCollection:
+
+    def __init__(self, uuid, title, page_uuids, annotations):
+        self.uuid = uuid  # type: str
+        self.title = title  # type: str
+        self.page_uuids = page_uuids  # type: list[str]
+        self.pages = list()  # type: list[ResourcePage]
+        self.annotations = annotations  # type: AnnotationsT
+
+    def _resolve_links(self, ctx):
+        self.pages = [ctx.e.resource_pages[key]
+                      for key in self.page_uuids
+                      if key in ctx.e.resource_pages.keys()]
+        for page in self.pages:
+            page.collection = self
+
+    @staticmethod
+    def load(data: dict, **options):
+        return ResourceCollection(
+            uuid=data['uuid'],
+            title=data['title'],
+            page_uuids=data['pageUuids'],
+            annotations=_load_annotations(data['annotations']),
+        )
+
+
+class ResourcePage:
+
+    def __init__(self, uuid, title, content, annotations):
+        self.uuid = uuid  # type: str
+        self.title = title  # type: str
+        self.content = content  # type: str
+        self.collection = None  # type: Optional[ResourceCollection]
+        self.annotations = annotations  # type: AnnotationsT
+
+    @staticmethod
+    def load(data: dict, **options):
+        return ResourcePage(
+            uuid=data['uuid'],
+            title=data['title'],
+            content=data['content'],
             annotations=_load_annotations(data['annotations']),
         )
 
@@ -323,19 +369,20 @@ class URLReference(Reference):
 
 class ResourcePageReference(Reference):
 
-    def __init__(self, uuid, short_uuid, annotations):
+    def __init__(self, uuid, resource_page_uuid, annotations):
         super().__init__(uuid, 'ResourcePageReference', annotations)
-        self.short_uuid = short_uuid  # type: str
-        self.url = None  # type: Optional[str]
+        self.resource_page_uuid = resource_page_uuid  # type: Optional[str]
+        self.resource_page = None  # type: Optional[ResourcePage]
 
     def _resolve_links(self, ctx):
-        self.url = f'{ctx.config.client_url}/book-references/{self.short_uuid}'
+        if self.resource_page_uuid in ctx.e.resource_pages.keys():
+            self.resource_page = ctx.e.resource_pages[self.resource_page_uuid]
 
     @staticmethod
     def load(data: dict, **options):
         return ResourcePageReference(
             uuid=data['uuid'],
-            short_uuid=data['shortUuid'],
+            resource_page_uuid=data['resourcePageUuid'],
             annotations=_load_annotations(data['annotations']),
         )
 
@@ -980,6 +1027,8 @@ class KnowledgeModelEntities:
         self.questions = dict()  # type: dict[str, Question]
         self.answers = dict()  # type: dict[str, Answer]
         self.choices = dict()  # type: dict[str, Choice]
+        self.resource_collections = dict()  # type: dict[str, ResourceCollection]
+        self.resource_pages = dict()  # type: dict[str, ResourcePage]
         self.references = dict()  # type: dict[str, Reference]
         self.experts = dict()  # type: dict[str, Expert]
         self.tags = dict()  # type: dict[str, Tag]
@@ -998,6 +1047,10 @@ class KnowledgeModelEntities:
                      for key, d in data['answers'].items()}
         e.choices = {key: Choice.load(d, **options)
                      for key, d in data['choices'].items()}
+        e.resource_collections = {key: ResourceCollection.load(d, **options)
+                                  for key, d in data['resourceCollections'].items()}
+        e.resource_pages = {key: ResourcePage.load(d, **options)
+                            for key, d in data['resourcePages'].items()}
         e.references = {key: _load_reference(d, **options)
                         for key, d in data['references'].items()}
         e.experts = {key: Expert.load(d, **options)
@@ -1027,6 +1080,8 @@ class KnowledgeModel:
         self.metrics = list()  # type: list[Metric]
         self.phase_uuids = phase_uuids  # type: list[str]
         self.phases = list()  # type: list[Phase]
+        self.resource_collection_uuids = list()  # type: list[str]
+        self.resource_collections = list()  # type: list[ResourceCollection]
         self.integration_uuids = integration_uuids  # type: list[str]
         self.integrations = list()  # type: list[Integration]
         self.annotations = annotations  # type: AnnotationsT
@@ -1052,6 +1107,9 @@ class KnowledgeModel:
         self.phases = [ctx.e.phases[key]
                        for key in self.phase_uuids
                        if key in ctx.e.phases.keys()]
+        self.resource_collections = [ctx.e.resource_collections[key]
+                                     for key in self.resource_collection_uuids
+                                     if key in ctx.e.resource_collections.keys()]
         self.integrations = [ctx.e.integrations[key]
                              for key in self.integration_uuids
                              if key in ctx.e.integrations.keys()]
@@ -1059,6 +1117,8 @@ class KnowledgeModel:
             phase.order = index
         for chapter in self.chapters:
             chapter._resolve_links(ctx)
+        for resource_collection in self.resource_collections:
+            resource_collection._resolve_links(ctx)
 
     @staticmethod
     def load(data: dict, **options):
