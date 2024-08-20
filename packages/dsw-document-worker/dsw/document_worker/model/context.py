@@ -77,12 +77,16 @@ class ResourceCollection:
         for page in self.pages:
             page.collection = self
 
+    @property
+    def a(self):
+        return self.annotations
+
     @staticmethod
     def load(data: dict, **options):
         return ResourceCollection(
             uuid=data['uuid'],
             title=data['title'],
-            page_uuids=data['pageUuids'],
+            page_uuids=data['resourcePageUuids'],
             annotations=_load_annotations(data['annotations']),
         )
 
@@ -95,6 +99,10 @@ class ResourcePage:
         self.content = content  # type: str
         self.collection = None  # type: Optional[ResourceCollection]
         self.annotations = annotations  # type: AnnotationsT
+
+    @property
+    def a(self):
+        return self.annotations
 
     @staticmethod
     def load(data: dict, **options):
@@ -597,6 +605,30 @@ class IntegrationReply(Reply):
         )
 
 
+class ItemSelectReply(Reply):
+
+    def __init__(self, path, created_at, created_by, item_uuid):
+        super().__init__(path, created_at, created_by, 'ItemSelectReply')
+        self.item_uuid = item_uuid  # type: str
+        self.item_title = 'Item'  # type: str
+
+    @property
+    def value(self) -> str:
+        return self.item_uuid
+
+    def _resolve_links(self, ctx):
+        super()._resolve_links_parent(ctx)
+
+    @staticmethod
+    def load(path: str, data: dict, **options):
+        return ItemSelectReply(
+            path=path,
+            created_at=_datetime(data['createdAt']),
+            created_by=SimpleAuthor.load(data['createdBy'], **options),
+            item_uuid=data['value']['value'],
+        )
+
+
 class Answer:
 
     def __init__(self, uuid, label, advice, metric_measures, followup_uuids,
@@ -939,6 +971,36 @@ class IntegrationQuestion(Question):
         )
 
 
+class ItemSelectQuestion(Question):
+
+    def __init__(self, uuid, title, text, tag_uuids, reference_uuids,
+                 expert_uuids, required_phase_uuid, list_question_uuid,
+                 annotations):
+        super().__init__(uuid, 'ItemSelectQuestion', title, text, tag_uuids,
+                         reference_uuids, expert_uuids, required_phase_uuid,
+                         annotations)
+        self.list_question_uuid = list_question_uuid  # type: str
+        self.list_question = None  # type: Optional[ListQuestion]
+
+    def _resolve_links(self, ctx):
+        super()._resolve_links_parent(ctx)
+        self.list_question = ctx.e.questions.get(self.list_question_uuid, None)
+
+    @staticmethod
+    def load(data: dict, **options):
+        return ItemSelectQuestion(
+            uuid=data['uuid'],
+            title=data['title'],
+            text=data['text'],
+            tag_uuids=data['tagUuids'],
+            reference_uuids=data['referenceUuids'],
+            expert_uuids=data['expertUuids'],
+            required_phase_uuid=data['requiredPhaseUuid'],
+            list_question_uuid=data['listQuestionUuid'],
+            annotations=_load_annotations(data['annotations']),
+        )
+
+
 class Chapter:
 
     def __init__(self, uuid, title, text, question_uuids, annotations):
@@ -989,6 +1051,9 @@ def _load_question(data: dict, **options):
         return MultiChoiceQuestion.load(data, **options)
     if data['questionType'] == 'IntegrationQuestion':
         return IntegrationQuestion.load(data, **options)
+    if data['questionType'] == 'ItemSelectQuestion':
+        return ItemSelectQuestion.load(data, **options)
+    raise ValueError(f'Unknown question type: {data["questionType"]}')
 
 
 def _load_reference(data: dict, **options):
@@ -998,6 +1063,7 @@ def _load_reference(data: dict, **options):
         return ResourcePageReference.load(data, **options)
     if data['referenceType'] == 'CrossReference':
         return CrossReference.load(data, **options)
+    raise ValueError(f'Unknown reference type: {data["referenceType"]}')
 
 
 def _load_integration(data: dict, **options):
@@ -1005,6 +1071,7 @@ def _load_integration(data: dict, **options):
         return ApiIntegration.load(data, **options)
     if data['integrationType'] == 'WidgetIntegration':
         return WidgetIntegration.load(data, **options)
+    raise ValueError(f'Unknown integration type: {data["integrationType"]}')
 
 
 def _load_reply(path: str, data: dict, **options):
@@ -1018,6 +1085,9 @@ def _load_reply(path: str, data: dict, **options):
         return MultiChoiceReply.load(path, data, **options)
     if data['value']['type'] == 'IntegrationReply':
         return IntegrationReply.load(path, data, **options)
+    if data['value']['type'] == 'ItemSelectReply':
+        return ItemSelectReply.load(path, data, **options)
+    raise ValueError(f'Unknown reply type: {data["value"]["type"]}')
 
 
 class KnowledgeModelEntities:
@@ -1069,7 +1139,8 @@ class KnowledgeModelEntities:
 class KnowledgeModel:
 
     def __init__(self, uuid, chapter_uuids, tag_uuids, metric_uuids,
-                 phase_uuids, integration_uuids, entities, annotations):
+                 phase_uuids, integration_uuids, resource_collection_uuids,
+                 entities, annotations):
         self.uuid = uuid  # type: str
         self.entities = entities  # type: KnowledgeModelEntities
         self.chapter_uuids = chapter_uuids  # type: list[str]
@@ -1080,7 +1151,7 @@ class KnowledgeModel:
         self.metrics = list()  # type: list[Metric]
         self.phase_uuids = phase_uuids  # type: list[str]
         self.phases = list()  # type: list[Phase]
-        self.resource_collection_uuids = list()  # type: list[str]
+        self.resource_collection_uuids = resource_collection_uuids  # type: list[str]
         self.resource_collections = list()  # type: list[ResourceCollection]
         self.integration_uuids = integration_uuids  # type: list[str]
         self.integrations = list()  # type: list[Integration]
@@ -1129,6 +1200,7 @@ class KnowledgeModel:
             metric_uuids=data['metricUuids'],
             phase_uuids=data['phaseUuids'],
             integration_uuids=data['integrationUuids'],
+            resource_collection_uuids=data['resourceCollectionUuids'],
             entities=KnowledgeModelEntities.load(data['entities'], **options),
             annotations=_load_annotations(data['annotations']),
         )
@@ -1558,7 +1630,7 @@ class UserGroup:
 class DocumentContextUserPermission:
 
     def __init__(self, user, permissions):
-        self.user = user  # type: Optional[SimpleAuthor]
+        self.user = user  # type: Optional[User]
         self.permissions = permissions  # type: list[str]
 
     @property
@@ -1674,3 +1746,72 @@ class DocumentContext:
         self.km._resolve_links(self)
         self.report._resolve_links(self)
         self.questionnaire._resolve_links(self)
+
+        rv = ReplyVisitor(self)
+        rv.visit()
+        for reply in self.replies.values():
+            if isinstance(reply, ItemSelectReply):
+                reply.item_title = rv.item_titles.get(reply.item_uuid, 'Item')
+
+
+class ReplyVisitor:
+
+    def __init__(self, context: DocumentContext):
+        self.item_titles = dict()  # type: dict[str, str]
+        self._set_also = dict()  # type: dict[str, list[str]]
+        self.context = context
+
+    def visit(self):
+        for chapter in self.context.km.chapters:
+            self._visit_chapter(chapter)
+
+    def _visit_chapter(self, chapter: Chapter):
+        for question in chapter.questions:
+            self._visit_question(question, path=chapter.uuid)
+
+    def _visit_question(self, question: Question, path: str):
+        new_path = f'{path}.{question.uuid}'
+        if isinstance(question, ListQuestion):
+            self._visit_list_question(question, new_path)
+        elif isinstance(question, OptionsQuestion):
+            self._visit_options_question(question, new_path)
+
+    def _visit_list_question(self, question: ListQuestion, path: str):
+        reply = self.context.replies.get(path)
+        if reply is None or not isinstance(reply, ItemListReply):
+            return
+        for n, item_uuid in enumerate(reply.items, start=1):
+            self.item_titles[item_uuid] = f'Item {n}'
+            item_path = f'{path}.{item_uuid}'
+
+            # title
+            if len(question.followups) > 0:
+                title_path = f'{item_path}.{question.followups[0].uuid}'
+                title_reply = self.context.replies.get(title_path)
+                if title_reply is not None and isinstance(title_reply, StringReply):
+                    self.item_titles[item_uuid] = title_reply.value
+                elif title_reply is not None and isinstance(title_reply, IntegrationReply):
+                    non_empty_lines = list(filter(lambda line: len(line) > 0, title_reply.value.split('\n')))
+                    if len(non_empty_lines) > 0:
+                        self.item_titles[item_uuid] = non_empty_lines[0]
+                elif title_reply is not None and isinstance(title_reply, ItemSelectReply):
+                    ref_item_uuid = title_reply.item_uuid
+                    if ref_item_uuid in self.item_titles.keys():
+                        self.item_titles[item_uuid] = self.item_titles[ref_item_uuid]
+                    else:
+                        self._set_also.setdefault(ref_item_uuid, []).append(item_uuid)
+            for set_also in self._set_also.get(item_uuid, []):
+                self.item_titles[set_also] = self.item_titles[item_uuid]
+
+            # followups
+            for followup in question.followups:
+                self._visit_question(followup, path=item_path)
+
+    def _visit_options_question(self, question: OptionsQuestion, path: str):
+        reply = self.context.replies.get(path)
+        if reply is None or not isinstance(reply, AnswerReply) or reply.answer is None:
+            return
+
+        new_path = f'{path}.{reply.answer_uuid}'
+        for followup in reply.answer.followups:
+            self._visit_question(followup, path=new_path)
