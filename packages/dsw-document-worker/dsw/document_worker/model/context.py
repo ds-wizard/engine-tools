@@ -1318,57 +1318,6 @@ class RepliesContainer:
         return self.replies.items()
 
 
-class Comment:
-
-    def __init__(self, uuid, text, created_at, updated_at, created_by):
-        self.uuid = uuid  # type: str
-        self.text = text  # type: str
-        self.created_at = created_at
-        self.updated_at = updated_at
-        self.created_by = created_by  # type: Optional[SimpleAuthor]
-
-    @staticmethod
-    def load(data: dict, **options):
-        return Comment(
-            uuid=data['uuid'],
-            text=data['text'],
-            created_at=_datetime(data['createdAt']),
-            updated_at=_datetime(data['updatedAt']),
-            created_by=SimpleAuthor.load(data['createdBy'], **options),
-        )
-
-
-class CommentThread:
-
-    def __init__(self, path, uuid, private, resolved, created_at, updated_at,
-                 assigned_to, created_by):
-        self.path = path  # type: str
-        self.uuid = uuid  # type: str
-        self.private = private  # type: bool
-        self.resolved = resolved  # type: bool
-        self.created_at = created_at
-        self.updated_at = updated_at
-        self.assigned_to = assigned_to  # type: Optional[SimpleAuthor]
-        self.created_by = created_by  # type: Optional[SimpleAuthor]
-        self.comments = list()  # type: list[Comment]
-
-    @staticmethod
-    def load(data: dict, **options):
-        thread = CommentThread(
-            path=data['path'],
-            uuid=data['uuid'],
-            private=data['private'],
-            resolved=data['resolved'],
-            created_at=_datetime(data['createdAt']),
-            updated_at=_datetime(data['updatedAt']),
-            assigned_to=SimpleAuthor.load(data['assignedTo'], **options),
-            created_by=SimpleAuthor.load(data['createdBy'], **options),
-        )
-        thread.comments = [Comment.load(d, **options) for d in data['comments']]
-        thread.comments.sort(key=lambda c: c.created_at)
-        return thread
-
-
 class Questionnaire:
 
     def __init__(self, uuid, name, description, created_by, phase_uuid,
@@ -1379,7 +1328,6 @@ class Questionnaire:
         self.version = None  # type: Optional[QuestionnaireVersion]
         self.versions = list()  # type: list[QuestionnaireVersion]
         self.todos = list()  # type: list[str]
-        self.comments = dict()  # type: dict[str, list[CommentThread]]
         self.created_by = created_by  # type: User
         self.phase_uuid = phase_uuid  # type: Optional[str]
         self.phase = PHASE_NEVER  # type: Phase
@@ -1416,8 +1364,6 @@ class Questionnaire:
         qtn.project_tags = data.get('projectTags', [])
         qtn.replies.replies = replies
         qtn.todos = [k for k, v in data.get('labels', {}).items() if TODO_LABEL_UUID in v]
-        for path, threads in data.get('comments', {}).items():
-            qtn.comments[path] = [CommentThread.load(d, **options) for d in threads]
         return qtn
 
 
