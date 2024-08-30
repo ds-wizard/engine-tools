@@ -1557,19 +1557,54 @@ class Organization:
 
 class UserGroup:
 
-    def __init__(self, uuid, name, description, private):
+    def __init__(self, uuid, name, description, private,
+                 created_at, updated_at):
         self.uuid = uuid  # type: str
         self.name = name  # type: str
         self.description = description  # type: Optional[str]
         self.private = private  # type: bool
+        self.members = list()  # type: list[UserGroupMember]
+        self.created_at = created_at  # type: datetime.datetime
+        self.updated_at = updated_at  # type: datetime.datetime
 
     @staticmethod
     def load(data: dict, **options):
-        return UserGroup(
+        ug = UserGroup(
             uuid=data['uuid'],
             name=data['name'],
             description=data['description'],
             private=data['private'],
+            created_at=_datetime(data['createdAt']),
+            updated_at=_datetime(data['updatedAt']),
+        )
+        ug.members = [UserGroupMember.load(d, **options)
+                      for d in data.get('users', [])]
+        return ug
+
+
+class UserGroupMember:
+
+    def __init__(self, uuid, first_name, last_name, gravatar_hash,
+                 image_url, membership_type):
+        self.uuid = uuid  # type: str
+        self.first_name = first_name  # type: str
+        self.lastName = last_name  # type: str
+        self.gravatar_hash = gravatar_hash  # type: str
+        self.image_url = image_url  # type: Optional[str]
+        self.membership_type = membership_type  # type: str
+
+    @staticmethod
+    def load(data: dict, **options):
+        membership = 'member'
+        if 'owner' in data['membershipType'].lower():
+            membership = 'owner'
+        return UserGroupMember(
+            uuid=data['uuid'],
+            first_name=data['firstName'],
+            last_name=data['lastName'],
+            gravatar_hash=data['gravatarHash'],
+            image_url=data['imageUrl'],
+            membership_type=membership,
         )
 
 
