@@ -112,3 +112,36 @@ jobs:
     - name: Check typing with MyPy
       run: |
         mypy --install-types --ignore-missing-imports --check-untyped-defs --non-interactive packages/*/dsw
+
+
+  version:
+    name: Version consts.py
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v4
+
+    - name: Check dsw-data-seeder
+      run: |
+        bash scripts/check-version.sh \
+          packages/dsw-data-seeder/dsw/data_seeder/consts.py \
+          packages/dsw-data-seeder/pyproject.toml
+
+    - name: Check dsw-document-worker
+      run: |
+        bash scripts/check-version.sh \
+          packages/dsw-document-worker/dsw/document_worker/consts.py \
+          packages/dsw-document-worker/pyproject.toml
+
+    - name: Check dsw-mailer
+      run: |
+        bash scripts/check-version.sh \
+          packages/dsw-mailer/dsw/mailer/consts.py \
+          packages/dsw-mailer/pyproject.toml
+
+    - name: Check dsw-tdk
+      run: |
+        bash scripts/check-version.sh \
+          packages/dsw-tdk/dsw/tdk/consts.py \
+          packages/dsw-tdk/pyproject.toml
