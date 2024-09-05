@@ -1,16 +1,15 @@
+import json
 import typing as t
+from typing import Any
 
 import jinja2
 import jinja2.exceptions
 import jinja2.sandbox
-import json
 
-from typing import Any
-
+from .base import Step, register_step
 from ...consts import DEFAULT_ENCODING
 from ...context import Context
 from ...documents import DocumentFile, FileFormat, FileFormats
-from .base import Step, register_step
 
 
 class JSONStep(Step):
@@ -144,12 +143,13 @@ class Jinja2Step(Step):
         from ...model.http import RequestsWrapper
         import rdflib
         import json
+        import dsw.document_worker.templates.steps.rdf_helpers as rdf_helpers
         self.j2_env.filters.update(filters)
         self.j2_env.tests.update(tests)
         template_cfg = Context.get().app.cfg.templates.get_config(
             self.template.template_id,
         )
-        self.j2_env.globals.update({'rdflib': rdflib, 'json': json})
+        self.j2_env.globals.update({'rdflib': rdflib, 'rdf_helpers': rdf_helpers, 'json': json})
         if template_cfg is not None:
             global_vars = {'secrets': template_cfg.secrets}  # type: dict[str,Any]
             if template_cfg.requests.enabled:
