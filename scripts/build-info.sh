@@ -9,7 +9,7 @@ branch=$(git rev-parse --abbrev-ref HEAD)
 commit=$(git rev-parse --short HEAD)
 sha=$(git rev-parse HEAD)
 version="$branch~$commit"
-gittag=$(git tag -l --contains HEAD | head -n 1)
+gittag=$(git tag --points-at HEAD | head -n 1)
 if test -n "$gittag"
 then
     version="$gittag~$commit"
