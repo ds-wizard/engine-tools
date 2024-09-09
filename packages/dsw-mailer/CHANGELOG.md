@@ -8,6 +8,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 
+## [4.10.3]
+
+### Changed
+
+- Updated to newer Docker base image due to vulnerabilities (CVE-2024-45490)[https://nvd.nist.gov/vuln/detail/CVE-2024-45490], (CVE-2024-45491)[https://nvd.nist.gov/vuln/detail/CVE-2024-45491], (CVE-2024-45492)[https://nvd.nist.gov/vuln/detail/CVE-2024-45492]
+
 ## [4.10.2]
 
 Released for version consistency with other DSW tools.
@@ -278,3 +284,4 @@ Released for version consistency with other DSW tools.
 [4.10.0]: /../../tree/v4.10.0
 [4.10.1]: /../../tree/v4.10.1
 [4.10.2]: /../../tree/v4.10.2
+[4.10.3]: /../../tree/v4.10.3

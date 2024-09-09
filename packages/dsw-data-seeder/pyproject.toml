@@ -4,7 +4,7 @@ build-backend = 'setuptools.build_meta'
 
 [project]
 name = 'dsw-data-seeder'
-version = "4.10.2"
+version = "4.10.3"
 description = 'Worker for seeding DSW data'
 readme = 'README.md'
 keywords = ['data', 'database', 'seed', 'storage']
@@ -29,10 +29,10 @@ dependencies = [
     'sentry-sdk',
     'tenacity',
     # DSW
-    "dsw-command-queue==4.10.2",
-    "dsw-config==4.10.2",
-    "dsw-database==4.10.2",
-    "dsw-storage==4.10.2",
+    "dsw-command-queue==4.10.3",
+    "dsw-config==4.10.3",
+    "dsw-database==4.10.3",
+    "dsw-storage==4.10.3",
 ]
 
 [project.urls]
