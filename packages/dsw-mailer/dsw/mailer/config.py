@@ -173,11 +173,19 @@ class SMTPSecurityMode(enum.Enum):
     SSL = enum.auto()
     TLS = enum.auto()
 
+    @classmethod
+    def has(cls, name):
+        return name in cls.__members__
+
 
 class MailProvider(enum.Enum):
     NONE = enum.auto()
     SMTP = enum.auto()
     AMAZON_SES = enum.auto()
+
+    @classmethod
+    def has(cls, name):
+        return name in cls.__members__
 
 
 class MailSMTPConfig:
@@ -188,7 +196,7 @@ class MailSMTPConfig:
                  auth_enabled: bool | None = None, timeout: int = 10):
         self.host = host
         self.security = SMTPSecurityMode.PLAIN  # type: SMTPSecurityMode
-        if security is not None and security.upper() in SMTPSecurityMode:
+        if security is not None and SMTPSecurityMode.has(security.upper()):
             self.security = SMTPSecurityMode[security.upper()]
         elif ssl is not None:
             self.security = SMTPSecurityMode.SSL if ssl else SMTPSecurityMode.PLAIN
