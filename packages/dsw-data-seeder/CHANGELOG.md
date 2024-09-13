@@ -8,6 +8,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 
+## [4.9.5]
+
+### Fixed
+
+- Fixed command queue job timeout (moved support from workers to queue, reliable timeout approach)
+
 ## [4.9.4]
 
 Released for version consistency with other DSW tools.
@@ -304,3 +310,4 @@ Released for version consistency with other DSW tools.
 [4.9.2]: /../../tree/v4.9.2
 [4.9.3]: /../../tree/v4.9.3
 [4.9.4]: /../../tree/v4.9.4
+[4.9.5]: /../../tree/v4.9.5
