@@ -30,14 +30,3 @@ class LimitsEnforcer:
                 f'required {byte_size_format(doc_size)} but '
                 f'only {byte_size_format(remains)} remains.'
         )
-
-    @staticmethod
-    def timeout_exceeded(job_id: str):
-        job_timeout = Context.get().app.cfg.experimental.job_timeout
-        if job_timeout is None:
-            return
-        raise JobException(
-            job_id=job_id,
-            msg=f'Document generation exceeded time limit '
-                f'({job_timeout} seconds).'
-        )

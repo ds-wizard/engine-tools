@@ -1,10 +1,10 @@
 import shlex
-from typing import List, Optional, Type
+from typing import List, Optional
 
 from dsw.config import DSWConfigParser
-from dsw.config.keys import ConfigKey, ConfigKeys, ConfigKeysContainer,\
+from dsw.config.keys import ConfigKey, ConfigKeys, ConfigKeysContainer, \
     cast_str, cast_optional_int
-from dsw.config.model import GeneralConfig, SentryConfig, DatabaseConfig,\
+from dsw.config.model import GeneralConfig, SentryConfig, DatabaseConfig, \
     S3Config, LoggingConfig, CloudConfig, ConfigModel
 
 from .consts import DocumentNamingStrategy
@@ -175,7 +175,7 @@ class DocumentWorkerConfigParser(DSWConfigParser):
 
     def __init__(self):
         super().__init__(keys=DocWorkerConfigKeys)
-        self.keys = DocWorkerConfigKeys  # type: Type[DocWorkerConfigKeys]
+        self.keys = DocWorkerConfigKeys  # type: type[DocWorkerConfigKeys]
 
     @property
     def documents(self) -> DocumentsConfig:

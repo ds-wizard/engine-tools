@@ -47,3 +47,12 @@ class CommandQueries:
                 updated_at = %(updated_at)s
             WHERE uuid = %(uuid)s;
         """
+
+    @staticmethod
+    def query_command_start() -> str:
+        return """
+            UPDATE persistent_command
+            SET attempts = %(attempts)s,
+                updated_at = %(updated_at)s
+            WHERE uuid = %(uuid)s;
+        """

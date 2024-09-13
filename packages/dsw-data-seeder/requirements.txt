@@ -1,5 +1,6 @@
 certifi==2024.7.4
 click==8.1.7
+func_timeout==4.3.5
 minio==7.2.8
 psycopg==3.2.1
 psycopg-binary==3.2.1
