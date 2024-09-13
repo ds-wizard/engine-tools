@@ -9,7 +9,20 @@ from dsw.config.model import GeneralConfig, SentryConfig, \
     DatabaseConfig, LoggingConfig, ConfigModel, AWSConfig
 from dsw.database.model import DBInstanceConfigMail
 
-from typing import Type
+
+class _ExperimentalKeys(ConfigKeysContainer):
+    job_timeout = ConfigKey(
+        yaml_path=['experimental', 'jobTimeout'],
+        var_names=['EXPERIMENTAL_JOB_TIMEOUT'],
+        default=None,
+        cast=cast_optional_int,
+    )
+
+
+class ExperimentalConfig(ConfigModel):
+
+    def __init__(self, job_timeout: int | None):
+        self.job_timeout = job_timeout
 
 
 class _MailKeys(ConfigKeysContainer):
@@ -166,6 +179,7 @@ class MailerConfigKeys(ConfigKeys):
     mail_legacy_smtp = _MailLegacySMTPKeys
     mail_smtp = _MailSMTPKeys
     mail_amazon_ses = _MailAmazonSESKeys
+    experimental = _ExperimentalKeys
 
 
 class SMTPSecurityMode(enum.Enum):
@@ -310,13 +324,15 @@ class MailerConfig:
 
     def __init__(self, db: DatabaseConfig, log: LoggingConfig,
                  mail: MailConfig, sentry: SentryConfig,
-                 general: GeneralConfig, aws: AWSConfig):
+                 general: GeneralConfig, aws: AWSConfig,
+                 experimental: ExperimentalConfig):
         self.db = db
         self.log = log
         self.mail = mail
         self.sentry = sentry
         self.general = general
         self.aws = aws
+        self.experimental = experimental
 
         # Use AWS credentials for Amazon SES if not provided
         self.mail.update_aws(aws)
@@ -329,6 +345,7 @@ class MailerConfig:
                f'{self.mail}' \
                f'{self.sentry}' \
                f'{self.general}' \
+               f'{self.experimental}' \
                f'====================\n'
 
 
@@ -336,7 +353,7 @@ class MailerConfigParser(DSWConfigParser):
 
     def __init__(self):
         super().__init__(keys=MailerConfigKeys)
-        self.keys = MailerConfigKeys  # type: Type[MailerConfigKeys]
+        self.keys = MailerConfigKeys  # type: type[MailerConfigKeys]
 
     @property
     def mail(self):
@@ -380,6 +397,12 @@ class MailerConfigParser(DSWConfigParser):
         )
 
     @property
+    def experimental(self) -> ExperimentalConfig:
+        return ExperimentalConfig(
+            job_timeout=self.get(self.keys.experimental.job_timeout),
+        )
+
+    @property
     def config(self) -> MailerConfig:
         cfg = MailerConfig(
             db=self.db,
@@ -388,6 +411,7 @@ class MailerConfigParser(DSWConfigParser):
             sentry=self.sentry,
             general=self.general,
             aws=self.aws,
+            experimental=self.experimental,
         )
         cfg.mail.load_dkim_privkey()
         return cfg

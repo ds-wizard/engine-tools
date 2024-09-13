@@ -5,6 +5,7 @@ charset-normalizer==3.3.2
 click==8.1.7
 cssselect2==0.7.0
 fonttools==4.53.1
+func_timeout==4.3.5
 html5lib==1.1
 idna==3.7
 isodate==0.6.1

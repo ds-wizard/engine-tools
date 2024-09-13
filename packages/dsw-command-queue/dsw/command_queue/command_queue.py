@@ -1,5 +1,6 @@
 import abc
 import datetime
+import func_timeout
 import logging
 import os
 import platform
@@ -45,21 +46,26 @@ class CommandWorker:
     def work(self, payload: PersistentCommand):
         pass
 
-    def process_exception(self, e: Exception):
+    def process_timeout(self, e: BaseException):
+        pass
+
+    def process_exception(self, e: BaseException):
         pass
 
 
 class CommandQueue:
 
     def __init__(self, worker: CommandWorker, db: Database,
-                 channel: str, component: str, timeout: float):
+                 channel: str, component: str, wait_timeout: float,
+                 work_timeout: int | None = None):
         self.worker = worker
         self.db = db
         self.queries = CommandQueries(
             channel=channel,
             component=component
         )
-        self.timeout = timeout
+        self.wait_timeout = wait_timeout
+        self.work_timeout = work_timeout
 
     @tenacity.retry(
         reraise=True,
@@ -84,7 +90,7 @@ class CommandQueue:
             self._fetch_and_process_queued()
 
             LOG.debug('Waiting for notifications')
-            w = select.select(fds, [], [], self.timeout)
+            w = select.select(fds, [], [], self.wait_timeout)
 
             if INTERRUPTED:
                 LOG.debug('Interrupt signal received, ending...')
@@ -92,7 +98,7 @@ class CommandQueue:
 
             if w == ([], [], []):
                 LOG.debug(f'Nothing received in this cycle '
-                          f'(timeouted after {self.timeout} seconds)')
+                          f'(timeouted after {self.wait_timeout} seconds)')
             else:
                 notifications = 0
                 for n in psycopg.generators.notifies(queue_conn.connection.pgconn):
@@ -141,13 +147,46 @@ class CommandQueue:
         LOG.debug(f'Previous state: {command.state}')
         LOG.debug(f'Attempts: {command.attempts} / {command.max_attempts}')
         LOG.debug(f'Last error: {command.last_error_message}')
+        attempt_number = command.attempts + 1
 
         try:
-            self.worker.work(command)
+            self.db.execute_query(
+                query=self.queries.query_command_start(),
+                attempts=attempt_number,
+                updated_at=datetime.datetime.now(tz=datetime.UTC),
+                uuid=command.uuid,
+            )
+            self.db.conn_query.connection.commit()
+
+            def work():
+                self.worker.work(command)
+
+            if self.work_timeout is None:
+                LOG.info('Processing (without any timeout set)')
+                work()
+            else:
+                LOG.info(f'Processing (with timeout set to {self.work_timeout} seconds)')
+                func_timeout.func_timeout(
+                    timeout=self.work_timeout,
+                    func=work,
+                    args=(),
+                    kwargs=None,
+                )
 
             self.db.execute_query(
                 query=self.queries.query_command_done(),
-                attempts=command.attempts + 1,
+                attempts=attempt_number,
+                updated_at=datetime.datetime.now(tz=datetime.UTC),
+                uuid=command.uuid,
+            )
+        except func_timeout.exceptions.FunctionTimedOut as e:
+            msg = f'Processing exceeded time limit ({self.work_timeout} seconds)'
+            LOG.warning(msg)
+            self.worker.process_timeout(e)
+            self.db.execute_query(
+                query=self.queries.query_command_error(),
+                attempts=attempt_number,
+                error_message=msg,
                 updated_at=datetime.datetime.now(tz=datetime.UTC),
                 uuid=command.uuid,
             )
@@ -157,7 +196,7 @@ class CommandQueue:
             self.worker.process_exception(e)
             self.db.execute_query(
                 query=self.queries.query_command_error(),
-                attempts=command.attempts + 1,
+                attempts=attempt_number,
                 error_message=msg,
                 updated_at=datetime.datetime.now(tz=datetime.UTC),
                 uuid=command.uuid,
