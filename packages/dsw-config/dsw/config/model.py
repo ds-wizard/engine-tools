@@ -39,10 +39,11 @@ class SentryConfig(ConfigModel):
 
 class DatabaseConfig(ConfigModel):
 
-    def __init__(self, connection_string: str, connection_timeout: int, queue_timout: int):
+    def __init__(self, connection_string: str, connection_timeout: int,
+                 queue_timeout: int):
         self.connection_string = connection_string
         self.connection_timeout = connection_timeout
-        self.queue_timout = queue_timout
+        self.queue_timeout = queue_timeout
 
 
 class S3Config(ConfigModel):

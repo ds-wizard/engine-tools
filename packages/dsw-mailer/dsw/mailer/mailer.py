@@ -74,7 +74,8 @@ class Mailer(CommandWorker):
             db=Context.get().app.db,
             channel=CMD_CHANNEL,
             component=CMD_COMPONENT,
-            timeout=Context.get().app.cfg.db.queue_timout,
+            wait_timeout=Context.get().app.cfg.db.queue_timeout,
+            work_timeout=Context.get().app.cfg.experimental.job_timeout,
         )
         return queue
 
@@ -121,7 +122,11 @@ class Mailer(CommandWorker):
         SentryReporter.set_context('cmd_uuid', '-')
         Context.get().update_trace_id('-')
 
-    def process_exception(self, e: Exception):
+    def process_timeout(self, e: BaseException):
+        LOG.info('Failed with timeout')
+        SentryReporter.capture_exception(e)
+
+    def process_exception(self, e: BaseException):
         LOG.info('Failed with unexpected error', exc_info=e)
         SentryReporter.capture_exception(e)
 
