@@ -24,6 +24,7 @@ classifiers = [
 ]
 requires-python = '>=3.10, <4'
 dependencies = [
+    'func-timeout',
     # DSW
     "dsw-database==4.10.4",
 ]

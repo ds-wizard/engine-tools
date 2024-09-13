@@ -22,7 +22,7 @@ from .documents import DocumentFile, DocumentNameGiver
 from .exceptions import create_job_exception, JobException
 from .limits import LimitsEnforcer
 from .templates import TemplateRegistry, Template, Format
-from .utils import timeout, JobTimeoutError, byte_size_format
+from .utils import byte_size_format
 
 
 LOG = logging.getLogger(__name__)
@@ -34,8 +34,6 @@ def handle_job_step(message):
         def handled_step(job, *args, **kwargs):
             try:
                 return func(job, *args, **kwargs)
-            except JobTimeoutError as e:
-                raise e  # re-raise (need to be cached by context manager)
             except Exception as e:
                 LOG.debug('Handling exception', exc_info=True)
                 raise create_job_exception(
@@ -234,15 +232,11 @@ class Job:
 
     def _run(self):
         self.get_document()
-        try:
-            with timeout(Context.get().app.cfg.experimental.job_timeout):
-                self.prepare_template()
-                self.build_document()
-                self.store_document()
-        except TimeoutError:
-            LimitsEnforcer.timeout_exceeded(
-                job_id=self.doc_uuid,
-            )
+
+        self.prepare_template()
+        self.build_document()
+        self.store_document()
+
         self.finalize()
 
     def _sentry_job_exception(self) -> bool:
@@ -287,6 +281,7 @@ class DocumentWorker(CommandWorker):
     def __init__(self, config: DocumentWorkerConfig, workdir: pathlib.Path):
         self.config = config
         self._init_context(workdir=workdir)
+        self.current_job = None  # type: Job | None
 
     def _init_context(self, workdir: pathlib.Path):
         Context.initialize(
@@ -332,7 +327,8 @@ class DocumentWorker(CommandWorker):
             db=Context.get().app.db,
             channel=CMD_CHANNEL,
             component=CMD_COMPONENT,
-            timeout=Context.get().app.cfg.db.queue_timout,
+            wait_timeout=Context.get().app.cfg.db.queue_timeout,
+            work_timeout=Context.get().app.cfg.experimental.job_timeout,
         )
         return queue
 
@@ -358,10 +354,23 @@ class DocumentWorker(CommandWorker):
         Context.get().update_document_id(document_uuid)
         SentryReporter.set_context('cmd_uuid', cmd.uuid)
         LOG.info(f'Running job #{cmd.uuid}')
-        job = Job(command=cmd, document_uuid=document_uuid)
-        job.run()
+        self.current_job = Job(command=cmd, document_uuid=document_uuid)
+        self.current_job.run()
+        self.current_job = None
         Context.get().update_trace_id('-')
         Context.get().update_document_id('-')
 
-    def process_exception(self, e: Exception):
+    def process_exception(self, e: BaseException):
+        LOG.info('Failed with exception')
         SentryReporter.capture_exception(e)
+
+    def process_timeout(self, e: BaseException):
+        LOG.info('Failed with timeout')
+        SentryReporter.capture_exception(e)
+
+        if self.current_job is not None:
+            self.current_job.try_set_job_state(
+                DocumentState.FAILED,
+                'Generating document exceeded the time limit',
+            )
+            self.current_job = None
