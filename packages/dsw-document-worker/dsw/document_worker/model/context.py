@@ -68,7 +68,7 @@ class Integration:
         self.id = integration_id  # type: str
         self.item_url = item_url  # type: Optional[str]
         self.logo = logo  # type: Optional[str]
-        self.props = props  # type: dict[str, str]
+        self.props = props  # type: list[str]
         self.type = integration_type  # type: str
         self.annotations = annotations  # type: AnnotationsT
 
@@ -118,7 +118,7 @@ class ApiIntegration(Integration):
             logo='',
             integration_id='',
             item_url='',
-            props={},
+            props=[],
             rq_body='',
             rq_method='GET',
             rq_url='',
