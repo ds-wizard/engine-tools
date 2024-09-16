@@ -8,6 +8,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 
+## [4.10.6]
+
+### Fixed
+
+- Fixed database configuration
+
 ## [4.10.5]
 
 ### Fixed
@@ -321,3 +327,4 @@ Released for version consistency with other DSW tools.
 [4.10.3]: /../../tree/v4.10.3
 [4.10.4]: /../../tree/v4.10.4
 [4.10.5]: /../../tree/v4.10.5
+[4.10.6]: /../../tree/v4.10.6
