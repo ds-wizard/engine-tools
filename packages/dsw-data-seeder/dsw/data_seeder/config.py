@@ -78,7 +78,7 @@ class SeederConfigParser(DSWConfigParser):
                         cast=cast_int,
                     )
                 ),
-                queue_timout=0,
+                queue_timeout=0,
             )
 
         return result

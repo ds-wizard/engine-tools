@@ -123,7 +123,7 @@ class Integration:
         self.id = integration_id  # type: str
         self.item_url = item_url  # type: Optional[str]
         self.logo = logo  # type: Optional[str]
-        self.props = props  # type: dict[str, str]
+        self.props = props  # type: list[str]
         self.type = integration_type  # type: str
         self.annotations = annotations  # type: AnnotationsT
 
@@ -173,7 +173,7 @@ class ApiIntegration(Integration):
             logo='',
             integration_id='',
             item_url='',
-            props={},
+            props=[],
             rq_body='',
             rq_method='GET',
             rq_url='',
@@ -1588,7 +1588,7 @@ class UserGroupMember:
                  image_url, membership_type):
         self.uuid = uuid  # type: str
         self.first_name = first_name  # type: str
-        self.lastName = last_name  # type: str
+        self.last_name = last_name  # type: str
         self.gravatar_hash = gravatar_hash  # type: str
         self.image_url = image_url  # type: Optional[str]
         self.membership_type = membership_type  # type: str
@@ -1662,8 +1662,8 @@ class DocumentContextUserGroupPermission:
 
     @staticmethod
     def load(data: dict, **options):
-        return DocumentContextUserPermission(
-            user=UserGroup.load(data['group'], **options),
+        return DocumentContextUserGroupPermission(
+            group=UserGroup.load(data['group'], **options),
             permissions=data['perms'],
         )
 
