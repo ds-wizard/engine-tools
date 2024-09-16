@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed inconsistencies in document context with metamodel version 14
+
 
 ## [4.10.5]
 
