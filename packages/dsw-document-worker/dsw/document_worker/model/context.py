@@ -629,6 +629,31 @@ class ItemSelectReply(Reply):
         )
 
 
+class FileReply(Reply):
+
+    def __init__(self, path, created_at, created_by, file_uuid):
+        super().__init__(path, created_at, created_by, 'FileReply')
+        self.file_uuid = file_uuid  # type: str
+        self.file = None  # type: Optional[QuestionnaireFile]
+
+    @property
+    def value(self) -> str:
+        return self.file_uuid
+
+    def _resolve_links(self, ctx):
+        super()._resolve_links_parent(ctx)
+        self.file = ctx.questionnaire.files.get(self.file_uuid, None)
+
+    @staticmethod
+    def load(path: str, data: dict, **options):
+        return ItemSelectReply(
+            path=path,
+            created_at=_datetime(data['createdAt']),
+            created_by=SimpleAuthor.load(data['createdBy'], **options),
+            item_uuid=data['value']['value'],
+        )
+
+
 class Answer:
 
     def __init__(self, uuid, label, advice, metric_measures, followup_uuids,
@@ -1001,6 +1026,36 @@ class ItemSelectQuestion(Question):
         )
 
 
+class FileQuestion(Question):
+
+    def __init__(self, uuid, title, text, tag_uuids, reference_uuids,
+                 expert_uuids, required_phase_uuid, max_size, file_types,
+                 annotations):
+        super().__init__(uuid, 'FileQuestion', title, text, tag_uuids,
+                         reference_uuids, expert_uuids, required_phase_uuid,
+                         annotations)
+        self.max_size = max_size
+        self.file_types = file_types
+
+    def _resolve_links(self, ctx):
+        super()._resolve_links_parent(ctx)
+
+    @staticmethod
+    def load(data: dict, **options):
+        return FileQuestion(
+            uuid=data['uuid'],
+            title=data['title'],
+            text=data['text'],
+            tag_uuids=data['tagUuids'],
+            reference_uuids=data['referenceUuids'],
+            expert_uuids=data['expertUuids'],
+            required_phase_uuid=data['requiredPhaseUuid'],
+            max_size=data['maxSize'],
+            file_types=data['fileTypes'],
+            annotations=_load_annotations(data['annotations']),
+        )
+
+
 class Chapter:
 
     def __init__(self, uuid, title, text, question_uuids, annotations):
@@ -1053,6 +1108,8 @@ def _load_question(data: dict, **options):
         return IntegrationQuestion.load(data, **options)
     if data['questionType'] == 'ItemSelectQuestion':
         return ItemSelectQuestion.load(data, **options)
+    if data['questionType'] == 'FileQuestion':
+        return FileQuestion.load(data, **options)
     raise ValueError(f'Unknown question type: {data["questionType"]}')
 
 
@@ -1087,6 +1144,8 @@ def _load_reply(path: str, data: dict, **options):
         return IntegrationReply.load(path, data, **options)
     if data['value']['type'] == 'ItemSelectReply':
         return ItemSelectReply.load(path, data, **options)
+    if data['value']['type'] == 'FileReply':
+        return FileReply.load(path, data, **options)
     raise ValueError(f'Unknown reply type: {data["value"]["type"]}')
 
 
@@ -1318,6 +1377,28 @@ class RepliesContainer:
         return self.replies.items()
 
 
+class QuestionnaireFile:
+
+    def __init__(self, uuid, file_name, file_size, file_type, download_url):
+        self.uuid = uuid  # type: str
+        self.name = file_name  # type: str
+        self.size = file_size  # type: int
+        self.type = file_type  # type: str
+        self.download_url = download_url  # type: str
+
+        self.replies = []  # type: list[FileReply]
+
+    @staticmethod
+    def load(data: dict, **options):
+        return QuestionnaireFile(
+            uuid=data['uuid'],
+            file_name=data['fileName'],
+            file_size=data['fileSize'],
+            file_type=data['fileType'],
+            download_url=data['downloadUrl'],
+        )
+
+
 class Questionnaire:
 
     def __init__(self, uuid, name, description, created_by, phase_uuid,
@@ -1327,6 +1408,7 @@ class Questionnaire:
         self.description = description  # type: str
         self.version = None  # type: Optional[QuestionnaireVersion]
         self.versions = list()  # type: list[QuestionnaireVersion]
+        self.files = dict()  # type: dict[str, QuestionnaireFile]
         self.todos = list()  # type: list[str]
         self.created_by = created_by  # type: User
         self.phase_uuid = phase_uuid  # type: Optional[str]
@@ -1347,6 +1429,8 @@ class Questionnaire:
         version = None
         replies = {p: _load_reply(p, d, **options)
                    for p, d in data['replies'].items()}
+        files = {p: QuestionnaireFile.load(d, **options)
+                 for p, d in data.get('files', {}).items()}
         for v in versions:
             if v.uuid == data['versionUuid']:
                 version = v
@@ -1361,6 +1445,7 @@ class Questionnaire:
         )
         qtn.version = version
         qtn.versions = versions
+        qtn.files = files
         qtn.project_tags = data.get('projectTags', [])
         qtn.replies.replies = replies
         qtn.todos = [k for k, v in data.get('labels', {}).items() if TODO_LABEL_UUID in v]
@@ -1670,7 +1755,7 @@ class DocumentContextUserGroupPermission:
 
 class DocumentContext:
     """Document Context smart representation"""
-    METAMODEL_VERSION = 14
+    METAMODEL_VERSION = 15
 
     def __init__(self, ctx, **options):
         self.metamodel_version = int(ctx.get('metamodelVersion', '0'))
