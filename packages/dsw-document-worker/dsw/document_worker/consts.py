@@ -1,6 +1,7 @@
 CMD_CHANNEL = 'doc_worker'
 CMD_COMPONENT = 'doc_worker'
 COMPONENT_NAME = 'Document Worker'
+PACKAGE_NAME = 'dsw-document-worker'
 CURRENT_METAMODEL = 14
 DEFAULT_ENCODING = 'utf-8'
 EXIT_SUCCESS = 0

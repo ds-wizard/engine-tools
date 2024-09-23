@@ -60,3 +60,11 @@ def main(config: DocumentWorkerConfig, workdir: str):
         SentryReporter.capture_exception(e)
         click.echo(f'Ended with error: {e}')
         exit(2)
+
+
+@click.command(name='list-plugins')
+def list_plugins():
+    from .plugins import get_plugin_manager
+    plugin_manager = get_plugin_manager()
+    for plugin in plugin_manager.list_name_plugin():
+        click.echo(plugin)
