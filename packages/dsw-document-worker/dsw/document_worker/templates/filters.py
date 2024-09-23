@@ -10,6 +10,7 @@ from typing import Any, Union, Optional
 
 from ..exceptions import JobException
 from ..model import DocumentContext
+from dsw.document_worker.utils import byte_size_format
 
 
 LOG = logging.getLogger(__name__)
@@ -226,6 +227,7 @@ def raise_error(message, title='Document rendering error'):
 filters = {
     'any': any,
     'all': all,
+    'bytesize_format': byte_size_format,
     'datetime_format': datetime_format,
     'extract': extract,
     'of_alphabet': of_alphabet,
