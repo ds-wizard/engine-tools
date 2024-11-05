@@ -1,4 +1,4 @@
-FROM datastewardshipwizard/python-base:4.10.1-3.11-basic as builder
+FROM datastewardshipwizard/python-base:4.12.0-basic AS builder
 
 WORKDIR /app
 
@@ -15,12 +15,12 @@ RUN python -m pip wheel --no-cache-dir --wheel-dir=/app/wheels -r /app/packages/
  && python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/app/wheels /app/packages/dsw-data-seeder
 
 
-FROM datastewardshipwizard/python-base:4.10.1-3.11-basic
+FROM datastewardshipwizard/python-base:4.12.0-basic
 
-ENV APPLICATION_CONFIG_PATH /app/config/application.yml
-ENV WORKDIR_PATH /home/user/data
-ENV SEEDER_RECIPE example
-ENV PATH "/home/user/.local/bin:$PATH"
+ENV APPLICATION_CONFIG_PATH=/app/config/application.yml \
+    WORKDIR_PATH=/home/user/data \
+    SEEDER_RECIPE=example \
+    PATH="/home/user/.local/bin:$PATH"
 
 # Setup non-root user
 USER user
