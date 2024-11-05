@@ -1770,7 +1770,8 @@ class DocumentContext:
     def __init__(self, ctx, **options):
         self.metamodel_version = int(ctx.get('metamodelVersion', '0'))
         if self.metamodel_version != self.METAMODEL_VERSION:
-            raise ValueError(f'Unsupported metamodel version: {self.metamodel_version}')
+            raise ValueError(f'Unsupported metamodel version: {self.metamodel_version} '
+                             f'(expected: {self.METAMODEL_VERSION})')
 
         self.config = ContextConfig.load(ctx['config'], **options)
         self.km = KnowledgeModel.load(ctx['knowledgeModel'], **options)

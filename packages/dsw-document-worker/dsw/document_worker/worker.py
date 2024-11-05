@@ -347,7 +347,8 @@ class DocumentWorker(CommandWorker):
         if metamodel_version != CURRENT_METAMODEL:
             LOG.error('Command with metamodel version %d  is not supported '
                       'by this worker (version %d)', metamodel_version, CURRENT_METAMODEL)
-            raise RuntimeError('Unsupported metamodel version')
+            raise RuntimeError(f'Unsupported metamodel version: {metamodel_version} '
+                               f'(expected {CURRENT_METAMODEL})')
         document_uuid = cmd.body['document']['uuid']
 
         Context.get().update_trace_id(cmd.uuid)
