@@ -1,4 +1,4 @@
-FROM datastewardshipwizard/python-base:4.10.1-3.11-basic as builder
+FROM datastewardshipwizard/python-base:4.12.0-basic AS builder
 
 WORKDIR /app
 
@@ -8,9 +8,9 @@ RUN python -m pip wheel --no-cache-dir --wheel-dir=/app/wheels -r /app/packages/
  && python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/app/wheels /app/packages/dsw-tdk
 
 
-FROM datastewardshipwizard/python-base:4.10.1-3.11-basic
+FROM datastewardshipwizard/python-base:4.12.0-basic
 
-ENV PATH "/home/user/.local/bin:$PATH"
+ENV PATH="/home/user/.local/bin:$PATH"
 
 # Setup non-root user
 USER user
