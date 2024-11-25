@@ -35,7 +35,7 @@ dependencies = [
     'requests',
     'sentry-sdk',
     'tenacity',
-    'weasyprint',
+    'weasyprint==60.2',
     'XlsxWriter',
     # DSW
     "dsw-command-queue==4.12.0",
