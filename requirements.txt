@@ -37,7 +37,7 @@ psycopg==3.2.3
 psycopg-binary==3.2.3
 pycparser==2.22
 pycryptodome==3.21.0
-pydyf==0.11.0
+pydyf==0.10.0
 pyparsing==3.2.0
 pyphen==0.17.0
 python-dateutil==2.9.0.post0
