@@ -792,6 +792,53 @@ class Question:
         return [r for r in self.references if isinstance(r, CrossReference)]
 
 
+class ValueQuestionValidation:
+    SHORT_TYPE: dict[str, str] = {
+        'MinLengthQuestionValidation': 'min-length',
+        'MaxLengthQuestionValidation': 'max-length',
+        'RegexQuestionValidation': 'regex',
+        'OrcidQuestionValidation': 'orcid',
+        'DoiQuestionValidation': 'doi',
+        'MinNumberQuestionValidation': 'min',
+        'MaxNumberQuestionValidation': 'max',
+        'FromDateQuestionValidation': 'from-date',
+        'ToDateQuestionValidation': 'to-date',
+        'FromDateTimeQuestionValidation': 'from-datetime',
+        'ToDateTimeQuestionValidation': 'to-datetime',
+        'FromTimeQuestionValidation': 'from-time',
+        'ToTimeQuestionValidation': 'to-time',
+        'DomainQuestionValidation': 'domain',
+    }
+    VALUE_TYPE: dict[str, type | None] = {
+        'MinLengthQuestionValidation': int,
+        'MaxLengthQuestionValidation': int,
+        'RegexQuestionValidation': str,
+        'OrcidQuestionValidation': None,
+        'DoiQuestionValidation': None,
+        'MinNumberQuestionValidation': float,
+        'MaxNumberQuestionValidation': float,
+        'FromDateQuestionValidation': str,
+        'ToDateQuestionValidation': str,
+        'FromDateTimeQuestionValidation': str,
+        'ToDateTimeQuestionValidation': str,
+        'FromTimeQuestionValidation': str,
+        'ToTimeQuestionValidation': str,
+        'DomainQuestionValidation': str,
+    }
+
+    def __init__(self, validation_type: str, value: str | int | float | None = None):
+        self.type = self.SHORT_TYPE.get(validation_type, 'unknown')
+        self.full_type = validation_type
+        self.value = value
+
+    @staticmethod
+    def load(data: dict, **options):
+        return ValueQuestionValidation(
+            validation_type=data['type'],
+            value=data.get('value', None),
+        )
+
+
 class ValueQuestion(Question):
 
     def __init__(self, uuid, title, text, tag_uuids, reference_uuids,
@@ -800,6 +847,7 @@ class ValueQuestion(Question):
                          reference_uuids, expert_uuids, required_phase_uuid,
                          annotations)
         self.value_type = value_type  # type: str
+        self.validations = list()  # type: list[ValueQuestionValidation]
 
     @property
     def a(self):
@@ -846,7 +894,7 @@ class ValueQuestion(Question):
 
     @staticmethod
     def load(data: dict, **options):
-        return ValueQuestion(
+        question = ValueQuestion(
             uuid=data['uuid'],
             title=data['title'],
             text=data['text'],
@@ -857,6 +905,9 @@ class ValueQuestion(Question):
             value_type=data['valueType'],
             annotations=_load_annotations(data['annotations']),
         )
+        question.validations = [ValueQuestionValidation.load(d, **options)
+                                for d in data['validations']]
+        return question
 
 
 class OptionsQuestion(Question):
@@ -1765,7 +1816,7 @@ class DocumentContextUserGroupPermission:
 
 class DocumentContext:
     """Document Context smart representation"""
-    METAMODEL_VERSION = 15
+    METAMODEL_VERSION = 16
 
     def __init__(self, ctx, **options):
         self.metamodel_version = int(ctx.get('metamodelVersion', '0'))
