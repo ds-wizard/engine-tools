@@ -65,7 +65,9 @@ class Database:
                      'FROM document WHERE tenant_uuid = %(tenant_uuid)s) ' \
                      '+ (SELECT COALESCE(SUM(file_size)::bigint, 0) ' \
                      'FROM document_template_asset WHERE tenant_uuid = %(tenant_uuid)s) ' \
-                     'as result;'
+                     '+ (SELECT COALESCE(SUM(file_size)::bigint, 0) ' \
+                     'FROM questionnaire_file WHERE tenant_uuid = %(tenant_uuid)s) ' \
+                     'AS result;'
 
     def __init__(self, cfg: DatabaseConfig, connect: bool = True,
                  with_queue: bool = True):
