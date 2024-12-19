@@ -21,6 +21,8 @@ class LimitsEnforcer:
     @staticmethod
     def check_size_usage(job_id: str, doc_size: int,
                          used_size: int, limit_size: Optional[int]):
+        limit_size = abs(limit_size) if limit_size is not None else None
+
         if limit_size is None or doc_size + used_size < limit_size:
             return
         remains = limit_size - used_size

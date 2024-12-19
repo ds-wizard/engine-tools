@@ -56,8 +56,8 @@ class Job:
         self.doc_context = command.body  # type: dict
         self.doc = None  # type: Optional[DBDocument]
         self.final_file = None  # type: Optional[DocumentFile]
-        self.tenant_config = None  # type: Optional[DBTenantConfig]
-        self.tenant_limits = None  # type: Optional[DBTenantLimits]
+        self.tenant_config = self.ctx.app.db.get_tenant_config(self.tenant_uuid)  # type: Optional[DBTenantConfig]
+        self.tenant_limits = self.ctx.app.db.fetch_tenant_limits(self.tenant_uuid)  # type: Optional[DBTenantLimits]
 
     @property
     def safe_doc(self) -> DBDocument:
