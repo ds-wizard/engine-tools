@@ -304,7 +304,8 @@ def _to_ordered_dict(tuples: List[Tuple[str, Any]]) -> OrderedDict:
 class TemplateProject:
 
     TEMPLATE_FILE = 'template.json'
-    DEFAULT_PATTERNS = ['!**/.git/**/*', '!template.json', '!template.zip']
+    DEFAULT_PATTERNS = ['!**/.*', '!**/.*/', '!**/~*', '!**/~*/',
+                        '!template.json', '!template.zip']
 
     json_decoder = json.JSONDecoder(object_pairs_hook=_to_ordered_dict)
 
