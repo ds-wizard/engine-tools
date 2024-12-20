@@ -151,6 +151,14 @@ class Job:
             extras['questionnaire'] = questionnaire.to_dict()
         self.doc_context['extras'] = extras
 
+    def check_compliance(self):
+        metamodel_version = int(self.doc_context.get('metamodelVersion', '0'))
+        if metamodel_version != CURRENT_METAMODEL:
+            LOG.error('Command with metamodel version %d  is not supported '
+                      'by this worker (version %d)', metamodel_version, CURRENT_METAMODEL)
+            raise RuntimeError(f'Unsupported metamodel version: {metamodel_version} '
+                               f'(expected {CURRENT_METAMODEL})')
+
     @handle_job_step('Failed to build final document')
     def build_document(self):
         LOG.info('Building document by rendering template with context')
@@ -231,6 +239,7 @@ class Job:
             return False
 
     def _run(self):
+        self.check_compliance()
         self.get_document()
 
         self.prepare_template()
@@ -343,14 +352,7 @@ class DocumentWorker(CommandWorker):
         queue.run_once()
 
     def work(self, cmd: PersistentCommand):
-        metamodel_version = int(cmd.body.get('metamodelVersion', '0'))
-        if metamodel_version != CURRENT_METAMODEL:
-            LOG.error('Command with metamodel version %d  is not supported '
-                      'by this worker (version %d)', metamodel_version, CURRENT_METAMODEL)
-            raise RuntimeError(f'Unsupported metamodel version: {metamodel_version} '
-                               f'(expected {CURRENT_METAMODEL})')
         document_uuid = cmd.body['document']['uuid']
-
         Context.get().update_trace_id(cmd.uuid)
         Context.get().update_document_id(document_uuid)
         SentryReporter.set_context('cmd_uuid', cmd.uuid)

@@ -39,6 +39,18 @@ class CommandQueries:
         """
 
     @staticmethod
+    def query_command_error_stop() -> str:
+        return f"""
+            UPDATE persistent_command
+            SET attempts = %(attempts)s,
+                max_attempts = %(attempts)s,
+                last_error_message = %(error_message)s,
+                state = '{CommandState.ERROR}',
+                updated_at = %(updated_at)s
+            WHERE uuid = %(uuid)s;
+        """
+
+    @staticmethod
     def query_command_done() -> str:
         return f"""
             UPDATE persistent_command
