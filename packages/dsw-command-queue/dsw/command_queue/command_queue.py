@@ -40,6 +40,45 @@ signal.signal(signal.SIGINT, signal_handler)
 signal.signal(signal.SIGABRT, signal_handler)
 
 
+class CommandJobError(BaseException):
+
+    def __init__(self, job_id: str, message: str, try_again: bool,
+                 exc: BaseException | None = None):
+        self.job_id = job_id
+        self.message = message
+        self.try_again = try_again
+        self.exc = exc
+        super().__init__(message)
+
+    def __str__(self):
+        return self.message
+
+    def log_message(self):
+        if self.exc is None:
+            return self.message
+        else:
+            return f'{self.message} (caused by: [{type(self.exc).__name__}] {str(self.exc)})'
+
+    def db_message(self):
+        if self.exc is None:
+            return self.message
+        return f'{self.message}\n\n' \
+               f'Caused by: {type(self.exc).__name__}\n' \
+               f'{str(self.exc)}'
+
+    @staticmethod
+    def create(job_id: str, message: str, try_again: bool = True,
+               exc: BaseException | None = None):
+        if isinstance(exc, CommandJobError):
+            return exc
+        return CommandJobError(
+            job_id=job_id,
+            message=message,
+            try_again=try_again,
+            exc=exc,
+        )
+
+
 class CommandWorker:
 
     @abc.abstractmethod
@@ -190,8 +229,27 @@ class CommandQueue:
                 updated_at=datetime.datetime.now(tz=datetime.UTC),
                 uuid=command.uuid,
             )
+        except CommandJobError as e:
+            if e.try_again and attempt_number < command.max_attempts:
+                query = self.queries.query_command_error()
+                msg = f'Failed with job error: {e.message} (will try again)'
+            else:
+                query = self.queries.query_command_error_stop()
+                msg = f'Failed with job error: {e.message}'
+            LOG.warning(msg)
+            self.worker.process_exception(e)
+            self.db.execute_query(
+                query=query,
+                attempts=attempt_number,
+                error_message=msg,
+                updated_at=datetime.datetime.now(tz=datetime.UTC),
+                uuid=command.uuid,
+            )
         except Exception as e:
-            msg = f'Failed with exception: {str(e)} ({type(e).__name__})'
+            if attempt_number < command.max_attempts:
+                msg = f'Failed with exception [{type(e).__name__}]: {str(e)} (will try again)'
+            else:
+                msg = f'Failed with exception [{type(e).__name__}]: {str(e)}'
             LOG.warning(msg)
             self.worker.process_exception(e)
             self.db.execute_query(
