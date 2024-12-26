@@ -44,12 +44,9 @@ class Mailer(CommandWorker):
             db=Database(cfg=self.cfg.db, connect=False),
         )
         SentryReporter.initialize(
-            dsn=self.cfg.sentry.workers_dsn,
-            environment=self.cfg.general.environment,
-            server_name=self.cfg.general.client_url,
+            config=self.cfg.sentry,
             release=BUILD_INFO.version,
             prog_name=PROG_NAME,
-            config=self.cfg.sentry,
         )
 
     @staticmethod
@@ -91,8 +88,11 @@ class Mailer(CommandWorker):
 
     def work(self, cmd: PersistentCommand):
         # update Sentry info
-        SentryReporter.set_context('template', '-')
-        SentryReporter.set_context('cmd_uuid', cmd.uuid)
+        SentryReporter.set_tags(
+            template='?',
+            command_uuid=cmd.uuid,
+            tenant_uuid=cmd.tenant_uuid,
+        )
         Context.get().update_trace_id(cmd.uuid)
         # work
         app_ctx = Context.get().app
@@ -116,10 +116,13 @@ class Mailer(CommandWorker):
         rq.client_url = cmd.body.get('clientUrl', app_ctx.cfg.general.client_url)
         rq.domain = urllib.parse.urlparse(rq.client_url).hostname
         # update Sentry info
-        SentryReporter.set_context('template', rq.template_name)
+        SentryReporter.set_tags(template=rq.template_name)
         self.send(rq, mail_cfg)
-        SentryReporter.set_context('template', '-')
-        SentryReporter.set_context('cmd_uuid', '-')
+        SentryReporter.set_tags(
+            template='-',
+            command_uuid='-',
+            tenant_uuid='-',
+        )
         Context.get().update_trace_id('-')
 
     def process_timeout(self, e: BaseException):

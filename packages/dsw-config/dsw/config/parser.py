@@ -118,6 +118,7 @@ class DSWConfigParser:
             workers_dsn=self.get(self.keys.sentry.worker_dsn),
             traces_sample_rate=self.get(self.keys.sentry.traces_sample_rate),
             max_breadcrumbs=self.get(self.keys.sentry.max_breadcrumbs),
+            environment=self.get(self.keys.sentry.environment),
         )
 
     @property
