@@ -120,7 +120,7 @@ class TemplateConfig:
                 data.get('requests', {}),
             ),
             secrets=data.get('secrets', {}),
-            send_sentry=bool(data.get('send_sentry', False)),
+            send_sentry=bool(data.get('sentry', False)),
         )
 
 

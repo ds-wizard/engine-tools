@@ -176,6 +176,12 @@ class _SentryKeys(ConfigKeysContainer):
         default='',
         cast=cast_str,
     )
+    environment = ConfigKey(
+        yaml_path=['sentry', 'environment'],
+        var_names=['SENTRY_ENVIRONMENT'],
+        default='production',
+        cast=cast_str,
+    )
 
 
 class _DatabaseKeys(ConfigKeysContainer):

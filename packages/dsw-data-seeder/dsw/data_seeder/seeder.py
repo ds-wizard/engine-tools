@@ -227,12 +227,9 @@ class DataSeeder(CommandWorker):
             ),
         )
         SentryReporter.initialize(
-            dsn=self.cfg.sentry.workers_dsn,
-            environment=self.cfg.general.environment,
-            server_name=self.cfg.general.client_url,
+            config=self.cfg.sentry,
             release=BUILD_INFO.version,
             prog_name=PROG_NAME,
-            config=self.cfg.sentry,
         )
 
     def _init_extra_connections(self):
@@ -249,7 +246,7 @@ class DataSeeder(CommandWorker):
         self.recipe.prepare()
 
     def _run_preparation(self, recipe_name: str) -> CommandQueue:
-        SentryReporter.set_context('recipe_name', recipe_name)
+        SentryReporter.set_tags(recipe_name=recipe_name)
         # prepare
         self._prepare_recipe(recipe_name)
         self._update_component_info()
@@ -277,7 +274,7 @@ class DataSeeder(CommandWorker):
 
     def work(self, cmd: PersistentCommand):
         Context.get().update_trace_id(cmd.uuid)
-        SentryReporter.set_context('cmd_uuid', cmd.uuid)
+        SentryReporter.set_tags(command_uuid=cmd.uuid)
         self.recipe.run_prepare()
         tenant_uuid = cmd.body['tenantUuid']
         LOG.info(f'Seeding recipe "{self.recipe.name}" '
@@ -287,15 +284,13 @@ class DataSeeder(CommandWorker):
             time.sleep(self.recipe.init_wait)
         self.execute(tenant_uuid)
         Context.get().update_trace_id('-')
-        SentryReporter.set_context('cmd_uuid', '-')
+        SentryReporter.set_tags(command_uuid='-')
 
     def process_timeout(self, e: BaseException):
-        LOG.info('Failed with timeout')
-        SentryReporter.capture_exception(e)
+        LOG.error('Failed with timeout', exc_info=e)
 
     def process_exception(self, e: BaseException):
-        LOG.info('Failed with unexpected error', exc_info=e)
-        SentryReporter.capture_exception(e)
+        LOG.error('Failed with unexpected error', exc_info=e)
 
     @staticmethod
     def _update_component_info():
@@ -314,7 +309,7 @@ class DataSeeder(CommandWorker):
         self.execute(tenant_uuid=tenant_uuid)
 
     def execute(self, tenant_uuid: str):
-        SentryReporter.set_context('tenant_uuid', tenant_uuid)
+        SentryReporter.set_tags(tenant_uuid=tenant_uuid)
         # Run SQL scripts
         app_ctx = Context.get().app
         phase = 'DB'
@@ -346,9 +341,8 @@ class DataSeeder(CommandWorker):
                 )
                 LOG.debug('    OK (stored)')
         except Exception as e:
-            SentryReporter.capture_exception(e)
             LOG.warning(f'Exception appeared [{type(e).__name__}]: {e}')
-            LOG.info('Failed with unexpected error', exc_info=e)
+            LOG.error('Failed with unexpected error', exc_info=e)
             LOG.info('Rolling back DB changes')
 
             LOG.debug(f'Used extra DBs: {used_targets}')
@@ -361,7 +355,7 @@ class DataSeeder(CommandWorker):
                 LOG.debug(f'{target} will roll back: {conn.pgconn.status} / {conn.pgconn.transaction_status}')
                 conn.rollback()
                 LOG.debug(f'{target} rolled back: {conn.pgconn.status} / {conn.pgconn.transaction_status}')
-            raise RuntimeError(f'{phase}: {e}')
+            raise RuntimeError(f'{phase}: {e}') from e
         else:
             LOG.info('Committing DB changes')
             app_ctx.db.conn_query.connection.commit()
@@ -369,4 +363,4 @@ class DataSeeder(CommandWorker):
                 self.dbs[target].conn_query.connection.commit()
         finally:
             LOG.info('Data seeding done')
-            SentryReporter.set_context('tenant_uuid', '-')
+            SentryReporter.set_tags(tenant_uuid='-')

@@ -30,11 +30,13 @@ class GeneralConfig(ConfigModel):
 class SentryConfig(ConfigModel):
 
     def __init__(self, enabled: bool, workers_dsn: Optional[str],
-                 traces_sample_rate: Optional[float], max_breadcrumbs: Optional[int]):
+                 traces_sample_rate: Optional[float], max_breadcrumbs: Optional[int],
+                 environment: str):
         self.enabled = enabled
         self.workers_dsn = workers_dsn
         self.traces_sample_rate = traces_sample_rate
         self.max_breadcrumbs = max_breadcrumbs
+        self.environment = environment
 
 
 class DatabaseConfig(ConfigModel):
