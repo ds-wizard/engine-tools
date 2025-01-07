@@ -1,5 +1,5 @@
+import dataclasses
 import shlex
-from typing import List, Optional
 
 from dsw.config import DSWConfigParser
 from dsw.config.keys import ConfigKey, ConfigKeys, ConfigKeysContainer, \
@@ -10,6 +10,7 @@ from dsw.config.model import GeneralConfig, SentryConfig, DatabaseConfig, \
 from .consts import DocumentNamingStrategy
 
 
+# pylint: disable-next=too-few-public-methods
 class _DocumentsKeys(ConfigKeysContainer):
     naming_strategy = ConfigKey(
         yaml_path=['documents', 'naming', 'strategy'],
@@ -19,6 +20,7 @@ class _DocumentsKeys(ConfigKeysContainer):
     )
 
 
+# pylint: disable-next=too-few-public-methods
 class _ExperimentalKeys(ConfigKeysContainer):
     job_timeout = ConfigKey(
         yaml_path=['experimental', 'jobTimeout'],
@@ -34,6 +36,7 @@ class _ExperimentalKeys(ConfigKeysContainer):
     )
 
 
+# pylint: disable-next=too-few-public-methods
 class _CommandPandocKeys(ConfigKeysContainer):
     executable = ConfigKey(
         yaml_path=['externals', 'pandoc', 'executable'],
@@ -55,44 +58,43 @@ class _CommandPandocKeys(ConfigKeysContainer):
     )
 
 
+# pylint: disable-next=too-few-public-methods
 class DocWorkerConfigKeys(ConfigKeys):
     documents = _DocumentsKeys
     experimental = _ExperimentalKeys
     cmd_pandoc = _CommandPandocKeys
 
 
+@dataclasses.dataclass
 class DocumentsConfig(ConfigModel):
+    naming_strategy: str
 
     def __init__(self, naming_strategy: str):
         self.naming_strategy = DocumentNamingStrategy.get(naming_strategy)
 
 
+@dataclasses.dataclass
 class ExperimentalConfig(ConfigModel):
-
-    def __init__(self, job_timeout: Optional[int],
-                 max_doc_size: Optional[float]):
-        self.job_timeout = job_timeout
-        self.max_doc_size = max_doc_size
+    job_timeout: int | None
+    max_doc_size: int | None
 
 
+@dataclasses.dataclass
 class CommandConfig:
-
-    def __init__(self, executable: str, args: str, timeout: float):
-        self.executable = executable
-        self.args = args
-        self.timeout = timeout
+    executable: str
+    args: str
+    timeout: float
 
     @property
-    def command(self) -> List[str]:
+    def command(self) -> list[str]:
         return [self.executable] + shlex.split(self.args)
 
 
+@dataclasses.dataclass
 class TemplateRequestsConfig:
-
-    def __init__(self, enabled: bool, limit: int, timeout: int):
-        self.enabled = enabled
-        self.limit = limit
-        self.timeout = timeout
+    enabled: bool
+    limit: int
+    timeout: int
 
     @staticmethod
     def load(data: dict):
@@ -103,14 +105,12 @@ class TemplateRequestsConfig:
         )
 
 
+@dataclasses.dataclass
 class TemplateConfig:
-
-    def __init__(self, ids: List[str], requests: TemplateRequestsConfig,
-                 secrets: dict[str, str], send_sentry: bool):
-        self.ids = ids
-        self.requests = requests
-        self.secrets = secrets
-        self.send_sentry = send_sentry
+    ids: list[str]
+    requests: TemplateRequestsConfig
+    secrets: dict[str, str]
+    send_sentry: bool
 
     @staticmethod
     def load(data: dict):
@@ -120,16 +120,15 @@ class TemplateConfig:
                 data.get('requests', {}),
             ),
             secrets=data.get('secrets', {}),
-            send_sentry=bool(data.get('send_sentry', False)),
+            send_sentry=bool(data.get('sentry', False)),
         )
 
 
+@dataclasses.dataclass
 class TemplatesConfig:
+    templates: list[TemplateConfig]
 
-    def __init__(self, templates: List[TemplateConfig]):
-        self.templates = templates
-
-    def get_config(self, template_id: str) -> Optional[TemplateConfig]:
+    def get_config(self, template_id: str) -> TemplateConfig | None:
         for template in self.templates:
             if any((template_id.startswith(prefix)
                     for prefix in template.ids)):
@@ -137,22 +136,18 @@ class TemplatesConfig:
         return None
 
 
+@dataclasses.dataclass
 class DocumentWorkerConfig:
-
-    def __init__(self, db: DatabaseConfig, s3: S3Config, log: LoggingConfig,
-                 doc: DocumentsConfig, pandoc: CommandConfig,
-                 templates: TemplatesConfig, experimental: ExperimentalConfig,
-                 cloud: CloudConfig, sentry: SentryConfig, general: GeneralConfig):
-        self.db = db
-        self.s3 = s3
-        self.log = log
-        self.doc = doc
-        self.pandoc = pandoc
-        self.templates = templates
-        self.experimental = experimental
-        self.cloud = cloud
-        self.sentry = sentry
-        self.general = general
+    db: DatabaseConfig
+    s3: S3Config
+    log: LoggingConfig
+    doc: DocumentsConfig
+    pandoc: CommandConfig
+    templates: TemplatesConfig
+    experimental: ExperimentalConfig
+    cloud: CloudConfig
+    sentry: SentryConfig
+    general: GeneralConfig
 
     def __str__(self):
         return f'DocumentWorkerConfig\n' \
@@ -170,7 +165,6 @@ class DocumentWorkerConfig:
 
 
 class DocumentWorkerConfigParser(DSWConfigParser):
-
     TEMPLATES_SECTION = 'templates'
 
     def __init__(self):

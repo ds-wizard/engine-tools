@@ -1,4 +1,4 @@
-certifi==2024.8.30
+certifi==2024.12.14
 PyYAML==6.0.2
-sentry-sdk==2.19.0
-urllib3==2.2.3
+sentry-sdk==2.19.2
+urllib3==2.3.0

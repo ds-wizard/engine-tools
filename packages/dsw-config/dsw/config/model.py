@@ -1,4 +1,4 @@
-from typing import Optional
+import dataclasses
 
 from .logging import prepare_logging, LOG_FILTER
 
@@ -19,52 +19,44 @@ class ConfigModel:
         return _config_to_string(self)
 
 
+@dataclasses.dataclass
 class GeneralConfig(ConfigModel):
-
-    def __init__(self, environment: str, client_url: str, secret: str):
-        self.environment = environment
-        self.client_url = client_url
-        self.secret = secret
+    environment: str
+    client_url: str
+    secret: str
 
 
+@dataclasses.dataclass
 class SentryConfig(ConfigModel):
-
-    def __init__(self, enabled: bool, workers_dsn: Optional[str],
-                 traces_sample_rate: Optional[float], max_breadcrumbs: Optional[int]):
-        self.enabled = enabled
-        self.workers_dsn = workers_dsn
-        self.traces_sample_rate = traces_sample_rate
-        self.max_breadcrumbs = max_breadcrumbs
+    enabled: bool
+    workers_dsn: str | None
+    traces_sample_rate: float | None
+    max_breadcrumbs: int | None
+    environment: str
 
 
+@dataclasses.dataclass
 class DatabaseConfig(ConfigModel):
-
-    def __init__(self, connection_string: str, connection_timeout: int,
-                 queue_timeout: int):
-        self.connection_string = connection_string
-        self.connection_timeout = connection_timeout
-        self.queue_timeout = queue_timeout
+    connection_string: str
+    connection_timeout: int
+    queue_timeout: int
 
 
+@dataclasses.dataclass
 class S3Config(ConfigModel):
-
-    def __init__(self, url: str, username: str, password: str,
-                 bucket: str, region: str):
-        self.url = url
-        self.username = username
-        self.password = password
-        self.bucket = bucket
-        self.region = region
+    url: str
+    username: str
+    password: str
+    bucket: str
+    region: str
 
 
+@dataclasses.dataclass
 class LoggingConfig(ConfigModel):
-
-    def __init__(self, level: str, global_level: str, message_format: str,
-                 dict_config: Optional[dict] = None):
-        self.level = level
-        self.global_level = global_level
-        self.message_format = message_format
-        self.dict_config = dict_config
+    level: str
+    global_level: str
+    message_format: str
+    dict_config: dict | None = None
 
     def apply(self):
         prepare_logging(self)
@@ -74,20 +66,17 @@ class LoggingConfig(ConfigModel):
         LOG_FILTER.set_extra(key, value)
 
 
+@dataclasses.dataclass
 class AWSConfig(ConfigModel):
-
-    def __init__(self, access_key_id: Optional[str], secret_access_key: Optional[str],
-                 region: Optional[str]):
-        self.access_key_id = access_key_id
-        self.secret_access_key = secret_access_key
-        self.region = region
+    access_key_id: str | None
+    secret_access_key: str | None
+    region: str | None
 
     @property
     def has_credentials(self) -> bool:
         return self.access_key_id is not None and self.secret_access_key is not None
 
 
+@dataclasses.dataclass
 class CloudConfig(ConfigModel):
-
-    def __init__(self, multi_tenant: bool):
-        self.multi_tenant = multi_tenant
+    multi_tenant: bool

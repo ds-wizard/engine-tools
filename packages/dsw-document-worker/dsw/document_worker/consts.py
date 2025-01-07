@@ -1,3 +1,4 @@
+# pylint: disable=too-few-public-methods
 CMD_CHANNEL = 'doc_worker'
 CMD_COMPONENT = 'doc_worker'
 COMPONENT_NAME = 'Document Worker'
@@ -6,7 +7,7 @@ DEFAULT_ENCODING = 'utf-8'
 EXIT_SUCCESS = 0
 NULL_UUID = '00000000-0000-0000-0000-000000000000'
 PROG_NAME = 'docworker'
-VERSION = '4.13.0'
+VERSION = '4.14.0'
 
 VAR_APP_CONFIG_PATH = 'APPLICATION_CONFIG_PATH'
 VAR_WORKDIR_PATH = 'WORKDIR_PATH'
@@ -49,5 +50,5 @@ class DocumentNamingStrategy:
     }
 
     @classmethod
-    def get(cls, name: str):
+    def get(cls, name: str) -> str:
         return cls._NAMES.get(name.lower(), cls._DEFAULT)

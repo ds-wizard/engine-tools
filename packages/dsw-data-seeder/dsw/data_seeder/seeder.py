@@ -1,13 +1,13 @@
 import collections
-import dateutil.parser
 import json
 import logging
 import mimetypes
 import pathlib
 import time
+import typing
 import uuid
 
-from typing import Optional
+import dateutil.parser
 
 from dsw.command_queue import CommandWorker, CommandQueue
 from dsw.config.sentry import SentryReporter
@@ -47,11 +47,13 @@ class DBScript:
 
 class SeedRecipe:
 
-    def __init__(self, name: str, description: str, root: pathlib.Path,
+    # pylint: disable-next=too-many-arguments
+    def __init__(self, *, name: str, description: str, root: pathlib.Path,
                  db_scripts: dict[str, DBScript], db_placeholder: str,
-                 s3_dir: Optional[pathlib.Path], s3_fname_replace: dict[str, str],
-                 uuids_count: int, uuids_placeholder: Optional[str],
+                 s3_dir: pathlib.Path | None, s3_fname_replace: dict[str, str],
+                 uuids_count: int, uuids_placeholder: str | None,
                  init_wait: float):
+        # pylint: disable-next=too-many-instance-attributes
         self.name = name
         self.description = description
         self.root = root
@@ -59,12 +61,12 @@ class SeedRecipe:
         self.db_placeholder = db_placeholder
         self.s3_dir = s3_dir
         self.s3_fname_replace = s3_fname_replace
-        self._db_scripts_data = collections.OrderedDict()  # type: dict[str, str]
-        self.s3_objects = collections.OrderedDict()  # type: dict[pathlib.Path, str]
+        self._db_scripts_data: dict[str, str] = collections.OrderedDict()
+        self.s3_objects: dict[pathlib.Path, str] = collections.OrderedDict()
         self.prepared = False
         self.uuids_count = uuids_count
         self.uuids_placeholder = uuids_placeholder
-        self.uuids_replacement = dict()  # type: dict[str, str]
+        self.uuids_replacement: dict[str, str] = {}
         self.init_wait = init_wait
 
     def _load_db_scripts(self):
@@ -147,10 +149,10 @@ class SeedRecipe:
         data = json.loads(recipe_file.read_text(
             encoding=DEFAULT_ENCODING,
         ))
-        db = data.get('db', {})  # type: dict
-        s3 = data.get('s3', {})  # type: dict
-        scripts = db.get('scripts', [])  # type: list[dict]
-        db_scripts = collections.OrderedDict()  # type: dict[str, DBScript]
+        db: dict[str, typing.Any] = data.get('db', {})
+        s3: dict[str, typing.Any] = data.get('s3', {})
+        scripts: list[dict] = db.get('scripts', [])
+        db_scripts: dict[str, DBScript] = collections.OrderedDict()
         for index, script in enumerate(scripts):
             target = script.get('target', '')
             filename = str(script.get('filename', ''))
@@ -158,7 +160,7 @@ class SeedRecipe:
                 continue
             filepath = pathlib.Path(filename)
             if '*' in filename:
-                for item in sorted([s for s in recipe_file.parent.glob(filename)]):
+                for item in sorted(list(recipe_file.parent.glob(filename))):
                     s = DBScript(item, target, index)
                     db_scripts[s.id] = s
             elif filepath.is_absolute():
@@ -227,12 +229,9 @@ class DataSeeder(CommandWorker):
             ),
         )
         SentryReporter.initialize(
-            dsn=self.cfg.sentry.workers_dsn,
-            environment=self.cfg.general.environment,
-            server_name=self.cfg.general.client_url,
+            config=self.cfg.sentry,
             release=BUILD_INFO.version,
             prog_name=PROG_NAME,
-            config=self.cfg.sentry,
         )
 
     def _init_extra_connections(self):
@@ -249,7 +248,7 @@ class DataSeeder(CommandWorker):
         self.recipe.prepare()
 
     def _run_preparation(self, recipe_name: str) -> CommandQueue:
-        SentryReporter.set_context('recipe_name', recipe_name)
+        SentryReporter.set_tags(recipe_name=recipe_name)
         # prepare
         self._prepare_recipe(recipe_name)
         self._update_component_info()
@@ -275,33 +274,32 @@ class DataSeeder(CommandWorker):
         queue = self._run_preparation(recipe_name)
         queue.run_once()
 
-    def work(self, cmd: PersistentCommand):
-        Context.get().update_trace_id(cmd.uuid)
-        SentryReporter.set_context('cmd_uuid', cmd.uuid)
+    def work(self, command: PersistentCommand):
+        Context.get().update_trace_id(command.uuid)
+        SentryReporter.set_tags(command_uuid=command.uuid)
         self.recipe.run_prepare()
-        tenant_uuid = cmd.body['tenantUuid']
-        LOG.info(f'Seeding recipe "{self.recipe.name}" '
-                 f'to tenant with UUID "{tenant_uuid}"')
-        if cmd.attempts == 0 and self.recipe.init_wait > 0.01:
-            LOG.info(f'Waiting for {self.recipe.init_wait} seconds (first attempt)')
+        tenant_uuid = command.body['tenantUuid']
+        LOG.info('Seeding recipe "%s" to tenant "%s"',
+                 self.recipe.name, tenant_uuid)
+        if command.attempts == 0 and self.recipe.init_wait > 0.01:
+            LOG.info('Waiting for %s seconds (first attempt)',
+                     self.recipe.init_wait)
             time.sleep(self.recipe.init_wait)
         self.execute(tenant_uuid)
         Context.get().update_trace_id('-')
-        SentryReporter.set_context('cmd_uuid', '-')
+        SentryReporter.set_tags(command_uuid='-')
 
     def process_timeout(self, e: BaseException):
-        LOG.info('Failed with timeout')
-        SentryReporter.capture_exception(e)
+        LOG.error('Failed with timeout', exc_info=e)
 
     def process_exception(self, e: BaseException):
-        LOG.info('Failed with unexpected error', exc_info=e)
-        SentryReporter.capture_exception(e)
+        LOG.error('Failed with unexpected error', exc_info=e)
 
     @staticmethod
     def _update_component_info():
         built_at = dateutil.parser.parse(BUILD_INFO.built_at)
-        LOG.info(f'Updating component info ({BUILD_INFO.version}, '
-                 f'{built_at.isoformat(timespec="seconds")})')
+        LOG.info('Updating component info (%s, %s)',
+                 BUILD_INFO.version, built_at.isoformat(timespec="seconds"))
         Context.get().app.db.update_component_info(
             name=COMPONENT_NAME,
             version=BUILD_INFO.version,
@@ -310,11 +308,11 @@ class DataSeeder(CommandWorker):
 
     def seed(self, recipe_name: str, tenant_uuid: str):
         self._prepare_recipe(recipe_name)
-        LOG.info(f'Executing recipe "{recipe_name}"')
+        LOG.info('Executing recipe "%s"', recipe_name)
         self.execute(tenant_uuid=tenant_uuid)
 
     def execute(self, tenant_uuid: str):
-        SentryReporter.set_context('tenant_uuid', tenant_uuid)
+        SentryReporter.set_tags(tenant_uuid=tenant_uuid)
         # Run SQL scripts
         app_ctx = Context.get().app
         phase = 'DB'
@@ -322,9 +320,9 @@ class DataSeeder(CommandWorker):
         try:
             LOG.info('Running SQL scripts')
             for script_id, sql_script in self.recipe.iterate_db_scripts(tenant_uuid):
-                LOG.debug(f' -> Executing script: {script_id}')
+                LOG.debug(' -> Executing script: %s', script_id)
                 script = self.recipe.db_scripts[script_id]
-                if script.target in self.dbs.keys():
+                if script.target in self.dbs:
                     used_targets.add(script.target)
                     with self.dbs[script.target].conn_query.new_cursor(use_dict=True) as c:
                         c.execute(query=sql_script)
@@ -335,9 +333,9 @@ class DataSeeder(CommandWorker):
             phase = 'S3'
             LOG.info('Transferring S3 objects')
             for local_file, object_name in self.recipe.iterate_s3_objects():
-                LOG.debug(f' -> Reading: {local_file.name}')
+                LOG.debug(' -> Reading: %s', local_file.name)
                 data = local_file.read_bytes()
-                LOG.debug(f' -> Sending: {object_name}')
+                LOG.debug(' -> Sending: %s', object_name)
                 app_ctx.s3.store_object(
                     tenant_uuid=tenant_uuid,
                     object_name=object_name,
@@ -346,22 +344,25 @@ class DataSeeder(CommandWorker):
                 )
                 LOG.debug('    OK (stored)')
         except Exception as e:
-            SentryReporter.capture_exception(e)
-            LOG.warning(f'Exception appeared [{type(e).__name__}]: {e}')
-            LOG.info('Failed with unexpected error', exc_info=e)
+            LOG.warning('Exception appeared [%s]: %s', type(e).__name__, e)
+            LOG.error('Failed with unexpected error', exc_info=e)
             LOG.info('Rolling back DB changes')
 
-            LOG.debug(f'Used extra DBs: {used_targets}')
+            LOG.debug('Used extra DBs: %s', str(used_targets))
             conn = app_ctx.db.conn_query.connection
-            LOG.debug(f'DEFAULT will roll back: {conn.pgconn.status} / {conn.pgconn.transaction_status}')
+            LOG.debug('DEFAULT will roll back: %s / %s',
+                      conn.pgconn.status, conn.pgconn.transaction_status)
             conn.rollback()
-            LOG.debug(f'DEFAULT rolled back: {conn.pgconn.status} / {conn.pgconn.transaction_status}')
+            LOG.debug('DEFAULT rolled back: %s / %s',
+                      conn.pgconn.status, conn.pgconn.transaction_status)
             for target in used_targets:
                 conn = self.dbs[target].conn_query.connection
-                LOG.debug(f'{target} will roll back: {conn.pgconn.status} / {conn.pgconn.transaction_status}')
+                LOG.debug('%s will roll back: %s / %s',
+                          target, conn.pgconn.status, conn.pgconn.transaction_status)
                 conn.rollback()
-                LOG.debug(f'{target} rolled back: {conn.pgconn.status} / {conn.pgconn.transaction_status}')
-            raise RuntimeError(f'{phase}: {e}')
+                LOG.debug('%s rolled back: %s / %s',
+                          target, conn.pgconn.status, conn.pgconn.transaction_status)
+            raise RuntimeError(f'{phase}: {e}') from e
         else:
             LOG.info('Committing DB changes')
             app_ctx.db.conn_query.connection.commit()
@@ -369,4 +370,4 @@ class DataSeeder(CommandWorker):
                 self.dbs[target].conn_query.connection.commit()
         finally:
             LOG.info('Data seeding done')
-            SentryReporter.set_context('tenant_uuid', '-')
+            SentryReporter.set_tags(tenant_uuid='-')

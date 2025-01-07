@@ -1,16 +1,18 @@
 import datetime
+import logging
+import re
+import typing
+
 import dateutil.parser as dp
 import jinja2
-import logging
 import markupsafe
 import markdown
-import re
 
-from typing import Any, Union, Optional
+from dsw.document_worker.utils import byte_size_format
 
 from ..exceptions import JobException
 from ..model import DocumentContext
-from dsw.document_worker.utils import byte_size_format
+from .tests import tests
 
 
 LOG = logging.getLogger(__name__)
@@ -23,10 +25,10 @@ class DSWMarkdownExt(markdown.extensions.Extension):
 
 
 class DSWMarkdownProcessor(markdown.preprocessors.Preprocessor):
+    LI_RE = re.compile(r'^[ ]*((\d+\.)|[*+-])[ ]+.*')
 
     def __init__(self, md):
         super().__init__(md)
-        self.LI_RE = re.compile(r'^[ ]*((\d+\.)|[*+-])[ ]+.*')
 
     def run(self, lines):
         prev_li = False
@@ -55,12 +57,11 @@ class DSWMarkdownProcessor(markdown.preprocessors.Preprocessor):
 class _JinjaEnv:
 
     def __init__(self):
-        self._env = None  # type: Optional[jinja2.Environment]
+        self._env: jinja2.Environment | None = None
 
     @property
     def env(self) -> jinja2.Environment:
         if self._env is None:
-            from .tests import tests
             self._env = jinja2.Environment(
                 loader=_base_jinja_loader,
                 extensions=['jinja2.ext.do'],
@@ -77,12 +78,12 @@ _alphabet = [chr(x) for x in range(ord('a'), ord('z') + 1)]
 _alphabet_size = len(_alphabet)
 _base_jinja_loader = jinja2.BaseLoader()
 _j2_env = _JinjaEnv()
-_empty_dict = dict()  # type: dict[str, Any]
+_empty_dict: dict[str, typing.Any] = {}
 _romans = [(1000, 'M'), (900, 'CM'), (500, 'D'), (400, 'CD'), (100, 'C'), (90, 'XC'),
            (50, 'L'), (40, 'XL'), (10, 'X'), (9, 'IX'), (5, 'V'), (4, 'IV'), (1, 'I')]
 
 
-def datetime_format(iso_timestamp: Union[None, datetime.datetime, str], fmt: str):
+def datetime_format(iso_timestamp: None | datetime.datetime | str, fmt: str):
     if iso_timestamp is None:
         return ''
     if not isinstance(iso_timestamp, datetime.datetime):
@@ -134,7 +135,7 @@ def _has_value(reply: dict) -> bool:
     return bool(reply) and ('value' in reply.keys()) and ('value' in reply['value'].keys())
 
 
-def _get_value(reply: dict) -> Any:
+def _get_value(reply: dict) -> typing.Any:
     return reply['value']['value']
 
 
@@ -182,14 +183,14 @@ def reply_path(uuids: list) -> str:
     return '.'.join(map(str, uuids))
 
 
-def jinja2_render(template_str: str, vars=None, fail_safe=False, **kwargs):
-    if vars is None:
-        vars = _empty_dict
+def jinja2_render(template_str: str, variables=None, fail_safe=False, **kwargs):
+    if variables is None:
+        variables = _empty_dict
     LOG.debug('Jinja2-in-Jinja2 rendering requested')
     try:
         j2_template = _j2_env.get_template(template_str)
         LOG.debug('Jinja2-in-Jinja2 template prepared')
-        result = j2_template.render(**vars, **kwargs)
+        result = j2_template.render(**variables, **kwargs)
         LOG.debug('Jinja2-in-Jinja2 result finished')
         return result
     except Exception as e:
@@ -200,9 +201,9 @@ def jinja2_render(template_str: str, vars=None, fail_safe=False, **kwargs):
 
 def to_context_obj(ctx, **options) -> DocumentContext:
     LOG.debug('DocumentContext object requested')
-    result = DocumentContext(ctx, **options)
+    result = DocumentContext(ctx=ctx, **options)
     LOG.debug('DocumentContext object created')
-    result._resolve_links()
+    result.resolve_links()
     LOG.debug('DocumentContext object links resolved')
     return result
 

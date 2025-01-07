@@ -1,20 +1,20 @@
 import datetime
-import dateutil.parser
 import functools
 import logging
 import pathlib
+import typing
 
-from typing import Optional
+import dateutil.parser
+import sentry_sdk.types as sentry
 
 from dsw.command_queue import CommandWorker, CommandQueue
 from dsw.config.sentry import SentryReporter
 from dsw.database.database import Database
-from dsw.database.model import DBDocument, DBTenantConfig, \
-    DBTenantLimits, PersistentCommand
+from dsw.database.model import DBDocument, PersistentCommand
 from dsw.storage import S3Storage
 
 from .build_info import BUILD_INFO
-from .config import DocumentWorkerConfig
+from .config import DocumentWorkerConfig, TemplateConfig
 from .consts import DocumentState, COMPONENT_NAME, NULL_UUID, \
     CMD_COMPONENT, CMD_CHANNEL, PROG_NAME, CURRENT_METAMODEL
 from .context import Context
@@ -36,11 +36,12 @@ def handle_job_step(message):
                 return func(job, *args, **kwargs)
             except Exception as e:
                 LOG.debug('Handling exception', exc_info=True)
-                raise create_job_exception(
+                new_exception = create_job_exception(
                     job_id=job.doc_uuid,
                     message=message,
                     exc=e,
                 )
+                raise new_exception from e
         return handled_step
     return decorator
 
@@ -49,15 +50,16 @@ class Job:
 
     def __init__(self, command: PersistentCommand, document_uuid: str):
         self.ctx = Context.get()
-        self.template = None  # type: Optional[Template]
-        self.format = None  # type: Optional[Format]
-        self.tenant_uuid = command.tenant_uuid  # type: str
-        self.doc_uuid = document_uuid  # type: str
-        self.doc_context = command.body  # type: dict
-        self.doc = None  # type: Optional[DBDocument]
-        self.final_file = None  # type: Optional[DocumentFile]
-        self.tenant_config = None  # type: Optional[DBTenantConfig]
-        self.tenant_limits = None  # type: Optional[DBTenantLimits]
+        self.template: Template | None = None
+        self.format: Format | None = None
+        self.tenant_uuid: str = command.tenant_uuid
+        self.doc_uuid: str = document_uuid
+        self.doc_context: dict = command.body
+        self.doc: DBDocument | None = None
+        self.final_file: DocumentFile | None = None
+        self.template_config: TemplateConfig | None = None
+        self.tenant_config = self.ctx.app.db.get_tenant_config(self.tenant_uuid)
+        self.tenant_limits = self.ctx.app.db.fetch_tenant_limits(self.tenant_uuid)
 
     @property
     def safe_doc(self) -> DBDocument:
@@ -85,12 +87,14 @@ class Job:
 
     @handle_job_step('Failed to get document from DB')
     def get_document(self):
-        SentryReporter.set_context('template', '')
-        SentryReporter.set_context('format', '')
-        SentryReporter.set_context('document', '')
+        SentryReporter.set_tags(phase='fetch')
+        SentryReporter.set_tags(
+            template='?',
+            format='?',
+        )
         if self.tenant_uuid != NULL_UUID:
-            LOG.info(f'Limiting to tenant with UUID: {self.tenant_uuid}')
-        LOG.info(f'Getting the document "{self.doc_uuid}" details from DB')
+            LOG.info('Limiting to tenant with UUID: %s', self.tenant_uuid)
+        LOG.info('Getting the document "%s" details from DB', self.doc_uuid)
         self.doc = self.ctx.app.db.fetch_document(
             document_uuid=self.doc_uuid,
             tenant_uuid=self.tenant_uuid,
@@ -101,10 +105,10 @@ class Job:
                 message='Document record not found in database',
             )
         self.doc.retrieved_at = datetime.datetime.now(tz=datetime.UTC)
-        LOG.info(f'Job "{self.doc_uuid}" details received')
+        LOG.info('Job "%s" details received', self.doc_uuid)
         # verify state
         state = self.doc.state
-        LOG.info(f'Original state of job is {state}')
+        LOG.info('Original state of job is %s', state)
         if state == DocumentState.FINISHED:
             raise create_job_exception(
                 job_id=self.doc_uuid,
@@ -117,13 +121,16 @@ class Job:
 
     @handle_job_step('Failed to prepare template')
     def prepare_template(self):
+        SentryReporter.set_tags(phase='prepare')
         template_id = self.safe_doc.document_template_id
         format_uuid = self.safe_doc.format_uuid
-        LOG.info(f'Document uses template {template_id} with format {format_uuid}')
+        LOG.info('Document uses template %s with format %s',
+                 template_id, format_uuid)
         # update Sentry info
-        SentryReporter.set_context('template', template_id)
-        SentryReporter.set_context('format', format_uuid)
-        SentryReporter.set_context('document', self.doc_uuid)
+        SentryReporter.set_tags(
+            template=template_id,
+            format=format_uuid,
+        )
         # prepare template
         template = TemplateRegistry.get().prepare_template(
             tenant_uuid=self.tenant_uuid,
@@ -134,9 +141,11 @@ class Job:
         self.format = template.formats.get(format_uuid)
         # finalize
         self.template = template
+        # fetch template config
+        self.template_config = self.ctx.app.cfg.templates.get_config(template_id)
 
     def _enrich_context(self):
-        extras = dict()
+        extras: dict[str, typing.Any] = {}
         if self.safe_format.requires_via_extras('submissions'):
             submissions = self.ctx.app.db.fetch_questionnaire_submissions(
                 questionnaire_uuid=self.safe_doc.questionnaire_uuid,
@@ -151,18 +160,30 @@ class Job:
             extras['questionnaire'] = questionnaire.to_dict()
         self.doc_context['extras'] = extras
 
+    def check_compliance(self):
+        SentryReporter.set_tags(phase='check')
+        metamodel_version = int(self.doc_context.get('metamodelVersion', '0'))
+        if metamodel_version != CURRENT_METAMODEL:
+            LOG.error('Command with metamodel version %d  is not supported '
+                      'by this worker (version %d)', metamodel_version, CURRENT_METAMODEL)
+            raise RuntimeError(f'Unsupported metamodel version: {metamodel_version} '
+                               f'(expected {CURRENT_METAMODEL})')
+
     @handle_job_step('Failed to build final document')
     def build_document(self):
         LOG.info('Building document by rendering template with context')
         doc = self.safe_doc
         # enrich context
+        SentryReporter.set_tags(phase='enrich')
         self._enrich_context()
         # render document
+        SentryReporter.set_tags(phase='render')
         final_file = self.safe_template.render(
             format_uuid=doc.format_uuid,
             context=self.doc_context,
         )
         # check limits
+        SentryReporter.set_tags(phase='limit')
         LimitsEnforcer.check_doc_size(
             job_id=self.doc_uuid,
             doc_size=final_file.byte_size,
@@ -180,21 +201,24 @@ class Job:
 
     @handle_job_step('Failed to store document in S3')
     def store_document(self):
+        SentryReporter.set_tags(phase='store')
         s3_id = self.ctx.app.s3.identification
         final_file = self.safe_final_file
-        LOG.info(f'Preparing S3 bucket {s3_id}')
+        LOG.info('Preparing S3 bucket %s', s3_id)
         self.ctx.app.s3.ensure_bucket()
-        LOG.info(f'Storing document to S3 bucket {s3_id}')
+        LOG.info('Storing document to S3 bucket %s', s3_id)
         self.ctx.app.s3.store_document(
             tenant_uuid=self.tenant_uuid,
             file_name=self.doc_uuid,
             content_type=final_file.object_content_type,
             data=final_file.content,
         )
-        LOG.info(f'Document {self.doc_uuid} stored in S3 bucket {s3_id}')
+        LOG.info('Document %s stored in S3 bucket %s',
+                 self.doc_uuid, s3_id)
 
     @handle_job_step('Failed to finalize document generation')
     def finalize(self):
+        SentryReporter.set_tags(phase='finalize')
         doc = self.safe_doc
         final_file = self.safe_final_file
         file_name = DocumentNameGiver.name_document(doc, final_file)
@@ -213,7 +237,7 @@ class Job:
             ),
             document_uuid=self.doc_uuid,
         )
-        LOG.info(f'Document {self.doc_uuid} record finalized')
+        LOG.info('Document %s record finalized', self.doc_uuid)
 
     def set_job_state(self, state: str, message: str) -> bool:
         return self.ctx.app.db.update_document_state(
@@ -227,10 +251,12 @@ class Job:
             return self.set_job_state(state, message)
         except Exception as e:
             SentryReporter.capture_exception(e)
-            LOG.warning(f'Tried to set state of {self.doc_uuid} to {state} but failed: {e}')
+            LOG.warning('Tried to set state of %s to %s but failed: %s',
+                        self.doc_uuid, state, str(e))
             return False
 
     def _run(self):
+        self.check_compliance()
         self.get_document()
 
         self.prepare_template()
@@ -239,27 +265,22 @@ class Job:
 
         self.finalize()
 
-    def _sentry_job_exception(self) -> bool:
-        if self.doc is None:
-            return False
-        template_id = self.safe_doc.document_template_id
-        template_cfg = self.ctx.app.cfg.templates.get_config(template_id)
-        if template_cfg is None:
-            return False
-        return template_cfg.send_sentry
+    def _set_failed(self, message: str):
+        if self.try_set_job_state(DocumentState.FAILED, message):
+            LOG.info('Set state to FAILED')
+        else:
+            msg = 'Could not set state to FAILED'
+            SentryReporter.capture_message(msg)
+            LOG.error(msg)
+            raise RuntimeError(msg)
 
     def run(self):
         try:
             self._run()
         except JobException as e:
             LOG.warning('Handled job error: %s', e.log_message())
-            if self._sentry_job_exception():
-                SentryReporter.capture_exception(e)
-            if self.try_set_job_state(DocumentState.FAILED, e.db_message()):
-                LOG.info(f'Set state to {DocumentState.FAILED}')
-            else:
-                LOG.error(f'Could not set state to {DocumentState.FAILED}')
-                raise RuntimeError(f'Could not set state to {DocumentState.FAILED}')
+            SentryReporter.capture_exception(e)
+            self._set_failed(e.db_message())
         except Exception as e:
             SentryReporter.capture_exception(e)
             job_exc = create_job_exception(
@@ -269,11 +290,7 @@ class Job:
             )
             LOG.error(job_exc.log_message())
             LOG.info('Failed with unexpected error', exc_info=e)
-            if self.try_set_job_state(DocumentState.FAILED, job_exc.db_message()):
-                LOG.info(f'Set state to {DocumentState.FAILED}')
-            else:
-                LOG.warning(f'Could not set state to {DocumentState.FAILED}')
-                raise RuntimeError(f'Could not set state to {DocumentState.FAILED}')
+            self._set_failed(job_exc.db_message())
 
 
 class DocumentWorker(CommandWorker):
@@ -281,7 +298,7 @@ class DocumentWorker(CommandWorker):
     def __init__(self, config: DocumentWorkerConfig, workdir: pathlib.Path):
         self.config = config
         self._init_context(workdir=workdir)
-        self.current_job = None  # type: Job | None
+        self.current_job: Job | None = None
 
     def _init_context(self, workdir: pathlib.Path):
         Context.initialize(
@@ -295,21 +312,33 @@ class DocumentWorker(CommandWorker):
         )
         Context.get().update_trace_id('-')
         Context.get().update_document_id('-')
-        if self.config.sentry.enabled and self.config.sentry.workers_dsn is not None:
-            SentryReporter.initialize(
-                dsn=self.config.sentry.workers_dsn,
-                environment=self.config.general.environment,
-                server_name=self.config.general.client_url,
-                release=BUILD_INFO.version,
-                prog_name=PROG_NAME,
-                config=self.config.sentry,
-            )
+
+    def _init_sentry(self):
+        SentryReporter.initialize(
+            config=self.config.sentry,
+            release=BUILD_INFO.version,
+            prog_name=PROG_NAME,
+            event_level=None,
+        )
+
+        def filter_templates(event: sentry.Event, hint: sentry.Hint) -> sentry.Event | None:
+            LOG.debug('Filtering Sentry event (template, %s, %s)',
+                      event.get('event_id'), hint)
+            template = event.get('tags', {}).get('template')
+            phase = event.get('tags', {}).get('phase')
+            if phase in ('render', 'prepare') and template is not None:
+                template_config = Context.get().app.cfg.templates.get_config(template)
+                if template_config is not None and not template_config.send_sentry:
+                    return None
+            return event
+
+        SentryReporter.filters.append(filter_templates)
 
     @staticmethod
     def _update_component_info():
         built_at = dateutil.parser.parse(BUILD_INFO.built_at)
-        LOG.info(f'Updating component info ({BUILD_INFO.version}, '
-                 f'{built_at.isoformat(timespec="seconds")})')
+        LOG.info('Updating component info (%s, %s)',
+                 BUILD_INFO.version, built_at.isoformat(timespec="seconds"))
         Context.get().app.db.update_component_info(
             name=COMPONENT_NAME,
             version=BUILD_INFO.version,
@@ -342,22 +371,26 @@ class DocumentWorker(CommandWorker):
         queue = self._run_preparation()
         queue.run_once()
 
-    def work(self, cmd: PersistentCommand):
-        metamodel_version = int(cmd.body.get('metamodelVersion', '0'))
-        if metamodel_version != CURRENT_METAMODEL:
-            LOG.error('Command with metamodel version %d  is not supported '
-                      'by this worker (version %d)', metamodel_version, CURRENT_METAMODEL)
-            raise RuntimeError(f'Unsupported metamodel version: {metamodel_version} '
-                               f'(expected {CURRENT_METAMODEL})')
-        document_uuid = cmd.body['document']['uuid']
-
-        Context.get().update_trace_id(cmd.uuid)
+    def work(self, command: PersistentCommand):
+        document_uuid = command.body['document']['uuid']
+        Context.get().update_trace_id(command.uuid)
         Context.get().update_document_id(document_uuid)
-        SentryReporter.set_context('cmd_uuid', cmd.uuid)
-        LOG.info(f'Running job #{cmd.uuid}')
-        self.current_job = Job(command=cmd, document_uuid=document_uuid)
+        SentryReporter.set_tags(
+            command_uuid=command.uuid,
+            tenant_uuid=command.tenant_uuid,
+            document_uuid=document_uuid,
+            phase='init',
+        )
+        LOG.info('Running job #%s', command.uuid)
+        self.current_job = Job(command=command, document_uuid=document_uuid)
         self.current_job.run()
         self.current_job = None
+        SentryReporter.set_tags(
+            command_uuid='-',
+            tenant_uuid='-',
+            document_uuid='-',
+            phase='done',
+        )
         Context.get().update_trace_id('-')
         Context.get().update_document_id('-')
 

@@ -1,3 +1,4 @@
+import dataclasses
 import os
 import re
 
@@ -14,8 +15,7 @@ class Color:
         l2 = color2.luminance + 0.05
         if l1 > l2:
             return l1 / l2
-        else:
-            return l2 / l1
+        return l2 / l1
 
     def __init__(self, color_hex: str = '#000000', default: str = '#000000'):
         color_hex = self.parse_color_to_hex(color_hex) or default
@@ -46,8 +46,7 @@ class Color:
             c = component / 255
             if c <= 0.03928:
                 return c / 12.92
-            else:
-                return ((c + 0.055) / 1.055) ** 2.4
+            return ((c + 0.055) / 1.055) ** 2.4
 
         r = _luminance_component(self.red)
         g = _luminance_component(self.green)
@@ -66,8 +65,7 @@ class Color:
     def contrast_color(self) -> 'Color':
         if self.contrast_ratio(self, Color('#ffffff')) > 3:
             return Color('#ffffff')
-        else:
-            return Color('#000000')
+        return Color('#000000')
 
     def __str__(self):
         return self.hex
@@ -83,7 +81,7 @@ class StyleConfig:
         self.illustrations_color = Color(illustrations_color, Color.DEFAULT_ILLUSTRATIONS_HEX)
 
     def from_dict(self, data: dict | None):
-        data = data or dict()
+        data = data or {}
         if data.get('logoUrl', None) is not None:
             self.logo_url = data.get('logoUrl')
         if data.get('primaryColor', None) is not None:
@@ -134,7 +132,7 @@ class TemplateDescriptorPart:
         self.content_type = ''
         self.encoding = ''
 
-    def _update_from_data(self, data: dict):
+    def update_from_data(self, data: dict):
         for field in self.FIELDS:
             target_field = field.replace('-', '_')
             if field in data.keys():
@@ -150,13 +148,13 @@ class TemplateDescriptorPart:
             part_type=data.get('type', 'unknown'),
             file=data.get('file', ''),
         )
-        part._update_from_data(data)
+        part.update_from_data(data)
         return part
 
 
 class TemplateDescriptor:
 
-    def __init__(self, message_id: str, subject: str, subject_prefix: bool,
+    def __init__(self, *, message_id: str, subject: str, subject_prefix: bool,
                  default_sender_name: str | None, language: str,
                  importance: str, sensitivity: str | None,
                  priority: str | None):
@@ -191,7 +189,7 @@ class TemplateDescriptor:
 
 class MessageRequest:
 
-    def __init__(self, message_id: str, template_name: str, trigger: str,
+    def __init__(self, *, message_id: str, template_name: str, trigger: str,
                  ctx: dict, recipients: list[str], style: StyleConfig | None = None):
         self.id = message_id
         self.template_name = template_name
@@ -213,35 +211,35 @@ class MessageRequest:
             recipients=data.get('recipients', []),
             style=StyleConfig(
                 logo_url=data.get('styleLogoUrl', None),
-                primary_color=data.get('stylePrimaryColor', Color.DEFAULT_PRIMARY_HEX),
-                illustrations_color=data.get('styleIllustrationsColor', Color.DEFAULT_ILLUSTRATIONS_HEX),
+                primary_color=data.get('stylePrimaryColor',
+                                       Color.DEFAULT_PRIMARY_HEX),
+                illustrations_color=data.get('styleIllustrationsColor',
+                                             Color.DEFAULT_ILLUSTRATIONS_HEX),
             ),
         )
 
 
+@dataclasses.dataclass
 class MailMessage:
-
-    def __init__(self):
-        self.from_mail = ''  # type: str
-        self.from_name = None  # type: str | None
-        self.recipients = list()  # type: list[str]
-        self.subject = ''  # type: str
-        self.plain_body = None  # type: str | None
-        self.html_body = None  # type: str | None
-        self.html_images = list()  # type: list[MailAttachment]
-        self.attachments = list()  # type: list[MailAttachment]
-        self.msg_id = None  # type: str | None
-        self.msg_domain = None  # type: str | None
-        self.language = 'en'  # type: str
-        self.importance = 'normal'  # type: str
-        self.sensitivity = None  # type: str | None
-        self.priority = None  # type: str | None
-        self.client_url = ''  # type: str
+    from_mail: str = ''
+    from_name: str | None = None
+    recipients: list[str] = dataclasses.field(default_factory=list)
+    subject: str = ''
+    plain_body: str | None = None
+    html_body: str | None = None
+    html_images: list['MailAttachment'] = dataclasses.field(default_factory=list)
+    attachments: list['MailAttachment'] = dataclasses.field(default_factory=list)
+    msg_id: str | None = None
+    msg_domain: str | None = None
+    language: str = 'en'
+    importance: str = 'normal'
+    sensitivity: str | None = None
+    priority: str | None = None
+    client_url: str = ''
 
 
+@dataclasses.dataclass
 class MailAttachment:
-
-    def __init__(self, name='', content_type='', data=''):
-        self.name = name
-        self.content_type = content_type
-        self.data = data
+    name: str
+    content_type: str
+    data: bytes

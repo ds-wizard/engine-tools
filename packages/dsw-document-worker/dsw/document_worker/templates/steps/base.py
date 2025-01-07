@@ -22,15 +22,18 @@ class Step:
     def __init__(self, template, options: dict[str, str]):
         self.template = template
         self.options = options
-        extras_str = self.options.get(self.OPTION_EXTRAS, '')  # type: str
-        self.extras = set(extras_str.split(','))  # type: set[str]
+
+        extras_str: str = self.options.get(self.OPTION_EXTRAS, '')
+        self.extras: set[str] = set(extras_str.split(','))
 
     def requires_via_extras(self, requirement: str) -> bool:
         return requirement in self.extras
 
+    # pylint: disable-next=unused-argument
     def execute_first(self, context: dict) -> DocumentFile:
         return self.raise_exc('Called execute_follow on Step class')
 
+    # pylint: disable-next=unused-argument
     def execute_follow(self, document: DocumentFile, context: dict) -> DocumentFile:
         return self.raise_exc('Called execute_follow on Step class')
 
@@ -38,10 +41,10 @@ class Step:
         raise FormatStepException(message)
 
 
-STEPS = dict()
+STEPS: dict[str, type[Step]] = {}
 
 
-def register_step(name: str, step_class: type):
+def register_step(name: str, step_class: type[Step]):
     STEPS[name.lower()] = step_class
 
 

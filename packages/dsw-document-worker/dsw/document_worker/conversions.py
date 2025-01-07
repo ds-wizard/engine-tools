@@ -1,9 +1,10 @@
 import logging
 import os
 import pathlib
-import rdflib
 import shlex
 import subprocess
+
+import rdflib
 
 from .config import DocumentWorkerConfig
 from .consts import EXIT_SUCCESS, DEFAULT_ENCODING
@@ -16,14 +17,12 @@ LOG = logging.getLogger(__name__)
 def run_conversion(*, args: list, workdir: str, input_data: bytes, name: str,
                    source_format: FileFormat, target_format: FileFormat, timeout=None) -> bytes:
     command = ' '.join(args)
-    LOG.info(f'Calling "{command}" to convert from {source_format} to {target_format}')
-    p = subprocess.Popen(args,
-                         cwd=workdir,
-                         stdin=subprocess.PIPE,
-                         stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE)
-    stdout, stderr = p.communicate(input=input_data, timeout=timeout)
-    exit_code = p.returncode
+    LOG.info('Calling "%s" to convert from %s to %s',
+             command, source_format, target_format)
+    with subprocess.Popen(args, cwd=workdir, stdin=subprocess.PIPE,
+                          stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
+        stdout, stderr = proc.communicate(input=input_data, timeout=timeout)
+        exit_code = proc.returncode
     if exit_code != EXIT_SUCCESS:
         raise FormatConversionException(
             name, source_format, target_format,
@@ -49,7 +48,8 @@ class Pandoc:
     FILTERS_PATH = pathlib.Path(os.getenv('PANDOC_FILTERS', '/pandoc/filters'))
     TEMPLATES_PATH = pathlib.Path(os.getenv('PANDOC_TEMPLATES', '/pandoc/templates'))
 
-    def __init__(self, config: DocumentWorkerConfig, filter_names: list[str], template_name: str | None):
+    def __init__(self, config: DocumentWorkerConfig, filter_names: list[str],
+                 template_name: str | None):
         self.config = config
         self.filter_names = filter_names
         self.template_name = template_name
@@ -76,7 +76,7 @@ class Pandoc:
                 args.extend(['--filter', str(self.FILTERS_PATH / filter_name)])
         return shlex.split(' '.join(args))
 
-    def __call__(self, source_format: FileFormat, target_format: FileFormat,
+    def __call__(self, *, source_format: FileFormat, target_format: FileFormat,
                  data: bytes, metadata: dict, workdir: str) -> bytes:
         args = ['-f', source_format.name, '-t', target_format.name, '-o', '-']
         config_args = shlex.split(self.config.pandoc.args)
@@ -112,7 +112,7 @@ class RdfLibConvert:
     def __init__(self, config: DocumentWorkerConfig):
         self.config = config
 
-    def __call__(self, source_format: FileFormat, target_format: FileFormat,
+    def __call__(self, *, source_format: FileFormat, target_format: FileFormat,
                  data: bytes, metadata: dict) -> bytes:
         g = rdflib.Dataset()
         g.parse(

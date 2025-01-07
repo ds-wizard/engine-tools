@@ -1,12 +1,10 @@
+import dataclasses
 import pathlib
 
-from typing import TYPE_CHECKING
+from dsw.database import Database
 
+from .config import MailerConfig
 from .templates import TemplateRegistry
-
-if TYPE_CHECKING:
-    from .config import MailerConfig
-    from dsw.database import Database
 
 
 class ContextNotInitializedError(RuntimeError):
@@ -15,18 +13,16 @@ class ContextNotInitializedError(RuntimeError):
         super().__init__('Context cannot be retrieved, not initialized')
 
 
+@dataclasses.dataclass
 class AppContext:
-
-    def __init__(self, db, cfg, workdir):
-        self.db = db  # type: Database
-        self.cfg = cfg  # type: MailerConfig
-        self.workdir = workdir  # type: pathlib.Path
+    db: Database
+    cfg: MailerConfig
+    workdir: pathlib.Path
 
 
+@dataclasses.dataclass
 class JobContext:
-
-    def __init__(self, trace_id: str):
-        self.trace_id = trace_id
+    trace_id: str
 
 
 class _Context:
@@ -47,7 +43,7 @@ class _Context:
 
 class Context:
 
-    _instance = None  # type: _Context | None
+    _instance: _Context | None = None
 
     @classmethod
     def get(cls) -> _Context:
