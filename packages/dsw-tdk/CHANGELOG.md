@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
+## [4.14.0]
+
+### Changed
+
+- Improved hidden file handling
+- Updated initial Jinja file for new projects
+
 ## [4.13.0]
 
 ### Changed
@@ -509,3 +516,4 @@ Initial DSW Template Development Kit (versioned as part of the [DSW platform](ht
 [4.11.0]: /../../tree/v4.11.0
 [4.12.0]: /../../tree/v4.12.0
 [4.13.0]: /../../tree/v4.13.0
+[4.14.0]: /../../tree/v4.14.0
