@@ -60,5 +60,5 @@ def main(config: DocumentWorkerConfig, workdir: str):
         worker.run()
     except Exception as e:
         SentryReporter.capture_exception(e)
-        click.echo(f'Ended with error: {e}')
+        click.echo(f'Error: {e}', err=True)
         sys.exit(2)
