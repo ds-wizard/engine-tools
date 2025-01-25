@@ -36,6 +36,7 @@ class Mailer(CommandWorker):
         )
 
         self._init_context(workdir=workdir)
+        self._init_sentry()
         self.ctx = Context.get()
 
     def _init_context(self, workdir: pathlib.Path):
@@ -44,6 +45,8 @@ class Mailer(CommandWorker):
             workdir=workdir,
             db=Database(cfg=self.cfg.db, connect=False),
         )
+
+    def _init_sentry(self):
         SentryReporter.initialize(
             config=self.cfg.sentry,
             release=BUILD_INFO.version,

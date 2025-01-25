@@ -9,7 +9,7 @@ from dsw.config.parser import MissingConfigurationError
 from .config import SeederConfig, SeederConfigParser
 from .consts import (PROG_NAME, VERSION, NULL_UUID, DEFAULT_ENCODING,
                      VAR_SEEDER_RECIPE, VAR_WORKDIR_PATH, VAR_APP_CONFIG_PATH)
-from .seeder import DataSeeder, SeedRecipe
+from .seeder import DataSeeder, SeedRecipe, SentryReporter
 
 
 def load_config_str(config_str: str) -> SeederConfig:
@@ -61,7 +61,12 @@ def run(ctx: click.Context, recipe: str):
     cfg = ctx.obj['cfg']
     workdir = ctx.obj['workdir']
     seeder = DataSeeder(cfg=cfg, workdir=workdir)
-    seeder.run(recipe)
+    try:
+        seeder.run(recipe)
+    except Exception as e:
+        click.echo(f'Error: {e}', err=True)
+        SentryReporter.capture_exception(e)
+        sys.exit(2)
 
 
 @cli.command(name='seed', help='Seed data directly.')
@@ -72,7 +77,12 @@ def seed(ctx: click.Context, recipe: str, tenant_uuid: str):
     cfg = ctx.obj['cfg']
     workdir = ctx.obj['workdir']
     seeder = DataSeeder(cfg=cfg, workdir=workdir)
-    seeder.seed(recipe_name=recipe, tenant_uuid=tenant_uuid)
+    try:
+        seeder.seed(recipe_name=recipe, tenant_uuid=tenant_uuid)
+    except Exception as e:
+        click.echo(f'Error: {e}', err=True)
+        SentryReporter.capture_exception(e)
+        sys.exit(2)
 
 
 @cli.command(name='list', help='List recipes for data seeding.')

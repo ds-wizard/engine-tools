@@ -297,8 +297,10 @@ class DocumentWorker(CommandWorker):
 
     def __init__(self, config: DocumentWorkerConfig, workdir: pathlib.Path):
         self.config = config
-        self._init_context(workdir=workdir)
         self.current_job: Job | None = None
+
+        self._init_context(workdir=workdir)
+        self._init_sentry()
 
     def _init_context(self, workdir: pathlib.Path):
         Context.initialize(
