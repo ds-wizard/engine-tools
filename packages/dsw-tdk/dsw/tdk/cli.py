@@ -147,10 +147,9 @@ class ClickLogger(logging.Logger):
         click.echo(message)
 
     # pylint: disable-next=unused-argument
-    def _log(self, level, msg, *args, **kwargs):
-        if not self.muted:
-            # super()._log(level, msg, args, exc_info, extra, stack_info, stacklevel)
-            self._print_message(level, msg)
+    def _log(self, level, msg, args, *other, **kwargs):
+        if not self.muted and isinstance(msg, str):
+            self._print_message(level, msg % args)
 
     @staticmethod
     def default():
