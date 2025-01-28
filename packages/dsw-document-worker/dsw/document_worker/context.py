@@ -1,9 +1,10 @@
 import dataclasses
 import pathlib
 
+import pluggy
+
 from dsw.database import Database
 from dsw.storage import S3Storage
-
 from .config import DocumentWorkerConfig
 
 
@@ -15,6 +16,7 @@ class ContextNotInitializedError(RuntimeError):
 
 @dataclasses.dataclass
 class AppContext:
+    pm: pluggy.PluginManager
     db: Database
     s3: S3Storage
     cfg: DocumentWorkerConfig
@@ -56,8 +58,11 @@ class Context:
 
     @classmethod
     def initialize(cls, db, s3, config, workdir):
+        # pylint: disable-next=import-outside-toplevel
+        from .plugins.manager import create_manager
         cls._instance = _Context(
             app=AppContext(
+                pm=create_manager(),
                 db=db,
                 s3=s3,
                 cfg=config,

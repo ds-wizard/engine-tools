@@ -6,6 +6,8 @@ CURRENT_METAMODEL = 16
 DEFAULT_ENCODING = 'utf-8'
 EXIT_SUCCESS = 0
 NULL_UUID = '00000000-0000-0000-0000-000000000000'
+PACKAGE_NAME = 'dsw-document-worker'
+PLUGINS_ENTRYPOINT = 'dsw_document_worker_plugins'
 PROG_NAME = 'docworker'
 VERSION = '4.14.0'
 

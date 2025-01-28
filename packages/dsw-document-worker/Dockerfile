@@ -45,4 +45,4 @@ RUN python -m pip install --break-system-packages --user --no-cache --no-index /
  && rm -rf /home/user/wheels
 
 # Run
-CMD ["dsw-document-worker"]
+CMD ["dsw-document-worker", "run"]
