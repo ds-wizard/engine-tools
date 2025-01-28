@@ -42,13 +42,18 @@ def validate_config(ctx, param, value: typing.IO | None):
     return load_config_str(content)
 
 
-@click.command(name='docworker')
+@click.group(name='dsw-document-worker')
 @click.version_option(version=VERSION)
+def main():
+    pass
+
+
+@main.command()
 @click.argument('config', envvar=VAR_APP_CONFIG_PATH,
                 required=False, callback=validate_config,
                 type=click.File('r', encoding=DEFAULT_ENCODING))
 @click.argument('workdir', envvar=VAR_WORKDIR_PATH,)
-def main(config: DocumentWorkerConfig, workdir: str):
+def run(config: DocumentWorkerConfig, workdir: str):
     config.log.apply()
     workdir_path = pathlib.Path(workdir)
     workdir_path.mkdir(parents=True, exist_ok=True)
@@ -62,3 +67,13 @@ def main(config: DocumentWorkerConfig, workdir: str):
         SentryReporter.capture_exception(e)
         click.echo(f'Error: {e}', err=True)
         sys.exit(2)
+
+
+@main.command()
+def list_plugins():
+    # pylint: disable-next=import-outside-toplevel
+    from .plugins.manager import create_manager
+
+    pm = create_manager()
+    for plugin in pm.list_name_plugin():
+        click.echo(f'{plugin[0]}: {plugin[1].__name__}')

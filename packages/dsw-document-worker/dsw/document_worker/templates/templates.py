@@ -11,7 +11,8 @@ from dsw.database.database import DBDocumentTemplate, \
 from ..consts import FormatField
 from ..context import Context
 from ..documents import DocumentFile
-from ..templates.formats import Format
+from .formats import Format
+from .steps.base import register_step, Step
 
 
 LOG = logging.getLogger(__name__)
@@ -217,6 +218,8 @@ class Template:
         return self.formats[format_uuid]
 
     def render(self, format_uuid: str, context: dict) -> DocumentFile:
+        Context.get().app.pm.hook.enrich_document_context(context=context)
+
         self.last_used = datetime.datetime.now(tz=datetime.UTC)
         return self[format_uuid].execute(context)
 
@@ -233,6 +236,14 @@ class TemplateRegistry:
 
     def __init__(self):
         self._templates: dict[str, dict[str, Template]] = {}
+        self._load_plugin_steps()
+
+    def _load_plugin_steps(self):
+        for steps_dict in Context.get().app.pm.hook.provide_steps():
+            for name, step_class in steps_dict.items():
+                if not issubclass(step_class, Step):
+                    raise RuntimeError(f'Provided class "{step_class}" is not a subclass of Step')
+                register_step(name, step_class)
 
     def has_template(self, tenant_uuid: str, template_id: str) -> bool:
         return tenant_uuid in self._templates and \

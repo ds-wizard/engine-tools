@@ -70,6 +70,11 @@ class JinjaPoweredStep(Step):
                 self.j2_env.add_extension('jinja2.ext.debug')
             self._apply_policies(options)
             self._add_j2_enhancements()
+
+            Context.get().app.pm.hook.enrich_jinja_env(
+                jinja_env=self.j2_env,
+                options=options,
+            )
         except jinja2.exceptions.TemplateSyntaxError as e:
             self.raise_exc(self._jinja_exception_msg(e))
         except Exception as e:
