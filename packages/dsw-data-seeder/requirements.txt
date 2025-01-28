@@ -4,14 +4,14 @@ certifi==2024.12.14
 cffi==1.17.1
 click==8.1.8
 func_timeout==4.3.5
-minio==7.2.13
+minio==7.2.15
 psycopg==3.2.3
 psycopg-binary==3.2.3
 pycparser==2.22
 pycryptodome==3.21.0
 python-dateutil==2.9.0.post0
 PyYAML==6.0.2
-sentry-sdk==2.19.2
+sentry-sdk==2.20.0
 six==1.17.0
 tenacity==9.0.0
 typing_extensions==4.12.2
