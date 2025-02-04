@@ -1,4 +1,4 @@
-FROM datastewardshipwizard/python-base:4.14.0-basic AS builder
+FROM datastewardshipwizard/python-base:4.15.0-basic AS builder
 
 WORKDIR /app
 
@@ -15,7 +15,7 @@ RUN python -m pip wheel --no-cache-dir --wheel-dir=/app/wheels -r /app/packages/
  && python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/app/wheels /app/packages/dsw-data-seeder
 
 
-FROM datastewardshipwizard/python-base:4.14.0-basic
+FROM datastewardshipwizard/python-base:4.15.0-basic
 
 ENV APPLICATION_CONFIG_PATH=/app/config/application.yml \
     WORKDIR_PATH=/home/user/data \

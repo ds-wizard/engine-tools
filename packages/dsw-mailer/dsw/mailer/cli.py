@@ -10,7 +10,7 @@ from dsw.config.parser import MissingConfigurationError
 from .config import MailerConfig, MailerConfigParser
 from .consts import (VERSION, VAR_APP_CONFIG_PATH, VAR_WORKDIR_PATH,
                      DEFAULT_ENCODING)
-from .mailer import Mailer
+from .mailer import Mailer, SentryReporter
 from .model import MessageRequest
 
 
@@ -77,14 +77,24 @@ def cli(ctx, config: MailerConfig, workdir: str):
               type=click.File('r', encoding=DEFAULT_ENCODING))
 def send(ctx, msg_request: MessageRequest, config: MailerConfig):
     mailer: Mailer = ctx.obj['mailer']
-    mailer.send(rq=msg_request, cfg=config.mail)
+    try:
+        mailer.send(rq=msg_request, cfg=config.mail)
+    except Exception as e:
+        SentryReporter.capture_exception(e)
+        click.echo(f'Error: {e}', err=True)
+        sys.exit(2)
 
 
 @cli.command(name='run', help='Run mailer worker processing message jobs.')
 @click.pass_context
 def run(ctx):
     mailer: Mailer = ctx.obj['mailer']
-    mailer.run()
+    try:
+        mailer.run()
+    except Exception as e:
+        SentryReporter.capture_exception(e)
+        click.echo(f'Error: {e}', err=True)
+        sys.exit(2)
 
 
 def main():

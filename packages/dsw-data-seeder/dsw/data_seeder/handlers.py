@@ -5,7 +5,7 @@ import sys
 from .cli import load_config_str
 from .consts import (VAR_APP_CONFIG_PATH, VAR_WORKDIR_PATH,
                      VAR_SEEDER_RECIPE, DEFAULT_ENCODING)
-from .seeder import DataSeeder
+from .seeder import DataSeeder, SentryReporter
 
 
 # pylint: disable-next=unused-argument
@@ -19,5 +19,9 @@ def lambda_handler(event, context):
         sys.exit(1)
 
     config = load_config_str(config_path.read_text(encoding=DEFAULT_ENCODING))
-    seeder = DataSeeder(config, workdir_path)
-    seeder.run_once(recipe_name)
+    try:
+        seeder = DataSeeder(config, workdir_path)
+        seeder.run_once(recipe_name)
+    except Exception as e:
+        SentryReporter.capture_exception(e)
+        raise e

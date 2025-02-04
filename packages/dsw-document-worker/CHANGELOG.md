@@ -8,6 +8,16 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 
+## [4.15.0]
+
+### Added
+
+- Initial support for plugins (Steps, Jinja environment, document context enrichment)
+
+### Fixed
+
+- Fixed error reporting on worker startup
+
 ## [4.14.0]
 
 ### Changed
@@ -381,3 +391,4 @@ Released for version consistency with other DSW tools.
 [4.12.0]: /../../tree/v4.12.0
 [4.13.0]: /../../tree/v4.13.0
 [4.14.0]: /../../tree/v4.14.0
+[4.15.0]: /../../tree/v4.15.0

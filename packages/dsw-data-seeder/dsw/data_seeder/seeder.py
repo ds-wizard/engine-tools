@@ -213,9 +213,10 @@ class DataSeeder(CommandWorker):
         self.cfg = cfg
         self.workdir = workdir
         self.recipe = SeedRecipe.create_default()  # type: SeedRecipe
+        self.dbs = {}  # type: dict[str, Database]
 
         self._init_context(workdir=workdir)
-        self.dbs = {}  # type: dict[str, Database]
+        self._init_sentry()
         self._init_extra_connections()
 
     def _init_context(self, workdir: pathlib.Path):
@@ -228,6 +229,8 @@ class DataSeeder(CommandWorker):
                 multi_tenant=self.cfg.cloud.multi_tenant,
             ),
         )
+
+    def _init_sentry(self):
         SentryReporter.initialize(
             config=self.cfg.sentry,
             release=BUILD_INFO.version,
