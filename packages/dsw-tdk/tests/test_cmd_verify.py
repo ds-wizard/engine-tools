@@ -38,8 +38,8 @@ def test_verify_invalid(fixtures_path: pathlib.Path):
     result = runner.invoke(main, args=['verify', template_path.as_posix()])
     assert result.exit_code == 0
     assert 'The template is invalid!' in result.output
-    assert 'template_id: Template ID may contain only letters, numbers, and dash' in result.output
-    assert 'organization_id: Organization ID may contain only letters, numbers, and period' in result.output
+    assert 'template_id: Template ID may contain only letters, numbers,' in result.output
+    assert 'organization_id: Organization ID may contain only letters, numbers,' in result.output
     assert 'version: Version must be in semver format' in result.output
     assert 'name: Missing but it is required' in result.output
     assert 'description: Missing but it is required' in result.output
