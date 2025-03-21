@@ -165,6 +165,10 @@ class TDKCore:
         if self.project is None:
             raise RuntimeError('No template project is initialized')
         self.project.template = self.safe_template
+        if len(self.project.template.tdk_config.files) == 0:
+            self.project.template.tdk_config.use_default_files()
+            self.logger.warning('Using default _tdk.files in template.json, you may want '
+                                'to change it to include relevant files')
         self.logger.debug('Initiating storing local template project (force=%s)', force)
         self.project.store(force=force)
 
@@ -301,6 +305,9 @@ class TDKCore:
                               tfile.remote_type.value, tfile.filename.as_posix(), e)
 
     async def store_remote_files(self):
+        if len(self.safe_project.safe_template.files) == 0:
+            self.logger.warning('No files to store, maybe you forgot to '
+                                'update _tdk.files patterns in template.json?')
         for tfile in self.safe_project.safe_template.files.values():
             tfile.remote_id = None
             tfile.remote_type = TemplateFileType.FILE if tfile.is_text else TemplateFileType.ASSET
@@ -333,6 +340,9 @@ class TDKCore:
                     pkg.writestr(f'template/assets/{tfile.filename.as_posix()}', tfile.content)
             descriptor['files'] = files
             descriptor['assets'] = assets
+            if len(files) == 0 and len(assets) == 0:
+                self.logger.warning('No files or assets found in the template, maybe you forgot '
+                                    'to update _tdk.files patterns in template.json?')
             timestamp = datetime.datetime.now(tz=datetime.UTC).strftime('%Y-%m-%dT%H:%M:%S.%fZ')
             descriptor['createdAt'] = timestamp
             descriptor['updatedAt'] = timestamp
@@ -355,7 +365,9 @@ class TDKCore:
                 raise RuntimeError('Malformed package: missing template.json file')
             data = json.loads(template_file.read_text(encoding=DEFAULT_ENCODING))
             template = Template.load_local(data)
-            template.tdk_config.files = ['*', '!.git/', '!.env']
+            template.tdk_config.use_default_files()
+            self.logger.warning('Using default _tdk.files in template.json, you may want '
+                                'to change it to include relevant files')
             self.logger.debug('Preparing template dir')
             if template_dir is None:
                 template_dir = pathlib.Path.cwd() / template.id.replace(':', '_')
@@ -372,8 +384,8 @@ class TDKCore:
                 encoding=DEFAULT_ENCODING,
             )
             self.logger.debug('Extracting README.md from package')
-            local_template_json = template_dir / 'README.md'
-            local_template_json.write_text(
+            local_readme = template_dir / 'README.md'
+            local_readme.write_text(
                 data=data['readme'].replace('\r\n', '\n'),
                 encoding=DEFAULT_ENCODING,
             )

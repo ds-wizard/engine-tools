@@ -101,7 +101,7 @@ class Format:
 class TDKConfig:
 
     DEFAULT_README = 'README.md'
-    DEFAULT_FILES = ['*']
+    DEFAULT_FILES = ['*', '!.git/', '!.env']
 
     def __init__(self, *, version: str | None = None, readme_file: str | None = None,
                  files: list[str] | None = None):
@@ -117,6 +117,9 @@ class TDKConfig:
             readme_file=data.get('readmeFile', cls.DEFAULT_README),
             files=data.get('files', cls.DEFAULT_FILES),
         )
+
+    def use_default_files(self):
+        self.files = self.DEFAULT_FILES
 
     def serialize(self):
         return {
