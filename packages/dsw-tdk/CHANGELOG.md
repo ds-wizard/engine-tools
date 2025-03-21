@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add check for no matching files (warning and use of defaults)
 
+### Changed
+
+- Unified IDs (organization, document template, knowledge model)
+
 
 ## [4.16.0]
 
