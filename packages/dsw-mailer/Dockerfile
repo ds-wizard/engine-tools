@@ -1,4 +1,4 @@
-FROM datastewardshipwizard/python-base:4.16.0-basic AS builder
+FROM datastewardshipwizard/python-base:4.17.0-basic AS builder
 
 WORKDIR /app
 
@@ -10,7 +10,7 @@ RUN python -m pip wheel --no-cache-dir --wheel-dir=/app/wheels -r /app/packages/
  && python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/app/wheels /app/packages/dsw-database \
  && python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/app/wheels /app/packages/dsw-mailer
 
-FROM datastewardshipwizard/python-base:4.16.0-basic
+FROM datastewardshipwizard/python-base:4.17.0-basic
 
 ENV APPLICATION_CONFIG_PATH=/app/config/application.yml \
     WORKDIR_PATH=/home/user/templates \
