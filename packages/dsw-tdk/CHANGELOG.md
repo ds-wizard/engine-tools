@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [4.17.0]
+
 ### Added
 
 - Add check for no matching files (warning and use of defaults)
@@ -14,7 +17,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Unified IDs (organization, document template, knowledge model)
-
 
 ## [4.16.0]
 
@@ -537,3 +539,4 @@ Initial DSW Template Development Kit (versioned as part of the [DSW platform](ht
 [4.14.0]: /../../tree/v4.14.0
 [4.15.0]: /../../tree/v4.15.0
 [4.16.0]: /../../tree/v4.16.0
+[4.17.0]: /../../tree/v4.17.0
