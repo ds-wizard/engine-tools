@@ -8,10 +8,10 @@ minio==7.2.15
 psycopg==3.2.3
 psycopg-binary==3.2.3
 pycparser==2.22
-pycryptodome==3.21.0
+pycryptodome==3.22.0
 python-dateutil==2.9.0.post0
 PyYAML==6.0.2
-sentry-sdk==2.22.0
+sentry-sdk==2.23.1
 six==1.17.0
 tenacity==9.0.0
 typing_extensions==4.12.2

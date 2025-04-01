@@ -44,7 +44,8 @@ def _validate_extension(field_name: str, value) -> List[ValidationError]:
     if value is not None and re.match(REGEX_ORGANIZATION_ID, value) is None:
         return [ValidationError(
             field_name=field_name,
-            message='File extension should contain only letters, numbers and dots (inside-only)',
+            message='File extension should contain only letters, numbers, '
+                    'and periods (inside-only)',
         )]
     return []
 
@@ -53,7 +54,8 @@ def _validate_organization_id(field_name: str, value) -> List[ValidationError]:
     if value is not None and re.match(REGEX_ORGANIZATION_ID, value) is None:
         return [ValidationError(
             field_name=field_name,
-            message='Organization ID may contain only letters, numbers, and period (inside-only)',
+            message='Organization ID may contain only letters, numbers, '
+                    'periods, dashes, and underscores',
         )]
     return []
 
@@ -62,7 +64,8 @@ def _validate_template_id(field_name: str, value) -> List[ValidationError]:
     if value is not None and re.match(REGEX_TEMPLATE_ID, value) is None:
         return [ValidationError(
             field_name=field_name,
-            message='Template ID may contain only letters, numbers, and dash (inside-only)',
+            message='Template ID may contain only letters, numbers, '
+                    'periods, dashes, and underscores',
         )]
     return []
 
@@ -71,7 +74,8 @@ def _validate_km_id(field_name: str, value) -> List[ValidationError]:
     if value is not None and re.match(REGEX_KM_ID, value) is None:
         return [ValidationError(
             field_name=field_name,
-            message='KM ID may contain only letters, numbers, and dash (inside-only)',
+            message='KM ID may contain only letters, numbers, '
+                    'periods, dashes, and underscores',
         )]
     return []
 
@@ -107,7 +111,7 @@ def _validate_package_id(field_name: str, value: str) -> List[ValidationError]:
     if len(parts) != 3:
         res.append(ValidationError(
             field_name=field_name,
-            message='Package ID is not valid (only {len(parts)} parts)',
+            message=f'Package ID is not valid (only {len(parts)} parts)',
         ))
     if re.match(REGEX_ORGANIZATION_ID, parts[0]) is None:
         res.append(ValidationError(

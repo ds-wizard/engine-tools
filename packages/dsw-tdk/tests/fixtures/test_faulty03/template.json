@@ -1,6 +1,6 @@
 {
-  "organizationId": "te-st",
-  "templateId": "example.01",
+  "organizationId": "te-st?test",
+  "templateId": "example.01:test",
   "version": "not a version",
   "name": null,
   "description": null,

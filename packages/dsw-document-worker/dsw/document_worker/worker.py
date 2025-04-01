@@ -330,8 +330,13 @@ class DocumentWorker(CommandWorker):
             phase = event.get('tags', {}).get('phase')
             if phase in ('render', 'prepare') and template is not None:
                 template_config = Context.get().app.cfg.templates.get_config(template)
-                if template_config is not None and not template_config.send_sentry:
+                send_sentry = template_config.send_sentry if template_config else False
+                if not send_sentry:
+                    LOG.debug('Skipping Sentry event (template, %s, %s)',
+                              event.get('event_id'), hint)
                     return None
+            LOG.debug('Sending Sentry event (template, %s, %s)',
+                      event.get('event_id'), hint)
             return event
 
         SentryReporter.filters.append(filter_templates)
