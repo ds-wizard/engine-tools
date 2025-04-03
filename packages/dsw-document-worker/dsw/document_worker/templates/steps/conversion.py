@@ -27,7 +27,7 @@ class WeasyPrintStep(Step):
     def wp_update_options(self, options: dict):
         optimize_size = tuple(options.get('render.optimize_size', 'fonts').split(','))
         self.wp_options.update({
-            'pdf_identifier': _is_true(options.get('pdf.identifier', 'false')),
+            'pdf_identifier': options.get('pdf.identifier', None),
             'pdf_variant': options.get('pdf.variant', None),
             'pdf_version': options.get('pdf.version', None),
             'pdf_forms': _is_true(options.get('render.forms', 'false')),
