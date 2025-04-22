@@ -1,5 +1,12 @@
-Hello,
+{%- set url = ctx.clientUrl ~ "/forgotten-token/" ~ ctx.organizationId ~ "/" ~ ctx.hash -%}
+{%- set orgName = ctx.organizationName -%}
+{%- set orgId = ctx.organizationId -%}
 
-You can set up a new token for your organization "{{ ctx.organizationName }}" ({{ ctx.organizationId }}) here: {{ ctx.clientUrl }}/forgotten-token/{{ ctx.organizationId }}/{{ ctx.hash }}
+{% trans %}Hello!{% endtrans %}
+
+{% trans %}Lost the token for {{ orgName }} ({{ orgId }})?{% endtrans %}
+{% trans %}No problem, just use the link below to set up a new one.{% endtrans %}
+
+{{ url }}
 
 {% include '_common/footer.txt.j2' %}

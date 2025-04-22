@@ -1,5 +1,5 @@
 {% extends '_common/layout.html.j2' %}
-{% block body %}
+
 {%- set projectGroups = ctx.notifications|sort(attribute='questionnaireName')|groupby('questionnaireUuid') -%}
 {%- set spThread = 'threads' if ctx.notifications|length > 1 else 'thread' -%}
 {%- macro threadLink(projectUuid, path, threadUuid) -%}
@@ -8,6 +8,9 @@
 {%- macro projectLink(projectUuid) -%}
 {{ ctx.clientUrl }}/projects/{{ projectUuid }}
 {%- endmacro -%}
+{%- set userFirstName = ctx.userFirstName -%}
+
+{% block body %}
 <table border="0" cellpadding="0" cellspacing="0" width="100%" class="dswTextBlock" style="min-width: 100%; border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;">
   <tbody class="dswTextBlockOuter">
     <tr>
@@ -25,8 +28,8 @@
               <td valign="top" class="dswTextContent" style="padding-top: 0; padding-right: 18px; padding-bottom: 9px; padding-left: 18px; mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; word-break: break-word; color: #757575; font-family: Helvetica; font-size: 16px; line-height: 150%; text-align: left;">
                 <p dir="ltr"
                   style="margin: 10px 0; padding: 0; mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; color: #212529; font-family: Helvetica; font-size: 14px; line-height: 150%; text-align: left;">
-                  Hello {{ ctx.userFirstName }},<br><br>
-                  You have been assigned to the following comment {{ spThread }}{% if projectGroups|length > 1 %} within {{ projectGroups|length }} projects{% endif %}:
+                  {% trans %}Hello {{ userFirstName }}{% endtrans %},<br><br>
+                  {% trans count=ctx.notifications|length %}The following comment thread has been assigned to you:{% pluralize %}The following {{ count }} comment threads have been assigned to you:{% endtrans %}
                 </p>
               </td>
             </tr>
@@ -69,10 +72,10 @@
                                   <tbody>
                                   <tr>
                                       <td style="padding: 0; mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; word-break: break-word; color: #91989E; font-family: Helvetica; font-size: 14px; line-height: 150%; text-align: left; font-style: italic;">
-                                          <i>Assigned by {{ item.assignedBy.firstName }} {{ item.assignedBy.lastName }}</i>
+                                          <i>{% trans %}Assigned by{% endtrans %} {{ item.assignedBy.firstName }} {{ item.assignedBy.lastName }}</i>
                                       </td>
                                       <td align="right" valign="middle" class="dswButtonContent" style="font-family: Helvetica; font-size: 14px; mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%; text-align: right">
-                                          <a href="{{ threadLink(qtnUuid, item.path, item.commentThreadUuid) }}" target="_blank" style="mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; color: #f15a24; font-weight: bold; text-decoration: none;"><strong>Open</strong></a>
+                                          <a href="{{ threadLink(qtnUuid, item.path, item.commentThreadUuid) }}" target="_blank" style="mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; color: #f15a24; font-weight: bold; text-decoration: none;"><strong>{% trans %}Open{% endtrans %}</strong></a>
                                       </td>
                                   </tr>
                                   </tbody>
@@ -107,13 +110,13 @@
             <tr>
               <td valign="top" class="dswTextContent" style="padding: 0px 18px 9px; line-height: 150%; mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; word-break: break-word; color: #212529; font-family: Helvetica; font-size: 16px; text-align: left;">
                 <p dir="ltr" style="line-height: 150%; margin: 0; padding: 0; mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; color: #212529; font-family: Helvetica; font-size: 14px; text-align: left;">
-                  <strong><a href="{{ ctx.clientUrl }}/comments?resolved=false" style="mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; color: #f15a24; font-weight: bold; text-decoration: none;">View all comment threads assigned to you</a></strong>
+                  <strong><a href="{{ ctx.clientUrl }}/comments?resolved=false" style="mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; color: #f15a24; font-weight: bold; text-decoration: none;">{% trans %}View all comment threads assigned to you{% endtrans %}</a></strong>
                   <br><br><br>
                   {% if ctx.supportEmail %}
-                  If any problem occurs contact us via <a href="mailto:{{ ctx.supportEmail }}" style="mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; color: #f15a24; font-weight: normal; text-decoration: none;">{{ ctx.supportEmail }}</a>.<br><br>
+                  {% trans %}If any problem occurs contact us via{% endtrans %} <a href="mailto:{{ ctx.supportEmail }}" style="mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; color: #f15a24; font-weight: normal; text-decoration: none;">{{ ctx.supportEmail }}</a>.<br><br>
                   {% endif %}
-                  Thank you for using DSW!<br><br>
-                  {% if ctx.appTitle %}<strong>{{ ctx.appTitle }}</strong> team{% endif %}
+                  {% trans %}Thank you for using DSW!{% endtrans %}<br><br>
+                  {% if ctx.appTitle %}<strong>{{ ctx.appTitle }}</strong> {% trans %}team{% endtrans %}{% endif %}
                 </p>
               </td>
             </tr>

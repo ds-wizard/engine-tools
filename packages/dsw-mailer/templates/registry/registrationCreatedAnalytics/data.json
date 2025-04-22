@@ -1,0 +1,16 @@
+{
+  "mode": "registry",
+  "parameters": {
+    "clientUrl": "https://registry-staging.ds-wizard.org",
+    "organizationEmail": "marek.suchanek+test.mails@gmail.com",
+    "organizationId": "ms.test.mail",
+    "organizationName": "MS test mail"
+  },
+  "recipients": [
+    {
+      "email": "admin@ds-wizard.org",
+      "uuid": null
+    }
+  ],
+  "template": "registrationCreatedAnalytics"
+}

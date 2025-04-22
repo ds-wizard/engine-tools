@@ -11,6 +11,7 @@ local-deps:
 	$(PIP) install ../dsw-config
 	$(PIP) install ../dsw-database
 	$(PIP) install ../dsw-command-queue
+	$(PIP) install ../dsw-storage
 
 .PHONY: docker-image-name
 docker-image-name:
@@ -39,6 +40,7 @@ lambda-package:
 	$(MAKE) lambda-dependency PKG=dsw-command-queue
 	$(MAKE) lambda-dependency PKG=dsw-config
 	$(MAKE) lambda-dependency PKG=dsw-database
+	$(MAKE) lambda-dependency PKG=dsw-storage
 	$(MAKE) lambda-dependency PKG=dsw-mailer
 
 	# 2. Fix postgres library for Lambda
@@ -55,3 +57,16 @@ clean:
 	find . -type d -name __pycache__ -exec rm -r {} \; >/dev/null || true
 	rm -rf package
 	rm mailer-lambda.zip || true
+
+.PHONY: pot
+pot:
+	pybabel extract --no-wrap --omit-header --ignore-dirs=.* \
+		 --mapping templates/babel.registry.cfg --output-file=templates/locale/registry.plain.pot .
+	pybabel extract --no-wrap --omit-header --ignore-dirs=.* \
+		--mapping templates/babel.wizard.cfg --output-file=templates/locale/wizard.plain.pot .
+	pybabel extract --no-wrap --omit-header --ignore-dirs=.* \
+		--mapping templates/babel.cfg --output-file=templates/locale/default.plain.pot .
+	cd templates/locale && \
+		./make-header.sh "wizard-mail-templates:4.18.0" wizard.plain.pot > wizard.pot && rm wizard.plain.pot && \
+		./make-header.sh "registry-mail-templates:4.18.0" registry.plain.pot > registry.pot && rm registry.plain.pot && \
+		./make-header.sh "mail-templates:4.18.0" default.plain.pot > default.pot && rm default.plain.pot

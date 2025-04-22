@@ -1,14 +1,17 @@
 import datetime
+import gettext
 import json
 import logging
 import pathlib
 import re
+import tempfile
 
 import dateutil.parser
 import jinja2
 import jinja2.sandbox
 import markdown
 import markupsafe
+import polib
 
 from .config import MailerConfig, MailConfig
 from .consts import DEFAULT_ENCODING
@@ -21,28 +24,33 @@ LOG = logging.getLogger(__name__)
 
 class MailTemplate:
 
-    def __init__(self, name: str, descriptor: TemplateDescriptor,
+    def __init__(self, *, name: str, descriptor: TemplateDescriptor,
+                 subject_template: jinja2.Template,
                  html_template: jinja2.Template | None,
                  plain_template: jinja2.Template | None):
         self.name = name
         self.descriptor = descriptor
         self.html_template = html_template
         self.plain_template = plain_template
+        self.subject_template = subject_template
         self.attachments: list[MailAttachment] = []
         self.html_images: list[MailAttachment] = []
 
     def render(self, rq: MessageRequest, mail_name: str | None, mail_from: str) -> MailMessage:
         ctx = rq.ctx
         msg = MailMessage()
-        msg.recipients = rq.recipients
+        msg.recipients = [r.email for r in rq.recipients]
+
+        subject = self.subject_template.render()
+
         if self.descriptor.use_subject_prefix:
             subject_prefix = ctx.get('appTitle', None) or mail_name
             if subject_prefix is None:
                 subject_prefix = self.descriptor.default_sender_name
             ctx['appTitle'] = subject_prefix
-            msg.subject = f'{subject_prefix}: {self.descriptor.subject}'
+            msg.subject = f'{subject_prefix}: {subject}'
         else:
-            msg.subject = self.descriptor.subject
+            msg.subject = subject
         msg.msg_id = rq.id
         msg.msg_domain = rq.domain
         msg.language = self.descriptor.language
@@ -70,7 +78,10 @@ class TemplateRegistry:
         self.workdir = workdir
         self.j2_env = jinja2.sandbox.SandboxedEnvironment(
             loader=jinja2.FileSystemLoader(searchpath=workdir),
-            extensions=['jinja2.ext.do'],
+            extensions=[
+                'jinja2.ext.do',
+                'jinja2.ext.i18n',
+            ],
         )
         self.templates: dict[str, MailTemplate] = {}
         self._set_filters()
@@ -89,6 +100,9 @@ class TemplateRegistry:
                 name=str(file_path.relative_to(self.workdir).as_posix()),
             )
         return None
+
+    def _make_str_jinja2(self, str_template: str) -> jinja2.Template:
+        return self.j2_env.from_string(str_template)
 
     @staticmethod
     def _load_attachment(template_path: pathlib.Path,
@@ -119,6 +133,9 @@ class TemplateRegistry:
                        descriptor: TemplateDescriptor) -> MailTemplate | None:
         html_template = None
         plain_template = None
+        subject_template = self._make_str_jinja2(
+            str_template='{% trans %}' + descriptor.subject + '{% endtrans %}'
+        )
         attachments = []
         html_images = []
         for part in descriptor.parts:
@@ -138,6 +155,7 @@ class TemplateRegistry:
             name=path.name,
             html_template=html_template,
             plain_template=plain_template,
+            subject_template=subject_template,
             descriptor=descriptor,
         )
         template.attachments = [a for a in attachments if a is not None]
@@ -157,16 +175,88 @@ class TemplateRegistry:
                      descriptor.id, path.as_posix())
             self.templates[descriptor.id] = template
 
+    def _uninstall_translations(self):
+        if hasattr(self.j2_env, 'uninstall_gettext_translations'):
+            # pylint: disable-next=no-member
+            self.j2_env.uninstall_gettext_translations('default')
+
+    def _install_null_translations(self):
+        if hasattr(self.j2_env, 'install_null_translations'):
+            # pylint: disable-next=no-member
+            self.j2_env.install_null_translations()
+
+    def _install_translations(self, translations: gettext.GNUTranslations):
+        if hasattr(self.j2_env, 'install_gettext_translations'):
+            # pylint: disable-next=no-member
+            self.j2_env.install_gettext_translations(translations)
+
+    def _load_locale(self, tenant_uuid: str, locale_id: str | None, app_ctx,
+                     locale_root_dir: pathlib.Path):
+        LOG.info('Loading locale: %s (for tenant %s)', locale_id, tenant_uuid)
+
+        self._uninstall_translations()
+
+        if locale_id is None:
+            self._install_null_translations()
+        else:
+            # fetch locale from DB
+            locale = app_ctx.db.get_locale(
+                tenant_uuid=tenant_uuid,
+                locale_id=locale_id,
+            )
+            if locale is None:
+                LOG.error('Could not find locale for tenant %s', tenant_uuid)
+                raise RuntimeError(f'Locale not found in DB: {locale_id}')
+            # fetch locale from S3
+            locale_root_dir = self.workdir / 'locale'
+            locale_dir = locale_root_dir / locale.code / 'LC_MESSAGES'
+            locale_dir.mkdir(parents=True, exist_ok=True)
+            locale_po_path = locale_dir / 'default.po'
+            locale_mo_path = locale_dir / 'default.mo'
+            locale_po_object = app_ctx.s3.make_path(
+                fragments=['locales', locale_id, 'mail.po'],
+                tenant_uuid=tenant_uuid,
+            )
+            downloaded = app_ctx.s3.download_file(
+                file_name=locale_po_object,
+                target_path=locale_po_path,
+            )
+            if not downloaded:
+                LOG.error('Cannot download locale file from %s to %s',
+                          locale_po_object, locale_po_path)
+                raise RuntimeError(f'Failed to download locale file: {locale_po_object}')
+            LOG.debug('Saved PO file to %s', locale_po_path)
+            # convert po to mo
+            po = polib.pofile(locale_po_path.absolute().as_posix())
+            po.save_as_mofile(locale_mo_path.absolute().as_posix())
+            LOG.debug('Converted PO file to MO file: %s', locale_mo_path)
+            # load translations
+            translations = gettext.translation(
+                domain='default',
+                localedir=locale_root_dir,
+                languages=[locale.code],
+            )
+            self._install_translations(translations)
+
     def has_template_for(self, rq: MessageRequest) -> bool:
         return rq.template_name in self.templates
 
-    def render(self, rq: MessageRequest, cfg: MailConfig) -> MailMessage:
+    def render(self, rq: MessageRequest, cfg: MailConfig, app_ctx) -> MailMessage:
         used_cfg = cfg or self.cfg.mail
-        return self.templates[rq.template_name].render(
-            rq=rq,
-            mail_name=used_cfg.name,
-            mail_from=used_cfg.email,
-        )
+        with tempfile.TemporaryDirectory() as tmpdir:
+            try:
+                locale_root_dir = pathlib.Path(tmpdir) / 'locale'
+                self._load_locale(rq.tenant_uuid, rq.locale_id, app_ctx, locale_root_dir)
+            except Exception as e:
+                LOG.warning('Cannot load locale for tenant %s: %s', rq.tenant_uuid, str(e))
+                LOG.warning('Rendering without locale')
+                self._uninstall_translations()
+                self._install_null_translations()
+            return self.templates[rq.template_name].render(
+                rq=rq,
+                mail_name=used_cfg.name,
+                mail_from=used_cfg.email,
+            )
 
 
 def datetime_format(iso_timestamp: None | datetime.datetime | str, fmt: str):

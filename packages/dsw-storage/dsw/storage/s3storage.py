@@ -125,3 +125,10 @@ class S3Storage:
                 content_type=content_type,
                 metadata=metadata,
             )
+
+    def make_path(self, fragments: list[str], tenant_uuid: str) -> str:
+        lst = []
+        if self.multi_tenant:
+            lst.append(tenant_uuid)
+        lst.extend(fragments)
+        return '/'.join(lst)

@@ -1,6 +1,6 @@
 {
   "id": "wizard:apiKeyExpiration",
-  "subject": "Your API key will expire soon",
+  "subject": "API Key Expiring Soon",
   "subjectPrefix": true,
   "defaultSenderName": "DSW",
   "parts": [

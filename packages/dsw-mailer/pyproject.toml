@@ -29,6 +29,7 @@ dependencies = [
     'Jinja2',
     'Markdown',
     'pathvalidate',
+    'polib',
     'python-dateutil',
     'sentry-sdk',
     'tenacity',
@@ -36,6 +37,7 @@ dependencies = [
     "dsw-command-queue==4.17.0",
     "dsw-config==4.17.0",
     "dsw-database==4.17.0",
+    "dsw-storage==4.17.0",
 ]
 
 [project.urls]

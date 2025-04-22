@@ -1,4 +1,10 @@
 {% extends '_common/layout.html.j2' %}
+
+{%- set userFirstName = ctx.userFirstName -%}
+{%- set tokenName = "<em>" ~ ctx.tokenName ~ "</em>" -%}
+{%- set tokenExpirationDate = ctx.tokenExpiresAt|datetime_format("%d/%m/%Y") -%}
+{%- set tokenExpirationTime = ctx.tokenExpiresAt|datetime_format("%H:%M (%Z)") -%}
+
 {% block body %}
 <table border="0" cellpadding="0" cellspacing="0" width="100%" class="dswTextBlock" style="min-width: 100%; border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;">
   <tbody class="dswTextBlockOuter">
@@ -16,8 +22,8 @@
             <tr>
               <td valign="top" class="dswTextContent" style="padding-top: 0; padding-right: 18px; padding-bottom: 9px; padding-left: 18px; mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; word-break: break-word; color: #212529; font-family: Helvetica; font-size: 14px; line-height: 150%; text-align: left;">
                 <p dir="ltr" style="margin: 10px 0; padding: 0; mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; color: #212529; font-family: Helvetica; font-size: 14px; line-height: 150%; text-align: left;">
-                  Dear {{ ctx.userFirstName }},<br><br>
-                  Your API key, identified as <em>{{ ctx.tokenName }}</em>, is scheduled to expire on {{ ctx.tokenExpiresAt|datetime_format("%B %-d, %Y (at %H:%M %Z)") }}.
+                  {% trans %}Hello {{ userFirstName }}{% endtrans %},<br><br>
+                  {% trans %}Your API key, identified as {{ tokenName }}, is scheduled to expire on {{ tokenExpirationDate }} at {{ tokenExpirationTime }}.{% endtrans %}
                 </p>
               </td>
             </tr>
@@ -42,7 +48,7 @@
           <tbody>
             <tr>
               <td align="center" valign="middle" class="dswButtonContent" style="font-family: Helvetica; font-size: 18px; mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
-                <a class="dswButton " title="Manage API Keys" href="{{ ctx.clientUrl }}/users/edit/current/api-keys" target="_blank" style="font-weight: bold; border: 18px solid #f15a24; border-radius: 2px; letter-spacing: -0.5px; line-height: 100%; text-align: center; text-decoration: none; color: #FFFFFF; mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; display: block;">Manage API Keys</a>
+                <a class="dswButton" title="Manage API Keys" href="{{ ctx.clientUrl }}/users/edit/current/api-keys" target="_blank" style="font-weight: bold; border: 18px solid #f15a24; border-radius: 2px; letter-spacing: -0.5px; line-height: 100%; text-align: center; text-decoration: none; color: #FFFFFF; mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; display: block;">{% trans %}Manage API Keys{% endtrans %}</a>
               </td>
             </tr>
           </tbody>
@@ -68,10 +74,10 @@
               <td valign="top" class="dswTextContent" style="padding: 0px 18px 9px; line-height: 150%; mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; word-break: break-word; color: #212529; font-family: Helvetica; font-size: 16px; text-align: left;">
                 <p dir="ltr" style="line-height: 150%; margin: 10px 0; padding: 0; mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; color: #212529; font-family: Helvetica; font-size: 14px; text-align: left;">
                   {% if ctx.supportEmail %}
-                  If you encounter any issues, please contact us via <a href="mailto:{{ ctx.supportEmail }}" style="mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; color: #007C89; font-weight: normal; text-decoration: underline;">{{ ctx.supportEmail }}</a>.
+                  {% trans %}If you encounter any issues, please contact us via{% endtrans %} <a href="mailto:{{ ctx.supportEmail }}" style="mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; color: #007C89; font-weight: normal; text-decoration: underline;">{{ ctx.supportEmail }}</a>.
                   {% endif %}<br><br>
-                  Thank you for using DSW!<br><br>
-                  {% if ctx.appTitle %}<strong>{{ ctx.appTitle }}</strong> team{% endif %}
+                  {% trans %}Thank you for using DSW!{% endtrans %}<br><br>
+                  {% if ctx.appTitle %}<strong>{{ ctx.appTitle }}</strong> {% trans %}team{% endtrans %}{% endif %}
                 </p>
               </td>
             </tr>

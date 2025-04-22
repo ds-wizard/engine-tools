@@ -1,6 +1,12 @@
-Dear {{ ctx.organizationName }},
+{%- set orgName = "\"" ~ ctx.organizationName ~ "\"" -%}
+{%- set orgId = ctx.organizationId -%}
+{%- set url = (ctx.callbackUrl ~ "/registry/signup/" ~ ctx.organizationId ~ "/" ~ ctx.hash) if ctx.callbackUrl else (ctx.clientUrl ~ "/signup/" ~ ctx.organizationId ~ "/" ~ ctx.hash) -%}
 
-For the activation of your account, please proceed here: {% if ctx.callbackUrl -%}
+{% trans %}Hello{% endtrans %}
+
+{% trans %}For the activation of your account {{ orgName }} ({{ orgId }}), please proceed here{% endtrans %}:
+
+{% if ctx.callbackUrl -%}
 {{ ctx.callbackUrl }}/registry/signup/{{ ctx.organizationId }}/{{ ctx.hash }}
 {%- else -%}
 {{ ctx.clientUrl }}/signup/{{ ctx.organizationId }}/{{ ctx.hash }}
