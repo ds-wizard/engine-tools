@@ -1,8 +1,8 @@
-Hello!
+{% trans %}Hello!{% endtrans %}
 
-Good news - we have a new user in our Wizard ({% if ctx.appTitle %}{{ ctx.appTitle }}, {% endif %}{{ ctx.clientUrl }}):
+{% trans %}Good news — we have a new user in{% endtrans %} ({% if ctx.appTitle %}{{ ctx.appTitle }}, {% endif %}{{ ctx.clientUrl }}):
 
-- Name: {{ ctx.userFirstName }} {{ ctx.userLastName }}
-- Email: {{ ctx.userEmail }}
+- {% trans %}Name{% endtrans %}: {{ ctx.userFirstName }} {{ ctx.userLastName }}
+- {% trans %}Email{% endtrans %}: {{ ctx.userEmail }}
 
 {% include '_common/footer.txt.j2' %}

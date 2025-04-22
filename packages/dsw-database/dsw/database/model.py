@@ -383,6 +383,48 @@ class DBQuestionnaireSimple:
 
 
 @dataclasses.dataclass
+class DBUserEntity:
+    TABLE_NAME = 'user_entity'
+
+    uuid: str
+    first_name: str
+    last_name: str
+    email: str
+    locale: str | None
+
+    @staticmethod
+    def from_dict_row(data: dict):
+        return DBUserEntity(
+            uuid=str(data['uuid']),
+            first_name=data['first_name'],
+            last_name=data['last_name'],
+            email=data['email'],
+            locale=data['locale'],
+        )
+
+
+@dataclasses.dataclass
+class DBLocale:
+    TABLE_NAME = 'locale'
+
+    id: str
+    name: str
+    code: str
+    default_locale: bool
+    enabled: bool
+
+    @staticmethod
+    def from_dict_row(data: dict):
+        return DBLocale(
+            id=str(data['id']),
+            name=data['name'],
+            code=data['code'],
+            default_locale=data['default_locale'],
+            enabled=data['enabled'],
+        )
+
+
+@dataclasses.dataclass
 class DBInstanceConfigMail:
     TABLE_NAME = 'instance_config_mail'
 

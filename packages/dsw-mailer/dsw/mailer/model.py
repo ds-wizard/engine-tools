@@ -187,12 +187,28 @@ class TemplateDescriptor:
         return result
 
 
+@dataclasses.dataclass
+class MessageRecipient:
+    uuid: str | None
+    email: str
+
+    @classmethod
+    def from_dict(cls, data: dict):
+        return cls(
+            uuid=data.get('uuid', None),
+            email=data.get('email', ''),
+        )
+
+
 class MessageRequest:
 
-    def __init__(self, *, message_id: str, template_name: str, trigger: str,
-                 ctx: dict, recipients: list[str], style: StyleConfig | None = None):
+    def __init__(self, *, message_id: str, locale_id: str | None, template_name: str,
+                 trigger: str, ctx: dict, recipients: list[MessageRecipient], tenant_uuid: str,
+                 style: StyleConfig | None = None):
         self.id = message_id
         self.template_name = template_name
+        self.tenant_uuid = tenant_uuid
+        self.locale_id = locale_id
         self.trigger = trigger
         self.ctx = ctx
         self.recipients = recipients
@@ -200,12 +216,15 @@ class MessageRequest:
         self.client_url = ''  # type: str
         self.style = style or StyleConfig.default()
         self.ctx['style'] = self.style
+        self.ctx['clientUrl'] = self.client_url
 
     @staticmethod
     def load_from_file(data: dict) -> 'MessageRequest':
         return MessageRequest(
             message_id=data['id'],
             template_name=data['type'],
+            tenant_uuid=data['tenantUuid'],
+            locale_id=data['localeId'],
             trigger=data.get('trigger', 'input_file'),
             ctx=data.get('ctx', {}),
             recipients=data.get('recipients', []),

@@ -1,4 +1,11 @@
 
-Thank you for using the DSW!
+{% trans %}Thank you for using DSW!{% endtrans %}
+
 __
-{%  if ctx.appTitle %}{{ ctx.appTitle }}{% else %}Wizard team{% endif %}
+{% if ctx.appTitle %}<strong>{{ ctx.appTitle }}</strong> {% trans %}team{% endtrans %}{% endif %}
+
+{% trans %}Please do not reply to this email{% endtrans %}.
+{% if ctx.appTitle and ctx.clientUrl %}
+{% trans %}This email was generated from{% endtrans %} {{ ctx.appTitle }}: {{ ctx.clientUrl }}
+{% endif %}
+

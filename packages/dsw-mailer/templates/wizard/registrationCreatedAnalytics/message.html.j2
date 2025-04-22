@@ -16,19 +16,18 @@
             <tr>
               <td valign="top" class="dswTextContent" style="padding-top: 0; padding-right: 18px; padding-bottom: 9px; padding-left: 18px; mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; word-break: break-word; color: #757575; font-family: Helvetica; font-size: 14px; line-height: 150%; text-align: left;">
                 <p dir="ltr" style="margin: 10px 0; padding: 0; mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; color: #212529; font-family: Helvetica; font-size: 14px; line-height: 150%; text-align: left;">
-                  Hello!<br><br>
-                  Good news &mdash; we have a new user {% if ctx.appTitle %}in {{ ctx.appTitle }} {% endif %}(<a href="{{ ctx.clientUrl }}" target="_blank">{{ ctx.clientUrl }}</a>):
+                  {% trans %}Hello!{% endtrans %}<br><br>
+                  {% trans %}Good news — we have a new user in{% endtrans %} {% if ctx.appTitle %}{{ ctx.appTitle }} {% endif %}(<a href="{{ ctx.clientUrl }}" target="_blank">{{ ctx.clientUrl }}</a>):
                 </p>
                   <dl>
-                    <dt>Name<dt>
+                    <dt>{% trans %}Name{% endtrans %}<dt>
                     <dd>{{ ctx.userFirstName }} {{ ctx.userLastName }}</dd>
-                    <dt>Email<dt>
+                    <dt>{% trans %}Email{% endtrans %}<dt>
                     <dd>{{ ctx.userEmail }}</dd>
                   </dl>
                   <br>
                 <p dir="ltr" style="margin: 10px 0; padding: 0; mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; color: #212529; font-family: Helvetica; font-size: 14px; line-height: 150%; text-align: left;">
-                  <em>Have a nice day!</em><br><br>
-                  Your <strong>{{ ctx.appTitle }}</strong>
+                  <em>{% trans %}Have a nice day!{% endtrans %}</em><br><br><strong>{{ ctx.appTitle }}</strong>
                 </p>
               </td>
             </tr>

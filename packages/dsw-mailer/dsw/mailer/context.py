@@ -2,6 +2,7 @@ import dataclasses
 import pathlib
 
 from dsw.database import Database
+from dsw.storage import S3Storage
 
 from .config import MailerConfig
 from .templates import TemplateRegistry
@@ -16,6 +17,7 @@ class ContextNotInitializedError(RuntimeError):
 @dataclasses.dataclass
 class AppContext:
     db: Database
+    s3: S3Storage
     cfg: MailerConfig
     workdir: pathlib.Path
 
@@ -52,10 +54,11 @@ class Context:
         return cls._instance
 
     @classmethod
-    def initialize(cls, db, config, workdir):
+    def initialize(cls, db, s3, config, workdir):
         cls._instance = _Context(
             app=AppContext(
                 db=db,
+                s3=s3,
                 cfg=config,
                 workdir=workdir,
             ),

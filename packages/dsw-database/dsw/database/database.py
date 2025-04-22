@@ -13,7 +13,8 @@ from dsw.config.model import DatabaseConfig
 from .model import DBDocumentTemplate, DBDocumentTemplateFile, \
     DBDocumentTemplateAsset, DBDocument, DBComponent, \
     DocumentState, DBTenantConfig, DBTenantLimits, DBSubmission, \
-    DBInstanceConfigMail, DBQuestionnaireSimple
+    DBInstanceConfigMail, DBQuestionnaireSimple, \
+    DBUserEntity, DBLocale
 
 LOG = logging.getLogger(__name__)
 
@@ -76,6 +77,14 @@ class Database:
                       '+ (SELECT COALESCE(SUM(file_size)::bigint, 0) '
                       'FROM questionnaire_file WHERE tenant_uuid = %(tenant_uuid)s) '
                       'AS result;')
+    SELECT_USER = ('SELECT * FROM user_entity '
+                   'WHERE uuid = %(user_uuid)s AND tenant_uuid = %(tenant_uuid)s;')
+    SELECT_DEFAULT_LOCALE = ('SELECT * FROM locale '
+                             'WHERE default_locale IS TRUE AND '
+                             '  enabled is TRUE AND '
+                             '  tenant_uuid = %(tenant_uuid)s;')
+    SELECT_LOCALE = ('SELECT * FROM locale '
+                     'WHERE id = %(locale_id)s AND tenant_uuid = %(tenant_uuid)s;')
 
     def __init__(self, cfg: DatabaseConfig, connect: bool = True,
                  with_queue: bool = True):
@@ -411,6 +420,81 @@ class Database:
             except Exception as e:
                 LOG.warning('Could not retrieve instance_config_mail "%s": %s',
                             mail_config_uuid, str(e))
+                return None
+
+    @tenacity.retry(
+        reraise=True,
+        wait=tenacity.wait_exponential(multiplier=RETRY_QUERY_MULTIPLIER),
+        stop=tenacity.stop_after_attempt(RETRY_QUERY_TRIES),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
+    )
+    def get_user(self, user_uuid: str, tenant_uuid: str) -> DBUserEntity | None:
+        if not self._check_table_exists(table_name='user_entity'):
+            return None
+        with self.conn_query.new_cursor(use_dict=True) as cursor:
+            try:
+                cursor.execute(
+                    query=self.SELECT_USER,
+                    params={'user_uuid': user_uuid, 'tenant_uuid': tenant_uuid},
+                )
+                result = cursor.fetchone()
+                if result is None:
+                    return None
+                return DBUserEntity.from_dict_row(data=result)
+            except Exception as e:
+                LOG.warning('Could not retrieve user "%s" for tenant "%s": %s',
+                            user_uuid, tenant_uuid, str(e))
+                return None
+
+    @tenacity.retry(
+        reraise=True,
+        wait=tenacity.wait_exponential(multiplier=RETRY_QUERY_MULTIPLIER),
+        stop=tenacity.stop_after_attempt(RETRY_QUERY_TRIES),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
+    )
+    def get_default_locale(self, tenant_uuid: str) -> DBLocale | None:
+        if not self._check_table_exists(table_name='locale'):
+            return None
+        with self.conn_query.new_cursor(use_dict=True) as cursor:
+            try:
+                cursor.execute(
+                    query=self.SELECT_DEFAULT_LOCALE,
+                    params={'tenant_uuid': tenant_uuid},
+                )
+                result = cursor.fetchone()
+                if result is None:
+                    return None
+                return DBLocale.from_dict_row(data=result)
+            except Exception as e:
+                LOG.warning('Could not retrieve default locale for tenant "%s": %s',
+                            tenant_uuid, str(e))
+                return None
+
+    @tenacity.retry(
+        reraise=True,
+        wait=tenacity.wait_exponential(multiplier=RETRY_QUERY_MULTIPLIER),
+        stop=tenacity.stop_after_attempt(RETRY_QUERY_TRIES),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
+    )
+    def get_locale(self, locale_id: str, tenant_uuid: str) -> DBLocale | None:
+        if not self._check_table_exists(table_name='locale'):
+            return None
+        with self.conn_query.new_cursor(use_dict=True) as cursor:
+            try:
+                cursor.execute(
+                    query=self.SELECT_LOCALE,
+                    params={'locale_id': locale_id, 'tenant_uuid': tenant_uuid},
+                )
+                result = cursor.fetchone()
+                if result is None:
+                    return None
+                return DBLocale.from_dict_row(data=result)
+            except Exception as e:
+                LOG.warning('Could not retrieve locale "%s" for tenant "%s": %s',
+                            locale_id, tenant_uuid, str(e))
                 return None
 
     @tenacity.retry(

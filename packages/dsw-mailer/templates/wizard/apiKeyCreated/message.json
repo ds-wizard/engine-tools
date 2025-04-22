@@ -1,6 +1,6 @@
 {
   "id": "wizard:apiKeyCreated",
-  "subject": "A new API key has been created",
+  "subject": "New API Key Created",
   "subjectPrefix": true,
   "defaultSenderName": "DSW",
   "parts": [

@@ -1,4 +1,7 @@
 {% extends '_common/layout.html.j2' %}
+
+{%- set userFirstName = ctx.userFirstName -%}
+
 {% block body %}
 <table border="0" cellpadding="0" cellspacing="0" width="100%" class="dswTextBlock" style="min-width: 100%; border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;">
   <tbody class="dswTextBlockOuter">
@@ -16,8 +19,8 @@
             <tr>
               <td valign="top" class="dswTextContent" style="padding-top: 0; padding-right: 18px; padding-bottom: 9px; padding-left: 18px; mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; word-break: break-word; color: #212529; font-family: Helvetica; font-size: 14px; line-height: 150%; text-align: left;">
                 <p dir="ltr" style="margin: 10px 0; padding: 0; mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; color: #212529; font-family: Helvetica; font-size: 14px; line-height: 150%; text-align: left;">
-                  Dear {{ ctx.userFirstName }},<br><br>
-                  You have requested an authentication code to log into your account. Your code is:
+                  {% trans %}Hello {{ userFirstName }}{% endtrans %},<br><br>
+                  {% trans %}You have requested an authentication code to log in to your account. Your code is:{% endtrans %}
                 </p>
               </td>
             </tr>
@@ -65,12 +68,13 @@
             <tr>
               <td valign="top" class="dswTextContent" style="padding: 0px 18px 9px; line-height: 150%; mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; word-break: break-word; color: #212529; font-family: Helvetica; font-size: 16px; text-align: left;">
                 <p dir="ltr" style="line-height: 150%; margin: 10px 0; padding: 0; mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; color: #212529; font-family: Helvetica; font-size: 14px; text-align: left;">
-                  This code is valid for <a href="{{ ctx.clientUrl }}" target="_blank">{{ ctx.clientUrl }}</a>.
+                  {% trans %}This code is valid for{% endtrans %} <a href="{{ ctx.clientUrl }}" target="_blank">{{ ctx.clientUrl }}</a>.
                   {% if ctx.supportEmail %}
-                  If you did not initiate this login attempt, please contact us via <a href="mailto:{{ ctx.supportEmail }}" style="mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; color: #007C89; font-weight: normal; text-decoration: underline;">{{ ctx.supportEmail }}</a>.
+                      <br><br>
+                  {% trans %}If you did not initiate this login attempt, please contact us via{% endtrans %} <a href="mailto:{{ ctx.supportEmail }}" style="mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; color: #007C89; font-weight: normal; text-decoration: underline;">{{ ctx.supportEmail }}</a>.
                   {% endif %}<br><br>
-                  Thank you for using DSW!<br><br>
-                  {% if ctx.appTitle %}<strong>{{ ctx.appTitle }}</strong> team{% endif %}
+                  {% trans %}Thank you for using DSW!{% endtrans %}<br><br>
+                  {% if ctx.appTitle %}<strong>{{ ctx.appTitle }}</strong> {% trans %}team{% endtrans %}{% endif %}
                 </p>
               </td>
             </tr>
