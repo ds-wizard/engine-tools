@@ -59,10 +59,8 @@ class Database:
                               'WHERE document_template_id = %s AND tenant_uuid = %s;')
     CHECK_TABLE_EXISTS = ('SELECT EXISTS(SELECT * FROM information_schema.tables'
                           '                       WHERE table_name = %(table_name)s)')
-    SELECT_MAIL_CONFIG = ('SELECT icm.* '
-                          'FROM tenant_config tc JOIN instance_config_mail icm '
-                          'ON tc.mail_config_uuid = icm.uuid '
-                          'WHERE tc.uuid = %(tenant_uuid)s;')
+    SELECT_MAIL_CONFIG = ('SELECT * FROM instance_config_mail '
+                          'WHERE uuid = %(mail_config_uuid)s;')
     UPDATE_COMPONENT_INFO = ('INSERT INTO component '
                              '(name, version, built_at, created_at, updated_at) '
                              'VALUES (%(name)s, %(version)s, %(built_at)s, '
@@ -397,22 +395,22 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def get_mail_config(self, tenant_uuid: str) -> DBInstanceConfigMail | None:
+    def get_mail_config(self, mail_config_uuid: str) -> DBInstanceConfigMail | None:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             if not self._check_table_exists(table_name='instance_config_mail'):
                 return None
             try:
                 cursor.execute(
                     query=self.SELECT_MAIL_CONFIG,
-                    params={'tenant_uuid': tenant_uuid},
+                    params={'mail_config_uuid': mail_config_uuid},
                 )
                 result = cursor.fetchone()
                 if result is None:
                     return None
                 return DBInstanceConfigMail.from_dict_row(data=result)
             except Exception as e:
-                LOG.warning('Could not retrieve instance_config_mail for tenant "%s": %s',
-                            tenant_uuid, str(e))
+                LOG.warning('Could not retrieve instance_config_mail "%s": %s',
+                            mail_config_uuid, str(e))
                 return None
 
     @tenacity.retry(
