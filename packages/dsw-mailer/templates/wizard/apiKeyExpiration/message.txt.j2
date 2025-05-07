@@ -1,11 +1,16 @@
-Dear {{ ctx.userFirstName }},
+{%- set userFirstName = ctx.userFirstName -%}
+{%- set tokenName = "\"" ~ ctx.tokenName ~ "\"" -%}
+{%- set tokenExpirationDate = ctx.tokenExpiresAt|datetime_format("%d/%m/%Y") -%}
+{%- set tokenExpirationTime = ctx.tokenExpiresAt|datetime_format("%H:%M (%Z)") -%}
 
-Your API key, identified as <em>{{ ctx.tokenName }}</em>, is scheduled to expire on {{ ctx.tokenExpiresAt|datetime_format("%B %-d, %Y (at %H:%M %Z)") }}.
+{% trans %}Hello {{ userFirstName }}{% endtrans %},
 
-You can manage your API keys here: {{ ctx.clientUrl }}/users/edit/current/api-keys
+{% trans %}Your API key, identified as {{ tokenName }}, is scheduled to expire on {{ tokenExpirationDate }} at {{ tokenExpirationTime }}.{% endtrans %}
+
+{% trans %}You can manage your API keys here:{% endtrans %} {{ ctx.clientUrl }}/users/edit/current/api-keys
 
 {% if ctx.supportEmail %}
-If you did not initiate this login attempt, please contact us via {{ ctx.supportEmail }}.
+{% trans %}If you encounter any issues, please contact us via{% endtrans %}: {{ ctx.supportEmail }}.
 {% endif %}
 
 {% include '_common/footer.txt.j2' %}

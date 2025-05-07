@@ -1,9 +1,9 @@
-Hello!
+{% trans %}Hello!{% endtrans %}
 
-Good news - we have a new organization {% if ctx.appTitle %}in {{ ctx.appTitle }}{% endif %} ({{ ctx.clientUrl }}):
+{% trans %}Good news — we have a new organization in{% endtrans %} Registry "{{ ctx.appTitle }}": {{ ctx.clientUrl }}
 
-- ID: {{ ctx.organizationId }}
-- Name: {{ ctx.organizationName }}
-- Email: {{ ctx.organizationEmail }}
+- {% trans %}ID{% endtrans %}: {{ ctx.organizationId }}
+- {% trans %}Name{% endtrans %}: {{ ctx.organizationName }}
+- {% trans %}Email{% endtrans %}: {{ ctx.organizationEmail }}
 
 {% include '_common/footer.txt.j2' %}

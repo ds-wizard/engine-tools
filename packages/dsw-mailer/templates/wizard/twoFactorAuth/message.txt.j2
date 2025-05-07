@@ -1,12 +1,15 @@
-Dear {{ ctx.userFirstName }},
+{%- set userFirstName = ctx.userFirstName -%}
+{%- set clientUrl = ctx.clientUrl -%}
 
-You have requested an authentication code to login into your account. Your code is:
+{% trans %}Hello {{ userFirstName }}{% endtrans %},
+
+{% trans %}You have requested an authentication code to log in to your account. Your code is:{% endtrans %}
 
 {{ ctx.code }}
 
-This code is valid for {{ ctx.clientUrl }}.
+{% trans %}This code is valid for{% endtrans %}: {{ clientUrl }}
 {% if ctx.supportEmail %}
-If you did not initiate this login attempt, please contact us via {{ ctx.supportEmail }}.
+{% trans %}If you did not initiate this login attempt, please contact us via{% endtrans %} {{ ctx.supportEmail }}.
 {% endif %}
 
 {% include '_common/footer.txt.j2' %}

@@ -152,11 +152,11 @@
                       <span>Copyright © <a href="https://ds-wizard.org" target="_blank">Data Stewardship Wizard</a>, All rights reserved.</span>
                       <br>
                       <br>
-                      <em>Please do not reply to this email.</em>
+                      <em>{% trans %}Please do not reply to this email{% endtrans %}.</em>
                       <br>
                       <br>
                     {% if ctx.appTitle and ctx.clientUrl  %}
-                      <small>This email was generated from <a href="{{ ctx.clientUrl }}" target="_blank">{{ ctx.appTitle }}</a>.</small>
+                      <small>{% trans %}This email was generated from{% endtrans %} <a href="{{ ctx.clientUrl }}" target="_blank">{{ ctx.appTitle }}</a>.</small>
                       <br>
                     {% endif %}
                     </td>

@@ -1,6 +1,8 @@
-Hi {{ ctx.userFirstName }},
+{%- set userFirstName = ctx.userFirstName -%}
 
-Forgot your password?
-No problem, that happens to the best of us! You can easily set up a new password here: {{ ctx.clientUrl }}/forgotten-password/{{ ctx.userUuid }}/{{ ctx.hash }}
+{% trans %}Hello {{ userFirstName }}{% endtrans %},
+
+{% trans %}Forgot your password? No problem, that happens to the best of us!{% endtrans %}
+{% trans %}You can easily set up a new password here{% endtrans %}: {{ ctx.clientUrl }}/forgotten-password/{{ ctx.userUuid }}/{{ ctx.hash }}
 
 {% include '_common/footer.txt.j2' %}

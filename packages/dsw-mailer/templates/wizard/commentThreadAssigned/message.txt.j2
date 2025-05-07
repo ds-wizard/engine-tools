@@ -7,15 +7,17 @@
 {{ ctx.clientUrl }}/projects/{{ projectUuid }}
 {%- endmacro -%}
 
-Hello {{ ctx.userFirstName }},
+{%- set userFirstName = ctx.userFirstName -%}
 
-You have been assigned to the following comment {{ spThread }}{% if projectGroups|length > 1 %} (within {{ projectGroups|length }} projects){% endif %}:
+{% trans %}Hello {{ userFirstName }}{% endtrans %},
+
+{% trans count=ctx.notifications|length %}The following comment thread has been assigned to you:{% pluralize %}The following {{ count }} comment threads have been assigned to you:{% endtrans %}
 
 {% for qtnUuid, items in projectGroups %}
 {{ items[0].questionnaireName }} ({{ projectLink(qtnUuid) }})
 {% for item in items %}
 - {{ item.text|truncate(100, False, '...') }}
-  Assigned by: {{ item.assignedBy.firstName }} {{ item.assignedBy.lastName }}, {% if item.resolved %}already resolved{% else %}unresolved{% endif %}{% if item.private %}, private editor note{% endif %})
+  {% trans %}Assigned by{% endtrans %}: {{ item.assignedBy.firstName }} {{ item.assignedBy.lastName }}, {% if item.resolved %}{% trans %}already resolved{% endtrans %}{% else %}{% trans %}unresolved{% endtrans %}{% endif %}{% if item.private %}, {% trans %}private editor note{% endtrans %}{% endif %})
   {{ threadLink(item.questionnaireUuid, item.path, item.commentThreadUuid) }}
 {% endfor %}
 --------------------

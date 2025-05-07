@@ -6,8 +6,8 @@ from dsw.config import DSWConfigParser
 from dsw.config.keys import ConfigKey, ConfigKeys, ConfigKeysContainer, \
     cast_str, cast_bool, cast_optional_str, cast_optional_bool, cast_int, \
     cast_optional_int
-from dsw.config.model import GeneralConfig, SentryConfig, \
-    DatabaseConfig, LoggingConfig, ConfigModel, AWSConfig
+from dsw.config.model import GeneralConfig, SentryConfig, CloudConfig, \
+    DatabaseConfig, LoggingConfig, ConfigModel, AWSConfig, S3Config
 from dsw.database.model import DBInstanceConfigMail
 
 
@@ -329,8 +329,11 @@ class MailerConfig:
     def __init__(self, *, db: DatabaseConfig, log: LoggingConfig,
                  mail: MailConfig, sentry: SentryConfig,
                  general: GeneralConfig, aws: AWSConfig,
-                 experimental: ExperimentalConfig):
+                 experimental: ExperimentalConfig,
+                 s3: S3Config, cloud: CloudConfig):
         self.db = db
+        self.s3 = s3
+        self.cloud = cloud
         self.log = log
         self.mail = mail
         self.sentry = sentry
@@ -410,6 +413,8 @@ class MailerConfigParser(DSWConfigParser):
     def config(self) -> MailerConfig:
         cfg = MailerConfig(
             db=self.db,
+            s3=self.s3,
+            cloud=self.cloud,
             log=self.logging,
             mail=self.mail,
             sentry=self.sentry,

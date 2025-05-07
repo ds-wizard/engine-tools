@@ -11,6 +11,7 @@ from dsw.command_queue import CommandWorker, CommandQueue
 from dsw.config.sentry import SentryReporter
 from dsw.database.database import Database
 from dsw.database.model import PersistentCommand
+from dsw.storage import S3Storage
 
 from .build_info import BUILD_INFO
 from .config import MailerConfig, MailConfig, merge_mail_configs
@@ -19,7 +20,7 @@ from .sender import send
 from .consts import COMPONENT_NAME, CMD_CHANNEL, CMD_COMPONENT, \
     CMD_FUNCTION
 from .context import Context
-from .model import MessageRequest
+from .model import MessageRequest, MessageRecipient
 
 
 LOG = logging.getLogger(__name__)
@@ -44,6 +45,10 @@ class Mailer(CommandWorker):
             config=self.cfg,
             workdir=workdir,
             db=Database(cfg=self.cfg.db, connect=False),
+            s3=S3Storage(
+                cfg=self.cfg.s3,
+                multi_tenant=self.cfg.cloud.multi_tenant,
+            ),
         )
 
     def _init_sentry(self):
@@ -90,38 +95,77 @@ class Mailer(CommandWorker):
         queue = self._run_preparation()
         queue.run_once()
 
+    def _get_locale_id(self, recipient_uuid: str, tenant_uuid: str) -> str | None:
+        app_ctx = Context.get().app
+        user = app_ctx.db.get_user(
+            user_uuid=recipient_uuid,
+            tenant_uuid=tenant_uuid,
+        )
+        if user is None:
+            raise RuntimeError(f'Cannot find user: {recipient_uuid}')
+        if user.locale is not None:
+            return user.locale
+        default_locale = app_ctx.db.get_default_locale(
+            tenant_uuid=tenant_uuid,
+        )
+        if default_locale is not None:
+            return default_locale.id
+        return None
+
+    def _get_msg_request(self, command: PersistentCommand) -> MessageRequest:
+        app_ctx = Context.get().app
+        mc = MailerCommand.load(command)
+
+        if len(mc.recipients) == 0:
+            raise RuntimeError('No recipients specified')
+
+        first_recipient = mc.recipients[0]
+        locale_id = None
+        if first_recipient.uuid is not None:
+            locale_id = self._get_locale_id(first_recipient.uuid, command.tenant_uuid)
+
+        rq = mc.to_request(
+            msg_id=command.uuid,
+            trigger='PersistentComment',
+            locale_id=locale_id,
+        )
+        rq.client_url = command.body.get('clientUrl', app_ctx.cfg.general.client_url)
+        rq.domain = urllib.parse.urlparse(rq.client_url).hostname
+        return rq
+
+    def _get_mail_config(self, command: PersistentCommand) -> MailConfig:
+        app_ctx = Context.get().app
+        params: dict = command.body.get('parameters', {})
+        mail_config_uuid: str | None = params.get('mailConfigUuid', None)
+        db_cfg = None
+        if mail_config_uuid is not None:
+            LOG.debug('Loading mail config from DB: %s', mail_config_uuid)
+            db_cfg = app_ctx.db.get_mail_config(
+                mail_config_uuid=mail_config_uuid,
+            )
+        mail_cfg = merge_mail_configs(
+            cfg=self.cfg,
+            db_cfg=db_cfg,
+        )
+        LOG.debug('Mail config: %s', mail_cfg)
+        return mail_cfg
+
     def work(self, command: PersistentCommand):
-        # update Sentry info
+        # init Sentry info
         SentryReporter.set_tags(
             template='?',
             command_uuid=command.uuid,
             tenant_uuid=command.tenant_uuid,
         )
         Context.get().update_trace_id(command.uuid)
-        # work
-        app_ctx = Context.get().app
-        mc = MailerCommand.load(command)
-        rq = mc.to_request(
-            msg_id=command.uuid,
-            trigger='PersistentComment',
-        )
-        # get tenant config from DB
-        tenant_cfg = app_ctx.db.get_tenant_config(tenant_uuid=command.tenant_uuid)
-        LOG.debug('Tenant config from DB: %s', tenant_cfg)
-        if tenant_cfg is not None:
-            rq.style.from_dict(tenant_cfg.look_and_feel)
-        # get mailer config from DB
-        mail_cfg = merge_mail_configs(
-            cfg=self.cfg,
-            db_cfg=app_ctx.db.get_mail_config(tenant_uuid=command.tenant_uuid),
-        )
-        LOG.debug('Mail config from DB: %s', mail_cfg)
-        # client URL
-        rq.client_url = command.body.get('clientUrl', app_ctx.cfg.general.client_url)
-        rq.domain = urllib.parse.urlparse(rq.client_url).hostname
+        # prepare
+        rq = self._get_msg_request(command)
+        mail_cfg = self._get_mail_config(command)
         # update Sentry info
         SentryReporter.set_tags(template=rq.template_name)
+        # send the message
         self.send(rq, mail_cfg)
+        # reset Sentry info
         SentryReporter.set_tags(
             template='-',
             command_uuid='-',
@@ -144,7 +188,8 @@ class Mailer(CommandWorker):
             raise RuntimeError(f'Template not found: {rq.template_name}')
         # render
         LOG.info('Rendering message: %s', rq.template_name)
-        msg = self.ctx.templates.render(rq, cfg)
+        LOG.warning('Should send with locale: %s', rq.locale_id)
+        msg = self.ctx.templates.render(rq, cfg, Context.get().app)
         # send
         LOG.info('Sending message: %s', rq.template_name)
         send(msg, cfg)
@@ -178,8 +223,8 @@ class RateLimiter:
 
 class MailerCommand:
 
-    def __init__(self, *, recipients: list[str], mode: str, template: str,
-                 ctx: dict, tenant_uuid: str, cmd_uuid: str):
+    def __init__(self, *, recipients: list[MessageRecipient], mode: str,
+                 template: str, ctx: dict, tenant_uuid: str, cmd_uuid: str):
         self.mode = mode
         self.template = template
         self.recipients = recipients
@@ -188,14 +233,18 @@ class MailerCommand:
         self.cmd_uuid = cmd_uuid
         self._enrich_context()
 
-    def to_request(self, msg_id: str, trigger: str) -> MessageRequest:
-        return MessageRequest(
+    def to_request(self, msg_id: str, locale_id: str | None, trigger: str) -> MessageRequest:
+        rq = MessageRequest(
             message_id=msg_id,
             template_name=f'{self.mode}:{self.template}',
+            tenant_uuid=self.tenant_uuid,
+            locale_id=locale_id,
             trigger=trigger,
             ctx=self.ctx,
             recipients=self.recipients,
         )
+        rq.style.from_dict(self.ctx)
+        return rq
 
     def _enrich_context(self):
         self.ctx['_meta'] = {
@@ -216,7 +265,8 @@ class MailerCommand:
             return MailerCommand(
                 mode=command.body['mode'],
                 template=command.body['template'],
-                recipients=command.body['recipients'],
+                recipients=[MessageRecipient.from_dict(data)
+                            for data in command.body.get('recipients', [])],
                 ctx=command.body['parameters'],
                 tenant_uuid=command.tenant_uuid,
                 cmd_uuid=command.uuid,
