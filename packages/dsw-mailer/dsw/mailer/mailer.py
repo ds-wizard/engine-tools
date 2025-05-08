@@ -3,7 +3,6 @@ import logging
 import math
 import pathlib
 import time
-import urllib.parse
 
 import dateutil.parser
 
@@ -113,25 +112,18 @@ class Mailer(CommandWorker):
         return None
 
     def _get_msg_request(self, command: PersistentCommand) -> MessageRequest:
-        app_ctx = Context.get().app
         mc = MailerCommand.load(command)
-
         if len(mc.recipients) == 0:
             raise RuntimeError('No recipients specified')
-
         first_recipient = mc.recipients[0]
         locale_id = None
         if first_recipient.uuid is not None:
             locale_id = self._get_locale_id(first_recipient.uuid, command.tenant_uuid)
-
-        rq = mc.to_request(
+        return mc.to_request(
             msg_id=command.uuid,
             trigger='PersistentComment',
             locale_id=locale_id,
         )
-        rq.client_url = command.body.get('clientUrl', app_ctx.cfg.general.client_url)
-        rq.domain = urllib.parse.urlparse(rq.client_url).hostname
-        return rq
 
     def _get_mail_config(self, command: PersistentCommand) -> MailConfig:
         app_ctx = Context.get().app

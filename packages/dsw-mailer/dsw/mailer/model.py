@@ -1,6 +1,7 @@
 import dataclasses
 import os
 import re
+import urllib.parse
 
 
 class Color:
@@ -212,11 +213,14 @@ class MessageRequest:
         self.trigger = trigger
         self.ctx = ctx
         self.recipients = recipients
+        self.client_url = self.ctx.get('clientUrl', '')  # type: str
         self.domain = None  # type: str | None
-        self.client_url = ''  # type: str
         self.style = style or StyleConfig.default()
         self.ctx['style'] = self.style
-        self.ctx['clientUrl'] = self.client_url
+
+        if self.client_url == '':
+            raise ValueError('Client URL is required')
+        self.domain = urllib.parse.urlparse(self.client_url).hostname
 
     @staticmethod
     def load_from_file(data: dict) -> 'MessageRequest':
