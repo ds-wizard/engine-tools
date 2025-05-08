@@ -1,4 +1,5 @@
 PIP = pip
+VERSION = 4.18.2
 
 .PHONY: verify
 verify:
@@ -67,6 +68,6 @@ pot:
 	pybabel extract --no-wrap --omit-header --ignore-dirs=.* \
 		--mapping templates/babel.cfg --output-file=templates/locale/default.plain.pot .
 	cd templates/locale && \
-		./make-header.sh "wizard-mail-templates:4.18.1" wizard.plain.pot > wizard.pot && rm wizard.plain.pot && \
-		./make-header.sh "registry-mail-templates:4.18.1" registry.plain.pot > registry.pot && rm registry.plain.pot && \
-		./make-header.sh "mail-templates:4.18.1" default.plain.pot > default.pot && rm default.plain.pot
+		./make-header.sh "wizard-mail-templates:${VERSION}" wizard.plain.pot > wizard.pot && rm wizard.plain.pot && \
+		./make-header.sh "registry-mail-templates:${VERSION}" registry.plain.pot > registry.pot && rm registry.plain.pot && \
+		./make-header.sh "mail-templates:${VERSION}" default.plain.pot > default.pot && rm default.plain.pot
