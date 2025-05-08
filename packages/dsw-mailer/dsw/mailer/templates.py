@@ -72,6 +72,7 @@ class TemplateRegistry:
 
     DESCRIPTOR_FILENAME = 'message.json'
     DESCRIPTOR_PATTERN = f'./**/{DESCRIPTOR_FILENAME}'
+    DEFAULT_LOCALE = '~:default:1.0.0'
 
     def __init__(self, cfg: MailerConfig, workdir: pathlib.Path):
         self.cfg = cfg
@@ -193,10 +194,12 @@ class TemplateRegistry:
     def _load_locale(self, tenant_uuid: str, locale_id: str | None, app_ctx,
                      locale_root_dir: pathlib.Path):
         LOG.info('Loading locale: %s (for tenant %s)', locale_id, tenant_uuid)
-
         self._uninstall_translations()
-
         if locale_id is None:
+            LOG.info('No locale specified - using null translations')
+            self._install_null_translations()
+        elif locale_id == self.DEFAULT_LOCALE:
+            LOG.info('Default locale - using null translations')
             self._install_null_translations()
         else:
             # fetch locale from DB
@@ -208,7 +211,6 @@ class TemplateRegistry:
                 LOG.error('Could not find locale for tenant %s', tenant_uuid)
                 raise RuntimeError(f'Locale not found in DB: {locale_id}')
             # fetch locale from S3
-            locale_root_dir = self.workdir / 'locale'
             locale_dir = locale_root_dir / locale.code / 'LC_MESSAGES'
             locale_dir.mkdir(parents=True, exist_ok=True)
             locale_po_path = locale_dir / 'default.po'
