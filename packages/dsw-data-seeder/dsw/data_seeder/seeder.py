@@ -1,4 +1,5 @@
 import collections
+import dataclasses
 import json
 import logging
 import mimetypes
@@ -33,59 +34,138 @@ def _guess_mimetype(filename: str) -> str:
         return DEFAULT_MIMETYPE
 
 
-class DBScript:
-
-    def __init__(self, filepath: pathlib.Path, target: str, order: int):
-        self.filepath = filepath
-        self.target = target
-        self.order = order
+@dataclasses.dataclass
+class SeedRecipeDirective:
+    path: pathlib.Path
+    target: str | None
+    order: int
 
     @property
     def id(self) -> str:
-        return f'{self.order}::{self.filepath.as_posix()}::{self.target}'
+        return f'{self.order}::{self.path.as_posix()}::{self.target}'
+
+
+@dataclasses.dataclass
+class SeedRecipeDB:
+    scripts: dict[str, SeedRecipeDirective]
+    tenant_placeholder: str
+    scripts_data: dict[str, str] = dataclasses.field(default_factory=collections.OrderedDict)
+
+    @staticmethod
+    def from_dict(data: dict, root_path: pathlib.Path) -> 'SeedRecipeDB':
+        recipe_scripts: list[dict] = data.get('scripts', [])
+        db_scripts: dict[str, SeedRecipeDirective] = collections.OrderedDict()
+        for index, script in enumerate(recipe_scripts):
+            target = script.get('target', None)
+            path = str(script.get('path', ''))
+            if path == '':
+                continue
+            filepath = pathlib.Path(path)
+            if '*' in path:
+                for item in sorted(list(root_path.glob(path))):
+                    s = SeedRecipeDirective(item, target, index)
+                    db_scripts[s.id] = s
+            elif filepath.is_absolute():
+                s = SeedRecipeDirective(filepath, target, index)
+                db_scripts[s.id] = s
+            else:
+                s = SeedRecipeDirective(root_path / filepath, target, index)
+                db_scripts[s.id] = s
+        return SeedRecipeDB(
+            scripts=db_scripts,
+            tenant_placeholder=data.get('tenantIdPlaceholder', DEFAULT_PLACEHOLDER),
+        )
+
+    def load_db_scripts(self):
+        for script_id, db_script in self.scripts.items():
+            self.scripts_data[script_id] = db_script.path.read_text(
+                encoding=DEFAULT_ENCODING,
+            )
+
+
+@dataclasses.dataclass
+class SeedRecipeS3Object:
+    local_path: pathlib.Path
+    object_name: str
+    target: str | None
+
+    def __str__(self):
+        return f'{self.local_path.as_posix()} -> {self.object_name} [{self.target}]'
+
+    def update_object_name(self, replacements: dict[str, str]):
+        for r_from, r_to in replacements.items():
+            self.object_name = self.object_name.replace(r_from, r_to)
+
+
+@dataclasses.dataclass
+class SeedRecipeS3:
+    copy: dict[str, SeedRecipeDirective]
+    filename_replace: dict[str, str]
+    objects: list[SeedRecipeS3Object] = dataclasses.field(default_factory=list)
+
+    @staticmethod
+    def from_dict(data: dict, root_path: pathlib.Path) -> 'SeedRecipeS3':
+        recipe_copy: list[dict] = data.get('copy', [])
+        copy_instructions: dict[str, SeedRecipeDirective] = collections.OrderedDict()
+        for index, instruction in enumerate(recipe_copy):
+            target = instruction.get('target', None)
+            path = str(instruction.get('path', ''))
+            if path == '':
+                continue
+            filepath = pathlib.Path(path)
+            if '*' in path:
+                for item in sorted(list(root_path.glob(path))):
+                    s = SeedRecipeDirective(item, target, index)
+                    copy_instructions[s.id] = s
+            elif filepath.is_absolute():
+                s = SeedRecipeDirective(filepath, target, index)
+                copy_instructions[s.id] = s
+            else:
+                s = SeedRecipeDirective(root_path / filepath, target, index)
+                copy_instructions[s.id] = s
+        return SeedRecipeS3(
+            copy=copy_instructions,
+            filename_replace=data.get('filenameReplace', {}),
+        )
+
+    def load_s3_object_names(self):
+        for s3_copy in self.copy.values():
+            if s3_copy.path.is_dir():
+                target = s3_copy.target
+                for s3_object_path in s3_copy.path.glob('**/*'):
+                    if s3_object_path.is_file():
+                        target_object_name = str(
+                            s3_object_path.relative_to(s3_copy.path).as_posix()
+                        )
+                        for r_from, r_to in self.filename_replace.items():
+                            target_object_name = target_object_name.replace(r_from, r_to)
+                        self.objects.append(SeedRecipeS3Object(
+                            local_path=s3_object_path,
+                            object_name=target_object_name,
+                            target=target,
+                        ))
+            else:
+                LOG.warning('S3 copy path is not a directory: %s', s3_copy.path)
 
 
 class SeedRecipe:
 
     # pylint: disable-next=too-many-arguments
     def __init__(self, *, name: str, description: str, root: pathlib.Path,
-                 db_scripts: dict[str, DBScript], db_placeholder: str,
-                 s3_dir: pathlib.Path | None, s3_fname_replace: dict[str, str],
+                 db: SeedRecipeDB, s3: SeedRecipeS3,
                  uuids_count: int, uuids_placeholder: str | None,
                  init_wait: float):
         # pylint: disable-next=too-many-instance-attributes
         self.name = name
         self.description = description
         self.root = root
-        self.db_scripts = db_scripts
-        self.db_placeholder = db_placeholder
-        self.s3_dir = s3_dir
-        self.s3_fname_replace = s3_fname_replace
-        self._db_scripts_data: dict[str, str] = collections.OrderedDict()
-        self.s3_objects: dict[pathlib.Path, str] = collections.OrderedDict()
+        self.db = db
+        self.s3 = s3
         self.prepared = False
         self.uuids_count = uuids_count
         self.uuids_placeholder = uuids_placeholder
         self.uuids_replacement: dict[str, str] = {}
         self.init_wait = init_wait
-
-    def _load_db_scripts(self):
-        for script_id, db_script in self.db_scripts.items():
-            self._db_scripts_data[script_id] = db_script.filepath.read_text(
-                encoding=DEFAULT_ENCODING,
-            )
-
-    def _load_s3_object_names(self):
-        if self.s3_dir is None:
-            return
-        for s3_object_path in self.s3_dir.glob('**/*'):
-            if s3_object_path.is_file():
-                target_object_name = str(
-                    s3_object_path.relative_to(self.s3_dir).as_posix()
-                )
-                for r_from, r_to in self.s3_fname_replace.items():
-                    target_object_name = target_object_name.replace(r_from, r_to)
-                self.s3_objects[s3_object_path] = target_object_name
 
     def _prepare_uuids(self):
         if self.uuids_placeholder is not None:
@@ -96,16 +176,18 @@ class SeedRecipe:
     def prepare(self):
         if self.prepared:
             return
-        self._load_db_scripts()
-        self._load_s3_object_names()
+        self.db.load_db_scripts()
+        self.s3.load_s3_object_names()
         self._prepare_uuids()
         self.prepared = True
+        for s3_object in self.s3.objects:
+            s3_object.update_object_name(self.uuids_replacement)
 
     def run_prepare(self):
         self._prepare_uuids()
 
     def _replace_db_script(self, script: str, tenant_uuid: str) -> str:
-        result = script.replace(self.db_placeholder, tenant_uuid)
+        result = script.replace(self.db.tenant_placeholder, tenant_uuid)
         for uuid_key, uuid_value in self.uuids_replacement.items():
             result = result.replace(uuid_key, uuid_value)
         return result
@@ -113,34 +195,26 @@ class SeedRecipe:
     def iterate_db_scripts(self, tenant_uuid: str):
         return (
             (script_id, self._replace_db_script(script, tenant_uuid))
-            for script_id, script in self._db_scripts_data.items()
+            for script_id, script in self.db.scripts_data.items()
         )
-
-    def _replace_object_name(self, object_name: str) -> str:
-        result = object_name
-        for uuid_key, uuid_value in self.uuids_replacement.items():
-            result = result.replace(uuid_key, uuid_value)
-        return result
 
     def iterate_s3_objects(self):
-        return (
-            (local_name, self._replace_object_name(object_name))
-            for local_name, object_name in self.s3_objects.items()
-        )
+        return (obj for obj in self.s3.objects)
 
     def __str__(self):
-        scripts = '\n'.join((f'- {x}' for x in self.db_scripts))
+        scripts = '\n'.join((f'- {x}' for x in self.db.scripts))
+        copy_instructions = '\n'.join(f'- {x}' for x in self.s3.copy.values())
         replaces = '\n'.join(
-            (f'- "{x}" -> "{y}"' for x, y in self.s3_fname_replace.items())
+            (f'- "{x}" -> "{y}"' for x, y in self.s3.filename_replace.items())
         )
         return f'Recipe: {self.name}\n' \
                f'Loaded from: {self.root}\n' \
                f'{self.description}\n\n' \
                f'DB SQL Scripts:\n' \
                f'{scripts}\n' \
-               f'DB Tenant UUID Placeholder: "{self.db_placeholder}"\n\n' \
+               f'DB Tenant UUID Placeholder: "{self.db.tenant_placeholder}"\n\n' \
                f'S3 Directory:\n' \
-               f'{self.s3_dir if self.s3_dir is not None else "[nothing]"}\n' \
+               f'{copy_instructions}\n' \
                f'S3 Filename Replace:\n' \
                f'{replaces}'
 
@@ -151,35 +225,13 @@ class SeedRecipe:
         ))
         db: dict[str, typing.Any] = data.get('db', {})
         s3: dict[str, typing.Any] = data.get('s3', {})
-        scripts: list[dict] = db.get('scripts', [])
-        db_scripts: dict[str, DBScript] = collections.OrderedDict()
-        for index, script in enumerate(scripts):
-            target = script.get('target', '')
-            filename = str(script.get('filename', ''))
-            if filename == '':
-                continue
-            filepath = pathlib.Path(filename)
-            if '*' in filename:
-                for item in sorted(list(recipe_file.parent.glob(filename))):
-                    s = DBScript(item, target, index)
-                    db_scripts[s.id] = s
-            elif filepath.is_absolute():
-                s = DBScript(filepath, target, index)
-                db_scripts[s.id] = s
-            else:
-                s = DBScript(recipe_file.parent / filepath, target, index)
-                db_scripts[s.id] = s
-        s3_dir = None
-        if 'dir' in s3.keys():
-            s3_dir = recipe_file.parent / s3['dir']
+        root_dir = recipe_file.parent
         return SeedRecipe(
             name=data['name'],
             description=data.get('description', ''),
-            root=recipe_file.parent,
-            db_scripts=db_scripts,
-            db_placeholder=db.get('tenantIdPlaceholder', DEFAULT_PLACEHOLDER),
-            s3_dir=s3_dir,
-            s3_fname_replace=s3.get('filenameReplace', {}),
+            root=root_dir,
+            db=SeedRecipeDB.from_dict(db, root_dir),
+            s3=SeedRecipeS3.from_dict(s3, root_dir),
             uuids_count=data.get('uuids', {}).get('count', 0),
             uuids_placeholder=data.get('uuids', {}).get('placeholder', None),
             init_wait=data.get('initWait', 0),
@@ -197,10 +249,14 @@ class SeedRecipe:
             name='default',
             description='Default dummy recipe',
             root=pathlib.Path('/dev/null'),
-            db_scripts={},
-            db_placeholder=DEFAULT_PLACEHOLDER,
-            s3_dir=pathlib.Path('/dev/null'),
-            s3_fname_replace={},
+            db=SeedRecipeDB(
+                scripts={},
+                tenant_placeholder=DEFAULT_PLACEHOLDER,
+            ),
+            s3=SeedRecipeS3(
+                copy={},
+                filename_replace={},
+            ),
             uuids_count=0,
             uuids_placeholder=None,
             init_wait=0,
@@ -214,6 +270,7 @@ class DataSeeder(CommandWorker):
         self.workdir = workdir
         self.recipe = SeedRecipe.create_default()  # type: SeedRecipe
         self.dbs = {}  # type: dict[str, Database]
+        self.s3s = {}  # type: dict[str, S3Storage]
 
         self._init_context(workdir=workdir)
         self._init_sentry()
@@ -239,7 +296,15 @@ class DataSeeder(CommandWorker):
 
     def _init_extra_connections(self):
         for db_id, extra_db_cfg in Context.get().app.cfg.extra_dbs.items():
-            self.dbs[db_id] = Database(cfg=extra_db_cfg, with_queue=False)
+            self.dbs[db_id] = Database(
+                cfg=extra_db_cfg,
+                with_queue=False,
+            )
+        for s3_id, extra_s3_cfg in Context.get().app.cfg.extra_s3s.items():
+            self.s3s[s3_id] = S3Storage(
+                cfg=extra_s3_cfg,
+                multi_tenant=self.cfg.cloud.multi_tenant,
+            )
 
     def _prepare_recipe(self, recipe_name: str):
         LOG.info('Loading recipe')
@@ -323,9 +388,10 @@ class DataSeeder(CommandWorker):
         try:
             LOG.info('Running SQL scripts')
             for script_id, sql_script in self.recipe.iterate_db_scripts(tenant_uuid):
-                LOG.debug(' -> Executing script: %s', script_id)
-                script = self.recipe.db_scripts[script_id]
-                if script.target in self.dbs:
+                script = self.recipe.db.scripts[script_id]
+                LOG.debug(' -> Executing script: %s [target: %s]',
+                          script_id, script.target)
+                if script.target is not None and script.target in self.dbs:
                     used_targets.add(script.target)
                     with self.dbs[script.target].conn_query.new_cursor(use_dict=True) as c:
                         c.execute(query=sql_script)
@@ -335,17 +401,25 @@ class DataSeeder(CommandWorker):
 
             phase = 'S3'
             LOG.info('Transferring S3 objects')
-            for local_file, object_name in self.recipe.iterate_s3_objects():
-                LOG.debug(' -> Reading: %s', local_file.name)
-                data = local_file.read_bytes()
-                LOG.debug(' -> Sending: %s', object_name)
-                app_ctx.s3.store_object(
-                    tenant_uuid=tenant_uuid,
-                    object_name=object_name,
-                    content_type=_guess_mimetype(local_file.name),
-                    data=data,
-                )
-                LOG.debug('    OK (stored)')
+            for s3_object in self.recipe.iterate_s3_objects():
+                LOG.debug(' -> Reading: %s', s3_object.local_path.as_posix())
+                data = s3_object.local_path.read_bytes()
+                LOG.debug(' -> Sending: %s [target: %s]',
+                          s3_object.object_name, s3_object.target)
+                if s3_object.target is not None and s3_object.target in self.s3s:
+                    self.s3s[s3_object.target].store_object(
+                        tenant_uuid=tenant_uuid,
+                        object_name=s3_object.object_name,
+                        content_type=_guess_mimetype(s3_object.local_path.name),
+                        data=data,
+                    )
+                else:
+                    app_ctx.s3.store_object(
+                        tenant_uuid=tenant_uuid,
+                        object_name=s3_object.object_name,
+                        content_type=_guess_mimetype(s3_object.local_path.name),
+                        data=data,
+                    )
         except Exception as e:
             LOG.warning('Exception appeared [%s]: %s', type(e).__name__, e)
             LOG.error('Failed with unexpected error', exc_info=e)

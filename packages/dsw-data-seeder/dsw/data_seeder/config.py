@@ -36,6 +36,7 @@ class SeederConfig:
     cloud: CloudConfig
     general: GeneralConfig
     extra_dbs: dict[str, DatabaseConfig]
+    extra_s3s: dict[str, S3Config]
     experimental: ExperimentalConfig
 
     def __str__(self):
@@ -84,6 +85,50 @@ class SeederConfigParser(DSWConfigParser):
         return result
 
     @property
+    def extra_s3s(self) -> dict[str, DatabaseConfig]:
+        result = {}
+        for s3_id in self.cfg.get('extraS3s', {}).keys():
+            result[s3_id] = S3Config(
+                url=self.get(
+                    key=ConfigKey(
+                        yaml_path=['extraS3s', s3_id, 'url'],
+                        var_names=[],
+                        cast=cast_str,
+                    )
+                ),
+                username=self.get(
+                    key=ConfigKey(
+                        yaml_path=['extraS3s', s3_id, 'username'],
+                        var_names=[],
+                        cast=cast_str,
+                    )
+                ),
+                password=self.get(
+                    key=ConfigKey(
+                        yaml_path=['extraS3s', s3_id, 'password'],
+                        var_names=[],
+                        cast=cast_str,
+                    )
+                ),
+                bucket=self.get(
+                    key=ConfigKey(
+                        yaml_path=['extraS3s', s3_id, 'bucket'],
+                        var_names=[],
+                        cast=cast_str,
+                    )
+                ),
+                region=self.get(
+                    key=ConfigKey(
+                        yaml_path=['extraS3s', s3_id, 'region'],
+                        var_names=[],
+                        cast=cast_str,
+                    )
+                ),
+            )
+
+        return result
+
+    @property
     def experimental(self) -> ExperimentalConfig:
         return ExperimentalConfig(
             job_timeout=self.get(self.keys.experimental.job_timeout),
@@ -99,5 +144,6 @@ class SeederConfigParser(DSWConfigParser):
             cloud=self.cloud,
             general=self.general,
             extra_dbs=self.extra_dbs,
+            extra_s3s=self.extra_s3s,
             experimental=self.experimental,
         )
