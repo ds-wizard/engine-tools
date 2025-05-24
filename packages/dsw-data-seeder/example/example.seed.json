@@ -4,20 +4,29 @@
   "db": {
     "scripts": [
       {
-        "filename": "user_seed.sql"
+        "path": "user_seed.sql"
       },
       {
-        "filename": "user_seed.sql",
+        "path": "user_seed.sql",
         "target": "other"
       },
       {
-        "filename": "tenant_config_seed.sql"
+        "path": "tenant_config_seed.sql"
       }
     ],
     "tenantIdPlaceholder": "<<|TENANT-ID|>>"
   },
   "s3": {
     "dir": "app",
+    "copy": [
+      {
+        "path": "foo",
+        "target": "other"
+      },
+      {
+        "path": "bar"
+      }
+    ],
     "filenameReplace": {
       ":": "_"
     }
