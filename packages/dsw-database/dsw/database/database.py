@@ -1,3 +1,4 @@
+# pylint: disable=no-member
 import datetime
 import logging
 import typing
@@ -619,8 +620,10 @@ class PostgresConnection:
             self._connect_db()
 
     @property
-    def connection(self):
+    def connection(self) -> psycopg.Connection:
         self.connect()
+        if not self._connection:
+            raise RuntimeError('Connection is not established')
         return self._connection
 
     def new_cursor(self, use_dict: bool = False):
