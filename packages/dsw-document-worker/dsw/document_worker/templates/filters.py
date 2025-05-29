@@ -208,18 +208,20 @@ def to_context_obj(ctx, **options) -> DocumentContext:
     return result
 
 
-class TemplateRenderingError(JobException):
+class TemplateTriggeredError(JobException):
+    """Error invoked from a template to report a problem to a user (not system)."""
 
     def __init__(self, title, message):
         super().__init__(
             job_id='',
             msg=f'{title}\n\n{message}',
             exc=None,
+            skip_reporting=True,
         )
 
 
 def raise_error(message, title='Document rendering error'):
-    raise TemplateRenderingError(
+    raise TemplateTriggeredError(
         title=title,
         message=message,
     )

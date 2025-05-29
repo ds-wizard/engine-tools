@@ -1,9 +1,11 @@
 class JobException(Exception):
 
-    def __init__(self, job_id: str, msg: str, exc=None):
+    def __init__(self, job_id: str, msg: str, exc=None,
+                 skip_reporting: bool = False):
         self.job_id = job_id
         self.msg = msg
         self.exc = exc
+        self.skip_reporting = skip_reporting
 
     def __str__(self):
         return self.msg

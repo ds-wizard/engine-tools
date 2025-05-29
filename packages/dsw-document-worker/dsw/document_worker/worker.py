@@ -326,6 +326,16 @@ class DocumentWorker(CommandWorker):
         def filter_templates(event: sentry.Event, hint: sentry.Hint) -> sentry.Event | None:
             LOG.debug('Filtering Sentry event (template, %s, %s)',
                       event.get('event_id'), hint)
+
+            if 'exc_info' in hint:
+                exc_info = hint['exc_info']
+                if isinstance(exc_info, tuple) and len(exc_info) > 1:
+                    exc = exc_info[1]
+                    if isinstance(exc, JobException) and exc.skip_reporting:
+                        LOG.debug('Skipping Sentry event (JobException, %s, %s)',
+                                  event.get('event_id'), hint)
+                        return None
+
             template = event.get('tags', {}).get('template')
             phase = event.get('tags', {}).get('phase')
             if phase in ('render', 'prepare') and template is not None:
