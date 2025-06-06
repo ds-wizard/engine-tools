@@ -86,13 +86,15 @@ class SeedRecipeDB:
 @dataclasses.dataclass
 class SeedRecipeS3Object:
     local_path: pathlib.Path
-    object_name: str
+    original_object_name: str
     target: str | None
+    object_name: str = dataclasses.field(default_factory=lambda: '')
 
     def __str__(self):
         return f'{self.local_path.as_posix()} -> {self.object_name} [{self.target}]'
 
     def update_object_name(self, replacements: dict[str, str]):
+        self.object_name = self.original_object_name
         for r_from, r_to in replacements.items():
             self.object_name = self.object_name.replace(r_from, r_to)
 
@@ -141,7 +143,7 @@ class SeedRecipeS3:
                             target_object_name = target_object_name.replace(r_from, r_to)
                         self.objects.append(SeedRecipeS3Object(
                             local_path=s3_object_path,
-                            object_name=target_object_name,
+                            original_object_name=target_object_name,
                             target=target,
                         ))
             else:
@@ -180,11 +182,11 @@ class SeedRecipe:
         self.s3.load_s3_object_names()
         self._prepare_uuids()
         self.prepared = True
-        for s3_object in self.s3.objects:
-            s3_object.update_object_name(self.uuids_replacement)
 
     def run_prepare(self):
         self._prepare_uuids()
+        for s3_object in self.s3.objects:
+            s3_object.update_object_name(self.uuids_replacement)
 
     def _replace_db_script(self, script: str, tenant_uuid: str) -> str:
         result = script.replace(self.db.tenant_placeholder, tenant_uuid)
