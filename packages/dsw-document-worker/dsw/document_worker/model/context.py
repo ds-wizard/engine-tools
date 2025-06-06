@@ -563,6 +563,15 @@ class Reply(abc.ABC):
     def resolve_links(self, ctx):
         pass
 
+    @property
+    def item_title(self) -> str:
+        """Title to be used if is a reply to first question inside a list item"""
+        return ''
+
+    @property
+    def has_direct_item_title(self) -> bool:
+        return True
+
     @staticmethod
     @abc.abstractmethod
     def load(path: str, data: dict, **options):
@@ -590,6 +599,12 @@ class AnswerReply(Reply):
     def resolve_links(self, ctx):
         super().resolve_links_parent(ctx)
         self.answer = ctx.e.answers.get(self.answer_uuid, None)
+
+    @property
+    def item_title(self) -> str:
+        if self.answer is not None:
+            return self.answer.label
+        return super().item_title
 
     @staticmethod
     def load(path: str, data: dict, **options):
@@ -630,6 +645,10 @@ class StringReply(Reply):
     def resolve_links(self, ctx):
         super().resolve_links_parent(ctx)
 
+    @property
+    def item_title(self) -> str:
+        return self.value
+
     @staticmethod
     def load(path: str, data: dict, **options):
         return StringReply(
@@ -664,6 +683,10 @@ class ItemListReply(Reply):
 
     def resolve_links(self, ctx):
         super().resolve_links_parent(ctx)
+
+    @property
+    def has_direct_item_title(self) -> bool:
+        return False
 
     @staticmethod
     def load(path: str, data: dict, **options):
@@ -704,6 +727,10 @@ class MultiChoiceReply(Reply):
         self.choices = [ctx.e.choices[key]
                         for key in self.choice_uuids
                         if key in ctx.e.choices]
+
+    @property
+    def item_title(self) -> str:
+        return ', '.join((choice.label for choice in self.choices))
 
     @staticmethod
     def load(path: str, data: dict, **options):
@@ -752,6 +779,16 @@ class IntegrationReply(Reply):
     def resolve_links(self, ctx):
         super().resolve_links_parent(ctx)
 
+    @property
+    def item_title(self) -> str:
+        non_empty_lines = list(filter(
+            lambda line: len(line) > 0,
+            self.value.splitlines(),
+        ))
+        if len(non_empty_lines) > 0:
+            return non_empty_lines[0]
+        return super().item_title
+
     @staticmethod
     def load(path: str, data: dict, **options):
         return IntegrationReply(
@@ -774,7 +811,7 @@ class ItemSelectReply(Reply):
             reply_type='ItemSelectReply',
         )
         self.item_uuid = item_uuid
-        self.item_title: str = 'Item'
+        self._item_title: str = 'Item'
 
     @property
     def value(self) -> str:
@@ -782,6 +819,18 @@ class ItemSelectReply(Reply):
 
     def resolve_links(self, ctx):
         super().resolve_links_parent(ctx)
+
+    @property
+    def item_title(self) -> str:
+        return self._item_title
+
+    @item_title.setter
+    def item_title(self, value: str):
+        self._item_title = value
+
+    @property
+    def has_direct_item_title(self) -> bool:
+        return False
 
     @staticmethod
     def load(path: str, data: dict, **options):
@@ -815,6 +864,12 @@ class FileReply(Reply):
         self.file = ctx.questionnaire.files.get(self.file_uuid, None)
         if self.file is not None:
             self.file.reply = self
+
+    @property
+    def item_title(self) -> str:
+        if self.file is not None:
+            return self.file.name
+        return super().item_title
 
     @staticmethod
     def load(path: str, data: dict, **options):
@@ -2109,32 +2164,23 @@ class ReplyVisitor:
         if reply is None or not isinstance(reply, ItemListReply):
             return
         for n, item_uuid in enumerate(reply.items, start=1):
-            self.item_titles[item_uuid] = f'Item {n}'
             item_path = f'{path}.{item_uuid}'
-
-            if len(question.followups) > 0:
-                title_path = f'{item_path}.{question.followups[0].uuid}'
-                title_reply = self.context.replies.get(title_path)
-                if title_reply is not None and isinstance(title_reply, StringReply):
-                    self.item_titles[item_uuid] = title_reply.value
-                elif title_reply is not None and isinstance(title_reply, IntegrationReply):
-                    non_empty_lines = list(filter(
-                        lambda line: len(line) > 0,
-                        title_reply.value.split('\n'),
-                    ))
-                    if len(non_empty_lines) > 0:
-                        self.item_titles[item_uuid] = non_empty_lines[0]
-                elif title_reply is not None and isinstance(title_reply, ItemSelectReply):
-                    ref_item_uuid = title_reply.item_uuid
-                    if ref_item_uuid in self.item_titles:
-                        self.item_titles[item_uuid] = self.item_titles[ref_item_uuid]
-                    else:
-                        self._set_also.setdefault(ref_item_uuid, []).append(item_uuid)
-            for set_also in self._set_also.get(item_uuid, []):
-                self.item_titles[set_also] = self.item_titles[item_uuid]
+            self.item_titles[item_uuid] = self._resolve_item_title(
+                question=question,
+                path=item_path,
+                default_title=f'Item {n}',
+            )
 
             for followup in question.followups:
                 self._visit_question(followup, path=item_path)
+
+    def _resolve_item_title(self, question: Question, path: str,
+                            default_title: str) -> str:
+        if isinstance(question, ListQuestion):
+            ...
+        elif isinstance(question, OptionsQuestion):
+            ...
+
 
     def _visit_options_question(self, path: str):
         reply = self.context.replies.get(path)
