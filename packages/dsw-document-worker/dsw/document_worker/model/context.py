@@ -6,6 +6,7 @@ import typing
 import dateutil.parser as dp
 
 from ..consts import NULL_UUID
+from .utils import unmarkdown
 
 AnnotationsT = dict[str, str | list[str]]
 TODO_LABEL_UUID = "615b9028-5e3f-414f-b245-12d2ae2eeb20"
@@ -783,7 +784,7 @@ class IntegrationReply(Reply):
     def item_title(self) -> str:
         non_empty_lines = list(filter(
             lambda line: len(line) > 0,
-            self.value.splitlines(),
+            unmarkdown(self.value).splitlines(),
         ))
         if len(non_empty_lines) > 0:
             return non_empty_lines[0]
