@@ -11,6 +11,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - Support item title for all types of questions
 
+### Fixed
+
+- Fixed file replies linked from file questions
+
 
 ## [4.19.1]
 
