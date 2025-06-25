@@ -12,6 +12,7 @@ from dsw.document_worker.utils import byte_size_format
 
 from ..exceptions import JobException
 from ..model import DocumentContext
+from .extraction import extract_replies
 from .tests import tests
 
 
@@ -246,4 +247,5 @@ filters = {
     'to_context_obj': to_context_obj,
     'jinja2': jinja2_render,
     'error': raise_error,
+    'extract_replies': extract_replies,
 }

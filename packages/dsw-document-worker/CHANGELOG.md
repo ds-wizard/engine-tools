@@ -10,6 +10,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Added
 
 - Support item title for all types of questions
+- Add Jinja filter and mechanism to extract replies using KM annotations 
 
 ### Fixed
 
