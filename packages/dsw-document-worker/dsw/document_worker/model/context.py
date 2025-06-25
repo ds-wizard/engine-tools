@@ -861,7 +861,7 @@ class FileReply(Reply):
         return self.file_uuid
 
     def resolve_links(self, ctx):
-        super().resolve_links(ctx)
+        super().resolve_links_parent(ctx)
         self.file = ctx.questionnaire.files.get(self.file_uuid, None)
         if self.file is not None:
             self.file.reply = self
