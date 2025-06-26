@@ -30,8 +30,8 @@ def _merge_config(a: dict, b: dict, path=None) -> dict:
     return a
 
 
-def _get_annotation(question: dc.Question, key: str) -> str | None:
-    value = question.annotations.get(key, None)
+def _get_annotation(annotations: dc.AnnotationsT, key: str) -> str | None:
+    value = annotations.get(key, None)
     if isinstance(value, str):
         return value
     if isinstance(value, list):
@@ -99,13 +99,14 @@ class SimpleExtractor(ContextExtractor):
             self._visit_file_question(key, question, path)
 
     def _visit_value_question(self, key: str, question: dc.ValueQuestion, path: str):
-        a_key = _get_annotation(question, self._a_key)
+        a_key = _get_annotation(question.a, self._a_key)
         reply = question.replies.get(path, None)
 
         if a_key is not None:
             if reply is not None and isinstance(reply, dc.StringReply):
                 self._objects[key][a_key] = {
                     '_value': reply.value,
+                    '_path': path,
                 }
                 if self._include_reply:
                     self._objects[key][a_key]['_reply'] = reply
@@ -113,7 +114,7 @@ class SimpleExtractor(ContextExtractor):
                 self._objects[key][a_key] = None
 
     def _visit_integration_question(self, key: str, question: dc.IntegrationQuestion, path: str):
-        a_key = _get_annotation(question, self._a_key)
+        a_key = _get_annotation(question.a, self._a_key)
         reply = question.replies.get(path, None)
 
         if a_key is not None:
@@ -122,73 +123,80 @@ class SimpleExtractor(ContextExtractor):
                 if reply.is_plain:
                     self._objects[key][a_key] = {
                         '_value': reply.value,
+                        '_path': path,
                     }
                 else:
                     self._objects[key][a_key] = {
                         '_value': reply.value,
                         '_id': reply.id,
                         '_url': reply.url,
+                        '_path': path,
                     }
                 if self._include_reply:
                     self._objects[key][a_key]['_reply'] = reply
 
     def _visit_options_question(self, key: str, question: dc.OptionsQuestion, path: str):
-        a_key = _get_annotation(question, self._a_key)
+        a_key = _get_annotation(question.a, self._a_key)
         reply = question.replies.get(path, None)
 
         if a_key is not None:
             if reply is not None and isinstance(reply, dc.AnswerReply) and reply.answer is not None:
                 answer_path = f'{path}.{reply.answer_uuid}'
-                a_val = _get_annotation(question, self._a_val)
+                a_val = _get_annotation(reply.answer.a, self._a_val)
                 if a_val is not None:
-                    self._objects[key][answer_path] = {
+                    self._objects[answer_path] = {
                         '_uuid': reply.answer_uuid,
                         '_label': reply.answer.label,
                         '_value': _interpret_value(a_val),
+                        '_path': path,
                     }
                 else:
-                    self._objects[key][answer_path] = {
+                    self._objects[answer_path] = {
                         '_uuid': reply.answer_uuid,
                         '_label': reply.answer.label,
                         '_value': None,
+                        '_path': path,
                     }
                 if self._include_reply:
-                    self._objects[key][a_key]['_reply'] = reply
+                    self._objects[answer_path]['_reply'] = reply
                 for followup in reply.answer.followups:
-                    self._visit_question(key, followup, answer_path)
-                self._objects[key][a_key] = self._objects[key][answer_path]
+                    self._visit_question(answer_path, followup, answer_path)
+                self._objects[key][a_key] = self._objects[answer_path]
             else:
                 self._objects[key][a_key] = None
         elif reply is not None and isinstance(reply, dc.AnswerReply) and reply.answer is not None:
             for followup in reply.answer.followups:
-                self._visit_question(key, followup, key)
+                answer_path = f'{path}.{reply.answer_uuid}'
+                self._visit_question(key, followup, answer_path)
 
     def _visit_multichoice_question(self, key: str, question: dc.MultiChoiceQuestion, path: str):
-        a_key = _get_annotation(question, self._a_key)
+        a_key = _get_annotation(question.a, self._a_key)
         reply = question.replies.get(path, None)
 
         if a_key is not None:
             self._objects[key][a_key] = []
             if reply is not None and isinstance(reply, dc.MultiChoiceReply):
                 for choice in reply.choices:
-                    a_val = _get_annotation(question, self._a_val)
+                    a_val = _get_annotation(choice.a, self._a_val)
                     if a_val is not None:
                         self._objects[key][a_key].append({
                             '_uuid': choice.uuid,
                             '_label': choice.label,
                             '_value': _interpret_value(a_val),
+                            '_path': path,
                         })
                     else:
                         self._objects[key][a_key].append({
                             '_uuid': choice.uuid,
                             '_label': choice.label,
                             '_value': None,
+                            '_path': path,
                         })
                 if self._include_reply:
                     self._objects[key][a_key]['_reply'] = reply
 
     def _visit_list_question(self, key: str, question: dc.ListQuestion, path: str):
-        a_key = _get_annotation(question, self._a_key)
+        a_key = _get_annotation(question.a, self._a_key)
         reply = question.replies.get(path, None)
 
         if a_key is not None:
@@ -198,6 +206,7 @@ class SimpleExtractor(ContextExtractor):
                     item_path = f'{path}.{item_uuid}'
                     self._objects[item_path] = {
                         '_uuid': item_uuid,
+                        '_path': path,
                     }
                     for followup in question.followups:
                         self._visit_question(item_path, followup, item_path)
@@ -206,7 +215,7 @@ class SimpleExtractor(ContextExtractor):
                     self._objects[key][a_key]['_reply'] = reply
 
     def _visit_item_select_question(self, key: str, question: dc.ItemSelectQuestion, path: str):
-        a_key = _get_annotation(question, self._a_key)
+        a_key = _get_annotation(question.a, self._a_key)
         reply = question.replies.get(path, None)
 
         if a_key is not None:
@@ -215,12 +224,13 @@ class SimpleExtractor(ContextExtractor):
                 self._objects[key][a_key] = {
                     '_uuid': reply.item_uuid,
                     '_label': reply.item_title,
+                    '_path': path,
                 }
                 if self._include_reply:
                     self._objects[key][a_key]['_reply'] = reply
 
     def _visit_file_question(self, key: str, question: dc.FileQuestion, path: str):
-        a_key = _get_annotation(question, self._a_key)
+        a_key = _get_annotation(question.a, self._a_key)
         reply = question.replies.get(path, None)
 
         if a_key is not None:
@@ -232,6 +242,7 @@ class SimpleExtractor(ContextExtractor):
                     '_size': reply.file.size,
                     '_content_type': reply.file.content_type,
                     '_url': reply.file.download_url,
+                    '_path': path,
                 }
                 if self._include_reply:
                     self._objects[key][a_key]['_reply'] = reply
