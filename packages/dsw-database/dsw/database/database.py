@@ -13,7 +13,7 @@ from dsw.config.model import DatabaseConfig
 
 from .model import DBDocumentTemplate, DBDocumentTemplateFile, \
     DBDocumentTemplateAsset, DBDocument, DBComponent, \
-    DocumentState, DBTenantConfig, DBTenantLimits, DBSubmission, \
+    DocumentState, DBTenantLimits, DBSubmission, \
     DBInstanceConfigMail, DBQuestionnaireSimple, \
     DBUserEntity, DBLocale
 
@@ -44,8 +44,6 @@ class Database:
                               'WHERE d.questionnaire_uuid = %s AND d.tenant_uuid = %s;')
     SELECT_QTN_SIMPLE = ('SELECT qtn.* FROM questionnaire qtn '
                          'WHERE qtn.uuid = %s AND qtn.tenant_uuid = %s;')
-    SELECT_TENANT_CONFIG = ('SELECT * FROM tenant_config '
-                            'WHERE uuid = %(tenant_uuid)s LIMIT 1;')
     SELECT_TENANT_LIMIT = ('SELECT uuid, storage FROM tenant_limit_bundle '
                            'WHERE uuid = %(tenant_uuid)s LIMIT 1;')
     UPDATE_DOCUMENT_STATE = 'UPDATE document SET state = %s, worker_log = %s WHERE uuid = %s;'
@@ -151,16 +149,6 @@ class Database:
             if len(result) != 1:
                 return None
             return DBDocument.from_dict_row(result[0])
-
-    @tenacity.retry(
-        reraise=True,
-        wait=tenacity.wait_exponential(multiplier=RETRY_QUERY_MULTIPLIER),
-        stop=tenacity.stop_after_attempt(RETRY_QUERY_TRIES),
-        before=tenacity.before_log(LOG, logging.DEBUG),
-        after=tenacity.after_log(LOG, logging.DEBUG),
-    )
-    def fetch_tenant_config(self, tenant_uuid: str) -> DBTenantConfig | None:
-        return self.get_tenant_config(tenant_uuid)
 
     @tenacity.retry(
         reraise=True,
@@ -374,29 +362,6 @@ class Database:
             )
             row = cursor.fetchone()
             return row[0]
-
-    @tenacity.retry(
-        reraise=True,
-        wait=tenacity.wait_exponential(multiplier=RETRY_QUERY_MULTIPLIER),
-        stop=tenacity.stop_after_attempt(RETRY_QUERY_TRIES),
-        before=tenacity.before_log(LOG, logging.DEBUG),
-        after=tenacity.after_log(LOG, logging.DEBUG),
-    )
-    def get_tenant_config(self, tenant_uuid: str) -> DBTenantConfig | None:
-        if not self._check_table_exists(table_name='tenant_config'):
-            return None
-        with self.conn_query.new_cursor(use_dict=True) as cursor:
-            try:
-                cursor.execute(
-                    query=self.SELECT_TENANT_CONFIG,
-                    params={'tenant_uuid': tenant_uuid},
-                )
-                result = cursor.fetchone()
-                return DBTenantConfig.from_dict_row(data=result)
-            except Exception as e:
-                LOG.warning('Could not retrieve tenant_config for tenant "%s": %s',
-                            tenant_uuid, str(e))
-                return None
 
     @tenacity.retry(
         reraise=True,

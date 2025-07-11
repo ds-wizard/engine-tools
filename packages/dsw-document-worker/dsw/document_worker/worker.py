@@ -58,7 +58,6 @@ class Job:
         self.doc: DBDocument | None = None
         self.final_file: DocumentFile | None = None
         self.template_config: TemplateConfig | None = None
-        self.tenant_config = self.ctx.app.db.get_tenant_config(self.tenant_uuid)
         self.tenant_limits = self.ctx.app.db.fetch_tenant_limits(self.tenant_uuid)
 
     @property
