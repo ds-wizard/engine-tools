@@ -85,7 +85,7 @@ class SeederConfigParser(DSWConfigParser):
         return result
 
     @property
-    def extra_s3s(self) -> dict[str, DatabaseConfig]:
+    def extra_s3s(self) -> dict[str, S3Config]:
         result = {}
         for s3_id in self.cfg.get('extraS3s', {}).keys():
             result[s3_id] = S3Config(

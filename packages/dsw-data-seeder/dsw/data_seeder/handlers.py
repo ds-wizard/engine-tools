@@ -20,8 +20,12 @@ def lambda_handler(event, context):
 
     config = load_config_str(config_path.read_text(encoding=DEFAULT_ENCODING))
     try:
-        seeder = DataSeeder(config, workdir_path)
-        seeder.run_once(recipe_name)
+        seeder = DataSeeder(
+            cfg=config,
+            workdir=workdir_path,
+            default_recipe_name=recipe_name,
+        )
+        seeder.run_once()
     except Exception as e:
         SentryReporter.capture_exception(e)
         raise e
