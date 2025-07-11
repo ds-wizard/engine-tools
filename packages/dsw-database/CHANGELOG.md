@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Removed
+
+- Removed unnecessary Tenant Config which is now refactored in database
+
 
 ## [4.20.0]
 

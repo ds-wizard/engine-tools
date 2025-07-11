@@ -217,55 +217,6 @@ class PersistentCommand:
 
 
 @dataclasses.dataclass
-class DBTenantConfig:
-    uuid: str
-    organization: dict | None
-    authentication: dict | None
-    privacy_and_support: dict | None
-    dashboard: dict | None
-    look_and_feel: dict | None
-    registry: dict | None
-    knowledge_model: dict | None
-    questionnaire: dict | None
-    submission: dict | None
-    owl: dict | None
-    mail_config_uuid: str | None
-    created_at: datetime.datetime
-    updated_at: datetime.datetime
-
-    @property
-    def app_title(self) -> str | None:
-        if self.look_and_feel is None:
-            return None
-        return self.look_and_feel.get('appTitle', None)
-
-    @property
-    def support_email(self) -> str | None:
-        if self.privacy_and_support is None:
-            return None
-        return self.privacy_and_support.get('supportEmail', None)
-
-    @staticmethod
-    def from_dict_row(data: dict):
-        return DBTenantConfig(
-            uuid=str(data['uuid']),
-            organization=data.get('organization', None),
-            authentication=data.get('authentication', None),
-            privacy_and_support=data.get('privacy_and_support', None),
-            dashboard=data.get('dashboard_and_login_screen', None),
-            look_and_feel=data.get('look_and_feel', None),
-            registry=data.get('registry', None),
-            knowledge_model=data.get('knowledge_model', None),
-            questionnaire=data.get('questionnaire', None),
-            submission=data.get('submission', None),
-            owl=data.get('owl', None),
-            mail_config_uuid=data.get('mail_config_uuid', None),
-            created_at=data['created_at'],
-            updated_at=data['updated_at'],
-        )
-
-
-@dataclasses.dataclass
 class DBTenantLimits:
     tenant_uuid: str
     storage: int | None
