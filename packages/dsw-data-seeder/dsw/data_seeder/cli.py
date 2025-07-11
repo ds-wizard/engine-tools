@@ -60,9 +60,13 @@ def cli(ctx: click.Context, config: SeederConfig, workdir: str):
 def run(ctx: click.Context, recipe: str):
     cfg = ctx.obj['cfg']
     workdir = ctx.obj['workdir']
-    seeder = DataSeeder(cfg=cfg, workdir=workdir)
+    seeder = DataSeeder(
+        cfg=cfg,
+        workdir=workdir,
+        default_recipe_name=recipe,
+    )
     try:
-        seeder.run(recipe)
+        seeder.run()
     except Exception as e:
         click.echo(f'Error: {e}', err=True)
         SentryReporter.capture_exception(e)
@@ -76,9 +80,16 @@ def run(ctx: click.Context, recipe: str):
 def seed(ctx: click.Context, recipe: str, tenant_uuid: str):
     cfg = ctx.obj['cfg']
     workdir = ctx.obj['workdir']
-    seeder = DataSeeder(cfg=cfg, workdir=workdir)
+    seeder = DataSeeder(
+        cfg=cfg,
+        workdir=workdir,
+        default_recipe_name=recipe,
+    )
     try:
-        seeder.seed(recipe_name=recipe, tenant_uuid=tenant_uuid)
+        seeder.seed(
+            recipe_name=recipe,
+            tenant_uuid=tenant_uuid,
+        )
     except Exception as e:
         click.echo(f'Error: {e}', err=True)
         SentryReporter.capture_exception(e)
