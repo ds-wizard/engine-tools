@@ -16,7 +16,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: 3.12
+        python-version: 3.13
         cache: pip
         cache-dependency-path: |
           **/pyproject.toml
@@ -26,10 +26,10 @@ jobs:
       run: |
         bash scripts/build-info.sh
 
-    - name: Install Flake8 (7.1.1)
+    - name: Install Flake8 (7.3.0)
       run: |
         python -m pip install --upgrade pip
-        pip install flake8==7.1.1
+        pip install flake8==7.3.0
 
     - name: Install dependencies
       run: |
@@ -72,7 +72,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: 3.12
+        python-version: 3.13
         cache: pip
         cache-dependency-path: |
           **/pyproject.toml
@@ -82,10 +82,10 @@ jobs:
       run: |
         bash scripts/build-info.sh
 
-    - name: Install MyPy (1.14.0)
+    - name: Install MyPy (1.16.1)
       run: |
         python -m pip install --upgrade pip
-        pip install mypy==1.14.0
+        pip install mypy==1.16.1
 
     - name: Install dependencies
       run: |
@@ -162,7 +162,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: 3.12
+        python-version: 3.13
         cache: pip
         cache-dependency-path: |
           **/pyproject.toml
@@ -172,10 +172,10 @@ jobs:
       run: |
         bash scripts/build-info.sh
 
-    - name: Install PyLint (3.3.3)
+    - name: Install PyLint (3.3.7)
       run: |
         python -m pip install --upgrade pip
-        pip install pylint==3.3.3
+        pip install pylint==3.3.7
 
     - name: Install dependencies
       run: |

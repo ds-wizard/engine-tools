@@ -115,7 +115,7 @@ class ArchiveStep(Step):
         extra_opts = {}
         if compression in ('gz', 'bz2'):
             extra_opts['compresslevel'] = self.compression_level
-        with tarfile.open(
+        with tarfile.open(  # type: ignore
             name=str(tar_file),
             mode=f'x:{compression}',
             format=tar_format,

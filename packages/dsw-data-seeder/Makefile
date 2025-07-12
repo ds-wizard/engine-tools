@@ -45,8 +45,8 @@ lambda-package:
 
 	# 2. Fix postgres library for Lambda
 	$(PIP) install --upgrade --target ./package --platform manylinux2014_x86_64 --implementation cp --only-binary=:all: "psycopg[binary]"
-	cp package/psycopg_binary/_psycopg.cpython-311-x86_64-linux-gnu.so package/psycopg/_psycopg.so
-	cp package/psycopg_binary/_psycopg.cpython-311-x86_64-linux-gnu.so package/psycopg_binary/_psycopg.so
+	cp package/psycopg_binary/_psycopg.cpython-313-x86_64-linux-gnu.so package/psycopg/_psycopg.so
+	cp package/psycopg_binary/_psycopg.cpython-313-x86_64-linux-gnu.so package/psycopg_binary/_psycopg.so
 
 	# 3. Package the ZIP and clean
 	cd package && zip -r ../data-seeder-lambda.zip .
