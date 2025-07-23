@@ -1,12 +1,12 @@
 argon2-cffi==25.1.0
 argon2-cffi-bindings==21.2.0
-certifi==2025.7.9
+certifi==2025.7.14
 cffi==1.17.1
-minio==7.2.15
+minio==7.2.16
 pycparser==2.22
 pycryptodome==3.23.0
 PyYAML==6.0.2
-sentry-sdk==2.32.0
+sentry-sdk==2.33.2
 tenacity==9.1.2
 typing_extensions==4.14.1
 urllib3==2.5.0
