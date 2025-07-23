@@ -44,6 +44,8 @@ def _update_packages(root_dir: pathlib.Path):
     deps = _load_deps(requirements_file)
     for path in packages_dir.rglob('**/requirements.txt'):
         _update_pkg_requirements(path, deps)
+    for path in packages_dir.rglob('**/requirements.test.txt'):
+        _update_pkg_requirements(path, deps)
 
 def _update_pkg_requirements(requirements_file: pathlib.Path, deps: dict[str, str]):
     lines = []
