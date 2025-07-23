@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
+## [4.19.2]
+
+### Changed
+
+- Updated to newer Docker base image due to vulnerability (CVE-2025-6965)[https://nvd.nist.gov/vuln/detail/CVE-2025-6965]
+
 ## [4.19.1]
 
 ### Changed
@@ -572,3 +578,4 @@ Initial DSW Template Development Kit (versioned as part of the [DSW platform](ht
 [4.18.3]: /../../tree/v4.18.3
 [4.19.0]: /../../tree/v4.19.0
 [4.19.1]: /../../tree/v4.19.1
+[4.19.2]: /../../tree/v4.19.2
