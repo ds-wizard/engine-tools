@@ -90,7 +90,7 @@ class SimpleExtractor(ContextExtractor):
         elif isinstance(question, dc.OptionsQuestion):
             self._visit_options_question(key, question, path)
         elif isinstance(question, dc.MultiChoiceQuestion):
-            self._visit_multichoice_question(key, question, path)
+            self._visit_multi_choice_question(key, question, path)
         elif isinstance(question, dc.ListQuestion):
             self._visit_list_question(key, question, path)
         elif isinstance(question, dc.ItemSelectQuestion):
@@ -169,7 +169,7 @@ class SimpleExtractor(ContextExtractor):
                 answer_path = f'{path}.{reply.answer_uuid}'
                 self._visit_question(key, followup, answer_path)
 
-    def _visit_multichoice_question(self, key: str, question: dc.MultiChoiceQuestion, path: str):
+    def _visit_multi_choice_question(self, key: str, question: dc.MultiChoiceQuestion, path: str):
         a_key = _get_annotation(question.a, self._a_key)
         reply = question.replies.get(path, None)
 

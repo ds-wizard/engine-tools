@@ -91,7 +91,7 @@ class TemplateRegistry:
     def _set_filters(self):
         self.j2_env.filters.update({
             'datetime_format': datetime_format,
-            'markdown': xmarkdown,
+            'markdown': render_markdown,
             'no_markdown': remove_markdown,
         })
 
@@ -306,7 +306,7 @@ class DSWMarkdownProcessor(markdown.preprocessors.Preprocessor):
         return new_lines
 
 
-def xmarkdown(md_text: str):
+def render_markdown(md_text: str):
     if md_text is None:
         return ''
     return markupsafe.Markup(markdown.markdown(

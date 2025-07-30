@@ -81,10 +81,10 @@ interactions:
   response:
     body:
       string: '{"_embedded":{"documentTemplateDrafts":[{"createdAt":"2023-04-25T13:01:54.430803Z","description":"Dummy
-        document template 01 for testing purposes","id":"myorg:example01:1.0.0","name":"Test
-        template 01","organizationId":"myorg","templateId":"example01","updatedAt":"2023-04-25T13:12:30.16158Z","version":"1.0.0"},{"createdAt":"2023-04-25T13:13:28.596463Z","description":"Exported
-        questions and answers from a questionnaire","id":"myorg:questionnaire-report:2.9.0","name":"Questionnaire
-        Report","organizationId":"myorg","templateId":"questionnaire-report","updatedAt":"2023-04-25T13:13:28.656434Z","version":"2.9.0"}]},"page":{"number":0,"size":10000,"totalElements":2,"totalPages":1}}'
+        document template 01 for testing purposes","id":"organization:example01:1.0.0","name":"Test
+        template 01","organizationId":"organization","templateId":"example01","updatedAt":"2023-04-25T13:12:30.16158Z","version":"1.0.0"},{"createdAt":"2023-04-25T13:13:28.596463Z","description":"Exported
+        questions and answers from a questionnaire","id":"organization:questionnaire-report:2.9.0","name":"Questionnaire
+        Report","organizationId":"organization","templateId":"questionnaire-report","updatedAt":"2023-04-25T13:13:28.656434Z","version":"2.9.0"}]},"page":{"number":0,"size":10000,"totalElements":2,"totalPages":1}}'
     headers:
       Access-Control-Allow-Credential:
       - 'true'

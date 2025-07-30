@@ -1,5 +1,5 @@
 {
-  "organizationId": "myorg",
+  "organizationId": "organization",
   "templateId": "test-template-y",
   "version": "0.1.0",
   "name": "Test template 01",
