@@ -90,8 +90,8 @@ class BaseMailSender(abc.ABC):
 
     @staticmethod
     def _convert_inline_image(image: MailAttachment) -> MIMEBase:
-        mtype, msubtype = image.content_type.split('/', maxsplit=1)
-        part = MIMEBase(mtype, msubtype)
+        mime_type, mime_subtype = image.content_type.split('/', maxsplit=1)
+        part = MIMEBase(mime_type, mime_subtype)
         part.set_payload(image.data)
         encoders.encode_base64(part)
         filename = pathvalidate.sanitize_filename(image.name)
@@ -133,8 +133,8 @@ class BaseMailSender(abc.ABC):
 
     @staticmethod
     def _convert_attachment(attachment: MailAttachment) -> MIMEBase:
-        mtype, msubtype = attachment.content_type.split('/', maxsplit=1)
-        part = MIMEBase(mtype, msubtype)
+        mime_type, mime_subtype = attachment.content_type.split('/', maxsplit=1)
+        part = MIMEBase(mime_type, mime_subtype)
         part.set_payload(attachment.data)
         encoders.encode_base64(part)
         filename = pathvalidate.sanitize_filename(attachment.name)

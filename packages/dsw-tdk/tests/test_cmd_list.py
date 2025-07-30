@@ -10,7 +10,7 @@ def test_list_simple(dsw_env: dict):
     result = runner.invoke(main, args=['list'], env=dsw_env)
     assert result.exit_code == 0
     assert 'dsw:questionnaire-report:2.8.0' in result.output
-    assert 'myorg:questionnaire-report:2.9.0' in result.output
+    assert 'organization:questionnaire-report:2.9.0' in result.output
 
 
 @pytest.mark.vcr
@@ -19,7 +19,7 @@ def test_list_drafts_only(dsw_env: dict):
     result = runner.invoke(main, args=['list', '-d'], env=dsw_env)
     assert result.exit_code == 0
     assert 'dsw:questionnaire-report:2.8.0' not in result.output
-    assert 'myorg:questionnaire-report:2.9.0' in result.output
+    assert 'organization:questionnaire-report:2.9.0' in result.output
 
 
 @pytest.mark.vcr
@@ -28,7 +28,7 @@ def test_list_released_only(dsw_env: dict):
     result = runner.invoke(main, args=['list', '-r'], env=dsw_env)
     assert result.exit_code == 0
     assert 'dsw:questionnaire-report:2.8.0' in result.output
-    assert 'myorg:questionnaire-report:2.9.0' not in result.output
+    assert 'organization:questionnaire-report:2.9.0' not in result.output
 
 
 @pytest.mark.vcr

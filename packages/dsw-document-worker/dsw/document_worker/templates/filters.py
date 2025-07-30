@@ -115,7 +115,7 @@ def roman(n: int) -> str:
     return result
 
 
-def xmarkdown(md_text: str):
+def render_markdown(md_text: str):
     if md_text is None:
         return ''
     return markupsafe.Markup(markdown.markdown(
@@ -164,18 +164,18 @@ def reply_items(reply: dict) -> list:
     return []
 
 
-def find_reply(replies, path, xtype='string'):
+def find_reply(replies, path, cast_type='string'):
     if isinstance(path, list):
         path = reply_path(path)
     reply = replies.get(path, default=None)
     if not _has_value(reply):
         return None
     r = _get_value(reply)
-    if xtype == 'int':
+    if cast_type == 'int':
         return r if isinstance(r, int) else int(r)
-    if xtype == 'float':
+    if cast_type == 'float':
         return r if isinstance(r, float) else float(r)
-    if xtype == 'list':
+    if cast_type == 'list':
         return r if isinstance(r, list) else list(r)
     return str(r)
 
@@ -236,7 +236,7 @@ filters = {
     'extract': extract,
     'of_alphabet': of_alphabet,
     'roman': roman,
-    'markdown': xmarkdown,
+    'markdown': render_markdown,
     'dot': dot,
     'reply_str_value': reply_str_value,
     'reply_int_value': reply_int_value,

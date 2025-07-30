@@ -13,7 +13,7 @@ import humanize
 import slugify
 import watchfiles
 
-from .api_client import DSWCommunicationError
+from .api_client import WizardCommunicationError
 from .core import TDKCore, TDKProcessingError
 from .consts import VERSION, DEFAULT_LIST_FORMAT
 from .model import Template
@@ -89,9 +89,9 @@ def print_template_info(template: Template):
     for format_spec in template.formats:
         click.echo(f' - {format_spec.name}')
     click.echo('Files:')
-    for tfile in template.files.values():
-        filesize = humanize.naturalsize(len(tfile.content))
-        click.echo(f' - {tfile.filename.as_posix()} [{filesize}]')
+    for template_file in template.files.values():
+        filesize = humanize.naturalsize(len(template_file.content))
+        click.echo(f' - {template_file.filename.as_posix()} [{filesize}]')
 
 
 # pylint: disable-next=unused-argument
@@ -314,7 +314,7 @@ def get_template(ctx, api_url, template_id, template_dir, api_key, force):
                 zip_data = await tdk.download_bundle(template_id=template_id)
                 template_type = 'bundle'
             await tdk.safe_client.close()
-        except DSWCommunicationError as e:
+        except WizardCommunicationError as e:
             ClickPrinter.error('Could not get template:', bold=True)
             ClickPrinter.error(f'> {e.reason}\n> {e.message}')
             await tdk.safe_client.close()
@@ -394,7 +394,7 @@ def put_template(ctx, api_url, template_dir, api_key, force, watch):
             ClickPrinter.error(f'> {e.message}\n> {e.hint}')
             await tdk.safe_client.safe_close()
             sys.exit(1)
-        except DSWCommunicationError as e:
+        except WizardCommunicationError as e:
             ClickPrinter.failure('Could not upload template')
             ClickPrinter.error(f'> {e.reason}\n> {e.message}')
             ClickPrinter.error('> Probably incorrect API URL, metamodel version, '
@@ -404,9 +404,9 @@ def put_template(ctx, api_url, template_dir, api_key, force, watch):
             sys.exit(1)
 
     # pylint: disable-next=unused-argument
-    def set_stop_event(signum, frame):
-        signame = signal.Signals(signum).name
-        ClickPrinter.warning(f'Got {signame}, finishing... Bye!')
+    def set_stop_event(signal_num, frame):
+        signal_name = signal.Signals(signal_num).name
+        ClickPrinter.warning(f'Got {signal_name}, finishing... Bye!')
         stop_event.set()
 
     signal.signal(signal.SIGINT, set_stop_event)
@@ -494,7 +494,7 @@ def list_templates(ctx, api_url, api_key, output_format: str,
                     click.echo(output_format.format(template=template))
             await tdk.safe_client.safe_close()
 
-        except DSWCommunicationError as e:
+        except WizardCommunicationError as e:
             ClickPrinter.failure('Failed to get list of templates')
             ClickPrinter.error(f'> {e.reason}\n> {e.message}')
             await tdk.safe_client.safe_close()

@@ -77,7 +77,7 @@ interactions:
       User-Agent:
       - dsw-tdk/3.22.0
     method: GET
-    uri: http://localhost:3000/document-template-drafts/myorg:questionnaire-report:2.9.0
+    uri: http://localhost:3000/document-template-drafts/organization:questionnaire-report:2.9.0
   response:
     body:
       string: '{"allowedPackages":[{"kmId":null,"maxVersion":null,"minVersion":null,"orgId":null}],"createdAt":"2023-04-25T13:13:28.596463Z","description":"Exported
@@ -89,7 +89,7 @@ interactions:
         fa-file-alt","name":"LaTeX Document","steps":[{"name":"jinja","options":{"content-type":"text/x-tex","extension":"tex","template":"src/default.tex.j2"}}],"uuid":"dbc94579-40d7-42c3-975c-71e30d07778b"},{"icon":"far
         fa-file-word","name":"MS Word Document","steps":[{"name":"jinja","options":{"content-type":"text/html","extension":"html","template":"src/for-word.html.j2"}},{"name":"pandoc","options":{"args":"--filter=pandoc-docx-pagebreakpy
         --reference-doc=src/reference.docx","from":"html","to":"docx"}}],"uuid":"f4bd941a-dfbe-4226-a1fc-200fb5269311"},{"icon":"far
-        fa-file-alt","name":"Markdown Document","steps":[{"name":"jinja","options":{"content-type":"text/html","extension":"md","template":"src/default.md.j2"}}],"uuid":"f0533e48-f4c5-4af2-b2c1-5a47d4a247c0"}],"id":"myorg:questionnaire-report:2.9.0","license":"Apache-2.0","name":"Questionnaire
+        fa-file-alt","name":"Markdown Document","steps":[{"name":"jinja","options":{"content-type":"text/html","extension":"md","template":"src/default.md.j2"}}],"uuid":"f0533e48-f4c5-4af2-b2c1-5a47d4a247c0"}],"id":"organization:questionnaire-report:2.9.0","license":"Apache-2.0","name":"Questionnaire
         Report","questionnaire":null,"questionnaireUuid":null,"readme":"# Questionnaire
         Report\r\n\r\nThis generic *default* template for [Data Stewardship Wizard](https://ds-wizard.org)
         (DSW) directly transforms answers from a questionnaire into a document while
@@ -138,7 +138,7 @@ interactions:
     status:
       code: 200
       message: OK
-    url: http://localhost:3000/document-template-drafts/myorg:questionnaire-report:2.9.0
+    url: http://localhost:3000/document-template-drafts/organization:questionnaire-report:2.9.0
 - request:
     body: null
     headers:
@@ -147,7 +147,7 @@ interactions:
       User-Agent:
       - dsw-tdk/3.22.0
     method: GET
-    uri: http://localhost:3000/document-template-drafts/myorg:questionnaire-report:2.9.0/files
+    uri: http://localhost:3000/document-template-drafts/organization:questionnaire-report:2.9.0/files
   response:
     body:
       string: '[{"createdAt":"2023-04-25T13:13:28.630013Z","fileName":"src/default.tex.j2","updatedAt":"2023-04-25T13:13:28.630013Z","uuid":"1b1f2d3a-a0bb-4ee6-b2f2-d3e20bf332c4"},{"createdAt":"2023-04-25T13:13:28.634374Z","fileName":"src/default.md.j2","updatedAt":"2023-04-25T13:13:28.634374Z","uuid":"1b7f73af-2659-43bf-9a65-fa506ab60bf3"},{"createdAt":"2023-04-25T13:13:28.636711Z","fileName":"src/for-word.html.j2","updatedAt":"2023-04-25T13:13:28.636711Z","uuid":"158f343a-2c24-4001-aff8-61379d9fb2bd"},{"createdAt":"2023-04-25T13:13:28.643506Z","fileName":"src/default.html.j2","updatedAt":"2023-04-25T13:13:28.643506Z","uuid":"eb365c81-27bc-4113-bcdd-615c78342337"},{"createdAt":"2023-04-25T13:13:28.654905Z","fileName":"src/default.css","updatedAt":"2023-04-25T13:13:28.654905Z","uuid":"26409a22-4721-4bb1-8f28-bcf50a15894f"}]'
@@ -173,7 +173,7 @@ interactions:
     status:
       code: 200
       message: OK
-    url: http://localhost:3000/document-template-drafts/myorg:questionnaire-report:2.9.0/files
+    url: http://localhost:3000/document-template-drafts/organization:questionnaire-report:2.9.0/files
 - request:
     body: null
     headers:
@@ -182,7 +182,7 @@ interactions:
       User-Agent:
       - dsw-tdk/3.22.0
     method: GET
-    uri: http://localhost:3000/document-template-drafts/myorg:questionnaire-report:2.9.0/files/1b1f2d3a-a0bb-4ee6-b2f2-d3e20bf332c4
+    uri: http://localhost:3000/document-template-drafts/organization:questionnaire-report:2.9.0/files/1b1f2d3a-a0bb-4ee6-b2f2-d3e20bf332c4
   response:
     body:
       string: '{"appUuid":"00000000-0000-0000-0000-000000000000","content":"{#- ------------------------------------------------------------------------------------
@@ -211,10 +211,10 @@ interactions:
         = path ~ \".\" -%}\r\n{%- set hiPrefix = humanIdentifier ~ \".\" -%}\r\n\\begin{itemize}\r\n  \\item[\\ArrowBoldDownRight]
         Answered with {{reply.items|length}} item{% if reply.items|length > 1 %}s{%
         endif %} as follows.\r\n\\end{itemize}\r\n{%- for i in reply.items -%}\r\n{%-
-        set itemPath = itemPathPrefix ~ i -%}\r\n{%- set itemHumanIdenfifier = hiPrefix
+        set itemPath = itemPathPrefix ~ i -%}\r\n{%- set itemHumanIdentifier = hiPrefix
         ~ (loop.index - 1)|of_alphabet -%}\r\n% Answer item: {{itemPath}}\r\n\r\n{%-
         for question in question.followups -%}\r\n  {%- set x = loop.index -%}\r\n{{
-        renderQuestion(question, itemPath, itemHumanIdenfifier ~ \".\" ~ x, False)
+        renderQuestion(question, itemPath, itemHumanIdentifier ~ \".\" ~ x, False)
         }}\r\n{% else -%}\r\n  \\textit{No follow up questions}\r\n{% endfor %}\r\n{%
         endfor %}\r\n{%- endmacro -%}\r\n{%- macro renderChoiceList(question, reply,
         path, humanIdentifier) -%}\r\n{%- if question.choices|length > 0 -%}\r\n\\begin{itemize}\r\n{%-
@@ -279,19 +279,19 @@ interactions:
         endmacro -%}\r\n{#- ------------------------------------------------------------------------------------
         -#}\r\n{#-  REPORT MACROS                                                                       -#}\r\n{#-
         ------------------------------------------------------------------------------------
-        -#}\r\n{%- macro progresBar(value) -%}\r\n{%- set color = \"colorBarAwful\"
+        -#}\r\n{%- macro progressBar(value) -%}\r\n{%- set color = \"colorBarAwful\"
         -%}\r\n{%- if value > 0.95 -%}\r\n  {%- set color = \"colorBarAwesome\" -%}\r\n{%-
         elif value > 0.8 -%}\r\n  {%- set color = \"colorBarNice\" -%}\r\n{%- elif
         value > 0.6 -%}\r\n  {%- set color = \"colorBarGood\" -%}\r\n{%- elif value
         > 0.4 -%}\r\n  {%- set color = \"colorBarAverage\" -%}\r\n{%- elif value >
-        0.2 -%}\r\n  {%- set color = \"colorBarBad\" -%}\r\n{%- endif -%}\r\n\\progressbar[subdivisions=10,width=15em,heighta=10pt,filledcolor={{color}}]{{
+        0.2 -%}\r\n  {%- set color = \"colorBarBad\" -%}\r\n{%- endif -%}\r\n\\progressbar[subdivisions=10,width=15em,height=10pt,filledcolor={{color}}]{{
         \"{\" }}{{value}}{{ \"}\" }}\r\n{%- endmacro -%}\r\n{%- macro renderReport(report)
         -%}\r\n\\begin{table}[h]\r\n  \\centering\r\n  \\begin{tabular}{ l c r }\r\n{%-
         for item in report.indications %}\r\n    Answered {% if item.is_for_phase
-        %}(current phase){% endif %} & {{item.answered}} / {{item.total}} & {{ progresBar(item.percentage)
+        %}(current phase){% endif %} & {{item.answered}} / {{item.total}} & {{ progressBar(item.percentage)
         }} \\\\\r\n{%- endfor %}\r\n    & & \\\\ \\hline\r\n    & & \\\\\r\n{%- if
         report.metrics|length > 0 %}\r\n{%- for item in report.metrics %}\r\n    {{item.metric.title}}
-        & {{ \"%.2f\"|format(item.measure) }} & {{ progresBar(item.measure) }} \\\\\r\n{%-
+        & {{ \"%.2f\"|format(item.measure) }} & {{ progressBar(item.measure) }} \\\\\r\n{%-
         endfor -%}\r\n{%- endif %}\r\n  \\end{tabular}\r\n\\end{table}\r\n{%- endmacro
         -%}\r\n{%- macro renderVersions() -%}\r\n{% if dc.qtn.versions|length > 0
         %}\r\n\\section*{History of Versions}\r\n\r\n\\begin{table}[h]\r\n\t\\centering\r\n\t\\begin{tabular}{
@@ -334,7 +334,7 @@ interactions:
         Summary}\r\n{{ renderReport(chapterReport) }}\r\n{% endfor %}\r\n\r\n{% for
         question in chapter.questions %}\r\n{{ renderQuestion(question, chapter.uuid,
         chapterId ~ \".\" ~ loop.index, True) }}\r\n{% endfor %}\r\n\r\n{% endfor
-        %}\r\n\r\n\\end{document}\r\n","createdAt":"2023-04-25T13:13:28.630013Z","documentTemplateId":"myorg:questionnaire-report:2.9.0","fileName":"src/default.tex.j2","updatedAt":"2023-04-25T13:13:28.630013Z","uuid":"1b1f2d3a-a0bb-4ee6-b2f2-d3e20bf332c4"}'
+        %}\r\n\r\n\\end{document}\r\n","createdAt":"2023-04-25T13:13:28.630013Z","documentTemplateId":"organization:questionnaire-report:2.9.0","fileName":"src/default.tex.j2","updatedAt":"2023-04-25T13:13:28.630013Z","uuid":"1b1f2d3a-a0bb-4ee6-b2f2-d3e20bf332c4"}'
     headers:
       Access-Control-Allow-Credential:
       - 'true'
@@ -357,7 +357,7 @@ interactions:
     status:
       code: 200
       message: OK
-    url: http://localhost:3000/document-template-drafts/myorg:questionnaire-report:2.9.0/files/1b1f2d3a-a0bb-4ee6-b2f2-d3e20bf332c4
+    url: http://localhost:3000/document-template-drafts/organization:questionnaire-report:2.9.0/files/1b1f2d3a-a0bb-4ee6-b2f2-d3e20bf332c4
 - request:
     body: null
     headers:
@@ -366,7 +366,7 @@ interactions:
       User-Agent:
       - dsw-tdk/3.22.0
     method: GET
-    uri: http://localhost:3000/document-template-drafts/myorg:questionnaire-report:2.9.0/files/1b7f73af-2659-43bf-9a65-fa506ab60bf3
+    uri: http://localhost:3000/document-template-drafts/organization:questionnaire-report:2.9.0/files/1b7f73af-2659-43bf-9a65-fa506ab60bf3
   response:
     body:
       string: "{\"appUuid\":\"00000000-0000-0000-0000-000000000000\",\"content\":\"{#-
@@ -410,9 +410,9 @@ interactions:
         reply, path, humanIdentifier) -%}\\r\\n{%- set itemPathPrefix = path ~ \\\".\\\"
         -%}\\r\\n{%- set hiPrefix = humanIdentifier ~ \\\".\\\" -%}\\r\\n{%- for i
         in reply.items -%}\\r\\n{%- set itemPath = itemPathPrefix ~ i -%}\\r\\n{%-
-        set itemHumanIdenfifier = hiPrefix ~ (loop.index - 1)|of_alphabet -%}\\r\\n{%-
+        set itemHumanIdentifier = hiPrefix ~ (loop.index - 1)|of_alphabet -%}\\r\\n{%-
         for question in question.followups -%}\\r\\n{%- set x = loop.index -%}\\r\\n{{
-        renderQuestion(question, itemPath, itemHumanIdenfifier ~ \\\".\\\" ~ x) }}\\r\\n{%-
+        renderQuestion(question, itemPath, itemHumanIdentifier ~ \\\".\\\" ~ x) }}\\r\\n{%-
         else -%}\\r\\n*No follow up questions*\\r\\n{%- endfor -%}\\r\\n{%- else %}\\r\\n*No
         answer items*\\r\\n{%- endfor -%}\\r\\n{%- endmacro -%}\\r\\n{%- macro renderChoiceList(question,
         reply, path, humanIdentifier) -%}\\r\\n{%- for choice in question.choices
@@ -481,7 +481,7 @@ interactions:
         %}\\r\\n* **{{ version.name }}** ({{ version.created_at|datetime_format(\\\"%d
         %b %Y\\\") }}): {{ version.description }}\\r\\n{%- endfor %}\\r\\n{%- endif
         %}\\r\\n\\r\\n---\\r\\n\\r\\n{% for chapter in dc.km.chapters %}\\r\\n{{ renderChapter(chapter,
-        loop.index) }}\\r\\n{% else %}\\r\\n*No chapters*\\r\\n{% endfor %}\\r\\n\",\"createdAt\":\"2023-04-25T13:13:28.634374Z\",\"documentTemplateId\":\"myorg:questionnaire-report:2.9.0\",\"fileName\":\"src/default.md.j2\",\"updatedAt\":\"2023-04-25T13:13:28.634374Z\",\"uuid\":\"1b7f73af-2659-43bf-9a65-fa506ab60bf3\"}"
+        loop.index) }}\\r\\n{% else %}\\r\\n*No chapters*\\r\\n{% endfor %}\\r\\n\",\"createdAt\":\"2023-04-25T13:13:28.634374Z\",\"documentTemplateId\":\"organization:questionnaire-report:2.9.0\",\"fileName\":\"src/default.md.j2\",\"updatedAt\":\"2023-04-25T13:13:28.634374Z\",\"uuid\":\"1b7f73af-2659-43bf-9a65-fa506ab60bf3\"}"
     headers:
       Access-Control-Allow-Credential:
       - 'true'
@@ -504,7 +504,7 @@ interactions:
     status:
       code: 200
       message: OK
-    url: http://localhost:3000/document-template-drafts/myorg:questionnaire-report:2.9.0/files/1b7f73af-2659-43bf-9a65-fa506ab60bf3
+    url: http://localhost:3000/document-template-drafts/organization:questionnaire-report:2.9.0/files/1b7f73af-2659-43bf-9a65-fa506ab60bf3
 - request:
     body: null
     headers:
@@ -513,7 +513,7 @@ interactions:
       User-Agent:
       - dsw-tdk/3.22.0
     method: GET
-    uri: http://localhost:3000/document-template-drafts/myorg:questionnaire-report:2.9.0/files/158f343a-2c24-4001-aff8-61379d9fb2bd
+    uri: http://localhost:3000/document-template-drafts/organization:questionnaire-report:2.9.0/files/158f343a-2c24-4001-aff8-61379d9fb2bd
   response:
     body:
       string: "{\"appUuid\":\"00000000-0000-0000-0000-000000000000\",\"content\":\"<!DOCTYPE
@@ -521,7 +521,7 @@ interactions:
         #}\\r\\n{#  VARIABLES                                                                           #}\\r\\n{#
         ------------------------------------------------------------------------------------
         #}\\r\\n{%- set dc = ctx|to_context_obj -%}\\r\\n{# ------------------------------------------------------------------------------------
-        #}\\r\\n{#  TAGS, REFERNCES, and EXPERTS MACROS                                                 #}\\r\\n{#
+        #}\\r\\n{#  TAGS, REFERENCES, and EXPERTS MACROS                                                 #}\\r\\n{#
         ------------------------------------------------------------------------------------
         #}\\r\\n{%- macro renderTags(question) -%}\\r\\n  {% if question.tags|length
         > 0 %}\\r\\n    <div>\\r\\n      \U0001F3F7\uFE0F <b>Tags:</b> {% for tag
@@ -568,11 +568,11 @@ interactions:
         reply, path, humanIdentifier) -%}\\r\\n  <div>\\r\\n    <h4>Answers ({{reply.items|length}}
         items)</h4>\\r\\n    {% set itemPathPrefix = path ~ \\\".\\\" %}\\r\\n    {%
         set hiPrefix = humanIdentifier ~ \\\".\\\" %}\\r\\n    {% for i in reply.items
-        %}\\r\\n      {% set itemPath = itemPathPrefix ~ i %}\\r\\n      {% set itemHumanIdenfifier
+        %}\\r\\n      {% set itemPath = itemPathPrefix ~ i %}\\r\\n      {% set itemHumanIdentifier
         = hiPrefix ~ (loop.index - 1)|of_alphabet %}\\r\\n      <div class=\\\"answer-item\\\"
         id=\\\"{{itemPath}}\\\">\\r\\n        <div class=\\\"followups\\\">\\r\\n
         \         {% for question in question.followups %}\\r\\n            {% set
-        x = loop.index %}\\r\\n            {{ renderQuestion(question, itemPath, itemHumanIdenfifier
+        x = loop.index %}\\r\\n            {{ renderQuestion(question, itemPath, itemHumanIdentifier
         ~ \\\".\\\" ~ x) }}\\r\\n          {% else %}\\r\\n            <i>No follow
         up questions</i>\\r\\n          {% endfor %}\\r\\n        </div>\\r\\n      </div>\\r\\n
         \   {% else %}\\r\\n      <i>No answer items</i>\\r\\n    {% endfor %}\\r\\n
@@ -667,7 +667,7 @@ interactions:
         ------------------------------------------------------------------------------------
         #}\\r\\n<html>\\r\\n  <head>\\r\\n    <title>{{dc.qtn.name}}</title>\\r\\n
         \   <meta charset=\\\"utf-8\\\">\\r\\n  </head>\\r\\n  <body>\\r\\n      {{
-        renderFrontPage() }}\\r\\n      {{ renderContent() }}\\r\\n  </body>\\r\\n</html>\\r\\n\",\"createdAt\":\"2023-04-25T13:13:28.636711Z\",\"documentTemplateId\":\"myorg:questionnaire-report:2.9.0\",\"fileName\":\"src/for-word.html.j2\",\"updatedAt\":\"2023-04-25T13:13:28.636711Z\",\"uuid\":\"158f343a-2c24-4001-aff8-61379d9fb2bd\"}"
+        renderFrontPage() }}\\r\\n      {{ renderContent() }}\\r\\n  </body>\\r\\n</html>\\r\\n\",\"createdAt\":\"2023-04-25T13:13:28.636711Z\",\"documentTemplateId\":\"organization:questionnaire-report:2.9.0\",\"fileName\":\"src/for-word.html.j2\",\"updatedAt\":\"2023-04-25T13:13:28.636711Z\",\"uuid\":\"158f343a-2c24-4001-aff8-61379d9fb2bd\"}"
     headers:
       Access-Control-Allow-Credential:
       - 'true'
@@ -690,7 +690,7 @@ interactions:
     status:
       code: 200
       message: OK
-    url: http://localhost:3000/document-template-drafts/myorg:questionnaire-report:2.9.0/files/158f343a-2c24-4001-aff8-61379d9fb2bd
+    url: http://localhost:3000/document-template-drafts/organization:questionnaire-report:2.9.0/files/158f343a-2c24-4001-aff8-61379d9fb2bd
 - request:
     body: null
     headers:
@@ -699,7 +699,7 @@ interactions:
       User-Agent:
       - dsw-tdk/3.22.0
     method: GET
-    uri: http://localhost:3000/document-template-drafts/myorg:questionnaire-report:2.9.0/files/eb365c81-27bc-4113-bcdd-615c78342337
+    uri: http://localhost:3000/document-template-drafts/organization:questionnaire-report:2.9.0/files/eb365c81-27bc-4113-bcdd-615c78342337
   response:
     body:
       string: '{"appUuid":"00000000-0000-0000-0000-000000000000","content":"<!DOCTYPE
@@ -797,11 +797,11 @@ interactions:
         id=\"{{path}}\" data-path=\"{{path}}\" data-type=\"answer\">\r\n    <h4>Answers</h4>\r\n    {%
         set itemPathPrefix = path ~ \".\" %}\r\n    {% set hiPrefix = humanIdentifier
         ~ \".\" %}\r\n    {% for i in reply.items %}\r\n      {% set itemPath = itemPathPrefix
-        ~ i %}\r\n      {% set itemHumanIdenfifier = hiPrefix ~ (loop.index - 1)|of_alphabet
+        ~ i %}\r\n      {% set itemHumanIdentifier = hiPrefix ~ (loop.index - 1)|of_alphabet
         %}\r\n      <div class=\"answer-item\" id=\"{{itemPath}}\">\r\n        <div
         class=\"followups\">\r\n          {% for question in question.followups %}\r\n            {%
         set x = loop.index %}\r\n            {{ renderQuestion(question, itemPath,
-        itemHumanIdenfifier ~ \".\" ~ x) }}\r\n          {% else %}\r\n            No
+        itemHumanIdentifier ~ \".\" ~ x) }}\r\n          {% else %}\r\n            No
         follow up questions\r\n          {% endfor %}\r\n        </div>\r\n      </div>\r\n    {%
         else %}\r\n      No answer items\r\n    {% endfor %}\r\n  </div>\r\n{%- endmacro
         -%}\r\n{%- macro renderChoiceList(question, reply, path, humanIdentifier)
@@ -943,7 +943,7 @@ interactions:
         #}\r\n<html>\r\n  <head>\r\n    <title>DSW Questionnaire Report: {{dc.qtn.name}}</title>\r\n    <meta
         charset=\"utf-8\">\r\n    <style>{% include \"src/default.css\" %}</style>\r\n  </head>\r\n  <body>\r\n    <article
         class=\"dmp\">\r\n      {{ renderFrontPage() }}\r\n      {{ renderContent()
-        }}\r\n    </article>\r\n  </body>\r\n</html>\r\n","createdAt":"2023-04-25T13:13:28.643506Z","documentTemplateId":"myorg:questionnaire-report:2.9.0","fileName":"src/default.html.j2","updatedAt":"2023-04-25T13:13:28.643506Z","uuid":"eb365c81-27bc-4113-bcdd-615c78342337"}'
+        }}\r\n    </article>\r\n  </body>\r\n</html>\r\n","createdAt":"2023-04-25T13:13:28.643506Z","documentTemplateId":"organization:questionnaire-report:2.9.0","fileName":"src/default.html.j2","updatedAt":"2023-04-25T13:13:28.643506Z","uuid":"eb365c81-27bc-4113-bcdd-615c78342337"}'
     headers:
       Access-Control-Allow-Credential:
       - 'true'
@@ -966,7 +966,7 @@ interactions:
     status:
       code: 200
       message: OK
-    url: http://localhost:3000/document-template-drafts/myorg:questionnaire-report:2.9.0/files/eb365c81-27bc-4113-bcdd-615c78342337
+    url: http://localhost:3000/document-template-drafts/organization:questionnaire-report:2.9.0/files/eb365c81-27bc-4113-bcdd-615c78342337
 - request:
     body: null
     headers:
@@ -975,7 +975,7 @@ interactions:
       User-Agent:
       - dsw-tdk/3.22.0
     method: GET
-    uri: http://localhost:3000/document-template-drafts/myorg:questionnaire-report:2.9.0/files/26409a22-4721-4bb1-8f28-bcf50a15894f
+    uri: http://localhost:3000/document-template-drafts/organization:questionnaire-report:2.9.0/files/26409a22-4721-4bb1-8f28-bcf50a15894f
   response:
     body:
       string: '{"appUuid":"00000000-0000-0000-0000-000000000000","content":"/* General
@@ -1061,7 +1061,7 @@ interactions:
         break-word;\r\n}\r\n\r\ndiv#versions td.version-date {\r\n  text-align: center;\r\n  width:
         18ex;\r\n}\r\n\r\ndiv#versions td.version-changes {\r\n  word-wrap: break-word;\r\n}\r\n\r\ndiv#versions
         td.no-versions {\r\n  font-style: italic;\r\n  padding: 1em;\r\n  text-align:
-        center;\r\n}\r\n","createdAt":"2023-04-25T13:13:28.654905Z","documentTemplateId":"myorg:questionnaire-report:2.9.0","fileName":"src/default.css","updatedAt":"2023-04-25T13:13:28.654905Z","uuid":"26409a22-4721-4bb1-8f28-bcf50a15894f"}'
+        center;\r\n}\r\n","createdAt":"2023-04-25T13:13:28.654905Z","documentTemplateId":"organization:questionnaire-report:2.9.0","fileName":"src/default.css","updatedAt":"2023-04-25T13:13:28.654905Z","uuid":"26409a22-4721-4bb1-8f28-bcf50a15894f"}'
     headers:
       Access-Control-Allow-Credential:
       - 'true'
@@ -1084,7 +1084,7 @@ interactions:
     status:
       code: 200
       message: OK
-    url: http://localhost:3000/document-template-drafts/myorg:questionnaire-report:2.9.0/files/26409a22-4721-4bb1-8f28-bcf50a15894f
+    url: http://localhost:3000/document-template-drafts/organization:questionnaire-report:2.9.0/files/26409a22-4721-4bb1-8f28-bcf50a15894f
 - request:
     body: null
     headers:
@@ -1093,10 +1093,10 @@ interactions:
       User-Agent:
       - dsw-tdk/3.22.0
     method: GET
-    uri: http://localhost:3000/document-template-drafts/myorg:questionnaire-report:2.9.0/assets
+    uri: http://localhost:3000/document-template-drafts/organization:questionnaire-report:2.9.0/assets
   response:
     body:
-      string: '[{"contentType":"application/vnd.openxmlformats-officedocument.wordprocessingml.document","createdAt":"2023-04-25T13:13:28.618034Z","fileName":"src/reference.docx","fileSize":64798,"updatedAt":"2023-04-25T13:13:28.618034Z","url":"http://host.docker.internal:9000/dsw/templates/myorg:questionnaire-report:2.9.0/e771fd78-45ef-40a2-924c-da61fb25f8d7?X-Amz-Signature=a775b7e578f5e29d797f7f655f35ad7a3a9c81d717b8d9bde0b3c552de4b33da&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=minio%2F20230425%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20230425T140028Z&X-Amz-Expires=60&X-Amz-SignedHeaders=host","urlExpiration":"2023-04-25T14:01:28.176805381Z","uuid":"e771fd78-45ef-40a2-924c-da61fb25f8d7"}]'
+      string: '[{"contentType":"application/vnd.openxmlformats-officedocument.wordprocessingml.document","createdAt":"2023-04-25T13:13:28.618034Z","fileName":"src/reference.docx","fileSize":64798,"updatedAt":"2023-04-25T13:13:28.618034Z","url":"http://host.docker.internal:9000/dsw/templates/organization:questionnaire-report:2.9.0/e771fd78-45ef-40a2-924c-da61fb25f8d7?X-Amz-Signature=a775b7e578f5e29d797f7f655f35ad7a3a9c81d717b8d9bde0b3c552de4b33da&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=minio%2F20230425%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20230425T140028Z&X-Amz-Expires=60&X-Amz-SignedHeaders=host","urlExpiration":"2023-04-25T14:01:28.176805381Z","uuid":"e771fd78-45ef-40a2-924c-da61fb25f8d7"}]'
     headers:
       Access-Control-Allow-Credential:
       - 'true'
@@ -1119,7 +1119,7 @@ interactions:
     status:
       code: 200
       message: OK
-    url: http://localhost:3000/document-template-drafts/myorg:questionnaire-report:2.9.0/assets
+    url: http://localhost:3000/document-template-drafts/organization:questionnaire-report:2.9.0/assets
 - request:
     body: null
     headers:
@@ -1128,10 +1128,10 @@ interactions:
       User-Agent:
       - dsw-tdk/3.22.0
     method: GET
-    uri: http://localhost:3000/document-template-drafts/myorg:questionnaire-report:2.9.0/assets/e771fd78-45ef-40a2-924c-da61fb25f8d7
+    uri: http://localhost:3000/document-template-drafts/organization:questionnaire-report:2.9.0/assets/e771fd78-45ef-40a2-924c-da61fb25f8d7
   response:
     body:
-      string: '{"contentType":"application/vnd.openxmlformats-officedocument.wordprocessingml.document","createdAt":"2023-04-25T13:13:28.618034Z","fileName":"src/reference.docx","fileSize":64798,"updatedAt":"2023-04-25T13:13:28.618034Z","url":"http://host.docker.internal:9000/dsw/templates/myorg:questionnaire-report:2.9.0/e771fd78-45ef-40a2-924c-da61fb25f8d7?X-Amz-Signature=a775b7e578f5e29d797f7f655f35ad7a3a9c81d717b8d9bde0b3c552de4b33da&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=minio%2F20230425%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20230425T140028Z&X-Amz-Expires=60&X-Amz-SignedHeaders=host","urlExpiration":"2023-04-25T14:01:28.185154923Z","uuid":"e771fd78-45ef-40a2-924c-da61fb25f8d7"}'
+      string: '{"contentType":"application/vnd.openxmlformats-officedocument.wordprocessingml.document","createdAt":"2023-04-25T13:13:28.618034Z","fileName":"src/reference.docx","fileSize":64798,"updatedAt":"2023-04-25T13:13:28.618034Z","url":"http://host.docker.internal:9000/dsw/templates/organization:questionnaire-report:2.9.0/e771fd78-45ef-40a2-924c-da61fb25f8d7?X-Amz-Signature=a775b7e578f5e29d797f7f655f35ad7a3a9c81d717b8d9bde0b3c552de4b33da&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=minio%2F20230425%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20230425T140028Z&X-Amz-Expires=60&X-Amz-SignedHeaders=host","urlExpiration":"2023-04-25T14:01:28.185154923Z","uuid":"e771fd78-45ef-40a2-924c-da61fb25f8d7"}'
     headers:
       Access-Control-Allow-Credential:
       - 'true'
@@ -1154,7 +1154,7 @@ interactions:
     status:
       code: 200
       message: OK
-    url: http://localhost:3000/document-template-drafts/myorg:questionnaire-report:2.9.0/assets/e771fd78-45ef-40a2-924c-da61fb25f8d7
+    url: http://localhost:3000/document-template-drafts/organization:questionnaire-report:2.9.0/assets/e771fd78-45ef-40a2-924c-da61fb25f8d7
 - request:
     body: null
     headers:
@@ -1163,7 +1163,7 @@ interactions:
       User-Agent:
       - dsw-tdk/3.22.0
     method: GET
-    uri: http://localhost:3000/document-template-drafts/myorg:questionnaire-report:2.9.0/assets/e771fd78-45ef-40a2-924c-da61fb25f8d7/content
+    uri: http://localhost:3000/document-template-drafts/organization:questionnaire-report:2.9.0/assets/e771fd78-45ef-40a2-924c-da61fb25f8d7/content
   response:
     body:
       string: !!binary |
@@ -2326,5 +2326,5 @@ interactions:
     status:
       code: 200
       message: OK
-    url: http://localhost:3000/document-template-drafts/myorg:questionnaire-report:2.9.0/assets/e771fd78-45ef-40a2-924c-da61fb25f8d7/content
+    url: http://localhost:3000/document-template-drafts/organization:questionnaire-report:2.9.0/assets/e771fd78-45ef-40a2-924c-da61fb25f8d7/content
 version: 1

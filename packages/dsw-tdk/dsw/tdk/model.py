@@ -141,9 +141,9 @@ class TemplateFile:
         self.filename = filename
         self.content = content
         self.content_type: str = content_type or self.guess_type()
-        self.remote_type: TemplateFileType = remote_type or self.guess_tfile_type()
+        self.remote_type: TemplateFileType = remote_type or self.guess_template_file_type()
 
-    def guess_tfile_type(self):
+    def guess_template_file_type(self):
         return TemplateFileType.FILE if self.is_text else TemplateFileType.ASSET
 
     def guess_type(self) -> str:
@@ -355,11 +355,11 @@ class TemplateProject:
         try:
             if filepath.is_absolute():
                 filepath = filepath.relative_to(self.template_dir)
-            tfile = TemplateFile(filename=filepath)
+            template_file = TemplateFile(filename=filepath)
             with open(self.template_dir / filepath, mode='rb') as f:
-                tfile.content = f.read()
-            self.safe_template.files[filepath.as_posix()] = tfile
-            return tfile
+                template_file.content = f.read()
+            self.safe_template.files[filepath.as_posix()] = template_file
+            return template_file
         except Exception as e:
             raise RuntimeWarning(f'Failed to load template file {filepath}: {e}') from e
 
@@ -406,9 +406,9 @@ class TemplateProject:
         if filename in self.safe_template.files:
             del self.safe_template.files[filename]
 
-    def update_template_file(self, tfile: TemplateFile):
-        filename = tfile.filename.as_posix()
-        self.safe_template.files[filename] = tfile
+    def update_template_file(self, template_file: TemplateFile):
+        filename = template_file.filename.as_posix()
+        self.safe_template.files[filename] = template_file
 
     def get_template_file(self, filepath: pathlib.Path) -> TemplateFile | None:
         if filepath.is_absolute():
@@ -447,10 +447,10 @@ class TemplateProject:
         )
 
     def store_files(self, force: bool):
-        for tfile in self.safe_template.files.values():
+        for template_file in self.safe_template.files.values():
             self._write_file(
-                filepath=self.template_dir / tfile.filename,
-                contents=tfile.content,
+                filepath=self.template_dir / template_file.filename,
+                contents=template_file.content,
                 force=force,
             )
 
