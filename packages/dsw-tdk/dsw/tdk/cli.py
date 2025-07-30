@@ -89,9 +89,9 @@ def print_template_info(template: Template):
     for format_spec in template.formats:
         click.echo(f' - {format_spec.name}')
     click.echo('Files:')
-    for tfile in template.files.values():
-        filesize = humanize.naturalsize(len(tfile.content))
-        click.echo(f' - {tfile.filename.as_posix()} [{filesize}]')
+    for template_file in template.files.values():
+        filesize = humanize.naturalsize(len(template_file.content))
+        click.echo(f' - {template_file.filename.as_posix()} [{filesize}]')
 
 
 # pylint: disable-next=unused-argument
@@ -404,9 +404,9 @@ def put_template(ctx, api_url, template_dir, api_key, force, watch):
             sys.exit(1)
 
     # pylint: disable-next=unused-argument
-    def set_stop_event(signum, frame):
-        signame = signal.Signals(signum).name
-        ClickPrinter.warning(f'Got {signame}, finishing... Bye!')
+    def set_stop_event(signal_num, frame):
+        signal_name = signal.Signals(signal_num).name
+        ClickPrinter.warning(f'Got {signal_name}, finishing... Bye!')
         stop_event.set()
 
     signal.signal(signal.SIGINT, set_stop_event)

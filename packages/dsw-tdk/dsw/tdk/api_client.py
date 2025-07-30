@@ -9,7 +9,7 @@ from .consts import DEFAULT_ENCODING, APP, VERSION
 from .model import Template, TemplateFile, TemplateFileType
 
 
-class DSWCommunicationError(RuntimeError):
+class WizardCommunicationError(RuntimeError):
 
     def __init__(self, reason: str, message: str):
         """
@@ -28,31 +28,31 @@ def handle_client_errors(func):
     async def handled_client_call(job, *args, **kwargs):
         try:
             return await func(job, *args, **kwargs)
-        except DSWCommunicationError as e:
+        except WizardCommunicationError as e:
             # Already DSWCommunicationError (re-raise)
             raise e
         except aiohttp.client_exceptions.ContentTypeError as e:
-            raise DSWCommunicationError(
+            raise WizardCommunicationError(
                 reason='Unexpected response type',
                 message=e.message
             ) from e
         except aiohttp.client_exceptions.ClientResponseError as e:
-            raise DSWCommunicationError(
+            raise WizardCommunicationError(
                 reason='Error response status',
                 message=f'Server responded with error HTTP status {e.status}: {e.message}'
             ) from e
         except aiohttp.client_exceptions.InvalidURL as e:
-            raise DSWCommunicationError(
+            raise WizardCommunicationError(
                 reason='Invalid URL',
                 message=f'Provided API URL seems invalid: {e.url}'
             ) from e
         except aiohttp.client_exceptions.ClientConnectorError as e:
-            raise DSWCommunicationError(
+            raise WizardCommunicationError(
                 reason='Server unreachable',
                 message=f'Desired server is not reachable (errno {e.os_error.errno})'
             ) from e
         except Exception as e:
-            raise DSWCommunicationError(
+            raise WizardCommunicationError(
                 reason='Communication error',
                 message=f'Communication with server failed ({e})'
             ) from e
@@ -60,7 +60,7 @@ def handle_client_errors(func):
 
 
 # pylint: disable-next=too-many-public-methods
-class DSWAPIClient:
+class WizardAPIClient:
 
     def _headers(self, extra=None):
         headers = {
@@ -75,7 +75,7 @@ class DSWAPIClient:
     def _check_status(r: aiohttp.ClientResponse, expected_status):
         r.raise_for_status()
         if r.status != expected_status:
-            raise DSWCommunicationError(
+            raise WizardCommunicationError(
                 reason='Unexpected response status',
                 message=f'Server responded with unexpected HTTP status {r.status}: '
                         f'{r.reason} (expecting {expected_status})'
@@ -160,7 +160,7 @@ class DSWAPIClient:
         body = await self._post_json('/tokens', json=req)
         token_value = body.get('token', None)
         if not isinstance(token_value, str):
-            raise DSWCommunicationError(
+            raise WizardCommunicationError(
                 reason='Invalid response',
                 message='Server did not return a valid token'
             )
@@ -276,23 +276,23 @@ class DSWAPIClient:
         return _load_remote_template(body)
 
     @handle_client_errors
-    async def post_template_draft_file(self, remote_id: str, tfile: TemplateFile):
+    async def post_template_draft_file(self, remote_id: str, template_file: TemplateFile):
         data = await self._post_json(
             endpoint=f'/document-template-drafts/{remote_id}/files',
             json={
-                'fileName': tfile.filename.as_posix(),
-                'content': tfile.content.decode(DEFAULT_ENCODING)
+                'fileName': template_file.filename.as_posix(),
+                'content': template_file.content.decode(DEFAULT_ENCODING)
             }
         )
         return _load_remote_file(data)
 
     @handle_client_errors
-    async def put_template_draft_file_content(self, remote_id: str, tfile: TemplateFile):
+    async def put_template_draft_file_content(self, remote_id: str, template_file: TemplateFile):
         self.session.headers.update(self._headers())
         async with self.session.put(
                 f'{self.api_url}/document-template-drafts/{remote_id}'
-                f'/files/{tfile.remote_id}/content',
-                data=tfile.content,
+                f'/files/{template_file.remote_id}/content',
+                data=template_file.content,
                 headers={'Content-Type': 'text/plain;charset=UTF-8'},
         ) as r:
             self._check_status(r, expected_status=200)
@@ -300,17 +300,17 @@ class DSWAPIClient:
             return _load_remote_file(body)
 
     @handle_client_errors
-    async def post_template_draft_asset(self, remote_id: str, tfile: TemplateFile):
+    async def post_template_draft_asset(self, remote_id: str, template_file: TemplateFile):
         data = aiohttp.FormData()
         data.add_field(
             name='file',
-            value=tfile.content,
-            filename=tfile.filename.as_posix(),
-            content_type=tfile.content_type,
+            value=template_file.content,
+            filename=template_file.filename.as_posix(),
+            content_type=template_file.content_type,
         )
         data.add_field(
             name='fileName',
-            value=tfile.filename.as_posix(),
+            value=template_file.filename.as_posix(),
         )
         async with self.session.post(
                 f'{self.api_url}/document-template-drafts/{remote_id}/assets',
@@ -319,30 +319,30 @@ class DSWAPIClient:
         ) as r:
             self._check_status(r, expected_status=201)
             body = await r.json()
-            return _load_remote_asset(body, tfile.content)
+            return _load_remote_asset(body, template_file.content)
 
     @handle_client_errors
-    async def put_template_draft_asset_content(self, remote_id: str, tfile: TemplateFile):
+    async def put_template_draft_asset_content(self, remote_id: str, template_file: TemplateFile):
         data = aiohttp.FormData()
         data.add_field(
             name='file',
-            value=tfile.content,
-            filename=tfile.filename.as_posix(),
-            content_type=tfile.content_type,
+            value=template_file.content,
+            filename=template_file.filename.as_posix(),
+            content_type=template_file.content_type,
         )
         data.add_field(
             name='fileName',
-            value=tfile.filename.as_posix(),
+            value=template_file.filename.as_posix(),
         )
         async with self.session.put(
                 f'{self.api_url}/document-template-drafts/{remote_id}'
-                f'/assets/{tfile.remote_id}/content',
+                f'/assets/{template_file.remote_id}/content',
                 data=data,
                 headers=self._headers()
         ) as r:
             self._check_status(r, expected_status=200)
             body = await r.json()
-            return _load_remote_asset(body, tfile.content)
+            return _load_remote_asset(body, template_file.content)
 
     @handle_client_errors
     async def delete_template_draft(self, remote_id: str) -> bool:
