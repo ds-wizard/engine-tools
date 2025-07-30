@@ -80,7 +80,7 @@ interactions:
     uri: http://localhost:3000/document-templates/all
   response:
     body:
-      string: '[{"description":"foo","formats":[],"id":"myorg:test-template-y:0.1.0","name":"test-template-y","version":"0.1.0"},{"description":"Exported
+      string: '[{"description":"foo","formats":[],"id":"organization:test-template-y:0.1.0","name":"test-template-y","version":"0.1.0"},{"description":"Exported
         questions and answers from a questionnaire","formats":[{"icon":"far fa-file","isPdf":false,"name":"JSON
         Data","uuid":"d3e98eb6-344d-481f-8e37-6a67b6cd1ad2"},{"icon":"far fa-file-code","isPdf":false,"name":"HTML
         Document","uuid":"a9293d08-59a4-4e6b-ae62-7a6a570b031c"},{"icon":"far fa-file-pdf","isPdf":true,"name":"PDF

@@ -21,5 +21,5 @@ __md = markdown.Markdown(output_format='plain')  # type: ignore
 __md.stripTopLevelTags = False
 
 
-def unmarkdown(text):
+def strip_markdown(text):
     return __md.convert(text)

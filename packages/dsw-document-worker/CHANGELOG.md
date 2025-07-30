@@ -212,7 +212,7 @@ Released for version consistency with other DSW tools.
 
 ### Fixed
 
-- Fix unnecessary ensuring ASCII with `tojson` Jinja filter
+- Fix unnecessary ensuring ASCII with `to_json` Jinja filter
 
 ## [4.2.1]
 
