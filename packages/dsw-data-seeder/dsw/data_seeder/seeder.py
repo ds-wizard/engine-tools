@@ -267,10 +267,13 @@ class SeedRecipe:
 
 class DataSeeder(CommandWorker):
 
-    def __init__(self, cfg: SeederConfig, workdir: pathlib.Path):
+    def __init__(self, cfg: SeederConfig, workdir: pathlib.Path,
+                 default_recipe_name: str):
         self.cfg = cfg
         self.workdir = workdir
-        self.recipe = SeedRecipe.create_default()  # type: SeedRecipe
+        self._default_recipe_name = default_recipe_name
+        self.recipes = {}  # type: dict[str, SeedRecipe]
+        self.recipe = SeedRecipe.create_default()
         self.dbs = {}  # type: dict[str, Database]
         self.s3s = {}  # type: dict[str, S3Storage]
 
@@ -309,18 +312,18 @@ class DataSeeder(CommandWorker):
             )
 
     def _prepare_recipe(self, recipe_name: str):
-        LOG.info('Loading recipe')
-        recipes = SeedRecipe.load_from_dir(self.workdir)
-        if recipe_name not in recipes.keys():
-            raise RuntimeError(f'Recipe "{recipe_name}" not found')
-        LOG.info('Preparing seed recipe')
-        self.recipe = recipes[recipe_name]
-        self.recipe.prepare()
-
-    def _run_preparation(self, recipe_name: str) -> CommandQueue:
         SentryReporter.set_tags(recipe_name=recipe_name)
+        LOG.info('Loading recipe "%s"', recipe_name)
+        self.recipes = SeedRecipe.load_from_dir(self.workdir)
+        if recipe_name not in self.recipes.keys():
+            raise RuntimeError(f'Recipe "{recipe_name}" not found')
+        LOG.info('Preparing seed recipe "%s"', recipe_name)
+        self.recipe = self.recipes[recipe_name]
+        self.recipe.prepare()
+        LOG.info('Prepared seed recipe "%s"', recipe_name)
+
+    def _run_preparation(self) -> CommandQueue:
         # prepare
-        self._prepare_recipe(recipe_name)
         self._update_component_info()
         # init queue
         LOG.info('Preparing command queue')
@@ -334,28 +337,35 @@ class DataSeeder(CommandWorker):
         )
         return queue
 
-    def run(self, recipe_name: str):
+    def run(self):
         LOG.info('Starting seeder worker (loop)')
-        queue = self._run_preparation(recipe_name)
+        queue = self._run_preparation()
         queue.run()
 
-    def run_once(self, recipe_name: str):
+    def run_once(self):
         LOG.info('Starting seeder worker (once)')
-        queue = self._run_preparation(recipe_name)
+        queue = self._run_preparation()
         queue.run_once()
 
     def work(self, command: PersistentCommand):
         Context.get().update_trace_id(command.uuid)
         SentryReporter.set_tags(command_uuid=command.uuid)
-        self.recipe.run_prepare()
-        tenant_uuid = command.body['tenantUuid']
-        LOG.info('Seeding recipe "%s" to tenant "%s"',
-                 self.recipe.name, tenant_uuid)
+        tenant_uuid = command.body['tenantUuid']  # type: str
+        recipe_name = command.body.get('recipe')  # type: str | None
+        LOG.debug('Processing command: %s (tenant: %s, seed: %s)',
+                  command.uuid, tenant_uuid, recipe_name)
+        if recipe_name is None:
+            LOG.debug('No recipe name provided, using default: %s',
+                      self._default_recipe_name)
+            recipe_name = self._default_recipe_name
         if command.attempts == 0 and self.recipe.init_wait > 0.01:
             LOG.info('Waiting for %s seconds (first attempt)',
                      self.recipe.init_wait)
             time.sleep(self.recipe.init_wait)
-        self.execute(tenant_uuid)
+        self.seed(
+            tenant_uuid=tenant_uuid,
+            recipe_name=recipe_name,
+        )
         Context.get().update_trace_id('-')
         SentryReporter.set_tags(command_uuid='-')
 
@@ -376,12 +386,13 @@ class DataSeeder(CommandWorker):
             built_at=built_at,
         )
 
-    def seed(self, recipe_name: str, tenant_uuid: str):
-        self._prepare_recipe(recipe_name)
+    def seed(self, tenant_uuid: str, recipe_name: str):
+        LOG.info('Init seeding recipe "%s" to "%s"', recipe_name, tenant_uuid)
+        self._prepare_recipe(recipe_name=recipe_name)
         LOG.info('Executing recipe "%s"', recipe_name)
-        self.execute(tenant_uuid=tenant_uuid)
+        self._execute(tenant_uuid=tenant_uuid)
 
-    def execute(self, tenant_uuid: str):
+    def _execute(self, tenant_uuid: str):
         SentryReporter.set_tags(tenant_uuid=tenant_uuid)
         # Run SQL scripts
         app_ctx = Context.get().app

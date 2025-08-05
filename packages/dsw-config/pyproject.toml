@@ -4,7 +4,7 @@ build-backend = 'setuptools.build_meta'
 
 [project]
 name = 'dsw-config'
-version = "4.20.1"
+version = "4.21.0"
 description = 'Library for DSW config manipulation'
 readme = 'README.md'
 keywords = ['dsw', 'config', 'yaml', 'parser']
@@ -16,12 +16,12 @@ classifiers = [
     'Development Status :: 5 - Production/Stable',
     'License :: OSI Approved :: Apache Software License',
     'Programming Language :: Python',
-    'Programming Language :: Python :: 3.11',
     'Programming Language :: Python :: 3.12',
+    'Programming Language :: Python :: 3.13',
     'Topic :: Text Processing',
     'Topic :: Utilities',
 ]
-requires-python = '>=3.11, <4'
+requires-python = '>=3.12, <4'
 dependencies = [
     'PyYAML',
     'sentry-sdk',

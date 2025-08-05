@@ -4,7 +4,7 @@ build-backend = 'setuptools.build_meta'
 
 [project]
 name = 'dsw-data-seeder'
-version = "4.20.1"
+version = "4.21.0"
 description = 'Worker for seeding DSW data'
 readme = 'README.md'
 keywords = ['data', 'database', 'seed', 'storage']
@@ -16,23 +16,23 @@ classifiers = [
     'Development Status :: 5 - Production/Stable',
     'License :: OSI Approved :: Apache Software License',
     'Programming Language :: Python',
-    'Programming Language :: Python :: 3.11',
     'Programming Language :: Python :: 3.12',
+    'Programming Language :: Python :: 3.13',
     'Topic :: Database',
     'Topic :: Text Processing',
     'Topic :: Utilities',
 ]
-requires-python = '>=3.11, <4'
+requires-python = '>=3.12, <4'
 dependencies = [
     'click',
     'python-dateutil',
     'sentry-sdk',
     'tenacity',
     # DSW
-    "dsw-command-queue==4.20.1",
-    "dsw-config==4.20.1",
-    "dsw-database==4.20.1",
-    "dsw-storage==4.20.1",
+    "dsw-command-queue==4.21.0",
+    "dsw-config==4.21.0",
+    "dsw-database==4.21.0",
+    "dsw-storage==4.21.0",
 ]
 
 [project.urls]

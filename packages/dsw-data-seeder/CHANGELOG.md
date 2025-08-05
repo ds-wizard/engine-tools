@@ -8,6 +8,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 
+## [4.21.0]
+
+### Added
+
+- Add support for multiple seed recipes
+
 ## [4.20.1]
 
 ### Changed
@@ -418,3 +424,4 @@ Released for version consistency with other DSW tools.
 [4.19.1]: /../../tree/v4.19.1
 [4.20.0]: /../../tree/v4.20.0
 [4.20.1]: /../../tree/v4.20.1
+[4.21.0]: /../../tree/v4.21.0

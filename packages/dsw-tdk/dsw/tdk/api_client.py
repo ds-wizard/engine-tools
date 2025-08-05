@@ -158,7 +158,13 @@ class DSWAPIClient:
     async def login(self, email: str, password: str) -> str | None:
         req = {'email': email, 'password': password}
         body = await self._post_json('/tokens', json=req)
-        self.token = body.get('token', None)
+        token_value = body.get('token', None)
+        if not isinstance(token_value, str):
+            raise DSWCommunicationError(
+                reason='Invalid response',
+                message='Server did not return a valid token'
+            )
+        self.token = token_value
         return self.token
 
     @handle_client_errors

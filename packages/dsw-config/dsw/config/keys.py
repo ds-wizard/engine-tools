@@ -2,7 +2,6 @@
 import collections
 import typing
 
-
 T = typing.TypeVar('T')
 
 
@@ -71,7 +70,8 @@ class ConfigKeysMeta(type):
 
     @classmethod
     # pylint: disable-next=unused-argument
-    def __prepare__(mcs, name, bases, **kwargs):
+    def __prepare__(mcs, name: str, bases: tuple,
+                    /, **kwargs) -> collections.abc.MutableMapping[str, object]:
         return collections.OrderedDict()
 
     def __init__(cls, name, bases, namespace):

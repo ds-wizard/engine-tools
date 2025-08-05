@@ -20,7 +20,7 @@ In this monorepo, we manage the following Python packages (each has its own subd
 * [Database (dsw-database)](packages/dsw-database)
 * [Storage (dsw-storage)](packages/dsw-storage)
 
-Libraries are currently kept compatible with Python 3.10 and higher.
+Libraries are currently kept compatible with Python 3.12 and higher.
 
 ### Utilities
 
@@ -34,7 +34,7 @@ Utilities are currently kept compatible with Python 3.10 and higher.
 * [Document Worker (dsw-document-worker)](packages/dsw-document-worker)
 * [Mailer (dsw-mailer)](packages/dsw-mailer)
 
-Workers are currently kept compatible with Python 3.10 and higher.
+Workers are currently kept compatible with Python 3.12 and higher.
 
 ## License
 
