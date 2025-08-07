@@ -81,7 +81,7 @@ interactions:
   response:
     body:
       string: '{"authentication":{"defaultRole":"dataSteward","external":{"services":[]},"internal":{"registration":{"enabled":true},"twoFactorAuth":{"codeLength":6,"enabled":false,"expiration":600}}},"cloud":{"enabled":false,"serverUrl":"https://server.example.com"},"dashboardAndLoginScreen":{"announcements":[],"dashboardType":"RoleBasedDashboardType","loginInfo":null,"loginInfoSidebar":null},"feature":{"clientCustomizationEnabled":false,"pdfOnlyEnabled":false,"pdfWatermarkEnabled":false},"locales":[{"code":"en","defaultLocale":true,"name":"English"}],"lookAndFeel":{"appTitle":null,"appTitleShort":null,"customMenuLinks":[],"illustrationsColor":null,"logoUrl":null,"primaryColor":null,"styleUrl":null},"organization":{"affiliations":[],"description":"My
-        Organization Description","name":"My Organization","organizationId":"myorg"},"owl":{"enabled":false,"kmId":"","name":"","organizationId":"","previousPackageId":null,"rootElement":"","version":""},"privacyAndSupport":{"privacyUrl":null,"supportEmail":null,"supportSiteIcon":null,"supportSiteName":null,"supportSiteUrl":null,"termsOfServiceUrl":null},"questionnaire":{"feedback":{"enabled":false},"projectTagging":{"enabled":true},"questionnaireCreation":"TemplateAndCustomQuestionnaireCreation","questionnaireSharing":{"anonymousEnabled":false,"defaultValue":"RestrictedQuestionnaire","enabled":true},"questionnaireVisibility":{"defaultValue":"PrivateQuestionnaire","enabled":true},"summaryReport":{"enabled":true}},"registry":{"enabled":false,"url":"https://registry.ds-wizard.org"},"submission":{"enabled":true}}'
+        Organization Description","name":"My Organization","organizationId":"organization"},"owl":{"enabled":false,"kmId":"","name":"","organizationId":"","previousPackageId":null,"rootElement":"","version":""},"privacyAndSupport":{"privacyUrl":null,"supportEmail":null,"supportSiteIcon":null,"supportSiteName":null,"supportSiteUrl":null,"termsOfServiceUrl":null},"questionnaire":{"feedback":{"enabled":false},"projectTagging":{"enabled":true},"questionnaireCreation":"TemplateAndCustomQuestionnaireCreation","questionnaireSharing":{"anonymousEnabled":false,"defaultValue":"RestrictedQuestionnaire","enabled":true},"questionnaireVisibility":{"defaultValue":"PrivateQuestionnaire","enabled":true},"summaryReport":{"enabled":true}},"registry":{"enabled":false,"url":"https://registry.ds-wizard.org"},"submission":{"enabled":true}}'
     headers:
       Access-Control-Allow-Credential:
       - 'true'
@@ -113,13 +113,13 @@ interactions:
       User-Agent:
       - dsw-tdk/3.22.0
     method: GET
-    uri: http://localhost:3000/document-template-drafts/myorg:example01:1.0.0
+    uri: http://localhost:3000/document-template-drafts/organization:example01:1.0.0
   response:
     body:
       string: '{"allowedPackages":[{"kmId":null,"maxVersion":null,"minVersion":null,"orgId":null}],"createdAt":"2023-04-25T13:01:54.430803Z","description":"Dummy
         document template 01 for testing purposes","formatUuid":null,"formats":[{"icon":"far
         fa-file","name":"JSON Data","steps":[{"name":"json","options":{}}],"uuid":"d3e98eb6-344d-481f-8e37-6a67b6cd1ad2"},{"icon":"far
-        fa-file-code","name":"HTML Document","steps":[{"name":"jinja","options":{"content-type":"text/html","extension":"html","template":"src/template.html.j2"}}],"uuid":"a9293d08-59a4-4e6b-ae62-7a6a570b031c"}],"id":"myorg:example01:1.0.0","license":"Apache-2.0","name":"Test
+        fa-file-code","name":"HTML Document","steps":[{"name":"jinja","options":{"content-type":"text/html","extension":"html","template":"src/template.html.j2"}}],"uuid":"a9293d08-59a4-4e6b-ae62-7a6a570b031c"}],"id":"organization:example01:1.0.0","license":"Apache-2.0","name":"Test
         template 01","questionnaire":null,"questionnaireUuid":null,"readme":"# Example
         Template\n","templateId":"example01","updatedAt":"2023-04-25T13:12:30.16158Z","version":"1.0.0"}'
     headers:
@@ -144,7 +144,7 @@ interactions:
     status:
       code: 200
       message: OK
-    url: http://localhost:3000/document-template-drafts/myorg:example01:1.0.0
+    url: http://localhost:3000/document-template-drafts/organization:example01:1.0.0
 - request:
     body: null
     headers:
@@ -153,13 +153,13 @@ interactions:
       User-Agent:
       - dsw-tdk/3.22.0
     method: PUT
-    uri: http://localhost:3000/document-template-drafts/myorg:example01:1.0.0
+    uri: http://localhost:3000/document-template-drafts/organization:example01:1.0.0
   response:
     body:
       string: '{"allowedPackages":[{"kmId":null,"maxVersion":null,"minVersion":null,"orgId":null}],"createdAt":"2023-04-25T13:01:54.430803Z","description":"Dummy
         document template 01 for testing purposes","formatUuid":null,"formats":[{"icon":"far
         fa-file","name":"JSON Data","steps":[{"name":"json","options":{}}],"uuid":"d3e98eb6-344d-481f-8e37-6a67b6cd1ad2"},{"icon":"far
-        fa-file-code","name":"HTML Document","steps":[{"name":"jinja","options":{"content-type":"text/html","extension":"html","template":"src/template.html.j2"}}],"uuid":"a9293d08-59a4-4e6b-ae62-7a6a570b031c"}],"id":"myorg:example01:1.0.0","license":"Apache-2.0","name":"Test
+        fa-file-code","name":"HTML Document","steps":[{"name":"jinja","options":{"content-type":"text/html","extension":"html","template":"src/template.html.j2"}}],"uuid":"a9293d08-59a4-4e6b-ae62-7a6a570b031c"}],"id":"organization:example01:1.0.0","license":"Apache-2.0","name":"Test
         template 01","questionnaire":null,"questionnaireUuid":null,"readme":"# Example
         Template\n","templateId":"example01","updatedAt":"2023-04-25T13:12:30.16158Z","version":"1.0.0"}'
     headers:
@@ -184,7 +184,7 @@ interactions:
     status:
       code: 200
       message: OK
-    url: http://localhost:3000/document-template-drafts/myorg:example01:1.0.0
+    url: http://localhost:3000/document-template-drafts/organization:example01:1.0.0
 - request:
     body: null
     headers:
@@ -193,7 +193,7 @@ interactions:
       User-Agent:
       - dsw-tdk/3.22.0
     method: GET
-    uri: http://localhost:3000/document-template-drafts/myorg:example01:1.0.0/assets
+    uri: http://localhost:3000/document-template-drafts/organization:example01:1.0.0/assets
   response:
     body:
       string: '[]'
@@ -219,7 +219,7 @@ interactions:
     status:
       code: 200
       message: OK
-    url: http://localhost:3000/document-template-drafts/myorg:example01:1.0.0/assets
+    url: http://localhost:3000/document-template-drafts/organization:example01:1.0.0/assets
 - request:
     body: null
     headers:
@@ -228,7 +228,7 @@ interactions:
       User-Agent:
       - dsw-tdk/3.22.0
     method: GET
-    uri: http://localhost:3000/document-template-drafts/myorg:example01:1.0.0/files
+    uri: http://localhost:3000/document-template-drafts/organization:example01:1.0.0/files
   response:
     body:
       string: '[{"createdAt":"2023-04-25T13:12:30.160538Z","fileName":"src/template.json.j2","updatedAt":"2023-04-25T13:12:30.160538Z","uuid":"b9d59e3b-147c-44b7-a498-638c7f01ce04"}]'
@@ -254,7 +254,7 @@ interactions:
     status:
       code: 200
       message: OK
-    url: http://localhost:3000/document-template-drafts/myorg:example01:1.0.0/files
+    url: http://localhost:3000/document-template-drafts/organization:example01:1.0.0/files
 - request:
     body: null
     headers:
@@ -263,12 +263,12 @@ interactions:
       User-Agent:
       - dsw-tdk/3.22.0
     method: GET
-    uri: http://localhost:3000/document-template-drafts/myorg:example01:1.0.0/files/b9d59e3b-147c-44b7-a498-638c7f01ce04
+    uri: http://localhost:3000/document-template-drafts/organization:example01:1.0.0/files/b9d59e3b-147c-44b7-a498-638c7f01ce04
   response:
     body:
       string: '{"appUuid":"00000000-0000-0000-0000-000000000000","content":"{# example
         template #}\n<!DOCTYPE html>\n<html>\n    <head>\n        <title>Example</title>\n    </head>\n    <body>\n        <h1>This
-        is example</h1>\n    </body>\n</html>\n","createdAt":"2023-04-25T13:12:30.160538Z","documentTemplateId":"myorg:example01:1.0.0","fileName":"src/template.json.j2","updatedAt":"2023-04-25T13:12:30.160538Z","uuid":"b9d59e3b-147c-44b7-a498-638c7f01ce04"}'
+        is example</h1>\n    </body>\n</html>\n","createdAt":"2023-04-25T13:12:30.160538Z","documentTemplateId":"organization:example01:1.0.0","fileName":"src/template.json.j2","updatedAt":"2023-04-25T13:12:30.160538Z","uuid":"b9d59e3b-147c-44b7-a498-638c7f01ce04"}'
     headers:
       Access-Control-Allow-Credential:
       - 'true'
@@ -291,7 +291,7 @@ interactions:
     status:
       code: 200
       message: OK
-    url: http://localhost:3000/document-template-drafts/myorg:example01:1.0.0/files/b9d59e3b-147c-44b7-a498-638c7f01ce04
+    url: http://localhost:3000/document-template-drafts/organization:example01:1.0.0/files/b9d59e3b-147c-44b7-a498-638c7f01ce04
 - request:
     body: null
     headers:
@@ -300,7 +300,7 @@ interactions:
       User-Agent:
       - dsw-tdk/3.22.0
     method: DELETE
-    uri: http://localhost:3000/document-template-drafts/myorg:example01:1.0.0/files/b9d59e3b-147c-44b7-a498-638c7f01ce04
+    uri: http://localhost:3000/document-template-drafts/organization:example01:1.0.0/files/b9d59e3b-147c-44b7-a498-638c7f01ce04
   response:
     body:
       string: ''
@@ -324,7 +324,7 @@ interactions:
     status:
       code: 204
       message: No Content
-    url: http://localhost:3000/document-template-drafts/myorg:example01:1.0.0/files/b9d59e3b-147c-44b7-a498-638c7f01ce04
+    url: http://localhost:3000/document-template-drafts/organization:example01:1.0.0/files/b9d59e3b-147c-44b7-a498-638c7f01ce04
 - request:
     body: null
     headers:
@@ -333,12 +333,12 @@ interactions:
       User-Agent:
       - dsw-tdk/3.22.0
     method: POST
-    uri: http://localhost:3000/document-template-drafts/myorg:example01:1.0.0/files
+    uri: http://localhost:3000/document-template-drafts/organization:example01:1.0.0/files
   response:
     body:
       string: '{"appUuid":"00000000-0000-0000-0000-000000000000","content":"{# example
         template #}\n<!DOCTYPE html>\n<html>\n    <head>\n        <title>Example</title>\n    </head>\n    <body>\n        <h1>This
-        is example</h1>\n    </body>\n</html>\n","createdAt":"2023-04-25T13:27:26.13547847Z","documentTemplateId":"myorg:example01:1.0.0","fileName":"src/template.json.j2","updatedAt":"2023-04-25T13:27:26.13547847Z","uuid":"6ede547b-e8fe-43ff-aa62-d5969f2e3e27"}'
+        is example</h1>\n    </body>\n</html>\n","createdAt":"2023-04-25T13:27:26.13547847Z","documentTemplateId":"organization:example01:1.0.0","fileName":"src/template.json.j2","updatedAt":"2023-04-25T13:27:26.13547847Z","uuid":"6ede547b-e8fe-43ff-aa62-d5969f2e3e27"}'
     headers:
       Access-Control-Allow-Credential:
       - 'true'
@@ -361,5 +361,5 @@ interactions:
     status:
       code: 201
       message: Created
-    url: http://localhost:3000/document-template-drafts/myorg:example01:1.0.0/files
+    url: http://localhost:3000/document-template-drafts/organization:example01:1.0.0/files
 version: 1

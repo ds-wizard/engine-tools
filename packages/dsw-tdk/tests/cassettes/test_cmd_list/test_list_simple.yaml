@@ -80,7 +80,7 @@ interactions:
     uri: http://localhost:3000/document-templates/all
   response:
     body:
-      string: '[{"description":"foo","formats":[],"id":"myorg:test-template-y:0.1.0","name":"test-template-y","version":"0.1.0"},{"description":"Exported
+      string: '[{"description":"foo","formats":[],"id":"organization:test-template-y:0.1.0","name":"test-template-y","version":"0.1.0"},{"description":"Exported
         questions and answers from a questionnaire","formats":[{"icon":"far fa-file","isPdf":false,"name":"JSON
         Data","uuid":"d3e98eb6-344d-481f-8e37-6a67b6cd1ad2"},{"icon":"far fa-file-code","isPdf":false,"name":"HTML
         Document","uuid":"a9293d08-59a4-4e6b-ae62-7a6a570b031c"},{"icon":"far fa-file-pdf","isPdf":true,"name":"PDF
@@ -124,10 +124,10 @@ interactions:
   response:
     body:
       string: '{"_embedded":{"documentTemplateDrafts":[{"createdAt":"2023-04-25T13:01:54.430803Z","description":"Dummy
-        document template 01 for testing purposes","id":"myorg:example01:1.0.0","name":"Test
-        template 01","organizationId":"myorg","templateId":"example01","updatedAt":"2023-04-25T13:12:30.16158Z","version":"1.0.0"},{"createdAt":"2023-04-25T13:13:28.596463Z","description":"Exported
-        questions and answers from a questionnaire","id":"myorg:questionnaire-report:2.9.0","name":"Questionnaire
-        Report","organizationId":"myorg","templateId":"questionnaire-report","updatedAt":"2023-04-25T13:13:28.656434Z","version":"2.9.0"}]},"page":{"number":0,"size":10000,"totalElements":2,"totalPages":1}}'
+        document template 01 for testing purposes","id":"organization:example01:1.0.0","name":"Test
+        template 01","organizationId":"organization","templateId":"example01","updatedAt":"2023-04-25T13:12:30.16158Z","version":"1.0.0"},{"createdAt":"2023-04-25T13:13:28.596463Z","description":"Exported
+        questions and answers from a questionnaire","id":"organization:questionnaire-report:2.9.0","name":"Questionnaire
+        Report","organizationId":"organization","templateId":"questionnaire-report","updatedAt":"2023-04-25T13:13:28.656434Z","version":"2.9.0"}]},"page":{"number":0,"size":10000,"totalElements":2,"totalPages":1}}'
     headers:
       Access-Control-Allow-Credential:
       - 'true'
