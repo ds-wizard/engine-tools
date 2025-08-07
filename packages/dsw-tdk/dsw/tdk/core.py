@@ -14,7 +14,7 @@ import watchfiles
 from .api_client import WizardAPIClient, WizardCommunicationError
 from .consts import DEFAULT_ENCODING, REGEX_SEMVER
 from .model import TemplateProject, Template, TemplateFile, TemplateFileType
-from .utils import UUIDGen, create_dot_env
+from .utils import UUIDGen
 from .validation import ValidationError, TemplateValidator
 
 
@@ -421,17 +421,6 @@ class TDKCore:
                 target_dir.mkdir(parents=True, exist_ok=True)
                 target_file.write_text(data=content, encoding=DEFAULT_ENCODING)
         self.logger.debug('Extracting package done')
-
-    def create_dot_env(self, output: pathlib.Path, force: bool, api_url: str, api_key: str):
-        if output.exists():
-            if force:
-                self.logger.warning('Overwriting %s (forced)', output.as_posix())
-            else:
-                raise RuntimeError(f'File {output} already exists (not forced)')
-        output.write_text(
-            data=create_dot_env(api_url=api_url, api_key=api_key),
-            encoding=DEFAULT_ENCODING,
-        )
 
     async def watch_project(self, callback, stop_event: asyncio.Event):
         async for changes in watchfiles.awatch(
