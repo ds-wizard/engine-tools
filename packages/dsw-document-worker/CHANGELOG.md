@@ -11,6 +11,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - Switch to use semver for document template metamodel versioning
 - Added new ApiIntegration and changed the previous one to ApiLegacyIntegration
+- Updated way to get assets (incl. questionnaire files) in document templates using ``assets`` function
 
 
 ## [4.21.0]
@@ -213,7 +214,7 @@ Released for version consistency with other DSW tools.
 
 ### Fixed
 
-- Fix unnecessary ensuring ASCII with `to_json` Jinja filter
+- Fix unnecessary ensuring ASCII with `tojson` Jinja filter
 
 ## [4.2.1]
 

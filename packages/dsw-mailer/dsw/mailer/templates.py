@@ -215,18 +215,16 @@ class TemplateRegistry:
             locale_dir.mkdir(parents=True, exist_ok=True)
             locale_po_path = locale_dir / 'default.po'
             locale_mo_path = locale_dir / 'default.mo'
-            locale_po_object = app_ctx.s3.make_path(
-                fragments=['locales', locale_id, 'mail.po'],
+            downloaded = app_ctx.s3.download_locale(
                 tenant_uuid=tenant_uuid,
-            )
-            downloaded = app_ctx.s3.download_file(
-                file_name=locale_po_object,
+                locale_id=locale_id,
+                file_name='mail.po',
                 target_path=locale_po_path,
             )
             if not downloaded:
-                LOG.error('Cannot download locale file from %s to %s',
-                          locale_po_object, locale_po_path)
-                raise RuntimeError(f'Failed to download locale file: {locale_po_object}')
+                LOG.error('Cannot download locale file (mail.po) from %s to %s',
+                          locale_id, locale_po_path)
+                raise RuntimeError(f'Failed to download locale file (mail.po) from {locale_id}')
             LOG.debug('Saved PO file to %s', locale_po_path)
             # convert po to mo
             po = polib.pofile(locale_po_path.absolute().as_posix())

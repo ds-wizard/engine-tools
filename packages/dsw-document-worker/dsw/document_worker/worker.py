@@ -52,7 +52,7 @@ class Job:
         self.ctx = Context.get()
         self.template: Template | None = None
         self.format: Format | None = None
-        self.tenant_uuid: str = command.tenant_uuid
+        self.tenant_uuid = self.ctx.tenant_uuid = command.tenant_uuid
         self.doc_uuid: str = document_uuid
         self.doc_context: dict = command.body
         self.doc: DBDocument | None = None
