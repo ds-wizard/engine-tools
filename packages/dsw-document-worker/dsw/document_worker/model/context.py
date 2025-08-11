@@ -6,6 +6,7 @@ import typing
 import dateutil.parser as dp
 
 from ..consts import NULL_UUID
+from ..utils import check_metamodel_version
 from .utils import unmarkdown
 
 AnnotationsT = dict[str, str | list[str]]
@@ -2072,14 +2073,11 @@ class DocumentContextUserGroupPermission:
 
 class DocumentContext:
     """Document Context smart representation"""
-    METAMODEL_VERSION = 16
 
     def __init__(self, *, ctx, **options):
-        self.metamodel_version = int(ctx.get('metamodelVersion', '0'))
-        if self.metamodel_version != self.METAMODEL_VERSION:
-            raise ValueError(f'Unsupported metamodel version: {self.metamodel_version} '
-                             f'(expected: {self.METAMODEL_VERSION})')
-
+        check_metamodel_version(
+            metamodel_version=str(ctx.get('metamodelVersion', '0')),
+        )
         self.config = ContextConfig.load(ctx['config'], **options)
         self.km = KnowledgeModel.load(ctx['knowledgeModel'], **options)
         self.questionnaire = Questionnaire.load(ctx['questionnaire'], **options)
