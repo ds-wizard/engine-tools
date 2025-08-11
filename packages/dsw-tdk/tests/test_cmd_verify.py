@@ -43,4 +43,4 @@ def test_verify_invalid(fixtures_path: pathlib.Path):
     assert 'version: Version must be in semver format' in result.output
     assert 'name: Missing but it is required' in result.output
     assert 'description: Missing but it is required' in result.output
-    assert 'metamodel_version: It must be positive integer' in result.output
+    assert 'metamodel_version: It must be a positive integer or in format <MAJOR>.<MINOR>' in result.output

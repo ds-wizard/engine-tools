@@ -16,13 +16,13 @@ from dsw.storage import S3Storage
 from .build_info import BUILD_INFO
 from .config import DocumentWorkerConfig, TemplateConfig
 from .consts import DocumentState, COMPONENT_NAME, NULL_UUID, \
-    CMD_COMPONENT, CMD_CHANNEL, PROG_NAME, CURRENT_METAMODEL
+    CMD_COMPONENT, CMD_CHANNEL, PROG_NAME
 from .context import Context
 from .documents import DocumentFile, DocumentNameGiver
 from .exceptions import create_job_exception, JobException
 from .limits import LimitsEnforcer
 from .templates import TemplateRegistry, Template, Format
-from .utils import byte_size_format
+from .utils import byte_size_format, check_metamodel_version
 
 
 LOG = logging.getLogger(__name__)
@@ -161,12 +161,9 @@ class Job:
 
     def check_compliance(self):
         SentryReporter.set_tags(phase='check')
-        metamodel_version = int(self.doc_context.get('metamodelVersion', '0'))
-        if metamodel_version != CURRENT_METAMODEL:
-            LOG.error('Command with metamodel version %d  is not supported '
-                      'by this worker (version %d)', metamodel_version, CURRENT_METAMODEL)
-            raise RuntimeError(f'Unsupported metamodel version: {metamodel_version} '
-                               f'(expected {CURRENT_METAMODEL})')
+        check_metamodel_version(
+            metamodel_version=str(self.doc_context.get('metamodelVersion', '0')),
+        )
 
     @handle_job_step('Failed to build final document')
     def build_document(self):

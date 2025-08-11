@@ -33,22 +33,23 @@ class TDKProcessingError(RuntimeError):
 
 
 METAMODEL_VERSION_SUPPORT = {
-    1: (2, 5, 0),
-    2: (2, 6, 0),
-    3: (2, 12, 0),
-    4: (3, 2, 0),
-    5: (3, 5, 0),
-    6: (3, 6, 0),
-    7: (3, 7, 0),
-    8: (3, 8, 0),
-    9: (3, 10, 0),
-    10: (3, 12, 0),
-    11: (3, 20, 0),
-    12: (4, 1, 0),
-    13: (4, 3, 0),
-    14: (4, 10, 0),
-    15: (4, 12, 0),
-    16: (4, 13, 0),
+    '1.0': (2, 5, 0),
+    '2.0': (2, 6, 0),
+    '3.0': (2, 12, 0),
+    '4.0': (3, 2, 0),
+    '5.0': (3, 5, 0),
+    '6.0': (3, 6, 0),
+    '7.0': (3, 7, 0),
+    '8.0': (3, 8, 0),
+    '9.0': (3, 10, 0),
+    '10.0': (3, 12, 0),
+    '11.0': (3, 20, 0),
+    '12.0': (4, 1, 0),
+    '13.0': (4, 3, 0),
+    '14.0': (4, 10, 0),
+    '15.0': (4, 12, 0),
+    '16.0': (4, 13, 0),
+    '17.0': (4, 22, 0),
 }
 
 
@@ -56,7 +57,14 @@ METAMODEL_VERSION_SUPPORT = {
 class TDKCore:
 
     def _check_metamodel_version(self):
-        mm_ver = self.safe_template.metamodel_version
+        hint = 'Fix your metamodelVersion in template.json and/or visit docs'
+        mm_ver = str(self.safe_template.metamodel_version)
+        try:
+            if '.' not in mm_ver:
+                mm_ver = f'{mm_ver}.0'
+            mm_major, mm_minor = map(int, mm_ver.split('.'))
+        except ValueError as e:
+            raise TDKProcessingError(f'Invalid metamodel version format: {mm_ver}', hint) from e
         api_version = self.remote_version.split('~', maxsplit=1)[0]
         if '-' in api_version:
             api_version = api_version.split('-', maxsplit=1)[0]
@@ -68,16 +76,17 @@ class TDKCore:
         parts = api_version.split('.')
         ver = (int(parts[0]), int(parts[1]), int(parts[2]))
         vtag = f'v{ver[0]}.{ver[1]}.{ver[2]}'
-        hint = 'Fix your metamodelVersion in template.json and/or visit docs'
         if mm_ver not in METAMODEL_VERSION_SUPPORT:
             raise TDKProcessingError(f'Unknown metamodel version: {mm_ver}', hint)
-        min_version = METAMODEL_VERSION_SUPPORT[mm_ver]
-        if min_version > ver:
-            raise TDKProcessingError(f'Unsupported metamodel version for API {vtag}', hint)
-        if mm_ver + 1 in METAMODEL_VERSION_SUPPORT:
-            max_version = METAMODEL_VERSION_SUPPORT[mm_ver + 1]
-            if ver >= max_version:
-                raise TDKProcessingError(f'Unsupported metamodel version for API {vtag}', hint)
+        map_reverse = {f'v{v[0]}.{v[1]}.{v[2]}': k for k, v in METAMODEL_VERSION_SUPPORT.items()}
+        if vtag not in map_reverse:
+            raise TDKProcessingError(f'Unsupported API version: {vtag}', hint)
+        api_mm_major, api_mm_minor = map(int, map_reverse[vtag].split('.'))
+        if mm_major != api_mm_major or mm_minor < api_mm_minor:
+            raise TDKProcessingError(
+                f'Unsupported metamodel version {mm_ver} for API version {api_version}',
+                hint,
+            )
 
     def __init__(self, template: Template | None = None, project: TemplateProject | None = None,
                  client: DSWAPIClient | None = None, logger: logging.Logger | None = None):

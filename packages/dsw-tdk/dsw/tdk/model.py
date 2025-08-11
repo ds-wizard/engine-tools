@@ -180,7 +180,7 @@ class Template:
         self.description = description  # type: str
         self.readme = readme  # type: str
         self.license = template_license  # type: str
-        self.metamodel_version: int = metamodel_version or METAMODEL_VERSION
+        self.metamodel_version: str = metamodel_version or METAMODEL_VERSION
         self.allowed_packages: list[PackageFilter] = []
         self.formats: list[Format] = []
         self.files: dict[str, TemplateFile] = {}

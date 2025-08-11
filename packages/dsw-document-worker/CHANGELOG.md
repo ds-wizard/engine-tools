@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- Switch to use semver for document template metamodel versioning
+
 
 ## [4.21.0]
 
