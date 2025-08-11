@@ -91,7 +91,55 @@ class S3Storage:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def download_file(self, *, file_name: str, target_path: pathlib.Path) -> bool:
+    def download_questionnaire_file(self, *, tenant_uuid: str, questionnaire_uuid: str,
+                                    file_uuid: str, target_path: pathlib.Path) -> bool:
+        return self._download_file(
+            tenant_uuid=tenant_uuid,
+            file_name=f'questionnaire-files/{questionnaire_uuid}/{file_uuid}',
+            target_path=target_path,
+        )
+
+    @tenacity.retry(
+        reraise=True,
+        wait=tenacity.wait_exponential(multiplier=RETRY_S3_MULTIPLIER),
+        stop=tenacity.stop_after_attempt(RETRY_S3_TRIES),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
+    )
+    def download_template_asset(self, *, tenant_uuid: str, template_id: str,
+                                file_name: str, target_path: pathlib.Path) -> bool:
+        return self._download_file(
+            tenant_uuid=tenant_uuid,
+            file_name=f'templates/{template_id}/{file_name}',
+            target_path=target_path,
+        )
+
+    @tenacity.retry(
+        reraise=True,
+        wait=tenacity.wait_exponential(multiplier=RETRY_S3_MULTIPLIER),
+        stop=tenacity.stop_after_attempt(RETRY_S3_TRIES),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
+    )
+    def download_locale(self, *, tenant_uuid: str, locale_id: str,
+                        file_name: str, target_path: pathlib.Path) -> bool:
+        return self._download_file(
+            tenant_uuid=tenant_uuid,
+            file_name=f'locales/{locale_id}/{file_name}',
+            target_path=target_path,
+        )
+
+    @tenacity.retry(
+        reraise=True,
+        wait=tenacity.wait_exponential(multiplier=RETRY_S3_MULTIPLIER),
+        stop=tenacity.stop_after_attempt(RETRY_S3_TRIES),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
+    )
+    def _download_file(self, *, tenant_uuid: str, file_name: str,
+                       target_path: pathlib.Path) -> bool:
+        if self.multi_tenant:
+            file_name = f'{tenant_uuid}/{file_name}'
         try:
             self.client.fget_object(
                 bucket_name=self.cfg.bucket,

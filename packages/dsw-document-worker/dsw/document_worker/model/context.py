@@ -1810,11 +1810,13 @@ class QuestionnaireFile:
 
         self.reply: FileReply | None = None
         self.download_url: str = ''
+        self.questionnaire_uuid: str | None = None
 
     def resolve_links(self, ctx):
-        project_uuid = ctx.questionnaire.uuid
+        self.questionnaire_uuid = ctx.questionnaire.uuid
         client_url = ctx.config.client_url
-        self.download_url = f'{client_url}/projects/{project_uuid}/files/{self.uuid}/download'
+        self.download_url = (f'{client_url}/projects/{self.questionnaire_uuid}'
+                             f'/files/{self.uuid}/download')
 
     @staticmethod
     def load(data: dict, **options):

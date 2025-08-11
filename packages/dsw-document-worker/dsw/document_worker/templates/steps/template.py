@@ -10,6 +10,7 @@ import rdflib
 from ...consts import DEFAULT_ENCODING
 from ...context import Context
 from ...documents import DocumentFile, FileFormat, FileFormats
+from ...model.context import QuestionnaireFile
 from ...model.http import RequestsWrapper
 from ..filters import filters
 from ..tests import tests
@@ -177,15 +178,15 @@ class Jinja2Step(JinjaPoweredStep):
             self.raise_exc(f'Failed loading Jinja2 template: {e}')
 
     def _execute(self, **jinja_args):
-        def asset_fetcher(file_name):
-            return self.template.fetch_asset(file_name)
-
-        def asset_path(file_name):
-            return self.template.asset_path(file_name)
+        def assets(source: str | QuestionnaireFile):
+            if isinstance(source, QuestionnaireFile):
+                return self.template.fetch_questionnaire_file(source)
+            if isinstance(source, str):
+                return self.template.fetch_asset(source)
+            return None
 
         jinja_args.update({
-            'assets': asset_fetcher,
-            'asset_path': asset_path,
+            'assets': assets,
         })
 
         content = b''

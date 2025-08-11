@@ -53,6 +53,7 @@ customisations
 customisation
 dkimpy
 checkmark
+tojson
 
 # Software Engineering terms
 bytesize
