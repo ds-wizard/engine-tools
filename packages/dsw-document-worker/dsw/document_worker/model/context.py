@@ -202,26 +202,17 @@ class ResourcePage:
 
 class Integration(abc.ABC):
 
-    def __init__(self, *, uuid: str, name: str, integration_id: str,
-                 item_url: str | None, logo: str | None, props: list[str],
+    def __init__(self, *, uuid: str, name: str, variables: list[str],
                  integration_type: str, annotations: AnnotationsT):
         self.uuid = uuid
         self.name = name
-        self.id = integration_id
-        self.item_url = item_url
-        self.logo = logo
-        self.props = props
+        self.variables = variables
         self.type = integration_type
         self.annotations = annotations
 
     @property
     def a(self):
         return self.annotations
-
-    def item(self, item_id: str) -> str | None:
-        if self.item_url is None:
-            return None
-        return self.item_url.replace('${id}', item_id)
 
     def __eq__(self, other):
         if not isinstance(other, Integration):
@@ -236,22 +227,81 @@ class Integration(abc.ABC):
 
 class ApiIntegration(Integration):
 
+    def __init__(self, *, uuid: str, name: str, variables: list[str],
+                 request_method: str, request_url: str, request_headers: dict[str, str],
+                 request_body: str | None,  request_allow_empty_search: bool,
+                 response_list_field: str | None, response_item_template: str,
+                 response_item_template_for_selection: str | None,
+                 annotations: AnnotationsT):
+        super().__init__(
+            uuid=uuid,
+            name=name,
+            variables=variables,
+            annotations=annotations,
+            integration_type='ApiIntegration',
+        )
+        self.request_method = request_method
+        self.request_url = request_url
+        self.request_headers = request_headers
+        self.request_body = request_body
+        self.request_allow_empty_search = request_allow_empty_search
+        self.response_list_field = response_list_field
+        self.response_item_template = response_item_template
+        self.response_item_template_for_selection = response_item_template_for_selection
+
+    @staticmethod
+    def default():
+        return ApiIntegration(
+            uuid=NULL_UUID,
+            name='',
+            variables=[],
+            request_method='GET',
+            request_url='',
+            request_headers={},
+            request_body=None,
+            request_allow_empty_search=False,
+            response_list_field=None,
+            response_item_template='',
+            response_item_template_for_selection=None,
+            annotations={},
+        )
+
+    @staticmethod
+    def load(data: dict, **options):
+        return ApiIntegration(
+            uuid=data['uuid'],
+            name=data['name'],
+            variables=data['variables'],
+            request_method=data['requestMethod'],
+            request_url=data['requestUrl'],
+            request_headers=data['requestHeaders'],
+            request_body=data.get('requestBody', None),
+            request_allow_empty_search=data.get('requestAllowEmptySearch', False),
+            response_list_field=data.get('responseListField', None),
+            response_item_template=data['responseItemTemplate'],
+            response_item_template_for_selection=data.get('responseItemTemplateForSelection', None),
+            annotations=_load_annotations(data['annotations']),
+        )
+
+
+class ApiLegacyIntegration(Integration):
+
     def __init__(self, *, uuid: str, name: str, integration_id: str,
                  item_url: str | None, logo: str | None,
-                 props: list[str], rq_body: str, rq_method: str,
+                 variables: list[str], rq_body: str, rq_method: str,
                  rq_headers: dict[str, str], rq_url: str, rs_list_field: str | None,
                  rs_item_id: str | None, rs_item_template: str,
                  annotations: AnnotationsT):
         super().__init__(
             uuid=uuid,
             name=name,
-            logo=logo,
-            integration_id=integration_id,
-            item_url=item_url,
-            props=props,
+            variables=variables,
             annotations=annotations,
-            integration_type='ApiIntegration',
+            integration_type='ApiLegacyIntegration',
         )
+        self.id = integration_id
+        self.item_url = item_url
+        self.logo = logo
         self.rq_body = rq_body
         self.rq_method = rq_method
         self.rq_url = rq_url
@@ -260,15 +310,20 @@ class ApiIntegration(Integration):
         self.rs_item_id = rs_item_id
         self.rs_item_template = rs_item_template
 
+    def item(self, item_id: str) -> str | None:
+        if self.item_url is None:
+            return None
+        return self.item_url.replace('${id}', item_id)
+
     @staticmethod
     def default():
-        return ApiIntegration(
+        return ApiLegacyIntegration(
             uuid=NULL_UUID,
             name='',
             logo='',
             integration_id='',
             item_url='',
-            props=[],
+            variables=[],
             rq_body='',
             rq_method='GET',
             rq_url='',
@@ -281,13 +336,13 @@ class ApiIntegration(Integration):
 
     @staticmethod
     def load(data: dict, **options):
-        return ApiIntegration(
+        return ApiLegacyIntegration(
             uuid=data['uuid'],
             name=data['name'],
             integration_id=data['id'],
             item_url=data['itemUrl'],
             logo=data['logo'],
-            props=data['props'],
+            variables=data['variables'],
             rq_body=data['requestBody'],
             rq_headers=data['requestHeaders'],
             rq_method=data['requestMethod'],
@@ -302,19 +357,24 @@ class ApiIntegration(Integration):
 class WidgetIntegration(Integration):
 
     def __init__(self, *, uuid: str, name: str, integration_id: str,
-                 item_url: str | None, logo: str | None, props: list[str],
+                 item_url: str | None, logo: str | None, variables: list[str],
                  widget_url: str, annotations: AnnotationsT):
         super().__init__(
             uuid=uuid,
             name=name,
-            logo=logo,
-            integration_id=integration_id,
-            item_url=item_url,
-            props=props,
+            variables=variables,
             annotations=annotations,
             integration_type='WidgetIntegration',
         )
+        self.id = integration_id
+        self.item_url = item_url
+        self.logo = logo
         self.widget_url = widget_url
+
+    def item(self, item_id: str) -> str | None:
+        if self.item_url is None:
+            return None
+        return self.item_url.replace('${id}', item_id)
 
     @staticmethod
     def load(data: dict, **options):
@@ -324,7 +384,7 @@ class WidgetIntegration(Integration):
             integration_id=data['id'],
             item_url=data['itemUrl'],
             logo=data['logo'],
-            props=data['props'],
+            variables=data['variables'],
             widget_url=data['widgetUrl'],
             annotations=_load_annotations(data['annotations']),
         )
@@ -747,14 +807,17 @@ class MultiChoiceReply(Reply):
 class IntegrationReply(Reply):
 
     def __init__(self, *, path: str, created_at: datetime.datetime,
-                 created_by: SimpleAuthor | None, item_id: str | None, value: str):
+                 created_by: SimpleAuthor | None,  value: str, value_type: str,
+                 item_id: str | None, raw: typing.Any | None = None):
         super().__init__(
             path=path,
             created_at=created_at,
             created_by=created_by,
             reply_type='IntegrationReply',
         )
+        self.type = value_type
         self.item_id = item_id
+        self.raw = raw
         self.value = value
 
     @property
@@ -763,18 +826,22 @@ class IntegrationReply(Reply):
 
     @property
     def is_plain(self) -> bool:
-        return self.item_id is None
+        return self.type == 'PlainType'
+
+    @property
+    def is_legacy_integration(self) -> bool:
+        return self.type == 'IntegrationLegacyType'
 
     @property
     def is_integration(self) -> bool:
-        return not self.is_plain
+        return self.type == 'IntegrationType'
 
     @property
     def url(self) -> str | None:
         if not self.is_integration or self.item_id is None:
             return None
         if isinstance(self.question, IntegrationQuestion) \
-                and self.question.integration is not None:
+                and isinstance(self.question.integration, ApiLegacyIntegration):
             return self.question.integration.item(self.item_id)
         return None
 
@@ -797,8 +864,10 @@ class IntegrationReply(Reply):
             path=path,
             created_at=_datetime(data['createdAt']),
             created_by=SimpleAuthor.load(data['createdBy'], **options),
+            value_type=data['value']['type'],
+            value=data['value']['value'].get('value', ''),
             item_id=data['value']['value'].get('id', None),
-            value=data['value']['value']['value'],
+            raw=data['value']['value'].get('raw', None),
         )
 
 
@@ -1297,7 +1366,7 @@ class IntegrationQuestion(Question):
     def __init__(self, *, uuid: str, title: str, text: str | None,
                  tag_uuids: list[str], reference_uuids: list[str],
                  expert_uuids: list[str], required_phase_uuid: str | None,
-                 integration_uuid: str | None, props: dict[str, str],
+                 integration_uuid: str | None, variables: dict[str, str],
                  annotations: AnnotationsT):
         super().__init__(
             uuid=uuid,
@@ -1310,7 +1379,7 @@ class IntegrationQuestion(Question):
             required_phase_uuid=required_phase_uuid,
             annotations=annotations,
         )
-        self.props = props
+        self.variables = variables
         self.integration_uuid = integration_uuid
 
         self.integration: Integration | None = None
@@ -1319,7 +1388,7 @@ class IntegrationQuestion(Question):
         super().resolve_links_parent(ctx)
         self.integration = ctx.e.integrations.get(
             self.integration_uuid,
-            ApiIntegration.default(),
+            None
         )
 
     @staticmethod
@@ -1333,7 +1402,7 @@ class IntegrationQuestion(Question):
             expert_uuids=data['expertUuids'],
             required_phase_uuid=data['requiredPhaseUuid'],
             integration_uuid=data['integrationUuid'],
-            props=data['props'],
+            variables=data['variables'],
             annotations=_load_annotations(data['annotations']),
         )
 
@@ -1473,6 +1542,7 @@ _REFERENCE_TYPES: dict[str, type[Reference]] = {
 
 _INTEGRATION_TYPES: dict[str, type[Integration]] = {
     'ApiIntegration': ApiIntegration,
+    'ApiLegacyIntegration': ApiLegacyIntegration,
     'WidgetIntegration': WidgetIntegration,
 }
 
