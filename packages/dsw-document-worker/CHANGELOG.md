@@ -10,6 +10,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Changed
 
 - Switch to use semver for document template metamodel versioning
+- Added new ApiIntegration and changed the previous one to ApiLegacyIntegration
 
 
 ## [4.21.0]
