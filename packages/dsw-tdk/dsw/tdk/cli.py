@@ -14,10 +14,11 @@ import slugify
 import watchfiles
 
 from .api_client import WizardCommunicationError
+from .config import CONFIG
+from .consts import VERSION, DEFAULT_LIST_FORMAT, DEFAULT_ENCODING
 from .core import TDKCore, TDKProcessingError
-from .consts import VERSION, DEFAULT_LIST_FORMAT
 from .model import Template
-from .utils import TemplateBuilder, FormatSpec, safe_utf8
+from .utils import TemplateBuilder, FormatSpec, safe_utf8, create_dot_env
 from .validation import ValidationError
 
 CURRENT_DIR = pathlib.Path.cwd()
@@ -94,14 +95,36 @@ def print_template_info(template: Template):
         click.echo(f' - {template_file.filename.as_posix()} [{filesize}]')
 
 
-# pylint: disable-next=unused-argument
-def rectify_url(ctx, param, value) -> str:
-    return value.rstrip('/')
+def ensure_api_config(api_url: str | None, api_key: str | None):
+    if not CONFIG.has_current_env:
+        ClickPrinter.error('No such environment in configuration:')
+        env_names = CONFIG.env_names
+        if len(env_names) == 0:
+            ClickPrinter.error('Actually, no environments configured yet. '
+                               'Please run `dsw tdk config init` first.')
+        elif len(env_names) == 1:
+            ClickPrinter.error(f'Only one environment configured: {env_names[0]}')
+        else:
+            ClickPrinter.error('Available environments:')
+            for env_name in env_names:
+                click.echo(f' - {env_name}')
+        sys.exit(1)
 
-
-# pylint: disable-next=unused-argument
-def rectify_key(ctx, param, value) -> str:
-    return value.strip()
+    if api_url is not None:
+        CONFIG.set_api_url(api_url)
+    if not CONFIG.has_api_url:
+        CONFIG.set_api_url(
+            api_url=click.prompt('API URL'),
+        )
+    if api_key is not None:
+        CONFIG.set_api_key(api_key)
+    if not CONFIG.has_api_key:
+        CONFIG.set_api_key(
+            api_key=click.prompt('API Key', hide_input=True),
+        )
+    if not CONFIG.has_api_url or not CONFIG.has_api_key:
+        ClickPrinter.error('API URL and API Key are required to proceed.')
+        sys.exit(1)
 
 
 class ClickLogger(logging.Logger):
@@ -244,18 +267,33 @@ def dir_from_id(template_id: str) -> pathlib.Path:
 
 
 @click.group(cls=AliasedGroup)
-@click.option('-e', '--dot-env', default='.env', required=False,
+@click.option('-d', '--dot-env', default='.env', required=False,
               show_default=True, type=click.Path(file_okay=True, dir_okay=False),
-              help='Provide file with environment variables.')
+              help='File path to dot-env file with environment variables.')
+@click.option('-e', '--environment', default=CONFIG.DEFAULT_ENV, required=False,
+              show_default=True, help='Configuration environment name.')
+@click.option('--no-dot-env', is_flag=True, default=False,
+              help='Do not load .env file, use only environment variables.')
+@click.option('--no-config', is_flag=True, default=False,
+              help='Do not load shared configuration, use only environment variables.')
 @click.option('-q', '--quiet', is_flag=True,
               help='Hide additional information logs.')
 @click.option('--debug', is_flag=True,
               help='Enable debug logging.')
 @click.version_option(version=VERSION)
 @click.pass_context
-def main(ctx, quiet, debug, dot_env):
-    if pathlib.Path(dot_env).exists():
-        dotenv.load_dotenv(dotenv_path=dot_env)
+def main(ctx, quiet, debug, dot_env, environment, no_dot_env, no_config):
+    if not no_config:
+        try:
+            CONFIG.load_home_config()
+        except Exception as e:
+            ClickPrinter.warning('Failed to load shared configuration')
+            ClickPrinter.warning(f'> {e}')
+    CONFIG.set_current_env(environment)
+    if not no_dot_env and dot_env is not None:
+        if pathlib.Path(dot_env).exists():
+            CONFIG.load_dotenv(path=pathlib.Path(dot_env))
+            dotenv.load_dotenv(dotenv_path=dot_env)
     ctx.ensure_object(CLIContext)
     ctx.obj.dot_env_file = dot_env
     if quiet:
@@ -292,13 +330,13 @@ def new_template(ctx, template_dir, force):
 @click.argument('TEMPLATE-ID')
 @click.argument('TEMPLATE-DIR', type=NEW_DIR_TYPE, default=None, required=False)
 @click.option('-u', '--api-url', metavar='API-URL', envvar='DSW_API_URL',
-              prompt='API URL', help='URL of Wizard server API.', callback=rectify_url)
+              help='URL of Wizard server API.')
 @click.option('-k', '--api-key', metavar='API-KEY', envvar='DSW_API_KEY',
-              prompt='API Key', help='API key for Wizard instance.', callback=rectify_key,
-              hide_input=True)
+              help='API key for Wizard instance.')
 @click.option('-f', '--force', is_flag=True, help='Overwrite any existing files.')
 @click.pass_context
-def get_template(ctx, api_url, template_id, template_dir, api_key, force):
+def get_template(ctx, template_id, template_dir, api_url, api_key, force):
+    ensure_api_config(api_url, api_key)
     template_dir = pathlib.Path(template_dir or dir_from_id(template_id))
 
     async def main_routine():
@@ -306,7 +344,10 @@ def get_template(ctx, api_url, template_id, template_dir, api_key, force):
         template_type = 'unknown'
         zip_data = None
         try:
-            await tdk.init_client(api_url=api_url, api_key=api_key)
+            await tdk.init_client(
+                api_url=CONFIG.env.api_url,
+                api_key=CONFIG.env.api_key,
+            )
             try:
                 await tdk.load_remote(template_id=template_id)
                 template_type = 'draft'
@@ -352,16 +393,16 @@ def get_template(ctx, api_url, template_id, template_dir, api_key, force):
 @main.command(help='Upload template to Wizard.', name='put')
 @click.argument('TEMPLATE-DIR', type=DIR_TYPE, default=CURRENT_DIR, required=False)
 @click.option('-u', '--api-url', metavar='API-URL', envvar='DSW_API_URL',
-              prompt='API URL', help='URL of Wizard server API.', callback=rectify_url)
+              help='URL of Wizard server API.')
 @click.option('-k', '--api-key', metavar='API-KEY', envvar='DSW_API_KEY',
-              prompt='API Key', help='API key for Wizard instance.', callback=rectify_key,
-              hide_input=True)
+              help='API key for Wizard instance.')
 @click.option('-f', '--force', is_flag=True,
               help='Delete template if already exists.')
 @click.option('-w', '--watch', is_flag=True,
               help='Enter watch mode to continually upload changes.')
 @click.pass_context
-def put_template(ctx, api_url, template_dir, api_key, force, watch):
+def put_template(ctx, template_dir, api_url, api_key, force, watch):
+    ensure_api_config(api_url, api_key)
     tdk = TDKCore(logger=ctx.obj.logger)
     stop_event = asyncio.Event()
 
@@ -379,7 +420,10 @@ def put_template(ctx, api_url, template_dir, api_key, force, watch):
     async def main_routine():
         load_local(tdk, template_dir)
         try:
-            await tdk.init_client(api_url=api_url, api_key=api_key)
+            await tdk.init_client(
+                api_url=CONFIG.env.api_url,
+                api_key=CONFIG.env.api_key,
+            )
             await tdk.store_remote(force=force)
             ClickPrinter.success(f'Template {tdk.safe_project.safe_template.id} '
                                  f'uploaded to {api_url}')
@@ -460,10 +504,9 @@ def extract_package(ctx, template_package, output, force: bool):
 
 @main.command(help='List templates from Wizard via API.', name='list')
 @click.option('-u', '--api-url', metavar='API-URL', envvar='DSW_API_URL',
-              prompt='API URL', help='URL of Wizard server API.', callback=rectify_url)
+              help='URL of Wizard server API.')
 @click.option('-k', '--api-key', metavar='API-KEY', envvar='DSW_API_KEY',
-              prompt='API Key', help='API key for Wizard instance.', callback=rectify_key,
-              hide_input=True)
+              help='API key for Wizard instance.')
 @click.option('--output-format', default=DEFAULT_LIST_FORMAT,
               metavar='FORMAT', help='Entry format string for printing.')
 @click.option('-r', '--released-only', is_flag=True, help='List only released templates')
@@ -471,10 +514,15 @@ def extract_package(ctx, template_package, output, force: bool):
 @click.pass_context
 def list_templates(ctx, api_url, api_key, output_format: str,
                    released_only: bool, drafts_only: bool):
+    ensure_api_config(api_url, api_key)
+
     async def main_routine():
         tdk = TDKCore(logger=ctx.obj.logger)
         try:
-            await tdk.init_client(api_url=api_url, api_key=api_key)
+            await tdk.init_client(
+                api_url=CONFIG.env.api_url,
+                api_key=CONFIG.env.api_key,
+            )
             if released_only:
                 templates = await tdk.list_remote_templates()
                 for template in templates:
@@ -521,24 +569,94 @@ def verify_template(ctx, template_dir):
             click.echo(f' - {err.field_name}: {err.message}')
 
 
-@main.command(help='Create a .env file.', name='dot-env')
+@main.group(help='Manage shared user configuration (~/.dsw-tdk).', name='config')
+@click.pass_context
+# pylint: disable-next=unused-argument
+def config(ctx):
+    pass
+
+
+@config.command(name='init', help='Initialize the shared user configuration (~/.dsw-tdk).')
+@click.option('-u', '--api-url', metavar='API-URL', envvar='DSW_API_URL',
+              help='URL of Wizard server API.')
+@click.option('-k', '--api-key', metavar='API-KEY', envvar='DSW_API_KEY',
+              help='API key for Wizard instance.')
+@click.option('-f', '--force', is_flag=True, help='Overwrite file if already exists.')
+def config_init(api_url, api_key, force):
+    if CONFIG.is_default_env:
+        click.echo('You need to specify your first environment name (default one).')
+        click.echo('Recommendation: use short and lowercase name, e.g. "production"')
+        environment = click.prompt('Environment name', default='production')
+        CONFIG.set_current_env(environment)
+    else:
+        CONFIG.setup_env(CONFIG.current_env)
+    ensure_api_config(api_url, api_key)
+    try:
+        CONFIG.persist(force=force)
+        ClickPrinter.success('Configuration initialized successfully.')
+    except Exception as e:
+        ClickPrinter.failure('Failed to initialize configuration')
+        ClickPrinter.error(f'> {e}')
+        sys.exit(1)
+
+
+@config.command(name='edit', help='Edit the shared user configuration (~/.dsw-tdk).')
+@click.option('-f', '--force', is_flag=True, help='Create file if does not exist.')
+def config_edit(force):
+    if not CONFIG.HOME_CONFIG.exists():
+        if force:
+            CONFIG.HOME_CONFIG.parent.mkdir(parents=True, exist_ok=True)
+            CONFIG.HOME_CONFIG.touch()
+        else:
+            ClickPrinter.error('Configuration file does not exist. Use `init` command '
+                               'or `--force` flag to create it.')
+            sys.exit(1)
+    click.edit(
+        filename=str(CONFIG.HOME_CONFIG),
+        extension='.cfg',
+        require_save=True,
+    )
+
+
+@config.command(name='check', help='Check the current configuration that can be loaded.')
+def config_check():
+    hidden = click.style('(hidden)', fg='red', bold=True)
+    not_set = click.style('(not set)', fg='yellow', bold=True)
+    for env_name, env in CONFIG.envs.items():
+        if env_name == CONFIG.current_env:
+            env_out = click.style(env_name, fg='green', bold=True)
+            click.echo(f'{env_out} (current)')
+        else:
+            env_out = click.style(env_name, fg='blue', bold=True)
+            click.echo(env_out)
+        click.echo(f'  API URL: {env.api_url if env.api_url else not_set}')
+        click.echo(f'  API Key: {hidden if env.api_key else not_set}')
+
+
+@config.command(name='dot-env', help='Create a .env file with API configuration.')
 @click.argument('TEMPLATE-DIR', type=DIR_TYPE, default=CURRENT_DIR, required=False)
 @click.option('-u', '--api-url', metavar='API-URL', envvar='DSW_API_URL',
-              prompt='API URL', help='URL of Wizard server API.', callback=rectify_url)
+              help='URL of Wizard server API.')
 @click.option('-k', '--api-key', metavar='API-KEY', envvar='DSW_API_KEY',
-              prompt='API Key', help='API key for Wizard instance.', callback=rectify_key,
-              hide_input=True)
+              help='API key for Wizard instance.')
 @click.option('-f', '--force', is_flag=True, help='Overwrite file if already exists.')
 @click.pass_context
-def create_dot_env(ctx, template_dir, api_url, api_key, force):
+def config_create_dotenv(ctx, template_dir, api_url, api_key, force):
+    ensure_api_config(api_url, api_key)
     filename = ctx.obj.dot_env_file or '.env'
-    tdk = TDKCore(logger=ctx.obj.logger)
+    output = pathlib.Path(template_dir) / filename
     try:
-        tdk.create_dot_env(
-            output=pathlib.Path(template_dir) / filename,
-            force=force,
-            api_url=api_url,
-            api_key=api_key,
+        if output.exists():
+            if force:
+                ClickPrinter.warning(f'Overwriting {output.as_posix()} (forced)', )
+            else:
+                raise FileExistsError(f'File {output.as_posix()} already exists (not forced)')
+        output.write_text(
+            data=create_dot_env(
+                api_url=CONFIG.env.api_url,
+                api_key=CONFIG.env.api_key,
+            ),
+            encoding=DEFAULT_ENCODING,
         )
     except Exception as e:
         ClickPrinter.failure('Failed to create dot-env file')
