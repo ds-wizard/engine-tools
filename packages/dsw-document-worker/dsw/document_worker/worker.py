@@ -136,7 +136,11 @@ class Job:
             template_id=template_id,
         )
         # prepare format
-        template.prepare_format(format_uuid)
+        if not template.prepare_format(format_uuid):
+            raise create_job_exception(
+                job_id=self.doc_uuid,
+                message=f'Format {format_uuid} is not found in template {template_id}',
+            )
         self.format = template.formats.get(format_uuid)
         # finalize
         self.template = template

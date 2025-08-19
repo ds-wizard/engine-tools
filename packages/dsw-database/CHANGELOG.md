@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- Adapted to changes done in refactoring document templates (expanding JSON columns)
+
 
 ## [4.21.0]
 
