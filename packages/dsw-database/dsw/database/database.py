@@ -15,7 +15,8 @@ from .model import DBDocumentTemplate, DBDocumentTemplateFile, \
     DBDocumentTemplateAsset, DBDocument, DBComponent, \
     DocumentState, DBTenantLimits, DBSubmission, \
     DBInstanceConfigMail, DBQuestionnaireSimple, \
-    DBUserEntity, DBLocale
+    DBUserEntity, DBLocale, DBDocumentTemplateFormat, \
+    DBDocumentTemplateStep
 
 LOG = logging.getLogger(__name__)
 
@@ -53,6 +54,10 @@ class Database:
                                 'file_size = %s WHERE uuid = %s;')
     SELECT_TEMPLATE = ('SELECT * FROM document_template '
                        'WHERE id = %s AND tenant_uuid = %s LIMIT 1;')
+    SELECT_TEMPLATE_FORMATS = ('SELECT * FROM document_template_format '
+                               'WHERE document_template_id = %s AND tenant_uuid = %s LIMIT 1;')
+    SELECT_TEMPLATE_STEPS = ('SELECT * FROM document_template_format_step '
+                             'WHERE document_template_id = %s AND tenant_uuid = %s LIMIT 1;')
     SELECT_TEMPLATE_FILES = ('SELECT * FROM document_template_file '
                              'WHERE document_template_id = %s AND tenant_uuid = %s;')
     SELECT_TEMPLATE_ASSETS = ('SELECT * FROM document_template_asset '
@@ -183,10 +188,42 @@ class Database:
                 query=self.SELECT_TEMPLATE,
                 params=(template_id, tenant_uuid),
             )
-            result = cursor.fetchall()
-            if len(result) != 1:
+            dt_result = cursor.fetchall()
+            if len(dt_result) != 1:
                 return None
-            return DBDocumentTemplate.from_dict_row(result[0])
+            template = DBDocumentTemplate.from_dict_row(dt_result[0])
+
+            cursor.execute(
+                query=self.SELECT_TEMPLATE_FORMATS,
+                params=(template_id, tenant_uuid),
+            )
+            formats_result = cursor.fetchall()
+            formats = sorted([
+                DBDocumentTemplateFormat.from_dict_row(x) for x in formats_result
+            ], key=lambda x: x.name)
+            cursor.execute(
+                query=self.SELECT_TEMPLATE_STEPS,
+                params=(template_id, tenant_uuid),
+            )
+            steps_result = cursor.fetchall()
+            steps = sorted([
+                DBDocumentTemplateStep.from_dict_row(x) for x in steps_result
+            ], key=lambda x: x.position)
+            steps_dict: dict[str, list[dict]] = {}
+            for step in steps:
+                if step.format_uuid not in steps_dict:
+                    steps_dict[step.format_uuid] = []
+                steps_dict[step.format_uuid].append({
+                    'name': step.name,
+                    'options': step.options,
+                })
+            for format_obj in formats:
+                template.formats.append({
+                    'uuid': format_obj.uuid,
+                    'name': format_obj.name,
+                    'steps': steps_dict.get(format_obj.uuid, []),
+                })
+        return template
 
     @tenacity.retry(
         reraise=True,

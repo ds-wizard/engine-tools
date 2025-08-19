@@ -96,7 +96,7 @@ class DBDocumentTemplate:
     readme: str
     license: str
     allowed_packages: dict
-    formats: dict
+    formats: list
     phase: str
     created_at: datetime.datetime
     updated_at: datetime.datetime
@@ -127,8 +127,56 @@ class DBDocumentTemplate:
             readme=data['readme'],
             license=data['license'],
             allowed_packages=data['allowed_packages'],
-            formats=data['formats'],
+            formats=[],
             phase=data['phase'],
+            created_at=data['created_at'],
+            updated_at=data['updated_at'],
+            tenant_uuid=str(data.get('tenant_uuid', NULL_UUID)),
+        )
+
+
+@dataclasses.dataclass
+class DBDocumentTemplateFormat:
+    document_template_id: str
+    uuid: str
+    name: str
+    icon: str
+    created_at: datetime.datetime
+    updated_at: datetime.datetime
+    tenant_uuid: str
+
+    @staticmethod
+    def from_dict_row(data: dict) -> 'DBDocumentTemplateFormat':
+        return DBDocumentTemplateFormat(
+            document_template_id=data['document_template_id'],
+            uuid=str(data['uuid']),
+            name=data['name'],
+            icon=data['icon'],
+            created_at=data['created_at'],
+            updated_at=data['updated_at'],
+            tenant_uuid=str(data.get('tenant_uuid', NULL_UUID)),
+        )
+
+
+@dataclasses.dataclass
+class DBDocumentTemplateStep:
+    document_template_id: str
+    format_uuid: str
+    position: int
+    name: str
+    options: dict[str, str]
+    created_at: datetime.datetime
+    updated_at: datetime.datetime
+    tenant_uuid: str
+
+    @staticmethod
+    def from_dict_row(data: dict) -> 'DBDocumentTemplateStep':
+        return DBDocumentTemplateStep(
+            document_template_id=data['document_template_id'],
+            format_uuid=str(data['format_uuid']),
+            position=data['position'],
+            name=data['name'],
+            options=data['options'],
             created_at=data['created_at'],
             updated_at=data['updated_at'],
             tenant_uuid=str(data.get('tenant_uuid', NULL_UUID)),
