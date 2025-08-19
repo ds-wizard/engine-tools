@@ -6,7 +6,7 @@
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/4975/badge)](https://bestpractices.coreinfrastructure.org/projects/4975)
 [![Python Version](https://img.shields.io/badge/Python-%E2%89%A5%203.7-blue)](https://python.org)
 
-*Library with DSW models and its basic IO*
+*Library with DSW models and relevant transformations*
 
 ## Usage
 

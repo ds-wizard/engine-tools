@@ -67,3 +67,5 @@ wheel==0.46.1
 XlsxWriter==3.2.5
 yarl==1.20.1
 zopfli==0.2.3.post1
+SQLAlchemy==2.0.43
+pydantic==2.11.9
