@@ -1,9 +1,9 @@
 aiohappyeyeballs==2.6.1
-aiohttp==3.12.14
+aiohttp==3.12.15
 aiosignal==1.4.0
 anyio==4.6.2.post1
 attrs==25.3.0
-click==8.2.1
+click==8.2.2
 colorama==0.4.6
 frozenlist==1.7.0
 humanize==4.12.3
@@ -11,7 +11,7 @@ idna==3.10
 iniconfig==2.1.0
 Jinja2==3.1.6
 MarkupSafe==3.0.2
-multidict==6.6.3
+multidict==6.6.4
 packaging==25.0
 pathspec==0.12.1
 pluggy==1.6.0
