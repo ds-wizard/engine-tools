@@ -228,7 +228,8 @@ class Integration(abc.ABC):
 class ApiIntegration(Integration):
 
     def __init__(self, *, uuid: str, name: str, variables: list[str],
-                 request_method: str, request_url: str, request_headers: dict[str, str],
+                 allow_custom_reply: bool, request_method: str,
+                 request_url: str, request_headers: dict[str, str],
                  request_body: str | None,  request_allow_empty_search: bool,
                  response_list_field: str | None, response_item_template: str,
                  response_item_template_for_selection: str | None,
@@ -240,6 +241,7 @@ class ApiIntegration(Integration):
             annotations=annotations,
             integration_type='ApiIntegration',
         )
+        self.allow_custom_reply = allow_custom_reply
         self.request_method = request_method
         self.request_url = request_url
         self.request_headers = request_headers
@@ -255,6 +257,7 @@ class ApiIntegration(Integration):
             uuid=NULL_UUID,
             name='',
             variables=[],
+            allow_custom_reply=True,
             request_method='GET',
             request_url='',
             request_headers={},
@@ -272,6 +275,7 @@ class ApiIntegration(Integration):
             uuid=data['uuid'],
             name=data['name'],
             variables=data['variables'],
+            allow_custom_reply=data['allowCustomReply'],
             request_method=data['requestMethod'],
             request_url=data['requestUrl'],
             request_headers=data['requestHeaders'],
