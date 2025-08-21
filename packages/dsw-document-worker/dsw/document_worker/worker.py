@@ -180,6 +180,7 @@ class Job:
         SentryReporter.set_tags(phase='render')
         final_file = self.safe_template.render(
             format_uuid=doc.format_uuid,
+            questionnaire_uuid=self.safe_doc.questionnaire_uuid,
             context=self.doc_context,
         )
         # check limits

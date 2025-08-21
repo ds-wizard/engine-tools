@@ -178,9 +178,11 @@ class Jinja2Step(JinjaPoweredStep):
             self.raise_exc(f'Failed loading Jinja2 template: {e}')
 
     def _execute(self, **jinja_args):
-        def assets(source: str | QuestionnaireFile):
+        def assets(source: str | QuestionnaireFile | dict):
             if isinstance(source, QuestionnaireFile):
                 return self.template.fetch_questionnaire_file(source)
+            if isinstance(source, dict):
+                return self.template.fetch_questionnaire_file_dict(source)
             if isinstance(source, str):
                 return self.template.fetch_asset(source)
             return None

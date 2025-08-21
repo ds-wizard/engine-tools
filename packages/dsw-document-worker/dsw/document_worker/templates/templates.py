@@ -32,10 +32,10 @@ class TemplateException(Exception):
 
 class Asset:
 
-    def __init__(self, *, asset_uuid: str, filename: str, content_type: str,
+    def __init__(self, *, uuid: str, name: str, content_type: str,
                  data: bytes, path: pathlib.Path):
-        self.asset_uuid = asset_uuid
-        self.filename = filename
+        self.uuid = uuid
+        self.name = name
         self.content_type = content_type
         self.data = data
         self.path = path
@@ -73,7 +73,9 @@ class Template:
         self.last_used = datetime.datetime.now(tz=datetime.UTC)
         self.db_template = db_template
         self.template_id = self.db_template.template.id
+
         self.formats: dict[str, Format] = {}
+        self.questionnaire_uuid: str | None = None
 
     def raise_exc(self, message: str):
         raise TemplateException(self.template_id, message)
@@ -90,32 +92,52 @@ class Template:
             LOG.error('Asset "%s" not found', file_name)
             return None
         return Asset(
-            asset_uuid=asset.uuid,
-            filename=file_name,
+            uuid=asset.uuid,
+            name=file_name,
             content_type=asset.content_type,
             data=file_path.read_bytes(),
             path=file_path,
         )
 
     def fetch_questionnaire_file(self, questionnaire_file: QuestionnaireFile) -> Asset | None:
-        LOG.info('Fetching questionnaire file "%s"', questionnaire_file.uuid)
-        file_path = self.template_dir / 'questionnaire-files' / questionnaire_file.uuid
+        return self._fetch_questionnaire_file(
+            file_uuid=questionnaire_file.uuid,
+            name=questionnaire_file.name,
+            content_type=questionnaire_file.content_type,
+        )
+
+    def fetch_questionnaire_file_dict(self, questionnaire_file: dict) -> Asset | None:
+        file_uuid = questionnaire_file.get('uuid', None)
+        name = questionnaire_file.get('fileName', None)
+        content_type = questionnaire_file.get('contentType', None)
+        if isinstance(file_uuid, str) and isinstance(name, str) and isinstance(content_type, str):
+            return self._fetch_questionnaire_file(
+                file_uuid=file_uuid,
+                name=name,
+                content_type=content_type,
+            )
+        return None
+
+    def _fetch_questionnaire_file(self, file_uuid: str, name: str,
+                                  content_type: str) -> Asset | None:
+        LOG.info('Fetching questionnaire file "%s"', file_uuid)
+        file_path = self.template_dir / 'questionnaire-files' / file_uuid
         if not file_path.parent.exists():
             file_path.parent.mkdir(parents=True, exist_ok=True)
         if not file_path.exists():
             result = Context.get().app.s3.download_questionnaire_file(
                 tenant_uuid=self.tenant_uuid,
-                questionnaire_uuid=questionnaire_file.questionnaire_uuid,
-                file_uuid=questionnaire_file.uuid,
+                questionnaire_uuid=self.questionnaire_uuid,
+                file_uuid=file_uuid,
                 target_path=file_path,
             )
             if not result:
-                LOG.error('Questionnaire file "%s" cannot be retrieved', questionnaire_file.uuid)
+                LOG.error('Questionnaire file "%s" cannot be retrieved', file_uuid)
                 return None
         return Asset(
-            asset_uuid=questionnaire_file.uuid,
-            filename=questionnaire_file.name,
-            content_type=questionnaire_file.content_type,
+            uuid=file_uuid,
+            name=name,
+            content_type=content_type,
             data=file_path.read_bytes(),
             path=file_path,
         )
@@ -249,11 +271,15 @@ class Template:
     def __getitem__(self, format_uuid: str) -> Format:
         return self.formats[format_uuid]
 
-    def render(self, format_uuid: str, context: dict) -> DocumentFile:
+    def render(self, format_uuid: str, questionnaire_uuid: str,
+               context: dict) -> DocumentFile:
         Context.get().app.pm.hook.enrich_document_context(context=context)
 
         self.last_used = datetime.datetime.now(tz=datetime.UTC)
-        return self[format_uuid].execute(context)
+        self.questionnaire_uuid = questionnaire_uuid
+        result = self[format_uuid].execute(context)
+        self.questionnaire_uuid = None
+        return result
 
 
 class TemplateRegistry:
