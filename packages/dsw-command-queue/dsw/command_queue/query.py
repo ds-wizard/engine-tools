@@ -25,7 +25,7 @@ class CommandQueries:
               AND attempts < max_attempts
               AND state != '{CommandState.DONE.value}'
               AND state != '{CommandState.IGNORE.value}'
-              AND (updated_at AT TIME ZONE 'UTC')
+              AND (created_at AT TIME ZONE 'UTC')
                     <
                   (%(now)s - ({exp} ^ attempts - 1) * INTERVAL '{interval}')
             ORDER BY attempts ASC, updated_at DESC

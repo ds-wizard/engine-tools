@@ -107,7 +107,7 @@ class CommandQueue:
         after=tenacity.after_log(LOG, logging.INFO),
     )
     def run(self):
-        LOG.info('Preparing to listen to command queue')
+        LOG.info('Preparing to listen to command queue (issuing LISTEN)')
         queue_conn = self.db.conn_queue
         queue_conn.connection.execute(
             query=self.queries.query_listen(),
@@ -121,7 +121,7 @@ class CommandQueue:
         while True:
             self._fetch_and_process_queued()
 
-            LOG.debug('Waiting for notifications')
+            LOG.info('Waiting for notifications (up to %s seconds)', self.wait_timeout)
             w = select.select(fds, [], [], self.wait_timeout)
 
             if self._interrupted:
@@ -129,15 +129,15 @@ class CommandQueue:
                 break
 
             if w == ([], [], []):
-                LOG.debug('Nothing received in this cycle (timeout %s seconds)',
-                          self.wait_timeout)
+                LOG.info('Nothing received in this cycle (timeout %s seconds)',
+                         self.wait_timeout)
             else:
                 notifications = 0
-                for n in psycopg.generators.notifies(queue_conn.connection.pgconn):
+                for notification in psycopg.generators.notifies(queue_conn.connection.pgconn):
                     notifications += 1
-                    LOG.debug(str(n))
+                    LOG.info('Notification received: %s', notification)
                 LOG.info('Notifications received (%s in total)', notifications)
-        LOG.debug('Exiting command queue')
+        LOG.info('Exiting command queue')
 
     @tenacity.retry(
         reraise=True,
@@ -158,12 +158,6 @@ class CommandQueue:
         LOG.info('There are no more commands to process (%s processed)',
                  count)
 
-    def accept_notification(self, payload: psycopg.Notify) -> bool:
-        LOG.debug('Accepting notification from channel "%s" (PID = %s) %s',
-                  payload.channel, payload.pid, payload.payload)
-        LOG.debug('Trying to fetch a new job')
-        return self.fetch_and_process()
-
     def fetch_and_process(self) -> bool:
         cursor = self.db.conn_query.new_cursor(use_dict=True)
         cursor.execute(
@@ -172,14 +166,14 @@ class CommandQueue:
         )
         result = cursor.fetchall()
         if len(result) != 1:
-            LOG.debug('Fetched %s persistent commands', len(result))
+            LOG.info('Fetched %s persistent commands', len(result))
             return False
 
         command = PersistentCommand.from_dict_row(result[0])
         LOG.info('Retrieved persistent command %s for processing', command.uuid)
-        LOG.debug('Previous state: %s', command.state)
-        LOG.debug('Attempts: %s / %s', command.attempts, command.max_attempts)
-        LOG.debug('Last error: %s', command.last_error_message)
+        LOG.info('Previous state: %s', command.state)
+        LOG.info('Attempts: %s / %s', command.attempts, command.max_attempts)
+        LOG.info('Last error: %s', command.last_error_message)
 
         self._process(command)
 
