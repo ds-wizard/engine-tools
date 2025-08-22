@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Support shared TDK config across document template projects
+
 ### Changed
 
 - Switch to use semver for document template metamodel versioning
