@@ -261,7 +261,7 @@ class SeedRecipe:
             ),
             uuids_count=0,
             uuids_placeholder=None,
-            init_wait=0,
+            init_wait=20,
         )
 
 
@@ -358,13 +358,10 @@ class DataSeeder(CommandWorker):
             LOG.debug('No recipe name provided, using default: %s',
                       self._default_recipe_name)
             recipe_name = self._default_recipe_name
-        if command.attempts == 0 and self.recipe.init_wait > 0.01:
-            LOG.info('Waiting for %s seconds (first attempt)',
-                     self.recipe.init_wait)
-            time.sleep(self.recipe.init_wait)
         self.seed(
             tenant_uuid=tenant_uuid,
             recipe_name=recipe_name,
+            attempt=command.attempts,
         )
         Context.get().update_trace_id('-')
         SentryReporter.set_tags(command_uuid='-')
@@ -386,9 +383,13 @@ class DataSeeder(CommandWorker):
             built_at=built_at,
         )
 
-    def seed(self, tenant_uuid: str, recipe_name: str):
+    def seed(self, tenant_uuid: str, recipe_name: str, attempt: int = 0):
         LOG.info('Init seeding recipe "%s" to "%s"', recipe_name, tenant_uuid)
         self._prepare_recipe(recipe_name=recipe_name)
+        if attempt == 0 and self.recipe.init_wait > 0.01:
+            LOG.info('Waiting for %s seconds (first attempt)',
+                     self.recipe.init_wait)
+            time.sleep(self.recipe.init_wait)
         LOG.info('Executing recipe "%s"', recipe_name)
         self._execute(tenant_uuid=tenant_uuid)
 
