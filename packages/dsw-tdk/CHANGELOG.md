@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [4.22.0]
+
 ### Added
 
 - Support shared TDK config across document template projects
@@ -14,7 +17,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Switch to use semver for document template metamodel versioning
-
 
 ## [4.21.0]
 
@@ -597,3 +599,4 @@ Initial DSW Template Development Kit (versioned as part of the [DSW platform](ht
 [4.20.0]: /../../tree/v4.20.0
 [4.20.1]: /../../tree/v4.20.1
 [4.21.0]: /../../tree/v4.21.0
+[4.22.0]: /../../tree/v4.22.0
