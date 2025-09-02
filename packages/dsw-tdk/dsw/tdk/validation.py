@@ -98,6 +98,38 @@ def _validate_natural(field_name: str, value) -> List[ValidationError]:
     return []
 
 
+def _validate_metamodel_version(field_name: str, value) -> List[ValidationError]:
+    if isinstance(value, int) and value > 0:
+        return []
+    if isinstance(value, str) and '.' in value:
+        parts = value.split('.')
+        if len(parts) != 2:
+            return [ValidationError(
+                field_name=field_name,
+                message='It must be in format <MAJOR>.<MINOR>',
+            )]
+        try:
+            major = int(parts[0])
+            minor = int(parts[1])
+            if major < 1 or minor < 0:
+                return [ValidationError(
+                    field_name=field_name,
+                    message='It must be in format <MAJOR>.<MINOR> '
+                            'with MAJOR >= 1 and MINOR >= 0',
+                )]
+            return []
+        except ValueError:
+            return [ValidationError(
+                field_name=field_name,
+                message='It must be in format <MAJOR>.<MINOR> '
+                        'with MAJOR >= 1 and MINOR >= 0',
+            )]
+    return [ValidationError(
+        field_name=field_name,
+        message='It must be a positive integer or in format <MAJOR>.<MINOR>',
+    )]
+
+
 def _validate_package_id(field_name: str, value: str) -> List[ValidationError]:
     res = []
     if value is None:
@@ -255,7 +287,7 @@ TemplateValidator = GenericValidator({
     'description': [_validate_required, _validate_non_empty],
     'readme': [_validate_required, _validate_non_empty],
     'license': [_validate_required, _validate_non_empty],
-    'metamodel_version': [_validate_natural],
+    'metamodel_version': [_validate_metamodel_version, _validate_required],
     'allowed_packages': [_validate_package_filters],
     'formats': [_validate_required, _validate_formats],
 })

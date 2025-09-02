@@ -81,7 +81,7 @@ interactions:
   response:
     body:
       string: '{"authentication":{"defaultRole":"dataSteward","external":{"services":[]},"internal":{"registration":{"enabled":true},"twoFactorAuth":{"codeLength":6,"enabled":false,"expiration":600}}},"cloud":{"enabled":false,"serverUrl":"https://server.example.com"},"dashboardAndLoginScreen":{"announcements":[],"dashboardType":"RoleBasedDashboardType","loginInfo":null,"loginInfoSidebar":null},"feature":{"clientCustomizationEnabled":false,"pdfOnlyEnabled":false,"pdfWatermarkEnabled":false},"locales":[{"code":"en","defaultLocale":true,"name":"English"}],"lookAndFeel":{"appTitle":null,"appTitleShort":null,"customMenuLinks":[],"illustrationsColor":null,"logoUrl":null,"primaryColor":null,"styleUrl":null},"organization":{"affiliations":[],"description":"My
-        Organization Description","name":"My Organization","organizationId":"myorg"},"owl":{"enabled":false,"kmId":"","name":"","organizationId":"","previousPackageId":null,"rootElement":"","version":""},"privacyAndSupport":{"privacyUrl":null,"supportEmail":null,"supportSiteIcon":null,"supportSiteName":null,"supportSiteUrl":null,"termsOfServiceUrl":null},"questionnaire":{"feedback":{"enabled":false},"projectTagging":{"enabled":true},"questionnaireCreation":"TemplateAndCustomQuestionnaireCreation","questionnaireSharing":{"anonymousEnabled":false,"defaultValue":"RestrictedQuestionnaire","enabled":true},"questionnaireVisibility":{"defaultValue":"PrivateQuestionnaire","enabled":true},"summaryReport":{"enabled":true}},"registry":{"enabled":false,"url":"https://registry.ds-wizard.org"},"submission":{"enabled":true}}'
+        Organization Description","name":"My Organization","organizationId":"organization"},"owl":{"enabled":false,"kmId":"","name":"","organizationId":"","previousPackageId":null,"rootElement":"","version":""},"privacyAndSupport":{"privacyUrl":null,"supportEmail":null,"supportSiteIcon":null,"supportSiteName":null,"supportSiteUrl":null,"termsOfServiceUrl":null},"questionnaire":{"feedback":{"enabled":false},"projectTagging":{"enabled":true},"questionnaireCreation":"TemplateAndCustomQuestionnaireCreation","questionnaireSharing":{"anonymousEnabled":false,"defaultValue":"RestrictedQuestionnaire","enabled":true},"questionnaireVisibility":{"defaultValue":"PrivateQuestionnaire","enabled":true},"summaryReport":{"enabled":true}},"registry":{"enabled":false,"url":"https://registry.ds-wizard.org"},"submission":{"enabled":true}}'
     headers:
       Access-Control-Allow-Credential:
       - 'true'
@@ -113,12 +113,12 @@ interactions:
       User-Agent:
       - dsw-tdk/3.22.0
     method: GET
-    uri: http://localhost:3000/document-template-drafts/myorg:test-template-y:0.1.0
+    uri: http://localhost:3000/document-template-drafts/organization:test-template-y:0.1.0
   response:
     body:
       string: '{"message":{"code":"error.database.entity_not_found","defaultMessage":"Object
         of type ''%s'' does not exist (%s)","params":["document_template","app_uuid:
-        00000000-0000-0000-0000-000000000000, id: myorg:test-template-y:0.1.0, phase:
+        00000000-0000-0000-0000-000000000000, id: organization:test-template-y:0.1.0, phase:
         DraftDocumentTemplatePhase"]},"status":404}'
     headers:
       Access-Control-Allow-Credential:
@@ -140,7 +140,7 @@ interactions:
     status:
       code: 404
       message: Not Found
-    url: http://localhost:3000/document-template-drafts/myorg:test-template-y:0.1.0
+    url: http://localhost:3000/document-template-drafts/organization:test-template-y:0.1.0
 - request:
     body: null
     headers:
@@ -153,7 +153,7 @@ interactions:
   response:
     body:
       string: '{"error":{"code":"error.validation.tml_id_uniqueness","defaultMessage":"DocumentTemplate
-        ''%s'' already exists","params":["myorg:test-template-y:0.1.0"]},"status":400,"type":"UserSimpleError"}'
+        ''%s'' already exists","params":["organization:test-template-y:0.1.0"]},"status":400,"type":"UserSimpleError"}'
     headers:
       Access-Control-Allow-Credential:
       - 'true'

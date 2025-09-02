@@ -5,7 +5,7 @@
   "ctx": {
     "email": "john.doe@example.com",
     "organization": {
-      "name": "ACME untld.",
+      "name": "ACME",
       "id": "acme",
       "email": "acme@example.com"
     },

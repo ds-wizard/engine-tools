@@ -11,10 +11,10 @@ import zipfile
 
 import watchfiles
 
-from .api_client import DSWAPIClient, DSWCommunicationError
+from .api_client import WizardAPIClient, WizardCommunicationError
 from .consts import DEFAULT_ENCODING, REGEX_SEMVER
 from .model import TemplateProject, Template, TemplateFile, TemplateFileType
-from .utils import UUIDGen, create_dot_env
+from .utils import UUIDGen
 from .validation import ValidationError, TemplateValidator
 
 
@@ -33,22 +33,23 @@ class TDKProcessingError(RuntimeError):
 
 
 METAMODEL_VERSION_SUPPORT = {
-    1: (2, 5, 0),
-    2: (2, 6, 0),
-    3: (2, 12, 0),
-    4: (3, 2, 0),
-    5: (3, 5, 0),
-    6: (3, 6, 0),
-    7: (3, 7, 0),
-    8: (3, 8, 0),
-    9: (3, 10, 0),
-    10: (3, 12, 0),
-    11: (3, 20, 0),
-    12: (4, 1, 0),
-    13: (4, 3, 0),
-    14: (4, 10, 0),
-    15: (4, 12, 0),
-    16: (4, 13, 0),
+    '1.0': (2, 5, 0),
+    '2.0': (2, 6, 0),
+    '3.0': (2, 12, 0),
+    '4.0': (3, 2, 0),
+    '5.0': (3, 5, 0),
+    '6.0': (3, 6, 0),
+    '7.0': (3, 7, 0),
+    '8.0': (3, 8, 0),
+    '9.0': (3, 10, 0),
+    '10.0': (3, 12, 0),
+    '11.0': (3, 20, 0),
+    '12.0': (4, 1, 0),
+    '13.0': (4, 3, 0),
+    '14.0': (4, 10, 0),
+    '15.0': (4, 12, 0),
+    '16.0': (4, 13, 0),
+    '17.0': (4, 22, 0),
 }
 
 
@@ -56,31 +57,40 @@ METAMODEL_VERSION_SUPPORT = {
 class TDKCore:
 
     def _check_metamodel_version(self):
-        mm_ver = self.safe_template.metamodel_version
+        hint = 'Fix your metamodelVersion in template.json and/or visit docs'
+        mm_ver = str(self.safe_template.metamodel_version)
+        try:
+            if '.' not in mm_ver:
+                mm_ver = f'{mm_ver}.0'
+            mm_major, mm_minor = map(int, mm_ver.split('.'))
+        except ValueError as e:
+            raise TDKProcessingError(f'Invalid metamodel version format: {mm_ver}', hint) from e
         api_version = self.remote_version.split('~', maxsplit=1)[0]
         if '-' in api_version:
             api_version = api_version.split('-', maxsplit=1)[0]
         if 'v' == api_version[0]:
             api_version = api_version[1:]
         if not re.match(REGEX_SEMVER, api_version):
-            self.logger.warning('Using non-stable release of API: %s', self.remote_version)
+            self.logger.warning('Using non-stable release of API: %s',
+                                self.remote_version)
             return
         parts = api_version.split('.')
         ver = (int(parts[0]), int(parts[1]), int(parts[2]))
         vtag = f'v{ver[0]}.{ver[1]}.{ver[2]}'
-        hint = 'Fix your metamodelVersion in template.json and/or visit docs'
         if mm_ver not in METAMODEL_VERSION_SUPPORT:
             raise TDKProcessingError(f'Unknown metamodel version: {mm_ver}', hint)
-        min_version = METAMODEL_VERSION_SUPPORT[mm_ver]
-        if min_version > ver:
-            raise TDKProcessingError(f'Unsupported metamodel version for API {vtag}', hint)
-        if mm_ver + 1 in METAMODEL_VERSION_SUPPORT:
-            max_version = METAMODEL_VERSION_SUPPORT[mm_ver + 1]
-            if ver >= max_version:
-                raise TDKProcessingError(f'Unsupported metamodel version for API {vtag}', hint)
+        map_reverse = {f'v{v[0]}.{v[1]}.{v[2]}': k for k, v in METAMODEL_VERSION_SUPPORT.items()}
+        if vtag not in map_reverse:
+            raise TDKProcessingError(f'Unsupported API version: {vtag}', hint)
+        api_mm_major, api_mm_minor = map(int, map_reverse[vtag].split('.'))
+        if mm_major != api_mm_major or mm_minor < api_mm_minor:
+            raise TDKProcessingError(
+                f'Unsupported metamodel version {mm_ver} for API version {api_version}',
+                hint,
+            )
 
     def __init__(self, template: Template | None = None, project: TemplateProject | None = None,
-                 client: DSWAPIClient | None = None, logger: logging.Logger | None = None):
+                 client: WizardAPIClient | None = None, logger: logging.Logger | None = None):
         self.template = template
         self.project = project
         self.client = client
@@ -106,14 +116,14 @@ class TDKCore:
         return self.project
 
     @property
-    def safe_client(self) -> DSWAPIClient:
+    def safe_client(self) -> WizardAPIClient:
         if self.client is None:
             raise RuntimeError('No DSW API client specified')
         return self.client
 
     async def init_client(self, api_url: str, api_key: str):
         self.logger.info('Connecting to %s', api_url)
-        self.client = DSWAPIClient(api_url=api_url, api_key=api_key)
+        self.client = WizardAPIClient(api_url=api_url, api_key=api_key)
         self.remote_version = await self.client.get_api_version()
         user = await self.client.get_current_user()
         self.logger.info('Successfully authenticated as %s %s (%s)',
@@ -135,13 +145,13 @@ class TDKCore:
         self.logger.debug('Retrieving template draft files')
         files = await self.safe_client.get_template_draft_files(remote_id=template_id)
         self.logger.info('Retrieved %s file(s)', len(files))
-        for tfile in files:
-            self.safe_template.files[tfile.filename.as_posix()] = tfile
+        for file in files:
+            self.safe_template.files[file.filename.as_posix()] = file
         self.logger.debug('Retrieving template draft assets')
         assets = await self.safe_client.get_template_draft_assets(remote_id=template_id)
         self.logger.info('Retrieved %s asset(s)', len(assets))
-        for tfile in assets:
-            self.safe_template.files[tfile.filename.as_posix()] = tfile
+        for asset in assets:
+            self.safe_template.files[asset.filename.as_posix()] = asset
 
     async def download_bundle(self, template_id: str) -> bytes:
         self.logger.info('Retrieving template %s bundle', template_id)
@@ -215,103 +225,105 @@ class TDKCore:
             )
         await self.store_remote_files()
 
-    async def _update_template_file(self, remote_tfile: TemplateFile, local_tfile: TemplateFile,
+    async def _update_template_file(self, remote_file: TemplateFile, local_file: TemplateFile,
                                     project_update: bool = False):
         try:
             self.logger.debug('Updating existing remote %s %s (%s) started',
-                              remote_tfile.remote_type.value, remote_tfile.filename.as_posix(),
-                              remote_tfile.remote_id)
-            local_tfile.remote_id = remote_tfile.remote_id
-            if remote_tfile.remote_type == TemplateFileType.ASSET:
+                              remote_file.remote_type.value, remote_file.filename.as_posix(),
+                              remote_file.remote_id)
+            local_file.remote_id = remote_file.remote_id
+            if remote_file.remote_type == TemplateFileType.ASSET:
                 result = await self.safe_client.put_template_draft_asset_content(
                     remote_id=self.remote_id,
-                    tfile=local_tfile,
+                    file=local_file,
                 )
             else:
                 result = await self.safe_client.put_template_draft_file_content(
                     remote_id=self.remote_id,
-                    tfile=local_tfile,
+                    file=local_file,
                 )
             self.logger.debug('Updating existing remote %s %s (%s) finished: %s',
-                              remote_tfile.remote_type.value, remote_tfile.filename.as_posix(),
-                              remote_tfile.remote_id, 'ok' if result else 'failed')
+                              remote_file.remote_type.value, remote_file.filename.as_posix(),
+                              remote_file.remote_id, 'ok' if result else 'failed')
             if project_update and result:
                 self.safe_project.update_template_file(result)
         except Exception as e1:
             try:
                 self.logger.debug('Trying to delete/create due to: %s', str(e1))
-                await self._delete_template_file(tfile=remote_tfile)
-                await self._create_template_file(tfile=local_tfile, project_update=True)
+                await self._delete_template_file(file=remote_file)
+                await self._create_template_file(file=local_file, project_update=True)
             except Exception as e2:
                 self.logger.error('Failed to update existing remote %s %s: %s',
-                                  remote_tfile.remote_type.value,
-                                  remote_tfile.filename.as_posix(), e2)
+                                  remote_file.remote_type.value,
+                                  remote_file.filename.as_posix(), e2)
 
-    async def _delete_template_file(self, tfile: TemplateFile, project_update: bool = False):
+    async def _delete_template_file(self, file: TemplateFile, project_update: bool = False):
         try:
             self.logger.debug('Deleting existing remote %s %s (%s) started',
-                              tfile.remote_type.value, tfile.filename.as_posix(),
-                              tfile.remote_id)
-            if tfile.remote_type == TemplateFileType.ASSET:
+                              file.remote_type.value, file.filename.as_posix(),
+                              file.remote_id)
+            if file.remote_type == TemplateFileType.ASSET:
                 result = await self.safe_client.delete_template_draft_asset(
                     remote_id=self.remote_id,
-                    asset_id=tfile.remote_id,
+                    asset_id=file.remote_id,
                 )
             else:
                 result = await self.safe_client.delete_template_draft_file(
                     remote_id=self.remote_id,
-                    file_id=tfile.remote_id,
+                    file_id=file.remote_id,
                 )
             self.logger.debug('Deleting existing remote %s %s (%s) finished: %s',
-                              tfile.remote_type.value, tfile.filename.as_posix(),
-                              tfile.remote_id, 'ok' if result else 'failed')
+                              file.remote_type.value,
+                              file.filename.as_posix(),
+                              file.remote_id, 'ok' if result else 'failed')
             if project_update and result:
-                self.safe_project.remove_template_file(tfile.filename)
+                self.safe_project.remove_template_file(file.filename)
         except Exception as e:
             self.logger.error('Failed to delete existing remote %s %s: %s',
-                              tfile.remote_type.value, tfile.filename.as_posix(), e)
+                              file.remote_type.value, file.filename.as_posix(), e)
 
     async def cleanup_remote_files(self, remote_assets: list[TemplateFile],
                                    remote_files: list[TemplateFile]):
-        for tfile in self.safe_project.safe_template.files.values():
-            self.logger.debug('Cleaning up remote %s', tfile.filename.as_posix())
-            for remote_asset in remote_assets:
-                if remote_asset.filename == tfile.filename:
-                    await self._delete_template_file(tfile=remote_asset, project_update=False)
-            for remote_file in remote_files:
-                if remote_file.filename == tfile.filename:
-                    await self._delete_template_file(tfile=remote_file, project_update=False)
+        for file in self.safe_project.safe_template.files.values():
+            self.logger.debug('Cleaning up remote %s', file.filename.as_posix())
+            for asset in remote_assets:
+                if asset.filename == file.filename:
+                    await self._delete_template_file(file=asset, project_update=False)
+            for file in remote_files:
+                if file.filename == file.filename:
+                    await self._delete_template_file(file=file, project_update=False)
 
-    async def _create_template_file(self, tfile: TemplateFile, project_update: bool = False):
+    async def _create_template_file(self, file: TemplateFile, project_update: bool = False):
         try:
             self.logger.debug('Storing remote %s %s started',
-                              tfile.remote_type.value, tfile.filename.as_posix())
-            if tfile.remote_type == TemplateFileType.ASSET:
+                              file.remote_type.value, file.filename.as_posix())
+            if file.remote_type == TemplateFileType.ASSET:
                 result = await self.safe_client.post_template_draft_asset(
                     remote_id=self.remote_id,
-                    tfile=tfile,
+                    file=file,
                 )
             else:
                 result = await self.safe_client.post_template_draft_file(
                     remote_id=self.remote_id,
-                    tfile=tfile,
+                    file=file,
                 )
             self.logger.debug('Storing remote %s %s finished: %s',
-                              tfile.remote_type.value, tfile.filename.as_posix(), result.remote_id)
+                              file.remote_type.value, file.filename.as_posix(),
+                              result.remote_id)
             if project_update and result is not None:
                 self.safe_project.update_template_file(result)
         except Exception as e:
             self.logger.error('Failed to store remote %s %s: %s',
-                              tfile.remote_type.value, tfile.filename.as_posix(), e)
+                              file.remote_type.value, file.filename.as_posix(), e)
 
     async def store_remote_files(self):
         if len(self.safe_project.safe_template.files) == 0:
             self.logger.warning('No files to store, maybe you forgot to '
                                 'update _tdk.files patterns in template.json?')
-        for tfile in self.safe_project.safe_template.files.values():
-            tfile.remote_id = None
-            tfile.remote_type = TemplateFileType.FILE if tfile.is_text else TemplateFileType.ASSET
-            await self._create_template_file(tfile=tfile, project_update=True)
+        for file in self.safe_project.safe_template.files.values():
+            file.remote_id = None
+            file.remote_type = TemplateFileType.FILE if file.is_text else TemplateFileType.ASSET
+            await self._create_template_file(file=file, project_update=True)
 
     def create_package(self, output: pathlib.Path, force: bool):
         if output.exists() and not force:
@@ -321,23 +333,26 @@ class TDKCore:
             descriptor = self.safe_project.safe_template.serialize_remote()
             files = []
             assets = []
-            for tfile in self.safe_project.safe_template.files.values():
-                if tfile.is_text:
-                    self.logger.info('Adding template file %s', tfile.filename.as_posix())
+            for file in self.safe_project.safe_template.files.values():
+                if file.is_text:
+                    self.logger.info('Adding template file %s', file.filename.as_posix())
                     files.append({
                         'uuid': str(UUIDGen.generate()),
-                        'content': tfile.content.decode(encoding=DEFAULT_ENCODING),
-                        'fileName': str(tfile.filename.as_posix()),
+                        'content': file.content.decode(encoding=DEFAULT_ENCODING),
+                        'fileName': str(file.filename.as_posix()),
                     })
                 else:
-                    self.logger.info('Adding template asset %s', tfile.filename.as_posix())
+                    self.logger.info('Adding template asset %s',
+                                     file.filename.as_posix())
                     assets.append({
                         'uuid': str(UUIDGen.generate()),
-                        'contentType': tfile.content_type,
-                        'fileName': str(tfile.filename.as_posix()),
+                        'contentType': file.content_type,
+                        'fileName': str(file.filename.as_posix()),
                     })
-                    self.logger.debug('Packaging template asset %s', tfile.filename.as_posix())
-                    pkg.writestr(f'template/assets/{tfile.filename.as_posix()}', tfile.content)
+                    self.logger.debug('Packaging template asset %s',
+                                      file.filename.as_posix())
+                    pkg.writestr(f'template/assets/{file.filename.as_posix()}',
+                                 file.content)
             descriptor['files'] = files
             descriptor['assets'] = assets
             if len(files) == 0 and len(assets) == 0:
@@ -347,7 +362,8 @@ class TDKCore:
             descriptor['createdAt'] = timestamp
             descriptor['updatedAt'] = timestamp
             self.logger.debug('Packaging template.json file')
-            pkg.writestr('template/template.json', data=json.dumps(descriptor, indent=4))
+            pkg.writestr('template/template.json',
+                         data=json.dumps(descriptor, indent=4))
         self.logger.debug('ZIP packaging done')
 
     # pylint: disable=too-many-locals
@@ -358,12 +374,12 @@ class TDKCore:
                 pkg.extractall(tmp_dir)
             del io_zip
             tmp_root = pathlib.Path(tmp_dir) / 'template'
-            template_file = tmp_root / 'template.json'
+            file = tmp_root / 'template.json'
             assets_dir = tmp_root / 'assets'
             self.logger.debug('Extracting template data')
-            if not template_file.exists():
+            if not file.exists():
                 raise RuntimeError('Malformed package: missing template.json file')
-            data = json.loads(template_file.read_text(encoding=DEFAULT_ENCODING))
+            data = json.loads(file.read_text(encoding=DEFAULT_ENCODING))
             template = Template.load_local(data)
             template.tdk_config.use_default_files()
             self.logger.warning('Using default _tdk.files in template.json, you may want '
@@ -406,17 +422,6 @@ class TDKCore:
                 target_file.write_text(data=content, encoding=DEFAULT_ENCODING)
         self.logger.debug('Extracting package done')
 
-    def create_dot_env(self, output: pathlib.Path, force: bool, api_url: str, api_key: str):
-        if output.exists():
-            if force:
-                self.logger.warning('Overwriting %s (forced)', output.as_posix())
-            else:
-                raise RuntimeError(f'File {output} already exists (not forced)')
-        output.write_text(
-            data=create_dot_env(api_url=api_url, api_key=api_key),
-            encoding=DEFAULT_ENCODING,
-        )
-
     async def watch_project(self, callback, stop_event: asyncio.Event):
         async for changes in watchfiles.awatch(
                 self.safe_project.template_dir,
@@ -442,10 +447,11 @@ class TDKCore:
                     remote_id=self.remote_id,
                 )
             else:
-                self.logger.info('Document template draft %s does not exist on remote - full sync',
+                self.logger.info('Document template draft %s does '
+                                 'not exist on remote - full sync',
                                  self.safe_project.safe_template.id)
                 await self.store_remote(force=False)
-        except DSWCommunicationError as e:
+        except WizardCommunicationError as e:
             self.logger.error('Failed to update document template draft %s: %s',
                               self.safe_project.safe_template.id, e.message)
         except Exception as e:
@@ -458,12 +464,12 @@ class TDKCore:
                               filepath.as_posix())
             return
         try:
-            tfile = self.safe_project.get_template_file(filepath=filepath)
-            if tfile is None:
+            file = self.safe_project.get_template_file(filepath=filepath)
+            if file is None:
                 self.logger.info('File %s not tracked currently - skipping',
                                  filepath.as_posix())
                 return
-            await self._delete_template_file(tfile=tfile, project_update=True)
+            await self._delete_template_file(file=file, project_update=True)
         except Exception as e:
             self.logger.error('Failed to delete file %s: %s',
                               filepath.as_posix(), e)
@@ -474,12 +480,12 @@ class TDKCore:
                               filepath.as_posix())
             return
         try:
-            remote_tfile = self.safe_project.get_template_file(filepath=filepath)
-            local_tfile = self.safe_project.load_file(filepath=filepath)
-            if remote_tfile is not None:
-                await self._update_template_file(remote_tfile, local_tfile, project_update=True)
+            remote_file = self.safe_project.get_template_file(filepath=filepath)
+            local_file = self.safe_project.load_file(filepath=filepath)
+            if remote_file is not None:
+                await self._update_template_file(remote_file, local_file, project_update=True)
             else:
-                await self._create_template_file(tfile=local_tfile, project_update=True)
+                await self._create_template_file(file=local_file, project_update=True)
         except Exception as e:
             self.logger.error('Failed to update file %s: %s', filepath.as_posix(), e)
 

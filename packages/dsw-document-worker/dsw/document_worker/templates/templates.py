@@ -12,6 +12,7 @@ from ..consts import FormatField
 from ..context import Context
 from ..documents import DocumentFile
 from .formats import Format
+from ..model.context import QuestionnaireFile
 from .steps.base import register_step, Step
 
 
@@ -31,20 +32,29 @@ class TemplateException(Exception):
 
 class Asset:
 
-    def __init__(self, asset_uuid: str, filename: str, content_type: str,
-                 data: bytes):
-        self.asset_uuid = asset_uuid
-        self.filename = filename
+    def __init__(self, *, uuid: str, name: str, content_type: str,
+                 data: bytes, path: pathlib.Path):
+        self.uuid = uuid
+        self.name = name
         self.content_type = content_type
         self.data = data
+        self.path = path
+
+    @property
+    def is_image(self) -> bool:
+        return self.content_type.startswith('image/')
 
     @property
     def data_base64(self) -> str:
         return base64.b64encode(self.data).decode('ascii')
 
     @property
-    def src_value(self):
+    def data_url(self) -> str:
         return f'data:{self.content_type};base64,{self.data_base64}'
+
+    @property
+    def src_value(self):
+        return self.data_url
 
 
 @dataclasses.dataclass
@@ -63,10 +73,9 @@ class Template:
         self.last_used = datetime.datetime.now(tz=datetime.UTC)
         self.db_template = db_template
         self.template_id = self.db_template.template.id
+
         self.formats: dict[str, Format] = {}
-        self.asset_prefix = f'templates/{self.db_template.template.id}'
-        if Context.get().app.cfg.cloud.multi_tenant:
-            self.asset_prefix = f'{self.tenant_uuid}/{self.asset_prefix}'
+        self.questionnaire_uuid: str | None = None
 
     def raise_exc(self, message: str):
         raise TemplateException(self.template_id, message)
@@ -83,10 +92,54 @@ class Template:
             LOG.error('Asset "%s" not found', file_name)
             return None
         return Asset(
-            asset_uuid=asset.uuid,
-            filename=file_name,
+            uuid=asset.uuid,
+            name=file_name,
             content_type=asset.content_type,
-            data=file_path.read_bytes()
+            data=file_path.read_bytes(),
+            path=file_path,
+        )
+
+    def fetch_questionnaire_file(self, questionnaire_file: QuestionnaireFile) -> Asset | None:
+        return self._fetch_questionnaire_file(
+            file_uuid=questionnaire_file.uuid,
+            name=questionnaire_file.name,
+            content_type=questionnaire_file.content_type,
+        )
+
+    def fetch_questionnaire_file_dict(self, questionnaire_file: dict) -> Asset | None:
+        file_uuid = questionnaire_file.get('uuid', None)
+        name = questionnaire_file.get('fileName', None)
+        content_type = questionnaire_file.get('contentType', None)
+        if isinstance(file_uuid, str) and isinstance(name, str) and isinstance(content_type, str):
+            return self._fetch_questionnaire_file(
+                file_uuid=file_uuid,
+                name=name,
+                content_type=content_type,
+            )
+        return None
+
+    def _fetch_questionnaire_file(self, file_uuid: str, name: str,
+                                  content_type: str) -> Asset | None:
+        LOG.info('Fetching questionnaire file "%s"', file_uuid)
+        file_path = self.template_dir / 'questionnaire-files' / file_uuid
+        if not file_path.parent.exists():
+            file_path.parent.mkdir(parents=True, exist_ok=True)
+        if not file_path.exists():
+            result = Context.get().app.s3.download_questionnaire_file(
+                tenant_uuid=self.tenant_uuid,
+                questionnaire_uuid=self.questionnaire_uuid,
+                file_uuid=file_uuid,
+                target_path=file_path,
+            )
+            if not result:
+                LOG.error('Questionnaire file "%s" cannot be retrieved', file_uuid)
+                return None
+        return Asset(
+            uuid=file_uuid,
+            name=name,
+            content_type=content_type,
+            data=file_path.read_bytes(),
+            path=file_path,
         )
 
     def asset_path(self, filename: str) -> str:
@@ -94,11 +147,12 @@ class Template:
 
     def _store_asset(self, asset: DBDocumentTemplateAsset):
         LOG.debug('Storing asset %s (%s)', asset.uuid, asset.file_name)
-        remote_path = f'{self.asset_prefix}/{asset.uuid}'
         local_path = self.template_dir / asset.file_name
         local_path.parent.mkdir(parents=True, exist_ok=True)
-        result = Context.get().app.s3.download_file(
-            file_name=remote_path,
+        result = Context.get().app.s3.download_template_asset(
+            tenant_uuid=self.tenant_uuid,
+            template_id=self.db_template.template.id,
+            file_name=asset.uuid,
             target_path=local_path,
         )
         if not result:
@@ -217,11 +271,15 @@ class Template:
     def __getitem__(self, format_uuid: str) -> Format:
         return self.formats[format_uuid]
 
-    def render(self, format_uuid: str, context: dict) -> DocumentFile:
+    def render(self, format_uuid: str, questionnaire_uuid: str,
+               context: dict) -> DocumentFile:
         Context.get().app.pm.hook.enrich_document_context(context=context)
 
         self.last_used = datetime.datetime.now(tz=datetime.UTC)
-        return self[format_uuid].execute(context)
+        self.questionnaire_uuid = questionnaire_uuid
+        result = self[format_uuid].execute(context)
+        self.questionnaire_uuid = None
+        return result
 
 
 class TemplateRegistry:

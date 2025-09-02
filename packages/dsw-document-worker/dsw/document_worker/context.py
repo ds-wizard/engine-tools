@@ -33,6 +33,7 @@ class _Context:
     def __init__(self, app: AppContext, job: JobContext):
         self.app = app
         self.job = job
+        self.tenant_uuid = ''
 
     def update_trace_id(self, trace_id: str):
         self.app.cfg.log.set_logging_extra('traceId', trace_id)

@@ -204,3 +204,35 @@ jobs:
     - name: Lint with PyLint
       run: |
         pylint --rcfile=.pylintrc.ini packages/*/dsw
+
+  # CSpell
+  cspell:
+    name: CSpell
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+
+    - name: Install CSpell
+      run: |
+        npm install -g cspell
+        npm install -g @cspell/dict-python
+
+    - name: Run CSpell
+      run: |
+        cspell \
+          --no-progress \
+          --no-summary \
+          --config .cspell/cspell.json \
+          packages/**/*.py \
+          packages/**/*.md \
+          packages/**/*.json \
+          packages/**/*.toml \
+          packages/**/*.yml \
+          packages/**/*.yaml

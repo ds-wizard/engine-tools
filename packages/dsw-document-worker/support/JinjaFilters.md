@@ -90,7 +90,7 @@ Example: `[uuid1, uuid2, uuid3]|reply_path`
 
 * `replies` - dict with replies
 * `path` - list of UUIDs or path-string
-* `xtype` (optional) - desired type of return value (`"string"`, `"int"`, `"float"`, `"list"`)
+* `cast_type` (optional) - desired type of return value (`"string"`, `"int"`, `"float"`, `"list"`)
 
 Example: `replies|find_reply(path, "list")`
 

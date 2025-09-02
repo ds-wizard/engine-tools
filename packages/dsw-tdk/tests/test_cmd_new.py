@@ -13,6 +13,8 @@ def test_new_no_dir(tmp_path: pathlib.Path):
         result = runner.invoke(main, args=['new'], input='\n'.join(inputs))
         assert not result.exception
         assert result.exit_code == 0
+        print(result.stderr)
+        print(result.stdout)
         paths = frozenset(map(lambda x: str(x.relative_to(isolated_dir).as_posix()), tmp_path.rglob('*')))
         assert 'dsw_test-template_0.1.0/template.json' in paths
         assert 'dsw_test-template_0.1.0/README.md' in paths

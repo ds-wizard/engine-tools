@@ -4,8 +4,10 @@ import re
 import pathspec
 
 APP = 'dsw-tdk'
-VERSION = '4.21.0'
-METAMODEL_VERSION = 16
+VERSION = '4.22.0'
+METAMODEL_VERSION_MAJOR = 17
+METAMODEL_VERSION_MINOR = 0
+METAMODEL_VERSION = f'{METAMODEL_VERSION_MAJOR}.{METAMODEL_VERSION_MINOR}'
 
 REGEX_SEMVER = re.compile(r'^[0-9]+\.[0-9]+\.[0-9]+$')
 REGEX_WIZARD_ID = re.compile(r'^[a-zA-Z0-9-_.]+$')
