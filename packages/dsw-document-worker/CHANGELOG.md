@@ -7,12 +7,14 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+
+## [4.22.0]
+
 ### Changed
 
 - Switch to use semver for document template metamodel versioning
 - Added new ApiIntegration and changed the previous one to ApiLegacyIntegration
 - Updated way to get assets (incl. questionnaire files) in document templates using ``assets`` function
-
 
 ## [4.21.0]
 
@@ -470,3 +472,4 @@ Released for version consistency with other DSW tools.
 [4.20.0]: /../../tree/v4.20.0
 [4.20.1]: /../../tree/v4.20.1
 [4.21.0]: /../../tree/v4.21.0
+[4.22.0]: /../../tree/v4.22.0
