@@ -418,7 +418,7 @@ def put_template(ctx, template_dir, api_url, api_key, force, watch):
             )
             await tdk.store_remote(force=force)
             ClickPrinter.success(f'Template {tdk.safe_project.safe_template.id} '
-                                 f'uploaded to {api_url}')
+                                 f'uploaded to {CONFIG.env.api_url}')
 
             if watch:
                 ClickPrinter.watch('Entering watch mode... (press Ctrl+C to abort)')

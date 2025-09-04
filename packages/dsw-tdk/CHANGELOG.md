@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
+## [4.22.1]
+
+### Fixed
+
+- Fixed checking metamodel and API version in TDK
+
 ## [4.22.0]
 
 ### Added
@@ -600,3 +606,4 @@ Initial DSW Template Development Kit (versioned as part of the [DSW platform](ht
 [4.20.1]: /../../tree/v4.20.1
 [4.21.0]: /../../tree/v4.21.0
 [4.22.0]: /../../tree/v4.22.0
+[4.22.1]: /../../tree/v4.22.1

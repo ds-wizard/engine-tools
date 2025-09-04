@@ -53,9 +53,10 @@ METAMODEL_VERSION_SUPPORT = {
 }
 
 
-# pylint: disable=too-many-public-methods
+# pylint: disable-next=too-many-public-methods
 class TDKCore:
 
+    # pylint: disable-next=too-many-locals
     def _check_metamodel_version(self):
         hint = 'Fix your metamodelVersion in template.json and/or visit docs'
         mm_ver = str(self.safe_template.metamodel_version)
@@ -79,10 +80,16 @@ class TDKCore:
         vtag = f'v{ver[0]}.{ver[1]}.{ver[2]}'
         if mm_ver not in METAMODEL_VERSION_SUPPORT:
             raise TDKProcessingError(f'Unknown metamodel version: {mm_ver}', hint)
-        map_reverse = {f'v{v[0]}.{v[1]}.{v[2]}': k for k, v in METAMODEL_VERSION_SUPPORT.items()}
-        if vtag not in map_reverse:
+        map_reverse = {v: k for k, v in METAMODEL_VERSION_SUPPORT.items()}
+        nearest_leq = unknown_version = (0, 0, 0)
+        for known_version in map_reverse.keys():
+            if known_version <= ver:
+                nearest_leq = known_version
+            else:
+                break
+        if nearest_leq == unknown_version:
             raise TDKProcessingError(f'Unsupported API version: {vtag}', hint)
-        api_mm_major, api_mm_minor = map(int, map_reverse[vtag].split('.'))
+        api_mm_major, api_mm_minor = map(int, map_reverse[nearest_leq].split('.'))
         if mm_major != api_mm_major or mm_minor < api_mm_minor:
             raise TDKProcessingError(
                 f'Unsupported metamodel version {mm_ver} for API version {api_version}',
