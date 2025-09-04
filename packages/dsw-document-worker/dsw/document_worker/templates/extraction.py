@@ -125,11 +125,19 @@ class SimpleExtractor(ContextExtractor):
                         '_value': reply.value,
                         '_path': path,
                     }
+                elif reply.is_legacy_integration:
+                    self._objects[key][a_key] = {
+                        '_value': reply.value,
+                        '_id': reply.id,
+                        '_url': reply.url,
+                        '_path': path,
+                    }
                 else:
                     self._objects[key][a_key] = {
                         '_value': reply.value,
                         '_id': reply.id,
                         '_url': reply.url,
+                        '_raw': reply.raw,
                         '_path': path,
                     }
                 if self._include_reply:
