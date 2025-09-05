@@ -175,18 +175,18 @@ class SeedRecipe:
                 key = self.uuids_placeholder.replace('[n]', f'[{i}]')
                 self.uuids_replacement[key] = str(uuid.uuid4())
 
+    def _prepare_s3_objects(self):
+        for s3_object in self.s3.objects:
+            s3_object.update_object_name(self.uuids_replacement)
+
     def prepare(self):
         if self.prepared:
             return
         self.db.load_db_scripts()
         self.s3.load_s3_object_names()
         self._prepare_uuids()
+        self._prepare_s3_objects()
         self.prepared = True
-
-    def run_prepare(self):
-        self._prepare_uuids()
-        for s3_object in self.s3.objects:
-            s3_object.update_object_name(self.uuids_replacement)
 
     def _replace_db_script(self, script: str, tenant_uuid: str) -> str:
         result = script.replace(self.db.tenant_placeholder, tenant_uuid)
