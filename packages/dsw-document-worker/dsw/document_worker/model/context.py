@@ -819,7 +819,7 @@ class IntegrationReply(Reply):
             created_by=created_by,
             reply_type='IntegrationReply',
         )
-        self.type = value_type
+        self.value_type = value_type
         self.item_id = item_id
         self.raw = raw
         self.value = value
@@ -830,15 +830,15 @@ class IntegrationReply(Reply):
 
     @property
     def is_plain(self) -> bool:
-        return self.type == 'PlainType'
+        return self.value_type == 'PlainType'
 
     @property
     def is_legacy_integration(self) -> bool:
-        return self.type == 'IntegrationLegacyType'
+        return self.value_type == 'IntegrationLegacyType'
 
     @property
     def is_integration(self) -> bool:
-        return self.type == 'IntegrationType'
+        return self.value_type == 'IntegrationType'
 
     @property
     def url(self) -> str | None:
@@ -868,7 +868,7 @@ class IntegrationReply(Reply):
             path=path,
             created_at=_datetime(data['createdAt']),
             created_by=SimpleAuthor.load(data['createdBy'], **options),
-            value_type=data['value']['type'],
+            value_type=data['value']['value']['type'],
             value=data['value']['value'].get('value', ''),
             item_id=data['value']['value'].get('id', None),
             raw=data['value']['value'].get('raw', None),
