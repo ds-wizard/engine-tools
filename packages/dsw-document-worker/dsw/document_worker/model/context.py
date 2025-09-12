@@ -842,7 +842,7 @@ class IntegrationReply(Reply):
 
     @property
     def url(self) -> str | None:
-        if not self.is_integration or self.item_id is None:
+        if not self.is_legacy_integration or self.item_id is None:
             return None
         if isinstance(self.question, IntegrationQuestion) \
                 and isinstance(self.question.integration, ApiLegacyIntegration):
