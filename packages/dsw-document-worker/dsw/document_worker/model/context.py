@@ -1715,6 +1715,8 @@ class KnowledgeModel:
 class ContextConfig:
 
     def __init__(self, *, client_url: str | None):
+        if isinstance(client_url, str):
+            client_url = client_url.rstrip('/')
         self.client_url = client_url
 
     @staticmethod
