@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- Strip trailing `/` from client URL in document context
+
 
 ## [4.22.4]
 

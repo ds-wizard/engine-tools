@@ -56,7 +56,7 @@ class MailTemplate:
         msg.language = self.descriptor.language
         msg.importance = self.descriptor.importance
         msg.priority = self.descriptor.priority
-        ctx['_meta']['subject'] = msg.subject
+        ctx = self._enhance_contxt(ctx, msg)
         msg.from_mail = mail_from
         msg.from_name = mail_name or self.descriptor.default_sender_name
         if self.html_template is not None:
@@ -66,6 +66,16 @@ class MailTemplate:
         msg.attachments = self.attachments
         msg.html_images = self.html_images
         return msg
+
+    @staticmethod
+    def _enhance_contxt(ctx: dict, msg: MailMessage) -> dict:
+        if '_meta' not in ctx:
+            ctx['_meta'] = {}
+        ctx['_meta']['subject'] = msg.subject
+        if 'clientUrl' in ctx:
+            # Remove trailing slash if any
+            ctx['clientUrl'] = ctx['clientUrl'].rstrip('/')
+        return ctx
 
 
 class TemplateRegistry:
