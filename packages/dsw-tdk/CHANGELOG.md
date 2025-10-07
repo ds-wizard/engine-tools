@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
+## [4.23.0]
+
+### Changed
+
+- Improved default `_tdk.files` for created template project using `dsw-tdk new`
+
 ## [4.22.4]
 
 Released for version consistency with other DSW tools.
@@ -622,3 +628,4 @@ Initial DSW Template Development Kit (versioned as part of the [DSW platform](ht
 [4.22.2]: /../../tree/v4.22.2
 [4.22.3]: /../../tree/v4.22.3
 [4.22.4]: /../../tree/v4.22.4
+[4.23.0]: /../../tree/v4.23.0

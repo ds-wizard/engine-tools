@@ -170,7 +170,7 @@ class TemplateBuilder:
                 content_type='text/plain',
                 content=content.encode(encoding=DEFAULT_ENCODING),
             )
-            self.template.tdk_config.files.append(str(format_spec.filename))
+        self.template.tdk_config.files = ['src/**/*', '!.git/', '!.env']
         self.template.allowed_packages.append(PackageFilter())
 
         license_file = j2_env.get_template('LICENSE.j2').render(template=self.template)
