@@ -1,4 +1,4 @@
-FROM datastewardshipwizard/python-base:4.23.0-docworker AS builder
+FROM datastewardshipwizard/python-base:4.23.1-docworker AS builder
 
 ARG TARGETARCH
 
@@ -17,7 +17,7 @@ RUN python -m pip wheel --wheel-dir=/app/wheels -r /app/packages/dsw-document-wo
  && python -m pip wheel --no-deps --wheel-dir=/app/wheels /app/packages/dsw-document-worker/addons/* \
  && python -m pip wheel --no-deps --wheel-dir=/app/wheels /app/packages/dsw-document-worker
 
-FROM datastewardshipwizard/python-base:4.23.0-docworker
+FROM datastewardshipwizard/python-base:4.23.1-docworker
 
 ENV APPLICATION_CONFIG_PATH=/app/config/application.yml \
     WORKDIR_PATH=/tmp/docworker \
