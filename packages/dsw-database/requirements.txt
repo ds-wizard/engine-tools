@@ -1,8 +1,8 @@
-certifi==2025.8.3
-psycopg==3.2.10
-psycopg-binary==3.2.10
+certifi==2025.10.5
+psycopg==3.2.12
+psycopg-binary==3.2.12
 PyYAML==6.0.3
-sentry-sdk==2.39.0
+sentry-sdk==2.43.0
 tenacity==9.1.2
 typing_extensions==4.15.0
 urllib3==2.5.0
