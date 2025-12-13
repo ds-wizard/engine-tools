@@ -14,7 +14,7 @@ from dsw.config.model import DatabaseConfig
 from .model import DBDocumentTemplate, DBDocumentTemplateFile, \
     DBDocumentTemplateAsset, DBDocument, DBComponent, \
     DocumentState, DBTenantLimits, DBSubmission, \
-    DBInstanceConfigMail, DBQuestionnaireSimple, \
+    DBInstanceConfigMail, DBProjectSimple, \
     DBUserEntity, DBLocale, DBDocumentTemplateFormat, \
     DBDocumentTemplateStep
 
@@ -36,15 +36,15 @@ class Database:
 
     SELECT_DOCUMENT = ('SELECT * FROM document '
                        'WHERE uuid = %s AND tenant_uuid = %s LIMIT 1;')
-    SELECT_QTN_DOCUMENTS = ('SELECT * FROM document '
-                            'WHERE questionnaire_uuid = %s AND tenant_uuid = %s;')
+    SELECT_DOCUMENTS = ('SELECT * FROM document '
+                        'WHERE project_uuid = %s AND tenant_uuid = %s;')
     SELECT_DOCUMENT_SUBMISSIONS = ('SELECT * FROM submission '
                                    'WHERE document_uuid = %s AND tenant_uuid = %s;')
-    SELECT_QTN_SUBMISSIONS = ('SELECT s.* '
-                              'FROM document d JOIN submission s ON d.uuid = s.document_uuid '
-                              'WHERE d.questionnaire_uuid = %s AND d.tenant_uuid = %s;')
-    SELECT_QTN_SIMPLE = ('SELECT qtn.* FROM questionnaire qtn '
-                         'WHERE qtn.uuid = %s AND qtn.tenant_uuid = %s;')
+    SELECT_SUBMISSIONS = ('SELECT s.* '
+                          'FROM document d JOIN submission s ON d.uuid = s.document_uuid '
+                          'WHERE d.project_uuid = %s AND d.tenant_uuid = %s;')
+    SELECT_PROJECT_SIMPLE = ('SELECT p.* FROM project p '
+                             'WHERE p.uuid = %s AND p.tenant_uuid = %s;')
     SELECT_TENANT_LIMIT = ('SELECT uuid, storage FROM tenant_limit_bundle '
                            'WHERE uuid = %(tenant_uuid)s LIMIT 1;')
     UPDATE_DOCUMENT_STATE = 'UPDATE document SET state = %s, worker_log = %s WHERE uuid = %s;'
@@ -79,7 +79,7 @@ class Database:
                       '+ (SELECT COALESCE(SUM(file_size)::bigint, 0) '
                       'FROM document_template_asset WHERE tenant_uuid = %(tenant_uuid)s) '
                       '+ (SELECT COALESCE(SUM(file_size)::bigint, 0) '
-                      'FROM questionnaire_file WHERE tenant_uuid = %(tenant_uuid)s) '
+                      'FROM project_file WHERE tenant_uuid = %(tenant_uuid)s) '
                       'AS result;')
     SELECT_USER = ('SELECT * FROM user_entity '
                    'WHERE uuid = %(user_uuid)s AND tenant_uuid = %(tenant_uuid)s;')
@@ -271,12 +271,11 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def fetch_qtn_documents(self, questionnaire_uuid: str,
-                            tenant_uuid: str) -> list[DBDocument]:
+    def fetch_project_documents(self, project_uuid: str, tenant_uuid: str) -> list[DBDocument]:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
-                query=self.SELECT_QTN_DOCUMENTS,
-                params=(questionnaire_uuid, tenant_uuid),
+                query=self.SELECT_DOCUMENTS,
+                params=(project_uuid, tenant_uuid),
             )
             return [DBDocument.from_dict_row(x) for x in cursor.fetchall()]
 
@@ -303,12 +302,12 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def fetch_questionnaire_submissions(self, questionnaire_uuid: str,
-                                        tenant_uuid: str) -> list[DBSubmission]:
+    def fetch_submissions(self, project_uuid: str,
+                          tenant_uuid: str) -> list[DBSubmission]:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
-                query=self.SELECT_QTN_SUBMISSIONS,
-                params=(questionnaire_uuid, tenant_uuid),
+                query=self.SELECT_SUBMISSIONS,
+                params=(project_uuid, tenant_uuid),
             )
             return [DBSubmission.from_dict_row(x) for x in cursor.fetchall()]
 
@@ -319,14 +318,14 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def fetch_questionnaire_simple(self, questionnaire_uuid: str,
-                                   tenant_uuid: str) -> DBQuestionnaireSimple:
+    def fetch_project_simple(self, project_uuid: str,
+                             tenant_uuid: str) -> DBProjectSimple:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
-                query=self.SELECT_QTN_SIMPLE,
-                params=(questionnaire_uuid, tenant_uuid),
+                query=self.SELECT_PROJECT_SIMPLE,
+                params=(project_uuid, tenant_uuid),
             )
-            return DBQuestionnaireSimple.from_dict_row(cursor.fetchone())
+            return DBProjectSimple.from_dict_row(cursor.fetchone())
 
     @tenacity.retry(
         reraise=True,

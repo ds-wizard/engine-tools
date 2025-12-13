@@ -12,7 +12,7 @@ from ..consts import FormatField
 from ..context import Context
 from ..documents import DocumentFile
 from .formats import Format
-from ..model.context import QuestionnaireFile
+from ..model.context import ProjectFile
 from .steps.base import register_step, Step
 
 
@@ -75,7 +75,7 @@ class Template:
         self.template_id = self.db_template.template.id
 
         self.formats: dict[str, Format] = {}
-        self.questionnaire_uuid: str | None = None
+        self.project_uuid: str | None = None
 
     def raise_exc(self, message: str):
         raise TemplateException(self.template_id, message)
@@ -99,40 +99,40 @@ class Template:
             path=file_path,
         )
 
-    def fetch_questionnaire_file(self, questionnaire_file: QuestionnaireFile) -> Asset | None:
-        return self._fetch_questionnaire_file(
-            file_uuid=questionnaire_file.uuid,
-            name=questionnaire_file.name,
-            content_type=questionnaire_file.content_type,
+    def fetch_project_file(self, file: ProjectFile) -> Asset | None:
+        return self._fetch_project_file(
+            file_uuid=file.uuid,
+            name=file.name,
+            content_type=file.content_type,
         )
 
-    def fetch_questionnaire_file_dict(self, questionnaire_file: dict) -> Asset | None:
-        file_uuid = questionnaire_file.get('uuid', None)
-        name = questionnaire_file.get('fileName', None)
-        content_type = questionnaire_file.get('contentType', None)
+    def fetch_project_file_dict(self, file: dict) -> Asset | None:
+        file_uuid = file.get('uuid', None)
+        name = file.get('fileName', None)
+        content_type = file.get('contentType', None)
         if isinstance(file_uuid, str) and isinstance(name, str) and isinstance(content_type, str):
-            return self._fetch_questionnaire_file(
+            return self._fetch_project_file(
                 file_uuid=file_uuid,
                 name=name,
                 content_type=content_type,
             )
         return None
 
-    def _fetch_questionnaire_file(self, file_uuid: str, name: str,
-                                  content_type: str) -> Asset | None:
-        LOG.info('Fetching questionnaire file "%s"', file_uuid)
-        file_path = self.template_dir / 'questionnaire-files' / file_uuid
+    def _fetch_project_file(self, file_uuid: str, name: str,
+                            content_type: str) -> Asset | None:
+        LOG.info('Fetching project file "%s"', file_uuid)
+        file_path = self.template_dir / 'project-files' / file_uuid
         if not file_path.parent.exists():
             file_path.parent.mkdir(parents=True, exist_ok=True)
         if not file_path.exists():
-            result = Context.get().app.s3.download_questionnaire_file(
+            result = Context.get().app.s3.download_project_file(
                 tenant_uuid=self.tenant_uuid,
-                questionnaire_uuid=self.questionnaire_uuid,
+                project_uuid=self.project_uuid,
                 file_uuid=file_uuid,
                 target_path=file_path,
             )
             if not result:
-                LOG.error('Questionnaire file "%s" cannot be retrieved', file_uuid)
+                LOG.error('Project file "%s" cannot be retrieved', file_uuid)
                 return None
         return Asset(
             uuid=file_uuid,
@@ -271,14 +271,14 @@ class Template:
     def __getitem__(self, format_uuid: str) -> Format:
         return self.formats[format_uuid]
 
-    def render(self, format_uuid: str, questionnaire_uuid: str,
+    def render(self, format_uuid: str, project_uuid: str,
                context: dict) -> DocumentFile:
         Context.get().app.pm.hook.enrich_document_context(context=context)
 
         self.last_used = datetime.datetime.now(tz=datetime.UTC)
-        self.questionnaire_uuid = questionnaire_uuid
+        self.project_uuid = project_uuid
         result = self[format_uuid].execute(context)
-        self.questionnaire_uuid = None
+        self.project_uuid = None
         return result
 
 

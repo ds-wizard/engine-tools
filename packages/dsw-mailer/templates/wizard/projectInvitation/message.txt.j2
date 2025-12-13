@@ -1,12 +1,12 @@
 {%- set userFirstName = ctx.inviteeFirstName -%}
 {%- set ownerFirstName = ctx.ownerFirstName -%}
 {%- set ownerLastName = ctx.ownerLastName -%}
-{%- set projectName = "\"" ~ ctx.questionnaireName ~ "\"" -%}
+{%- set projectName = "\"" ~ ctx.projectName ~ "\"" -%}
 
 {% trans %}Hello {{ userFirstName }}{% endtrans %},
 
 {% trans %}{{ ownerFirstName }} {{ ownerLastName }} has invited you to the project {{ projectName }}{% endtrans %}:
 
-{{ ctx.clientUrl }}/projects/{{ ctx.questionnaireUuid }}
+{{ ctx.clientUrl }}/projects/{{ ctx.projectUuid }}
 
 {% include '_common/footer.txt.j2' %}

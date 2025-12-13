@@ -45,9 +45,9 @@ class DBDocument:
     name: str
     state: str
     durability: str
-    questionnaire_uuid: str
-    questionnaire_event_uuid: str
-    questionnaire_replies_hash: str
+    project_uuid: str
+    project_event_uuid: str
+    project_replies_hash: str
     document_template_id: str
     format_uuid: str
     file_name: str
@@ -67,9 +67,9 @@ class DBDocument:
             name=data['name'],
             state=data['state'],
             durability=data['durability'],
-            questionnaire_uuid=str(data['questionnaire_uuid']),
-            questionnaire_event_uuid=str(data['questionnaire_event_uuid']),
-            questionnaire_replies_hash=data['questionnaire_replies_hash'],
+            project_uuid=str(data['project_uuid']),
+            project_event_uuid=str(data['project_event_uuid']),
+            project_replies_hash=data['project_replies_hash'],
             document_template_id=data['document_template_id'],
             format_uuid=str(data['format_uuid']),
             created_by=str(data['created_by']),
@@ -323,10 +323,10 @@ class DBSubmission:
 
 
 @dataclasses.dataclass
-class DBQuestionnaireSimple:
+class DBProjectSimple:
     # without: events, answered_questions, unanswered_questions,
     #          squashed, versions, selected_question_tag_uuids
-    TABLE_NAME = 'questionnaire'
+    TABLE_NAME = 'project'
 
     uuid: str
     name: str
@@ -345,7 +345,7 @@ class DBQuestionnaireSimple:
 
     @staticmethod
     def from_dict_row(data: dict):
-        return DBQuestionnaireSimple(
+        return DBProjectSimple(
             uuid=str(data['uuid']),
             name=data['name'],
             visibility=data['visibility'],

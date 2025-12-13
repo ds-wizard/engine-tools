@@ -1,5 +1,5 @@
 {
-  "id": "wizard:questionnaireInvitation",
+  "id": "wizard:projectInvitation",
   "subject": "Project Invitation",
   "subjectPrefix": true,
   "defaultSenderName": "DSW",

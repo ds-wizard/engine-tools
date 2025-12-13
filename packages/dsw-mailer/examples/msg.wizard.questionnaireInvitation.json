@@ -1,7 +1,7 @@
 {
   "id": "2ff6a64c-b781-4aea-8873-2ccb3e9ee3d7",
-  "type": "wizard:questionnaireInvitation",
-  "trigger": "file:msg.wizard.questionnaireInvitation.json",
+  "type": "wizard:projectInvitation",
+  "trigger": "file:msg.wizard.projectInvitation.json",
   "ctx": {
     "email": "john.doe@example.com",
     "invitee": {

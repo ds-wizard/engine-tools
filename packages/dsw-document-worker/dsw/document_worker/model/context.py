@@ -928,7 +928,7 @@ class FileReply(Reply):
             reply_type='FileReply',
         )
         self.file_uuid = file_uuid
-        self.file: QuestionnaireFile | None = None
+        self.file: ProjectFile | None = None
 
     @property
     def value(self) -> str:
@@ -936,7 +936,7 @@ class FileReply(Reply):
 
     def resolve_links(self, ctx):
         super().resolve_links_parent(ctx)
-        self.file = ctx.questionnaire.files.get(self.file_uuid, None)
+        self.file = ctx.project.files.get(self.file_uuid, None)
         if self.file is not None:
             self.file.reply = self
 
@@ -1749,7 +1749,7 @@ class Document:
         )
 
 
-class QuestionnaireVersion:
+class ProjectVersion:
 
     def __init__(self, *, uuid: str, event_uuid: str, name: str, description: str | None,
                  created_at: datetime.datetime, updated_at: datetime.datetime,
@@ -1764,7 +1764,7 @@ class QuestionnaireVersion:
 
     @staticmethod
     def load(data: dict, **options):
-        return QuestionnaireVersion(
+        return ProjectVersion(
             uuid=data['uuid'],
             event_uuid=data['eventUuid'],
             name=data['name'],
@@ -1805,7 +1805,7 @@ class RepliesContainer:
         return self.replies.items()
 
 
-class QuestionnaireFile:
+class ProjectFile:
 
     def __init__(self, *, uuid: str, file_name: str, file_size: int,
                  content_type: str):
@@ -1816,17 +1816,21 @@ class QuestionnaireFile:
 
         self.reply: FileReply | None = None
         self.download_url: str = ''
-        self.questionnaire_uuid: str | None = None
+        self.project_uuid: str | None = None
+
+    @property
+    def questionnaire_uuid(self) -> str | None:
+        return self.project_uuid
 
     def resolve_links(self, ctx):
-        self.questionnaire_uuid = ctx.questionnaire.uuid
+        self.project_uuid = ctx.project.uuid
         client_url = ctx.config.client_url
-        self.download_url = (f'{client_url}/projects/{self.questionnaire_uuid}'
+        self.download_url = (f'{client_url}/projects/{self.project_uuid}'
                              f'/files/{self.uuid}/download')
 
     @staticmethod
     def load(data: dict, **options):
-        return QuestionnaireFile(
+        return ProjectFile(
             uuid=data['uuid'],
             file_name=data['fileName'],
             file_size=data['fileSize'],
@@ -1834,7 +1838,7 @@ class QuestionnaireFile:
         )
 
 
-class Questionnaire:
+class Project:
 
     def __init__(self, *, uuid: str, name: str, description: str | None,
                  created_by: User, phase_uuid: str | None,
@@ -1847,9 +1851,9 @@ class Questionnaire:
         self.created_at = created_at
         self.updated_at = updated_at
 
-        self.version: QuestionnaireVersion | None = None
-        self.versions: list[QuestionnaireVersion] = []
-        self.files: dict[str, QuestionnaireFile] = {}
+        self.version: ProjectVersion | None = None
+        self.versions: list[ProjectVersion] = []
+        self.files: dict[str, ProjectFile] = {}
         self.todos: list[str] = []
         self.project_tags: list[str] = []
         self.phase: Phase = PHASE_NEVER
@@ -1859,24 +1863,24 @@ class Questionnaire:
     def resolve_links(self, ctx):
         for reply in self.replies.values():
             reply.resolve_links(ctx)
-        for questionnaire_file in self.files.values():
-            questionnaire_file.resolve_links(ctx)
+        for file in self.files.values():
+            file.resolve_links(ctx)
 
     @staticmethod
     def load(data: dict, **options):
-        questionnaire_uuid = data['uuid']
-        versions = [QuestionnaireVersion.load(d, **options)
+        entity_uuid = data['uuid']
+        versions = [ProjectVersion.load(d, **options)
                     for d in data['versions']]
         version = None
         replies = {p: _load_reply(p, d, **options)
                    for p, d in data['replies'].items()}
-        files = {d['uuid']: QuestionnaireFile.load(d, **options)
+        files = {d['uuid']: ProjectFile.load(d, **options)
                  for d in data.get('files', [])}
         for v in versions:
             if v.uuid == data['versionUuid']:
                 version = v
-        qtn = Questionnaire(
-            uuid=questionnaire_uuid,
+        entity = Project(
+            uuid=entity_uuid,
             name=data['name'],
             description=data['description'] or '',
             created_by=User.load(data['createdBy'], **options),
@@ -1884,13 +1888,13 @@ class Questionnaire:
             created_at=_datetime(data['createdAt']),
             updated_at=_datetime(data['updatedAt']),
         )
-        qtn.version = version
-        qtn.versions = versions
-        qtn.files = files
-        qtn.project_tags = data.get('projectTags', [])
-        qtn.replies.replies = replies
-        qtn.todos = [k for k, v in data.get('labels', {}).items() if TODO_LABEL_UUID in v]
-        return qtn
+        entity.version = version
+        entity.versions = versions
+        entity.files = files
+        entity.project_tags = data.get('projectTags', [])
+        entity.replies.replies = replies
+        entity.todos = [k for k, v in data.get('labels', {}).items() if TODO_LABEL_UUID in v]
+        return entity
 
 
 class Package:
@@ -2158,7 +2162,7 @@ class DocumentContext:
         )
         self.config = ContextConfig.load(ctx['config'], **options)
         self.km = KnowledgeModel.load(ctx['knowledgeModel'], **options)
-        self.questionnaire = Questionnaire.load(ctx['questionnaire'], **options)
+        self.project = Project.load(ctx['questionnaire'], **options)
         self.report = Report.load(ctx['report'], **options)
         self.document = Document.load(ctx['document'], **options)
         self.package = Package.load(ctx['package'], **options)
@@ -2179,8 +2183,12 @@ class DocumentContext:
         return self.config
 
     @property
-    def qtn(self) -> Questionnaire:
-        return self.questionnaire
+    def qtn(self) -> Project:
+        return self.project
+
+    @property
+    def questionnaire(self) -> Project:
+        return self.project
 
     @property
     def org(self) -> Organization:
@@ -2196,16 +2204,16 @@ class DocumentContext:
 
     @property
     def replies(self) -> RepliesContainer:
-        return self.questionnaire.replies
+        return self.project.replies
 
     def resolve_links(self):
-        phase_uuid = self.questionnaire.phase_uuid
+        phase_uuid = self.project.phase_uuid
         if phase_uuid is not None and phase_uuid in self.e.phases:
             self.current_phase = self.e.phases[phase_uuid]
-        self.questionnaire.phase = self.current_phase
+        self.project.phase = self.current_phase
         self.km.resolve_links(self)
         self.report.resolve_links(self)
-        self.questionnaire.resolve_links(self)
+        self.project.resolve_links(self)
 
         rv = ReplyVisitor(context=self)
         rv.visit()
