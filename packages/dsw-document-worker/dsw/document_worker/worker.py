@@ -150,14 +150,14 @@ class Job:
     def _enrich_context(self):
         extras: dict[str, typing.Any] = {}
         if self.safe_format.requires_via_extras('submissions'):
-            submissions = self.ctx.app.db.fetch_questionnaire_submissions(
-                questionnaire_uuid=self.safe_doc.questionnaire_uuid,
+            submissions = self.ctx.app.db.fetch_submissions(
+                project_uuid=self.safe_doc.project_uuid,
                 tenant_uuid=self.tenant_uuid,
             )
             extras['submissions'] = [s.to_dict() for s in submissions]
         if self.safe_format.requires_via_extras('questionnaire'):
-            questionnaire = self.ctx.app.db.fetch_questionnaire_simple(
-                questionnaire_uuid=self.safe_doc.questionnaire_uuid,
+            questionnaire = self.ctx.app.db.fetch_project_simple(
+                project_uuid=self.safe_doc.project_uuid,
                 tenant_uuid=self.tenant_uuid,
             )
             extras['questionnaire'] = questionnaire.to_dict()
@@ -180,7 +180,7 @@ class Job:
         SentryReporter.set_tags(phase='render')
         final_file = self.safe_template.render(
             format_uuid=doc.format_uuid,
-            questionnaire_uuid=self.safe_doc.questionnaire_uuid,
+            project_uuid=self.safe_doc.project_uuid,
             context=self.doc_context,
         )
         # check limits

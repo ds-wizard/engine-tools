@@ -91,11 +91,11 @@ class S3Storage:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def download_questionnaire_file(self, *, tenant_uuid: str, questionnaire_uuid: str,
-                                    file_uuid: str, target_path: pathlib.Path) -> bool:
+    def download_project_file(self, *, tenant_uuid: str, project_uuid: str,
+                              file_uuid: str, target_path: pathlib.Path) -> bool:
         return self._download_file(
             tenant_uuid=tenant_uuid,
-            file_name=f'questionnaire-files/{questionnaire_uuid}/{file_uuid}',
+            file_name=f'project-files/{project_uuid}/{file_uuid}',
             target_path=target_path,
         )
 

@@ -1,4 +1,4 @@
-{%- set projectGroups = ctx.notifications|sort(attribute='questionnaireName')|groupby('questionnaireUuid') -%}
+{%- set projectGroups = ctx.notifications|sort(attribute='projectName')|groupby('projectUuid') -%}
 {%- set spThread = 'threads' if ctx.notifications|length > 1 else 'thread' -%}
 {%- macro threadLink(projectUuid, path, threadUuid) -%}
 {{ ctx.clientUrl }}/projects/{{ projectUuid }}?questionPath={{ path }}&commentThreadUuid={{ threadUuid }}
@@ -14,11 +14,11 @@
 {% trans count=ctx.notifications|length %}The following comment thread has been assigned to you:{% pluralize %}The following {{ count }} comment threads have been assigned to you:{% endtrans %}
 
 {% for qtnUuid, items in projectGroups %}
-{{ items[0].questionnaireName }} ({{ projectLink(qtnUuid) }})
+{{ items[0].projectName }} ({{ projectLink(qtnUuid) }})
 {% for item in items %}
 - {{ item.text|truncate(100, False, '...') }}
   {% trans %}Assigned by{% endtrans %}: {{ item.assignedBy.firstName }} {{ item.assignedBy.lastName }}, {% if item.resolved %}{% trans %}already resolved{% endtrans %}{% else %}{% trans %}unresolved{% endtrans %}{% endif %}{% if item.private %}, {% trans %}private editor note{% endtrans %}{% endif %})
-  {{ threadLink(item.questionnaireUuid, item.path, item.commentThreadUuid) }}
+  {{ threadLink(item.projectUuid, item.path, item.commentThreadUuid) }}
 {% endfor %}
 --------------------
 {% endfor %}
