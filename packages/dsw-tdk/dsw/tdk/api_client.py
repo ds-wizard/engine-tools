@@ -361,9 +361,19 @@ class WizardAPIClient:
         return await self._delete(f'/document-template-drafts/{remote_id}/assets/{asset_id}')
 
     @handle_client_errors
-    async def get_api_version(self) -> str:
+    async def get_api_version(self) -> tuple[str, str | None]:
         body = await self._get_json('/')
-        return body['version']
+        version = body.get('version', None)
+        metamodel_version = None
+        for item in body.get('metamodelVersions', []):
+            if item.get('name', '') == 'Document Template':
+                metamodel_version = item.get('version', None)
+        if version is None:
+            raise WizardCommunicationError(
+                reason='Invalid response',
+                message='Server did not return valid API version information (incompatible TDK?)'
+            )
+        return version, metamodel_version
 
     @handle_client_errors
     async def get_organization_id(self) -> str:

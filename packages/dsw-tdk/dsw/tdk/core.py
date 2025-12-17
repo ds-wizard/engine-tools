@@ -4,7 +4,6 @@ import io
 import json
 import logging
 import pathlib
-import re
 import shutil
 import tempfile
 import zipfile
@@ -12,7 +11,7 @@ import zipfile
 import watchfiles
 
 from .api_client import WizardAPIClient, WizardCommunicationError
-from .consts import DEFAULT_ENCODING, REGEX_SEMVER
+from .consts import DEFAULT_ENCODING
 from .model import TemplateProject, Template, TemplateFile, TemplateFileType
 from .utils import UUIDGen
 from .validation import ValidationError, TemplateValidator
@@ -32,33 +31,16 @@ class TDKProcessingError(RuntimeError):
         self.hint = hint
 
 
-METAMODEL_VERSION_SUPPORT = {
-    '1.0': (2, 5, 0),
-    '2.0': (2, 6, 0),
-    '3.0': (2, 12, 0),
-    '4.0': (3, 2, 0),
-    '5.0': (3, 5, 0),
-    '6.0': (3, 6, 0),
-    '7.0': (3, 7, 0),
-    '8.0': (3, 8, 0),
-    '9.0': (3, 10, 0),
-    '10.0': (3, 12, 0),
-    '11.0': (3, 20, 0),
-    '12.0': (4, 1, 0),
-    '13.0': (4, 3, 0),
-    '14.0': (4, 10, 0),
-    '15.0': (4, 12, 0),
-    '16.0': (4, 13, 0),
-    '17.0': (4, 22, 0),
-}
-
-
 # pylint: disable-next=too-many-public-methods
 class TDKCore:
 
     # pylint: disable-next=too-many-locals
     def _check_metamodel_version(self):
         hint = 'Fix your metamodelVersion in template.json and/or visit docs'
+        if self.remote_metamodel_version is None:
+            self.logger.warning('Remote metamodel version is unknown, you should use '
+                                'a matching version of TDK to avoid issues')
+            return
         mm_ver = str(self.safe_template.metamodel_version)
         try:
             if '.' not in mm_ver:
@@ -66,34 +48,24 @@ class TDKCore:
             mm_major, mm_minor = map(int, mm_ver.split('.'))
         except ValueError as e:
             raise TDKProcessingError(f'Invalid metamodel version format: {mm_ver}', hint) from e
-        api_version = self.remote_version.split('~', maxsplit=1)[0]
-        if '-' in api_version:
-            api_version = api_version.split('-', maxsplit=1)[0]
-        if 'v' == api_version[0]:
-            api_version = api_version[1:]
-        if not re.match(REGEX_SEMVER, api_version):
-            self.logger.warning('Using non-stable release of API: %s',
-                                self.remote_version)
-            return
-        parts = api_version.split('.')
-        ver = (int(parts[0]), int(parts[1]), int(parts[2]))
-        vtag = f'v{ver[0]}.{ver[1]}.{ver[2]}'
-        if mm_ver not in METAMODEL_VERSION_SUPPORT:
-            raise TDKProcessingError(f'Unknown metamodel version: {mm_ver}', hint)
-        map_reverse = {v: k for k, v in METAMODEL_VERSION_SUPPORT.items()}
-        nearest_leq = unknown_version = (0, 0, 0)
-        for known_version in map_reverse.keys():
-            if known_version <= ver:
-                nearest_leq = known_version
-            else:
-                break
-        if nearest_leq == unknown_version:
-            raise TDKProcessingError(f'Unsupported API version: {vtag}', hint)
-        api_mm_major, api_mm_minor = map(int, map_reverse[nearest_leq].split('.'))
-        if mm_major != api_mm_major or mm_minor < api_mm_minor:
+        mmr_ver = self.remote_metamodel_version
+        try:
+            if '.' not in mmr_ver:
+                mmr_ver = f'{mmr_ver}.0'
+            mmr_major, mmr_minor = map(int, mmr_ver.split('.'))
+        except ValueError as e:
+            raise TDKProcessingError(f'Invalid remote metamodel version format: {mmr_ver}',
+                                     'Check if connecting to correct API with matching version '
+                                     'as you have in TDK.') from e
+        if (mm_major, mm_minor) == (mmr_major, mmr_minor):
+            self.logger.debug('Metamodel version %s matches remote version %s',
+                              mmr_ver, mmr_ver)
+        elif mm_major == mmr_major and mm_minor < mmr_minor:
+            self.logger.warning('Local metamodel version %s is older than remote version %s, '
+                                'but still compatible', mm_ver, mmr_ver)
+        else:
             raise TDKProcessingError(
-                f'Unsupported metamodel version {mm_ver} for API version {api_version}',
-                hint,
+                f'Unsupported metamodel version: local {mm_ver}, remote {mmr_ver}', hint
             )
 
     def __init__(self, template: Template | None = None, project: TemplateProject | None = None,
@@ -101,7 +73,8 @@ class TDKCore:
         self.template = template
         self.project = project
         self.client = client
-        self.remote_version = 'unknown~??????'
+        self.remote_version: str = 'unknown~??????'
+        self.remote_metamodel_version: str | None = 'unknown'
         self.logger = logger or logging.getLogger()
         self.loop = asyncio.get_event_loop()
         self.changes_processor = ChangesProcessor(self)
@@ -131,7 +104,7 @@ class TDKCore:
     async def init_client(self, api_url: str, api_key: str):
         self.logger.info('Connecting to %s', api_url)
         self.client = WizardAPIClient(api_url=api_url, api_key=api_key)
-        self.remote_version = await self.client.get_api_version()
+        self.remote_version, self.remote_metamodel_version = await self.client.get_api_version()
         user = await self.client.get_current_user()
         self.logger.info('Successfully authenticated as %s %s (%s)',
                          user['firstName'], user['lastName'], user['email'])
