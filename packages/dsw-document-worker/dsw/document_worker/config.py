@@ -37,6 +37,64 @@ class _ExperimentalKeys(ConfigKeysContainer):
 
 
 # pylint: disable-next=too-few-public-methods
+class _DocumentContextKeys(ConfigKeysContainer):
+    service_name = ConfigKey(
+        yaml_path=['documentContext', 'serviceName'],
+        var_names=['DOCUMENT_CONTEXT_SERVICE_NAME'],
+        default='Data Stewardship Wizard',
+        cast=cast_str,
+    )
+    service_name_short = ConfigKey(
+        yaml_path=['documentContext', 'serviceNameShort'],
+        var_names=['DOCUMENT_CONTEXT_SERVICE_NAME_SHORT'],
+        default='DSW',
+        cast=cast_str,
+    )
+    service_url = ConfigKey(
+        yaml_path=['documentContext', 'serviceUrl'],
+        var_names=['DOCUMENT_CONTEXT_SERVICE_URL'],
+        default='https://ds-wizard.org',
+        cast=cast_str,
+    )
+    service_domain_name = ConfigKey(
+        yaml_path=['documentContext', 'serviceDomainName'],
+        var_names=['DOCUMENT_CONTEXT_SERVICE_DOMAIN_NAME'],
+        default='ds-wizard.org',
+        cast=cast_str,
+    )
+    default_primary_color = ConfigKey(
+        yaml_path=['documentContext', 'defaultPrimaryColor'],
+        var_names=['DOCUMENT_CONTEXT_DEFAULT_PRIMARY_COLOR'],
+        default='#0033aa',
+        cast=cast_str,
+    )
+    default_illustrations_color = ConfigKey(
+        yaml_path=['documentContext', 'defaultIllustrationsColor'],
+        var_names=['DOCUMENT_CONTEXT_DEFAULT_ILLUSTRATIONS_COLOR'],
+        default='#0033aa',
+        cast=cast_str,
+    )
+    default_logo_url = ConfigKey(
+        yaml_path=['documentContext', 'defaultLogoUrl'],
+        var_names=['DOCUMENT_CONTEXT_DEFAULT_LOGO_URL'],
+        default='{{clientUrl}}/assets/logo.svg',
+        cast=cast_str,
+    )
+    default_app_title = ConfigKey(
+        yaml_path=['documentContext', 'defaultAppTitle'],
+        var_names=['DOCUMENT_CONTEXT_DEFAULT_APP_TITLE'],
+        default='DS Wizard',
+        cast=cast_str,
+    )
+    default_app_title_short = ConfigKey(
+        yaml_path=['documentContext', 'defaultAppTitleShort'],
+        var_names=['DOCUMENT_CONTEXT_DEFAULT_APP_TITLE_SHORT'],
+        default='DS Wizard',
+        cast=cast_str,
+    )
+
+
+# pylint: disable-next=too-few-public-methods
 class _CommandPandocKeys(ConfigKeysContainer):
     executable = ConfigKey(
         yaml_path=['externals', 'pandoc', 'executable'],
@@ -63,6 +121,7 @@ class DocWorkerConfigKeys(ConfigKeys):
     documents = _DocumentsKeys
     experimental = _ExperimentalKeys
     cmd_pandoc = _CommandPandocKeys
+    context = _DocumentContextKeys
 
 
 @dataclasses.dataclass
@@ -77,6 +136,19 @@ class DocumentsConfig(ConfigModel):
 class ExperimentalConfig(ConfigModel):
     job_timeout: int | None
     max_doc_size: int | None
+
+
+@dataclasses.dataclass
+class DocumentContextConfig(ConfigModel):
+    service_name: str
+    service_name_short: str
+    service_url: str
+    service_domain_name: str
+    default_primary_color: str
+    default_illustrations_color: str
+    default_logo_url: str
+    default_app_title: str
+    default_app_title_short: str
 
 
 @dataclasses.dataclass
@@ -148,6 +220,7 @@ class DocumentWorkerConfig:
     cloud: CloudConfig
     sentry: SentryConfig
     general: GeneralConfig
+    context: DocumentContextConfig
 
     def __str__(self):
         return f'DocumentWorkerConfig\n' \
@@ -160,6 +233,7 @@ class DocumentWorkerConfig:
                f'{self.cloud}' \
                f'{self.sentry}' \
                f'{self.general}' \
+               f'{self.context}' \
                f'Pandoc: {self.pandoc}' \
                f'====================\n'
 
@@ -202,6 +276,20 @@ class DocumentWorkerConfigParser(DSWConfigParser):
         )
 
     @property
+    def context(self) -> DocumentContextConfig:
+        return DocumentContextConfig(
+            service_name=self.get(self.keys.context.service_name),
+            service_name_short=self.get(self.keys.context.service_name_short),
+            service_url=self.get(self.keys.context.service_url),
+            service_domain_name=self.get(self.keys.context.service_domain_name),
+            default_primary_color=self.get(self.keys.context.default_primary_color),
+            default_illustrations_color=self.get(self.keys.context.default_illustrations_color),
+            default_logo_url=self.get(self.keys.context.default_logo_url),
+            default_app_title=self.get(self.keys.context.default_app_title),
+            default_app_title_short=self.get(self.keys.context.default_app_title_short),
+        )
+
+    @property
     def config(self) -> DocumentWorkerConfig:
         return DocumentWorkerConfig(
             db=self.db,
@@ -214,4 +302,5 @@ class DocumentWorkerConfigParser(DSWConfigParser):
             cloud=self.cloud,
             sentry=self.sentry,
             general=self.general,
+            context=self.context,
         )

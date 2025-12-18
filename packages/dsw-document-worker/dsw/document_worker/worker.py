@@ -147,6 +147,34 @@ class Job:
         # fetch template config
         self.template_config = self.ctx.app.cfg.templates.get_config(template_id)
 
+    def _enrich_context_config(self):
+        old = self.doc_context.get('config', {})
+
+        client_url = old.get('clientUrl', '').rstrip('/')
+        app_title = (old.get('appTitle', None) or
+                     self.ctx.app.cfg.context.default_app_title)
+        app_title_short = (old.get('appTitleShort', None) or
+                           self.ctx.app.cfg.context.default_app_title_short)
+        primary_color = (old.get('primaryColor', None) or
+                         self.ctx.app.cfg.context.default_primary_color)
+        illustrations_color = (old.get('illustrationsColor', None) or
+                               self.ctx.app.cfg.context.default_illustrations_color)
+        logo_url = (old.get('logoUrl', None) or
+                    self.ctx.app.cfg.context.default_logo_url)
+        logo_url.replace('{{clientUrl}}', client_url)
+
+        self.doc_context['config'].update({
+            'serviceName': self.ctx.app.cfg.context.service_name,
+            'serviceNameShort': self.ctx.app.cfg.context.service_name_short,
+            'serviceUrl': self.ctx.app.cfg.context.service_url,
+            'serviceDomainName': self.ctx.app.cfg.context.service_domain_name,
+            'appTitle': app_title,
+            'appTitleShort': app_title_short,
+            'primaryColor': primary_color,
+            'illustrationsColor': illustrations_color,
+            'logoUrl': logo_url,
+        })
+
     def _enrich_context(self):
         extras: dict[str, typing.Any] = {}
         if self.safe_format.requires_via_extras('submissions'):
@@ -162,6 +190,7 @@ class Job:
             )
             extras['questionnaire'] = questionnaire.to_dict()
         self.doc_context['extras'] = extras
+        self._enrich_context_config()
 
     def check_compliance(self):
         SentryReporter.set_tags(phase='check')
