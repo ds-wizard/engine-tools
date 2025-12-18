@@ -1,6 +1,7 @@
 # pylint: disable=too-many-lines, unused-argument, too-many-arguments,
 import abc
 import datetime
+import re
 import typing
 
 import dateutil.parser as dp
@@ -10,7 +11,8 @@ from ..utils import check_metamodel_version
 from .utils import strip_markdown
 
 AnnotationsT = dict[str, str | list[str]]
-TODO_LABEL_UUID = "615b9028-5e3f-414f-b245-12d2ae2eeb20"
+TODO_LABEL_UUID = '615b9028-5e3f-414f-b245-12d2ae2eeb20'
+DEFAULT_COLOR = '#0033aa'
 
 
 def _datetime(timestamp: str) -> datetime.datetime:
@@ -33,6 +35,67 @@ def _load_annotations(annotations: list[dict[str, str]]) -> AnnotationsT:
         else:
             result[key] = value_list
     return result
+
+
+class Color:
+    @staticmethod
+    def contrast_ratio(color1: 'Color', color2: 'Color') -> float:
+        l1 = color1.luminance + 0.05
+        l2 = color2.luminance + 0.05
+        if l1 > l2:
+            return l1 / l2
+        return l2 / l1
+
+    def __init__(self, color_hex: str = DEFAULT_COLOR, default: str = DEFAULT_COLOR):
+        color_hex = self.parse_color_to_hex(color_hex) or default
+        h = color_hex.lstrip('#')
+        self.red, self.green, self.blue = tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
+
+    @staticmethod
+    def parse_color_to_hex(color: str) -> str | None:
+        color = color.strip()
+        if re.match(r'^#[0-9a-fA-F]{6}$', color):
+            return color
+        if re.match(r'^#[0-9a-fA-F]{3}$', color):
+            r = color[1]
+            g = color[2]
+            b = color[3]
+            return f'#{r}{r}{g}{g}{b}{b}'
+        return None
+
+    @property
+    def hex(self):
+        return f'#{self.red:02x}{self.green:02x}{self.blue:02x}'
+
+    @property
+    def luminance(self):
+        def _luminance_component(component: int):
+            c = component / 255
+            if c <= 0.03928:
+                return c / 12.92
+            return ((c + 0.055) / 1.055) ** 2.4
+
+        r = _luminance_component(self.red)
+        g = _luminance_component(self.green)
+        b = _luminance_component(self.blue)
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+    @property
+    def is_dark(self):
+        return self.luminance < 0.5
+
+    @property
+    def is_light(self):
+        return not self.is_dark
+
+    @property
+    def contrast_color(self) -> 'Color':
+        if self.contrast_ratio(self, Color('#ffffff')) > 3:
+            return Color('#ffffff')
+        return Color('#000000')
+
+    def __str__(self):
+        return self.hex
 
 
 class SimpleAuthor:
@@ -1714,15 +1777,34 @@ class KnowledgeModel:
 
 class ContextConfig:
 
-    def __init__(self, *, client_url: str | None):
-        if isinstance(client_url, str):
-            client_url = client_url.rstrip('/')
-        self.client_url = client_url
+    def __init__(self, *, app_title: str, app_title_short: str, client_url: str,
+                 primary_color: str, illustrations_color: str, logo_url: str,
+                 service_name: str, service_name_short: str, service_url: str,
+                 service_domain_name: str):
+        self.app_title = app_title
+        self.app_title_short = app_title_short
+        self.client_url = client_url.rstrip('/')
+        self.primary_color = Color(primary_color)
+        self.illustrations_color = Color(illustrations_color)
+        self.logo_url = logo_url
+        self.service_name = service_name
+        self.service_name_short = service_name_short
+        self.service_url = service_url.rstrip('/')
+        self.service_domain_name = service_domain_name
 
     @staticmethod
     def load(data: dict, **options):
         return ContextConfig(
-            client_url=data.get('clientUrl', None),
+            app_title=data.get('appTitle', ''),
+            app_title_short=data.get('appTitleShort', ''),
+            client_url=data.get('clientUrl', ''),
+            primary_color=data.get('primaryColor', DEFAULT_COLOR),
+            illustrations_color=data.get('illustrationsColor', DEFAULT_COLOR),
+            logo_url=data.get('logoUrl', ''),
+            service_name=data.get('serviceName', ''),
+            service_name_short=data.get('serviceNameShort', ''),
+            service_url=data.get('serviceUrl', ''),
+            service_domain_name=data.get('serviceDomainName', ''),
         )
 
 

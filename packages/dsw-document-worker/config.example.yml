@@ -25,6 +25,12 @@ templates:
     secrets:
       API_TOKEN:
 
+#context:
+#  serviceName: Data Stewardship Wizard
+#  serviceNameShort: DSW
+#  serviceUrl: https://ds-wizard.org
+#  serviceDomainName: ds-wizard.org
+
 #sentry:
 #  enabled:
 #  workersDsn:
