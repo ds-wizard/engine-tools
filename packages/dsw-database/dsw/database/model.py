@@ -45,8 +45,8 @@ class DBDocument:
     name: str
     state: str
     durability: str
-    questionnaire_uuid: str
-    questionnaire_event_uuid: str
+    questionnaire_uuid: str | None
+    questionnaire_event_uuid: str | None
     questionnaire_replies_hash: str
     document_template_id: str
     format_uuid: str
@@ -62,13 +62,15 @@ class DBDocument:
 
     @staticmethod
     def from_dict_row(data: dict):
+        qtn_uuid = data['questionnaire_uuid']
+        event_uuid = data['questionnaire_event_uuid']
         return DBDocument(
             uuid=str(data['uuid']),
             name=data['name'],
             state=data['state'],
             durability=data['durability'],
-            questionnaire_uuid=str(data['questionnaire_uuid']),
-            questionnaire_event_uuid=str(data['questionnaire_event_uuid']),
+            questionnaire_uuid=str(qtn_uuid) if qtn_uuid else None,
+            questionnaire_event_uuid=str(event_uuid) if event_uuid else None,
             questionnaire_replies_hash=data['questionnaire_replies_hash'],
             document_template_id=data['document_template_id'],
             format_uuid=str(data['format_uuid']),
