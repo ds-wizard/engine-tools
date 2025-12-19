@@ -150,10 +150,13 @@ class Job:
     def _enrich_context(self):
         extras: dict[str, typing.Any] = {}
         if self.safe_format.requires_via_extras('submissions'):
-            submissions = self.ctx.app.db.fetch_questionnaire_submissions(
-                questionnaire_uuid=self.safe_doc.questionnaire_uuid,
-                tenant_uuid=self.tenant_uuid,
-            )
+            if self.safe_doc.questionnaire_uuid is None:
+                submissions = []
+            else:
+                submissions = self.ctx.app.db.fetch_questionnaire_submissions(
+                    questionnaire_uuid=self.safe_doc.questionnaire_uuid,
+                    tenant_uuid=self.tenant_uuid,
+                )
             extras['submissions'] = [s.to_dict() for s in submissions]
         if self.safe_format.requires_via_extras('questionnaire'):
             questionnaire = self.ctx.app.db.fetch_questionnaire_simple(
