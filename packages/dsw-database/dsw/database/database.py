@@ -40,9 +40,9 @@ class Database:
                         'WHERE project_uuid = %s AND tenant_uuid = %s;')
     SELECT_DOCUMENT_SUBMISSIONS = ('SELECT * FROM submission '
                                    'WHERE document_uuid = %s AND tenant_uuid = %s;')
-    SELECT_SUBMISSIONS = ('SELECT s.* '
-                          'FROM document d JOIN submission s ON d.uuid = s.document_uuid '
-                          'WHERE d.project_uuid = %s AND d.tenant_uuid = %s;')
+    SELECT_PROJECT_SUBMISSIONS = ('SELECT s.* '
+                                  'FROM document d JOIN submission s ON d.uuid = s.document_uuid '
+                                  'WHERE d.project_uuid = %s AND d.tenant_uuid = %s;')
     SELECT_PROJECT_SIMPLE = ('SELECT p.* FROM project p '
                              'WHERE p.uuid = %s AND p.tenant_uuid = %s;')
     SELECT_TENANT_LIMIT = ('SELECT uuid, storage FROM tenant_limit_bundle '
@@ -303,10 +303,10 @@ class Database:
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
     def fetch_project_submissions(self, project_uuid: str,
-                          tenant_uuid: str) -> list[DBSubmission]:
+                                  tenant_uuid: str) -> list[DBSubmission]:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
-                query=self.SELECT_SUBMISSIONS,
+                query=self.SELECT_PROJECT_SUBMISSIONS,
                 params=(project_uuid, tenant_uuid),
             )
             return [DBSubmission.from_dict_row(x) for x in cursor.fetchall()]

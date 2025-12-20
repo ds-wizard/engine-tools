@@ -35,7 +35,7 @@ def handle_job_step(message):
             try:
                 return func(job, *args, **kwargs)
             except Exception as e:
-                LOG.debug('Handling exception', exc_info=True)
+                LOG.info('Handling exception', exc_info=True)
                 new_exception = create_job_exception(
                     job_id=job.doc_uuid,
                     message=message,
@@ -159,9 +159,9 @@ class Job:
                          self.ctx.app.cfg.context.default_primary_color)
         illustrations_color = (old.get('illustrationsColor', None) or
                                self.ctx.app.cfg.context.default_illustrations_color)
-        logo_url = (old.get('logoUrl', None) or
-                    self.ctx.app.cfg.context.default_logo_url)
-        logo_url.replace('{{clientUrl}}', client_url)
+        logo_url_template = (old.get('logoUrl', None) or
+                             self.ctx.app.cfg.context.default_logo_url)
+        logo_url = logo_url_template.replace('{{clientUrl}}', client_url)
 
         self.doc_context['config'].update({
             'serviceName': self.ctx.app.cfg.context.service_name,
@@ -187,11 +187,18 @@ class Job:
                 )
             extras['submissions'] = [s.to_dict() for s in submissions]
         if self.safe_format.requires_via_extras('questionnaire'):
+            # older deprecated variant (questionnaire -> project)
             questionnaire = self.ctx.app.db.fetch_project_simple(
                 project_uuid=self.safe_doc.project_uuid,
                 tenant_uuid=self.tenant_uuid,
             )
             extras['questionnaire'] = questionnaire.to_dict()
+        if self.safe_format.requires_via_extras('project'):
+            project = self.ctx.app.db.fetch_project_simple(
+                project_uuid=self.safe_doc.project_uuid,
+                tenant_uuid=self.tenant_uuid,
+            )
+            extras['project'] = project.to_dict()
         self.doc_context['extras'] = extras
         self._enrich_context_config()
 
