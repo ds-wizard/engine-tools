@@ -45,8 +45,8 @@ class DBDocument:
     name: str
     state: str
     durability: str
-    project_uuid: str
-    project_event_uuid: str
+    project_uuid: str | None
+    project_event_uuid: str | None
     project_replies_hash: str
     document_template_id: str
     format_uuid: str
@@ -62,13 +62,15 @@ class DBDocument:
 
     @staticmethod
     def from_dict_row(data: dict):
+        project_uuid = data['project_uuid']
+        event_uuid = data['project_event_uuid']
         return DBDocument(
             uuid=str(data['uuid']),
             name=data['name'],
             state=data['state'],
             durability=data['durability'],
-            project_uuid=str(data['project_uuid']),
-            project_event_uuid=str(data['project_event_uuid']),
+            project_uuid=str(project_uuid) if project_uuid else None,
+            project_event_uuid=str(event_uuid) if event_uuid else None,
             project_replies_hash=data['project_replies_hash'],
             document_template_id=data['document_template_id'],
             format_uuid=str(data['format_uuid']),

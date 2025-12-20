@@ -302,7 +302,7 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def fetch_submissions(self, project_uuid: str,
+    def fetch_project_submissions(self, project_uuid: str,
                           tenant_uuid: str) -> list[DBSubmission]:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
