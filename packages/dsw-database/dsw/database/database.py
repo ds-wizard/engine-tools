@@ -205,14 +205,10 @@ class Database:
                 query=self.SELECT_TEMPLATE_STEPS,
                 params=(template_id, tenant_uuid),
             )
-            print(f'Format results: {formats_result}')
-            print(f'Formats: {formats}')
             steps_result = cursor.fetchall()
             steps = sorted([
                 DBDocumentTemplateStep.from_dict_row(x) for x in steps_result
             ], key=lambda x: x.position)
-            print(f'Steps results: {formats_result}')
-            print(f'Steps: {steps}')
             steps_dict: dict[str, list[dict]] = {}
             for step in steps:
                 if step.format_uuid not in steps_dict:
@@ -227,7 +223,6 @@ class Database:
                     'name': format_obj.name,
                     'steps': steps_dict.get(format_obj.uuid, []),
                 })
-            print(template.formats)
         return template
 
     @tenacity.retry(
