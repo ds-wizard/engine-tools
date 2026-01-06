@@ -4,7 +4,7 @@ build-backend = 'setuptools.build_meta'
 
 [project]
 name = 'dsw-document-worker'
-version = "4.25.1"
+version = "4.26.0rc1"
 description = 'Worker for assembling and transforming documents'
 readme = 'README.md'
 keywords = ['documents', 'generation', 'jinja2', 'pandoc', 'worker']
@@ -36,13 +36,13 @@ dependencies = [
     'requests',
     'sentry-sdk',
     'tenacity',
-    'weasyprint==66.0',
+    'weasyprint==67.0',
     'XlsxWriter',
     # DSW
-    "dsw-command-queue==4.25.1",
-    "dsw-config==4.25.1",
-    "dsw-database==4.25.1",
-    "dsw-storage==4.25.1",
+    "dsw-command-queue==4.26.0rc1",
+    "dsw-config==4.26.0rc1",
+    "dsw-database==4.26.0rc1",
+    "dsw-storage==4.26.0rc1",
 ]
 
 [project.urls]

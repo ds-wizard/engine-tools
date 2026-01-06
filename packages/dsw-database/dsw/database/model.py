@@ -45,9 +45,9 @@ class DBDocument:
     name: str
     state: str
     durability: str
-    questionnaire_uuid: str | None
-    questionnaire_event_uuid: str | None
-    questionnaire_replies_hash: str
+    project_uuid: str | None
+    project_event_uuid: str | None
+    project_replies_hash: str
     document_template_id: str
     format_uuid: str
     file_name: str
@@ -62,16 +62,16 @@ class DBDocument:
 
     @staticmethod
     def from_dict_row(data: dict):
-        qtn_uuid = data['questionnaire_uuid']
-        event_uuid = data['questionnaire_event_uuid']
+        project_uuid = data['project_uuid']
+        event_uuid = data['project_event_uuid']
         return DBDocument(
             uuid=str(data['uuid']),
             name=data['name'],
             state=data['state'],
             durability=data['durability'],
-            questionnaire_uuid=str(qtn_uuid) if qtn_uuid else None,
-            questionnaire_event_uuid=str(event_uuid) if event_uuid else None,
-            questionnaire_replies_hash=data['questionnaire_replies_hash'],
+            project_uuid=str(project_uuid) if project_uuid else None,
+            project_event_uuid=str(event_uuid) if event_uuid else None,
+            project_replies_hash=data['project_replies_hash'],
             document_template_id=data['document_template_id'],
             format_uuid=str(data['format_uuid']),
             created_by=str(data['created_by']),
@@ -325,10 +325,10 @@ class DBSubmission:
 
 
 @dataclasses.dataclass
-class DBQuestionnaireSimple:
+class DBProjectSimple:
     # without: events, answered_questions, unanswered_questions,
     #          squashed, versions, selected_question_tag_uuids
-    TABLE_NAME = 'questionnaire'
+    TABLE_NAME = 'project'
 
     uuid: str
     name: str
@@ -347,7 +347,7 @@ class DBQuestionnaireSimple:
 
     @staticmethod
     def from_dict_row(data: dict):
-        return DBQuestionnaireSimple(
+        return DBProjectSimple(
             uuid=str(data['uuid']),
             name=data['name'],
             visibility=data['visibility'],

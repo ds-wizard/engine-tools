@@ -35,7 +35,7 @@ def handle_job_step(message):
             try:
                 return func(job, *args, **kwargs)
             except Exception as e:
-                LOG.debug('Handling exception', exc_info=True)
+                LOG.info('Handling exception', exc_info=True)
                 new_exception = create_job_exception(
                     job_id=job.doc_uuid,
                     message=message,
@@ -147,24 +147,60 @@ class Job:
         # fetch template config
         self.template_config = self.ctx.app.cfg.templates.get_config(template_id)
 
+    def _enrich_context_config(self):
+        old = self.doc_context.get('config', {})
+
+        client_url = old.get('clientUrl', '').rstrip('/')
+        app_title = (old.get('appTitle', None) or
+                     self.ctx.app.cfg.context.default_app_title)
+        app_title_short = (old.get('appTitleShort', None) or
+                           self.ctx.app.cfg.context.default_app_title_short)
+        primary_color = (old.get('primaryColor', None) or
+                         self.ctx.app.cfg.context.default_primary_color)
+        illustrations_color = (old.get('illustrationsColor', None) or
+                               self.ctx.app.cfg.context.default_illustrations_color)
+        logo_url_template = (old.get('logoUrl', None) or
+                             self.ctx.app.cfg.context.default_logo_url)
+        logo_url = logo_url_template.replace('{{clientUrl}}', client_url)
+
+        self.doc_context['config'].update({
+            'serviceName': self.ctx.app.cfg.context.service_name,
+            'serviceNameShort': self.ctx.app.cfg.context.service_name_short,
+            'serviceUrl': self.ctx.app.cfg.context.service_url,
+            'serviceDomainName': self.ctx.app.cfg.context.service_domain_name,
+            'appTitle': app_title,
+            'appTitleShort': app_title_short,
+            'primaryColor': primary_color,
+            'illustrationsColor': illustrations_color,
+            'logoUrl': logo_url,
+        })
+
     def _enrich_context(self):
         extras: dict[str, typing.Any] = {}
         if self.safe_format.requires_via_extras('submissions'):
             if self.safe_doc.questionnaire_uuid is None:
                 submissions = []
             else:
-                submissions = self.ctx.app.db.fetch_questionnaire_submissions(
-                    questionnaire_uuid=self.safe_doc.questionnaire_uuid,
+                submissions = self.ctx.app.db.fetch_project_submissions(
+                    project_uuid=self.safe_doc.project_uuid,
                     tenant_uuid=self.tenant_uuid,
                 )
             extras['submissions'] = [s.to_dict() for s in submissions]
         if self.safe_format.requires_via_extras('questionnaire'):
-            questionnaire = self.ctx.app.db.fetch_questionnaire_simple(
-                questionnaire_uuid=self.safe_doc.questionnaire_uuid,
+            # older deprecated variant (questionnaire -> project)
+            questionnaire = self.ctx.app.db.fetch_project_simple(
+                project_uuid=self.safe_doc.project_uuid,
                 tenant_uuid=self.tenant_uuid,
             )
             extras['questionnaire'] = questionnaire.to_dict()
+        if self.safe_format.requires_via_extras('project'):
+            project = self.ctx.app.db.fetch_project_simple(
+                project_uuid=self.safe_doc.project_uuid,
+                tenant_uuid=self.tenant_uuid,
+            )
+            extras['project'] = project.to_dict()
         self.doc_context['extras'] = extras
+        self._enrich_context_config()
 
     def check_compliance(self):
         SentryReporter.set_tags(phase='check')
@@ -183,7 +219,7 @@ class Job:
         SentryReporter.set_tags(phase='render')
         final_file = self.safe_template.render(
             format_uuid=doc.format_uuid,
-            questionnaire_uuid=self.safe_doc.questionnaire_uuid,
+            project_uuid=self.safe_doc.project_uuid,
             context=self.doc_context,
         )
         # check limits

@@ -1,6 +1,6 @@
 {% extends '_common/layout.html.j2' %}
 
-{%- set projectGroups = ctx.notifications|sort(attribute='questionnaireName')|groupby('questionnaireUuid') -%}
+{%- set projectGroups = ctx.notifications|sort(attribute='projectName')|groupby('projectUuid') -%}
 {%- set spThread = 'threads' if ctx.notifications|length > 1 else 'thread' -%}
 {%- macro threadLink(projectUuid, path, threadUuid) -%}
 {{ ctx.clientUrl }}/projects/{{ projectUuid }}?questionPath={{ path }}&commentThreadUuid={{ threadUuid }}
@@ -58,7 +58,7 @@
               <td valign="top" class="dswTextContent" style="padding-top: 0; padding-right: 18px; padding-bottom: 9px; padding-left: 18px; mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; word-break: break-word; color: #757575; font-family: Helvetica; font-size: 16px; line-height: 150%; text-align: left;">
                   <p dir="ltr"
                   style="margin: 0 0 10px 0; padding: 0; mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; color: #212529; font-family: Helvetica; font-size: 14px; line-height: 150%; text-align: left; font-weight: bold;">
-                    <strong>{{ items[0].questionnaireName }}</strong>
+                    <strong>{{ items[0].projectName }}</strong>
                   </p>
                   {% for item in items %}
                     <table align="left" border="0" cellpadding="0" cellspacing="0" style="max-width:100%;min-width:100%;border-collapse: separate !important;border: 1px solid #dee2e6; border-radius: 4px; margin-bottom: 10px;" width="100%">

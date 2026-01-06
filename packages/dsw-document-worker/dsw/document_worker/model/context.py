@@ -1,6 +1,7 @@
 # pylint: disable=too-many-lines, unused-argument, too-many-arguments,
 import abc
 import datetime
+import re
 import typing
 
 import dateutil.parser as dp
@@ -10,7 +11,8 @@ from ..utils import check_metamodel_version
 from .utils import strip_markdown
 
 AnnotationsT = dict[str, str | list[str]]
-TODO_LABEL_UUID = "615b9028-5e3f-414f-b245-12d2ae2eeb20"
+TODO_LABEL_UUID = '615b9028-5e3f-414f-b245-12d2ae2eeb20'
+DEFAULT_COLOR = '#0033aa'
 
 
 def _datetime(timestamp: str) -> datetime.datetime:
@@ -33,6 +35,67 @@ def _load_annotations(annotations: list[dict[str, str]]) -> AnnotationsT:
         else:
             result[key] = value_list
     return result
+
+
+class Color:
+    @staticmethod
+    def contrast_ratio(color1: 'Color', color2: 'Color') -> float:
+        l1 = color1.luminance + 0.05
+        l2 = color2.luminance + 0.05
+        if l1 > l2:
+            return l1 / l2
+        return l2 / l1
+
+    def __init__(self, color_hex: str = DEFAULT_COLOR, default: str = DEFAULT_COLOR):
+        color_hex = self.parse_color_to_hex(color_hex) or default
+        h = color_hex.lstrip('#')
+        self.red, self.green, self.blue = tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
+
+    @staticmethod
+    def parse_color_to_hex(color: str) -> str | None:
+        color = color.strip()
+        if re.match(r'^#[0-9a-fA-F]{6}$', color):
+            return color
+        if re.match(r'^#[0-9a-fA-F]{3}$', color):
+            r = color[1]
+            g = color[2]
+            b = color[3]
+            return f'#{r}{r}{g}{g}{b}{b}'
+        return None
+
+    @property
+    def hex(self):
+        return f'#{self.red:02x}{self.green:02x}{self.blue:02x}'
+
+    @property
+    def luminance(self):
+        def _luminance_component(component: int):
+            c = component / 255
+            if c <= 0.03928:
+                return c / 12.92
+            return ((c + 0.055) / 1.055) ** 2.4
+
+        r = _luminance_component(self.red)
+        g = _luminance_component(self.green)
+        b = _luminance_component(self.blue)
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+    @property
+    def is_dark(self):
+        return self.luminance < 0.5
+
+    @property
+    def is_light(self):
+        return not self.is_dark
+
+    @property
+    def contrast_color(self) -> 'Color':
+        if self.contrast_ratio(self, Color('#ffffff')) > 3:
+            return Color('#ffffff')
+        return Color('#000000')
+
+    def __str__(self):
+        return self.hex
 
 
 class SimpleAuthor:
@@ -928,7 +991,7 @@ class FileReply(Reply):
             reply_type='FileReply',
         )
         self.file_uuid = file_uuid
-        self.file: QuestionnaireFile | None = None
+        self.file: ProjectFile | None = None
 
     @property
     def value(self) -> str:
@@ -936,7 +999,7 @@ class FileReply(Reply):
 
     def resolve_links(self, ctx):
         super().resolve_links_parent(ctx)
-        self.file = ctx.questionnaire.files.get(self.file_uuid, None)
+        self.file = ctx.project.files.get(self.file_uuid, None)
         if self.file is not None:
             self.file.reply = self
 
@@ -1714,15 +1777,34 @@ class KnowledgeModel:
 
 class ContextConfig:
 
-    def __init__(self, *, client_url: str | None):
-        if isinstance(client_url, str):
-            client_url = client_url.rstrip('/')
-        self.client_url = client_url
+    def __init__(self, *, app_title: str, app_title_short: str, client_url: str,
+                 primary_color: str, illustrations_color: str, logo_url: str,
+                 service_name: str, service_name_short: str, service_url: str,
+                 service_domain_name: str):
+        self.app_title = app_title
+        self.app_title_short = app_title_short
+        self.client_url = client_url.rstrip('/')
+        self.primary_color = Color(primary_color)
+        self.illustrations_color = Color(illustrations_color)
+        self.logo_url = logo_url
+        self.service_name = service_name
+        self.service_name_short = service_name_short
+        self.service_url = service_url.rstrip('/')
+        self.service_domain_name = service_domain_name
 
     @staticmethod
     def load(data: dict, **options):
         return ContextConfig(
-            client_url=data.get('clientUrl', None),
+            app_title=data.get('appTitle', ''),
+            app_title_short=data.get('appTitleShort', ''),
+            client_url=data.get('clientUrl', ''),
+            primary_color=data.get('primaryColor', DEFAULT_COLOR),
+            illustrations_color=data.get('illustrationsColor', DEFAULT_COLOR),
+            logo_url=data.get('logoUrl', ''),
+            service_name=data.get('serviceName', ''),
+            service_name_short=data.get('serviceNameShort', ''),
+            service_url=data.get('serviceUrl', ''),
+            service_domain_name=data.get('serviceDomainName', ''),
         )
 
 
@@ -1749,7 +1831,7 @@ class Document:
         )
 
 
-class QuestionnaireVersion:
+class ProjectVersion:
 
     def __init__(self, *, uuid: str, event_uuid: str, name: str, description: str | None,
                  created_at: datetime.datetime, updated_at: datetime.datetime,
@@ -1764,7 +1846,7 @@ class QuestionnaireVersion:
 
     @staticmethod
     def load(data: dict, **options):
-        return QuestionnaireVersion(
+        return ProjectVersion(
             uuid=data['uuid'],
             event_uuid=data['eventUuid'],
             name=data['name'],
@@ -1805,7 +1887,7 @@ class RepliesContainer:
         return self.replies.items()
 
 
-class QuestionnaireFile:
+class ProjectFile:
 
     def __init__(self, *, uuid: str, file_name: str, file_size: int,
                  content_type: str):
@@ -1816,17 +1898,21 @@ class QuestionnaireFile:
 
         self.reply: FileReply | None = None
         self.download_url: str = ''
-        self.questionnaire_uuid: str | None = None
+        self.project_uuid: str | None = None
+
+    @property
+    def questionnaire_uuid(self) -> str | None:
+        return self.project_uuid
 
     def resolve_links(self, ctx):
-        self.questionnaire_uuid = ctx.questionnaire.uuid
+        self.project_uuid = ctx.project.uuid
         client_url = ctx.config.client_url
-        self.download_url = (f'{client_url}/projects/{self.questionnaire_uuid}'
+        self.download_url = (f'{client_url}/projects/{self.project_uuid}'
                              f'/files/{self.uuid}/download')
 
     @staticmethod
     def load(data: dict, **options):
-        return QuestionnaireFile(
+        return ProjectFile(
             uuid=data['uuid'],
             file_name=data['fileName'],
             file_size=data['fileSize'],
@@ -1834,7 +1920,7 @@ class QuestionnaireFile:
         )
 
 
-class Questionnaire:
+class Project:
 
     def __init__(self, *, uuid: str, name: str, description: str | None,
                  created_by: User, phase_uuid: str | None,
@@ -1847,9 +1933,9 @@ class Questionnaire:
         self.created_at = created_at
         self.updated_at = updated_at
 
-        self.version: QuestionnaireVersion | None = None
-        self.versions: list[QuestionnaireVersion] = []
-        self.files: dict[str, QuestionnaireFile] = {}
+        self.version: ProjectVersion | None = None
+        self.versions: list[ProjectVersion] = []
+        self.files: dict[str, ProjectFile] = {}
         self.todos: list[str] = []
         self.project_tags: list[str] = []
         self.phase: Phase = PHASE_NEVER
@@ -1859,24 +1945,24 @@ class Questionnaire:
     def resolve_links(self, ctx):
         for reply in self.replies.values():
             reply.resolve_links(ctx)
-        for questionnaire_file in self.files.values():
-            questionnaire_file.resolve_links(ctx)
+        for file in self.files.values():
+            file.resolve_links(ctx)
 
     @staticmethod
     def load(data: dict, **options):
-        questionnaire_uuid = data['uuid']
-        versions = [QuestionnaireVersion.load(d, **options)
+        entity_uuid = data['uuid']
+        versions = [ProjectVersion.load(d, **options)
                     for d in data['versions']]
         version = None
         replies = {p: _load_reply(p, d, **options)
                    for p, d in data['replies'].items()}
-        files = {d['uuid']: QuestionnaireFile.load(d, **options)
+        files = {d['uuid']: ProjectFile.load(d, **options)
                  for d in data.get('files', [])}
         for v in versions:
             if v.uuid == data['versionUuid']:
                 version = v
-        qtn = Questionnaire(
-            uuid=questionnaire_uuid,
+        entity = Project(
+            uuid=entity_uuid,
             name=data['name'],
             description=data['description'] or '',
             created_by=User.load(data['createdBy'], **options),
@@ -1884,13 +1970,13 @@ class Questionnaire:
             created_at=_datetime(data['createdAt']),
             updated_at=_datetime(data['updatedAt']),
         )
-        qtn.version = version
-        qtn.versions = versions
-        qtn.files = files
-        qtn.project_tags = data.get('projectTags', [])
-        qtn.replies.replies = replies
-        qtn.todos = [k for k, v in data.get('labels', {}).items() if TODO_LABEL_UUID in v]
-        return qtn
+        entity.version = version
+        entity.versions = versions
+        entity.files = files
+        entity.project_tags = data.get('projectTags', [])
+        entity.replies.replies = replies
+        entity.todos = [k for k, v in data.get('labels', {}).items() if TODO_LABEL_UUID in v]
+        return entity
 
 
 class Package:
@@ -2158,7 +2244,7 @@ class DocumentContext:
         )
         self.config = ContextConfig.load(ctx['config'], **options)
         self.km = KnowledgeModel.load(ctx['knowledgeModel'], **options)
-        self.questionnaire = Questionnaire.load(ctx['questionnaire'], **options)
+        self.project = Project.load(ctx['questionnaire'], **options)
         self.report = Report.load(ctx['report'], **options)
         self.document = Document.load(ctx['document'], **options)
         self.package = Package.load(ctx['package'], **options)
@@ -2179,8 +2265,12 @@ class DocumentContext:
         return self.config
 
     @property
-    def qtn(self) -> Questionnaire:
-        return self.questionnaire
+    def qtn(self) -> Project:
+        return self.project
+
+    @property
+    def questionnaire(self) -> Project:
+        return self.project
 
     @property
     def org(self) -> Organization:
@@ -2196,16 +2286,16 @@ class DocumentContext:
 
     @property
     def replies(self) -> RepliesContainer:
-        return self.questionnaire.replies
+        return self.project.replies
 
     def resolve_links(self):
-        phase_uuid = self.questionnaire.phase_uuid
+        phase_uuid = self.project.phase_uuid
         if phase_uuid is not None and phase_uuid in self.e.phases:
             self.current_phase = self.e.phases[phase_uuid]
-        self.questionnaire.phase = self.current_phase
+        self.project.phase = self.current_phase
         self.km.resolve_links(self)
         self.report.resolve_links(self)
-        self.questionnaire.resolve_links(self)
+        self.project.resolve_links(self)
 
         rv = ReplyVisitor(context=self)
         rv.visit()
