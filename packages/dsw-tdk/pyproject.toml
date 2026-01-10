@@ -58,7 +58,8 @@ zip-safe = false
 include = ['dsw*']
 
 [tool.setuptools.package-data]
-"*" = ["*.j2"]
+'*' = ['*.j2']
+'dsw.tdk' = ['*.j2', 'py.typed']
 
 [tool.distutils.bdist_wheel]
 universal = true

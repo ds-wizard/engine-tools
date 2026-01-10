@@ -16,7 +16,7 @@ class WeasyPrintStep(Step):
 
     def __init__(self, template, options: dict):
         # pylint: disable-next=import-outside-toplevel
-        import weasyprint
+        import weasyprint  # type: ignore
 
         super().__init__(template, options)
         # PDF options

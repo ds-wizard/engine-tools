@@ -121,6 +121,9 @@ class Template:
     def _fetch_project_file(self, file_uuid: str, name: str,
                             content_type: str) -> Asset | None:
         LOG.info('Fetching project file "%s"', file_uuid)
+        if self.project_uuid is None:
+            LOG.warning('Project UUID is not set, cannot fetch project file')
+            return None
         file_path = self.template_dir / 'project-files' / file_uuid
         if not file_path.parent.exists():
             file_path.parent.mkdir(parents=True, exist_ok=True)
@@ -271,7 +274,7 @@ class Template:
     def __getitem__(self, format_uuid: str) -> Format:
         return self.formats[format_uuid]
 
-    def render(self, format_uuid: str, project_uuid: str,
+    def render(self, format_uuid: str, project_uuid: str | None,
                context: dict) -> DocumentFile:
         Context.get().app.pm.hook.enrich_document_context(context=context)
 

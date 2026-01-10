@@ -49,6 +49,9 @@ zip-safe = false
 [tool.setuptools.packages.find]
 include = ['dsw*']
 
+[tool.setuptools.package-data]
+'dsw.data_seeder' = ['py.typed']
+
 [tool.distutils.bdist_wheel]
 universal = true
 

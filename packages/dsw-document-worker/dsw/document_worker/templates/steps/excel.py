@@ -6,10 +6,10 @@ import pathlib
 import typing
 
 import dateutil.parser
-import xlsxwriter
-from xlsxwriter.chart import Chart
-from xlsxwriter.format import Format
-from xlsxwriter.worksheet import Worksheet
+import xlsxwriter  # type: ignore
+from xlsxwriter.chart import Chart  # type: ignore
+from xlsxwriter.format import Format  # type: ignore
+from xlsxwriter.worksheet import Worksheet  # type: ignore
 
 from ...documents import DocumentFile, FileFormats
 from .base import Step, register_step, TMP_DIR, FormatStepException

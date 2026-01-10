@@ -113,8 +113,9 @@ jobs:
 
     - name: Check typing with MyPy
       run: |
-        mypy --install-types --ignore-missing-imports \
-             --check-untyped-defs --non-interactive \
+        mypy --install-types \
+             --check-untyped-defs \
+             --non-interactive \
              packages/*/dsw
 
   # Consistency of version tagging

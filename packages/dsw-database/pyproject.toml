@@ -39,6 +39,10 @@ zip-safe = false
 
 [tool.setuptools.packages.find]
 include = ['dsw*']
+namespaces = true
+
+[tool.setuptools.package-data]
+'dsw.database' = ['py.typed']
 
 [tool.distutils.bdist_wheel]
 universal = true
