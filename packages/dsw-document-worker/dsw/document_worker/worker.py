@@ -178,7 +178,7 @@ class Job:
     def _enrich_context(self):
         extras: dict[str, typing.Any] = {}
         if self.safe_format.requires_via_extras('submissions'):
-            if self.safe_doc.questionnaire_uuid is None:
+            if self.safe_doc.project_uuid is None:
                 submissions = []
             else:
                 submissions = self.ctx.app.db.fetch_project_submissions(
