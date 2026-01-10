@@ -22,11 +22,11 @@ docker-image-name:
 test:
 	@echo "No tests for this package"
 
-.PHONE: lambda-package-requirements
+.PHONY: lambda-package-requirements
 lambda-package-requirements:
-	$(PIP) install --upgrade --target ./package -r $(FILE)
+	$(PIP) install --upgrade --target ./package -r $(FILE) --no-cache-dir
 
-.PHONE: lambda-dependency
+.PHONY: lambda-dependency
 lambda-dependency:
 	$(MAKE) lambda-package-requirements FILE=../$(PKG)/requirements.txt
 	cp -R ../$(PKG)/dsw ./package
@@ -49,7 +49,16 @@ lambda-package:
 	cp package/psycopg_binary/_psycopg.cpython-313-x86_64-linux-gnu.so package/psycopg/_psycopg.so
 	cp package/psycopg_binary/_psycopg.cpython-313-x86_64-linux-gnu.so package/psycopg_binary/_psycopg.so
 
-	# 3. Package the ZIP and clean
+	# 3. Clean up unnecessary files
+	find package -type d -name "tests" -exec rm -rf {} + || true
+	find package -type d -name "__pycache__" -exec rm -rf {} + || true
+	find package -type d -name "*.dist-info" -exec rm -rf {} + || true
+	find package -type d -name "*.egg-info" -exec rm -rf {} + || true
+	find package -type f -name "*.pyc" -delete || true
+	find package -type f -name "*.pyo" -delete || true
+	find package -type f -name "*.so" -exec strip --strip-debug {} + || true
+
+	# 4. Package the ZIP and clean
 	cd package && zip -r ../mailer-lambda.zip .
 	rm -rf package
 

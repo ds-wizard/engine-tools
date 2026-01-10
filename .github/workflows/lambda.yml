@@ -36,10 +36,41 @@ jobs:
       run: |
         bash scripts/build-info.sh
 
-    - name: Install dependencies
+    - name: Create Lambda package
       run: |
         cd packages/dsw-${{ matrix.package }}
         make lambda-package
+
+    - name: Check Lambda package compressed size
+      run: |
+        MAX_ZIPPED=$((250 * 1024 * 1024))
+        SIZE_BYTES=$(stat --printf="%s" "$ZIP")
+        SIZE_MB=$((SIZE_BYTES / (1024 * 1024)))
+        echo "Zipped size: $SIZE_BYTES bytes ($SIZE_MB MB)"
+        if [ "$SIZE_BYTES" -gt "$MAX_ZIPPED" ]; then
+          echo "❌ ZIP file exceeds 250 MB limit"
+          exit 1
+        fi
+        echo "✅ ZIP size within limit"
+      env:
+        ZIP: packages/dsw-${{ matrix.package }}/${{ matrix.package }}-lambda.zip
+
+    - name: Check Lambda package uncompressed size
+      run: |
+        MAX_UNZIPPED=$((250 * 1024 * 1024))
+        TMPDIR=$(mktemp -d)
+        unzip -q "$ZIP" -d "$TMPDIR"
+        SIZE_BYTES=$(du -sb "$TMPDIR" | awk '{print $1}')
+        SIZE_MB=$((SIZE_BYTES / (1024 * 1024)))
+        rm -rf "$TMPDIR"
+        echo "Unzipped size: $SIZE_BYTES bytes ($SIZE_MB MB)"
+        if [ "$SIZE_BYTES" -gt "$MAX_UNZIPPED" ]; then
+          echo "❌ Unzipped size exceeds 250 MB limit"
+          exit 1
+        fi
+        echo "✅ Unzipped size within Lambda limit"
+      env:
+        ZIP: packages/dsw-${{ matrix.package }}/${{ matrix.package }}-lambda.zip
 
     - name: Create artifact
       uses: actions/upload-artifact@v4
