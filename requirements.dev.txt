@@ -1,4 +1,6 @@
 flake8==7.3.0
 mypy==1.16.1
 pylint==3.3.7
+setuptools==80.9.0
 tomlkit==0.13.3
+wheel==0.46.1
