@@ -6,7 +6,7 @@ import platform
 import select
 import signal
 
-import func_timeout
+import func_timeout  # type: ignore
 import psycopg
 import psycopg.generators
 import tenacity

@@ -188,17 +188,23 @@ class Job:
             extras['submissions'] = [s.to_dict() for s in submissions]
         if self.safe_format.requires_via_extras('questionnaire'):
             # older deprecated variant (questionnaire -> project)
-            questionnaire = self.ctx.app.db.fetch_project_simple(
-                project_uuid=self.safe_doc.project_uuid,
-                tenant_uuid=self.tenant_uuid,
-            )
-            extras['questionnaire'] = questionnaire.to_dict()
+            if self.safe_doc.project_uuid is None:
+                extras['questionnaire'] = None
+            else:
+                questionnaire = self.ctx.app.db.fetch_project_simple(
+                    project_uuid=self.safe_doc.project_uuid,
+                    tenant_uuid=self.tenant_uuid,
+                )
+                extras['questionnaire'] = questionnaire.to_dict()
         if self.safe_format.requires_via_extras('project'):
-            project = self.ctx.app.db.fetch_project_simple(
-                project_uuid=self.safe_doc.project_uuid,
-                tenant_uuid=self.tenant_uuid,
-            )
-            extras['project'] = project.to_dict()
+            if self.safe_doc.project_uuid is None:
+                extras['project'] = None
+            else:
+                project = self.ctx.app.db.fetch_project_simple(
+                    project_uuid=self.safe_doc.project_uuid,
+                    tenant_uuid=self.tenant_uuid,
+                )
+                extras['project'] = project.to_dict()
         self.doc_context['extras'] = extras
         self._enrich_context_config()
 

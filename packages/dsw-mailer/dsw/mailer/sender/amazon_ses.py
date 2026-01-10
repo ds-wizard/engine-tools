@@ -1,6 +1,6 @@
 import logging
 
-import boto3
+import boto3  # type: ignore
 
 from .base import BaseMailSender
 from ..config import MailConfig
