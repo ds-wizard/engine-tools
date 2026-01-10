@@ -260,6 +260,10 @@ class Job:
     def finalize(self):
         SentryReporter.set_tags(phase='finalize')
         doc = self.safe_doc
+        print(self.safe_doc)
+        print(self.safe_doc.project_uuid)
+        print(typing.reveal_type(self.safe_doc))
+        print(self.safe_doc.non_existing_uuid)
         final_file = self.safe_final_file
         file_name = DocumentNameGiver.name_document(doc, final_file)
         doc.finished_at = datetime.datetime.now(tz=datetime.UTC)
