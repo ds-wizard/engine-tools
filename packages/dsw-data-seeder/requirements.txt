@@ -1,6 +1,6 @@
 argon2-cffi==25.1.0
 argon2-cffi-bindings==25.1.0
-certifi==2025.11.12
+certifi==2026.1.4
 cffi==2.0.0
 click==8.3.1
 func_timeout==4.3.5
@@ -11,8 +11,8 @@ pycparser==2.23
 pycryptodome==3.23.0
 python-dateutil==2.9.0.post0
 PyYAML==6.0.3
-sentry-sdk==2.48.0
+sentry-sdk==2.49.0
 six==1.17.0
 tenacity==9.1.2
 typing_extensions==4.15.0
-urllib3==2.6.2
+urllib3==2.6.3
