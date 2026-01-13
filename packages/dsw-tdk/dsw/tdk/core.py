@@ -264,14 +264,14 @@ class TDKCore:
 
     async def cleanup_remote_files(self, remote_assets: list[TemplateFile],
                                    remote_files: list[TemplateFile]):
-        for file in self.safe_project.safe_template.files.values():
-            self.logger.debug('Cleaning up remote %s', file.filename.as_posix())
-            for asset in remote_assets:
-                if asset.filename == file.filename:
-                    await self._delete_template_file(file=asset, project_update=False)
-            for file in remote_files:
-                if file.filename == file.filename:
-                    await self._delete_template_file(file=file, project_update=False)
+        for local_file in self.safe_project.safe_template.files.values():
+            self.logger.debug('Cleaning up remote %s', local_file.filename.as_posix())
+            for remote_asset in remote_assets:
+                if remote_asset.filename == local_file.filename:
+                    await self._delete_template_file(file=remote_asset, project_update=False)
+            for remote_file in remote_files:
+                if remote_file.filename == local_file.filename:
+                    await self._delete_template_file(file=remote_file, project_update=False)
 
     async def _create_template_file(self, file: TemplateFile, project_update: bool = False):
         try:
