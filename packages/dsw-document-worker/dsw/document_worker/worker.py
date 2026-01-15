@@ -19,7 +19,8 @@ from .consts import DocumentState, COMPONENT_NAME, NULL_UUID, \
     CMD_COMPONENT, CMD_CHANNEL, PROG_NAME
 from .context import Context
 from .documents import DocumentFile, DocumentNameGiver
-from .exceptions import create_job_exception, JobException
+from .exceptions import create_job_exception, JobException, \
+    DocumentNotFoundException
 from .limits import LimitsEnforcer
 from .templates import TemplateRegistry, Template, Format
 from .utils import byte_size_format, check_metamodel_version
@@ -84,6 +85,21 @@ class Job:
             raise RuntimeError('Format is not set but it should')
         return self.format
 
+    def check_document_exists(self) -> bool:
+        LOG.debug('Checking if document "%s" exists in DB', self.doc_uuid)
+        try:
+            doc = self.ctx.app.db.fetch_document(
+                document_uuid=self.doc_uuid,
+                tenant_uuid=self.tenant_uuid,
+            )
+            exists = doc is not None
+            LOG.debug('Document "%s" exists: %s', self.doc_uuid, exists)
+            return exists
+        except Exception as e:
+            LOG.error('Failed to check if document "%s" exists: %s',
+                      self.doc_uuid, str(e))
+            return False
+
     @handle_job_step('Failed to get document from DB')
     def get_document(self):
         SentryReporter.set_tags(phase='fetch')
@@ -102,6 +118,7 @@ class Job:
             raise create_job_exception(
                 job_id=self.doc_uuid,
                 message='Document record not found in database',
+                document_found=False,
             )
         self.doc.retrieved_at = datetime.datetime.now(tz=datetime.UTC)
         LOG.info('Job "%s" details received', self.doc_uuid)
@@ -312,6 +329,11 @@ class Job:
         self.finalize()
 
     def _set_failed(self, message: str):
+        document_exists = self.check_document_exists()
+        if not document_exists:
+            LOG.warning('Document %s does not exist, cannot set to FAILED',
+                        self.doc_uuid)
+            return
         if self.try_set_job_state(DocumentState.FAILED, message):
             LOG.info('Set state to FAILED')
         else:
@@ -323,6 +345,8 @@ class Job:
     def run(self):
         try:
             self._run()
+        except DocumentNotFoundException as e:
+            LOG.warning('Document not found: %s', e.log_message())
         except JobException as e:
             LOG.warning('Handled job error: %s', e.log_message())
             SentryReporter.capture_exception(e)
