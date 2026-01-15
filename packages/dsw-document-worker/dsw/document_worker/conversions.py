@@ -79,10 +79,9 @@ class Pandoc:
     def __call__(self, *, source_format: FileFormat, target_format: FileFormat,
                  data: bytes, metadata: dict, workdir: str) -> bytes:
         args = ['-f', source_format.name, '-t', target_format.name, '-o', '-']
-        config_args = shlex.split(self.config.pandoc.args)
         template_args = self.extract_template_args(metadata)
         extra_args = self._extra_args()
-        command = self.config.pandoc.command + template_args + config_args + extra_args + args
+        command = self.config.pandoc.command + template_args + extra_args + args
         return run_conversion(
             args=command,
             workdir=workdir,
