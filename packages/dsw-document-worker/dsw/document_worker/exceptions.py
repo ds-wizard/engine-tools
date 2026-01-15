@@ -23,7 +23,18 @@ class JobException(Exception):
                f'{str(self.exc)}'
 
 
-def create_job_exception(job_id: str, message: str, exc=None):
+class DocumentNotFoundException(JobException):
+    pass
+
+
+def create_job_exception(job_id: str, message: str, document_found=True, exc=None):
+    if not document_found:
+        return DocumentNotFoundException(
+            job_id=job_id,
+            msg=message,
+            exc=exc,
+        )
+
     if isinstance(exc, JobException):
         return exc
 
