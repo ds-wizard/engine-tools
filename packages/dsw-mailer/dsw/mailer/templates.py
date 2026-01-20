@@ -201,25 +201,26 @@ class TemplateRegistry:
             # pylint: disable-next=no-member
             self.j2_env.install_gettext_translations(translations)
 
-    def _load_locale(self, tenant_uuid: str, locale_id: str | None, app_ctx,
+    def _load_locale(self, tenant_uuid: str, locale_uuid: str | None, app_ctx,
                      locale_root_dir: pathlib.Path):
-        LOG.info('Loading locale: %s (for tenant %s)', locale_id, tenant_uuid)
+        LOG.info('Loading locale: %s (for tenant %s)', locale_uuid, tenant_uuid)
         self._uninstall_translations()
-        if locale_id is None:
+        if locale_uuid is None:
             LOG.info('No locale specified - using null translations')
-            self._install_null_translations()
-        elif locale_id == self.DEFAULT_LOCALE:
-            LOG.info('Default locale - using null translations')
             self._install_null_translations()
         else:
             # fetch locale from DB
             locale = app_ctx.db.get_locale(
                 tenant_uuid=tenant_uuid,
-                locale_id=locale_id,
+                locale_uuid=locale_uuid,
             )
+            if locale.id == self.DEFAULT_LOCALE:
+                LOG.info('Locale is default locale - using null translations')
+                self._install_null_translations()
+                return
             if locale is None:
                 LOG.error('Could not find locale for tenant %s', tenant_uuid)
-                raise RuntimeError(f'Locale not found in DB: {locale_id}')
+                raise RuntimeError(f'Locale not found in DB: {locale_uuid}')
             # fetch locale from S3
             locale_dir = locale_root_dir / locale.code / 'LC_MESSAGES'
             locale_dir.mkdir(parents=True, exist_ok=True)
@@ -227,14 +228,14 @@ class TemplateRegistry:
             locale_mo_path = locale_dir / 'default.mo'
             downloaded = app_ctx.s3.download_locale(
                 tenant_uuid=tenant_uuid,
-                locale_id=locale_id,
+                locale_uuid=locale_uuid,
                 file_name='mail.po',
                 target_path=locale_po_path,
             )
             if not downloaded:
                 LOG.error('Cannot download locale file (mail.po) from %s to %s',
-                          locale_id, locale_po_path)
-                raise RuntimeError(f'Failed to download locale file (mail.po) from {locale_id}')
+                          locale_uuid, locale_po_path)
+                raise RuntimeError(f'Failed to download locale file (mail.po) from {locale_uuid}')
             LOG.debug('Saved PO file to %s', locale_po_path)
             # convert po to mo
             po = polib.pofile(locale_po_path.absolute().as_posix())
@@ -256,7 +257,7 @@ class TemplateRegistry:
         with tempfile.TemporaryDirectory() as tmpdir:
             try:
                 locale_root_dir = pathlib.Path(tmpdir) / 'locale'
-                self._load_locale(rq.tenant_uuid, rq.locale_id, app_ctx, locale_root_dir)
+                self._load_locale(rq.tenant_uuid, rq.locale_uuid, app_ctx, locale_root_dir)
             except Exception as e:
                 LOG.warning('Cannot load locale for tenant %s: %s', rq.tenant_uuid, str(e))
                 LOG.warning('Rendering without locale')

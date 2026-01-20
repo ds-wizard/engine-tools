@@ -203,13 +203,13 @@ class MessageRecipient:
 
 class MessageRequest:
 
-    def __init__(self, *, message_id: str, locale_id: str | None, template_name: str,
+    def __init__(self, *, message_id: str, locale_uuid: str | None, template_name: str,
                  trigger: str, ctx: dict, recipients: list[MessageRecipient], tenant_uuid: str,
                  style: StyleConfig | None = None):
         self.id = message_id
         self.template_name = template_name
         self.tenant_uuid = tenant_uuid
-        self.locale_id = locale_id
+        self.locale_uuid = locale_uuid
         self.trigger = trigger
         self.ctx = ctx
         self.recipients = recipients
@@ -228,7 +228,7 @@ class MessageRequest:
             message_id=data['id'],
             template_name=data['type'],
             tenant_uuid=data['tenantUuid'],
-            locale_id=data['localeId'],
+            locale_uuid=data['localeUuid'],
             trigger=data.get('trigger', 'input_file'),
             ctx=data.get('ctx', {}),
             recipients=data.get('recipients', []),

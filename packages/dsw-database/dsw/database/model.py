@@ -408,7 +408,10 @@ class DBUserEntity:
 class DBLocale:
     TABLE_NAME = 'locale'
 
-    id: str
+    uuid: str
+    organization_id: str
+    locale_id: str
+    version: str
     name: str
     code: str
     default_locale: bool
@@ -417,12 +420,19 @@ class DBLocale:
     @staticmethod
     def from_dict_row(data: dict):
         return DBLocale(
-            id=str(data['id']),
+            uuid=str(data['uuid']),
+            organization_id=data['organization_id'],
+            locale_id=data['locale_id'],
+            version=data['version'],
             name=data['name'],
             code=data['code'],
             default_locale=data['default_locale'],
             enabled=data['enabled'],
         )
+
+    @property
+    def id(self) -> str:
+        return f'{self.organization_id}:{self.locale_id}:{self.version}'
 
 
 @dataclasses.dataclass
