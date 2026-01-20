@@ -88,7 +88,7 @@ class Database:
                              '  enabled is TRUE AND '
                              '  tenant_uuid = %(tenant_uuid)s;')
     SELECT_LOCALE = ('SELECT * FROM locale '
-                     'WHERE id = %(locale_id)s AND tenant_uuid = %(tenant_uuid)s;')
+                     'WHERE uuid = %(locale_uuid)s AND tenant_uuid = %(tenant_uuid)s;')
 
     def __init__(self, cfg: DatabaseConfig, connect: bool = True,
                  with_queue: bool = True):
@@ -481,14 +481,14 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def get_locale(self, locale_id: str, tenant_uuid: str) -> DBLocale | None:
+    def get_locale(self, locale_uuid: str, tenant_uuid: str) -> DBLocale | None:
         if not self._check_table_exists(table_name='locale'):
             return None
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             try:
                 cursor.execute(
                     query=self.SELECT_LOCALE,
-                    params={'locale_id': locale_id, 'tenant_uuid': tenant_uuid},
+                    params={'locale_uuid': locale_uuid, 'tenant_uuid': tenant_uuid},
                 )
                 result = cursor.fetchone()
                 if result is None:
@@ -496,7 +496,7 @@ class Database:
                 return DBLocale.from_dict_row(data=result)
             except Exception as e:
                 LOG.warning('Could not retrieve locale "%s" for tenant "%s": %s',
-                            locale_id, tenant_uuid, str(e))
+                            locale_uuid, tenant_uuid, str(e))
                 return None
 
     @tenacity.retry(

@@ -94,7 +94,7 @@ class Mailer(CommandWorker):
         queue = self._run_preparation()
         queue.run_once()
 
-    def _get_locale_id(self, recipient_uuid: str, tenant_uuid: str) -> str | None:
+    def _get_locale_uuid(self, recipient_uuid: str, tenant_uuid: str) -> str | None:
         app_ctx = Context.get().app
         user = app_ctx.db.get_user(
             user_uuid=recipient_uuid,
@@ -116,13 +116,13 @@ class Mailer(CommandWorker):
         if len(mc.recipients) == 0:
             raise RuntimeError('No recipients specified')
         first_recipient = mc.recipients[0]
-        locale_id = None
+        locale_uuid = None
         if first_recipient.uuid is not None:
-            locale_id = self._get_locale_id(first_recipient.uuid, command.tenant_uuid)
+            locale_uuid = self._get_locale_uuid(first_recipient.uuid, command.tenant_uuid)
         return mc.to_request(
             msg_id=command.uuid,
             trigger='PersistentComment',
-            locale_id=locale_id,
+            locale_uuid=locale_uuid,
         )
 
     def _get_mail_config(self, command: PersistentCommand) -> MailConfig:
@@ -180,7 +180,7 @@ class Mailer(CommandWorker):
             raise RuntimeError(f'Template not found: {rq.template_name}')
         # render
         LOG.info('Rendering message: %s', rq.template_name)
-        LOG.warning('Should send with locale: %s', rq.locale_id)
+        LOG.warning('Should send with locale: %s', rq.locale_uuid)
         msg = self.ctx.templates.render(rq, cfg, Context.get().app)
         # send
         LOG.info('Sending message: %s', rq.template_name)
@@ -225,12 +225,12 @@ class MailerCommand:
         self.cmd_uuid = cmd_uuid
         self._enrich_context()
 
-    def to_request(self, msg_id: str, locale_id: str | None, trigger: str) -> MessageRequest:
+    def to_request(self, msg_id: str, locale_uuid: str | None, trigger: str) -> MessageRequest:
         rq = MessageRequest(
             message_id=msg_id,
             template_name=f'{self.mode}:{self.template}',
             tenant_uuid=self.tenant_uuid,
-            locale_id=locale_id,
+            locale_uuid=locale_uuid,
             trigger=trigger,
             ctx=self.ctx,
             recipients=self.recipients,
