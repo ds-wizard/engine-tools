@@ -3,16 +3,20 @@ import datetime
 import io
 import json
 import pathlib
+import tempfile
 import typing
 
 import dateutil.parser
-import xlsxwriter  # type: ignore
-from xlsxwriter.chart import Chart  # type: ignore
-from xlsxwriter.format import Format  # type: ignore
-from xlsxwriter.worksheet import Worksheet  # type: ignore
+import xlsxwriter
+from xlsxwriter.chart import Chart
+from xlsxwriter.worksheet import Worksheet
 
 from ...documents import DocumentFile, FileFormats
-from .base import Step, register_step, TMP_DIR, FormatStepException
+from .base import FormatStepError, Step, register_step
+
+
+if typing.TYPE_CHECKING:
+    from xlsxwriter.format import Format
 
 
 _EMPTY_DICT: dict[str, typing.Any] = {}
@@ -67,7 +71,7 @@ def _cell_writer_formula(worksheet: Worksheet, pos_args, item, cell_format):
     worksheet.write_formula(
         *pos_args,
         formula=item.get('value', ''),
-        value=item.get('result', None),
+        value=item.get('result'),
         cell_format=cell_format,
     )
 
@@ -92,8 +96,8 @@ def _cell_writer_url(worksheet: Worksheet, pos_args, item, cell_format):
     worksheet.write_url(
         *pos_args,
         url=item.get('url', ''),
-        string=item.get('value', None),
-        tip=item.get('tip', None),
+        string=item.get('value'),
+        tip=item.get('tip'),
         cell_format=cell_format,
     )
 
@@ -148,7 +152,7 @@ class WorkbookBuilder:
             for prop in props['custom']:
                 name = prop.get('name', 'unnamed')
                 value = prop.get('value', '')
-                property_type = prop.get('type', None)
+                property_type = prop.get('type')
                 if property_type == 'date':
                     value = dateutil.parser.parse(value)
                 self.workbook.set_custom_property(
@@ -223,7 +227,7 @@ class WorkbookBuilder:
             chart.show_hidden_data()
 
     def _add_chartsheet(self, data: dict):
-        name = data.get('name', None)
+        name = data.get('name')
         chart_name = data.get('chart', '')
         if chart_name not in self.charts:
             return  # ignore if chart is missing
@@ -233,7 +237,7 @@ class WorkbookBuilder:
         self._setup_worksheet_common(sheet, data)
 
     def _add_worksheet(self, data: dict):
-        name = data.get('name', None)
+        name = data.get('name')
         sheet = self.workbook.add_worksheet(name)
         self.sheets.append(sheet)
         self._setup_worksheet_common(sheet, data)
@@ -241,7 +245,7 @@ class WorkbookBuilder:
         self._add_data_to_worksheet(sheet, data)
 
     def _add_object_to_worksheet(self, worksheet: Worksheet, item: dict):
-        item_type = item.get('type', None)
+        item_type = item.get('type')
         if item_type == 'chart':
             self._add_data_chart(worksheet, item)
         elif item_type == 'comment':
@@ -255,7 +259,7 @@ class WorkbookBuilder:
 
     def _add_data_to_worksheet(self, worksheet: Worksheet, data: dict):
         for item in data.get('data', _EMPTY_LIST):
-            item_type = item.get('type', None)
+            item_type = item.get('type')
             if item_type is None:
                 continue
 
@@ -274,20 +278,14 @@ class WorkbookBuilder:
 
     def _add_data_cell(self, worksheet: Worksheet, item: dict):
         subtype = item.get('subtype', '')
-        cell_format = self.formats.get(item.get('format', ''), None)
-        if 'cell' in item:
-            pos_args = [item['cell']]
-        else:
-            pos_args = [
-                item.get('row', 0),
-                item.get('col', 0),
-            ]
-        item.pop('type', None)
-        item.pop('subtype', None)
-        item.pop('format', None)
-        item.pop('cell', None)
-        item.pop('row', None)
-        item.pop('col', None)
+        cell_format = self.formats.get(item.get('format', ''))
+        pos_args = [item['cell']] if 'cell' in item else [item.get('row', 0), item.get('col', 0)]
+        item.pop('type')
+        item.pop('subtype')
+        item.pop('format')
+        item.pop('cell')
+        item.pop('row')
+        item.pop('col')
         if subtype in _CELL_WRITERS:
             _CELL_WRITERS[subtype](worksheet, pos_args, item, cell_format)
         elif subtype == 'rich_string':
@@ -307,7 +305,7 @@ class WorkbookBuilder:
             )
 
     def _add_data_row(self, worksheet: Worksheet, item: dict):
-        cell_format = self.formats.get(item.get('format', ''), None)
+        cell_format = self.formats.get(item.get('format', ''))
         if 'cell' in item:
             worksheet.write_row(
                 item['cell'],
@@ -323,7 +321,7 @@ class WorkbookBuilder:
             )
 
     def _add_data_column(self, worksheet: Worksheet, item: dict):
-        cell_format = self.formats.get(item.get('format', ''), None)
+        cell_format = self.formats.get(item.get('format', ''))
         if 'cell' in item:
             worksheet.write_column(
                 item['cell'],
@@ -339,7 +337,7 @@ class WorkbookBuilder:
             )
 
     def _add_data_grid(self, worksheet: Worksheet, item: dict):
-        cell_format = self.formats.get(item.get('format', ''), None)
+        cell_format = self.formats.get(item.get('format', ''))
         grid = item.get('data', [])
         rows = len(grid)
         start_row = item.get('row', 0)
@@ -353,21 +351,21 @@ class WorkbookBuilder:
             )
 
     def _add_data_chart(self, worksheet: Worksheet, item: dict):
-        chart = self.charts.get(item.get('chart', ''), None)
+        chart = self.charts.get(item.get('chart', ''))
         if chart is None:
             return
         if 'cell' in item:
             worksheet.insert_chart(
                 item['cell'],
                 chart=chart,
-                options=item.get('options', None),
+                options=item.get('options'),
             )
         else:
             worksheet.insert_chart(
                 row=item.get('row', 0),
                 col=item.get('col', 0),
                 chart=chart,
-                options=item.get('options', None),
+                options=item.get('options'),
             )
 
     @staticmethod
@@ -376,14 +374,14 @@ class WorkbookBuilder:
             worksheet.write_comment(
                 item['cell'],
                 comment=item.get('comment', ''),
-                options=item.get('options', None),
+                options=item.get('options'),
             )
         else:
             worksheet.write_comment(
                 row=item.get('row', 0),
                 col=item.get('col', 0),
                 comment=item.get('comment', ''),
-                options=item.get('options', None),
+                options=item.get('options'),
             )
 
     @staticmethod
@@ -392,14 +390,14 @@ class WorkbookBuilder:
             worksheet.insert_textbox(
                 item['cell'],
                 text=item.get('text', ''),
-                options=item.get('options', None),
+                options=item.get('options'),
             )
         else:
             worksheet.insert_textbox(
                 row=item.get('row', 0),
                 col=item.get('col', 0),
                 text=item.get('text', ''),
-                options=item.get('options', None),
+                options=item.get('options'),
             )
 
     @staticmethod
@@ -407,13 +405,13 @@ class WorkbookBuilder:
         if 'cell' in item:
             worksheet.insert_button(
                 item['cell'],
-                options=item.get('options', None),
+                options=item.get('options'),
             )
         else:
             worksheet.insert_button(
                 row=item.get('row', 0),
                 col=item.get('col', 0),
-                options=item.get('options', None),
+                options=item.get('options'),
             )
 
     def _add_data_image(self, worksheet: Worksheet, item: dict):
@@ -427,21 +425,21 @@ class WorkbookBuilder:
             worksheet.insert_image(
                 item['cell'],
                 filename=item.get('filename', ''),
-                options=item.get('options', None),
+                options=item.get('options'),
             )
         else:
             worksheet.insert_image(
                 row=item.get('row', 0),
                 col=item.get('col', 0),
                 filename=item.get('filename', ''),
-                options=item.get('options', None),
+                options=item.get('options'),
             )
 
     def _add_data_array_formula(self, worksheet: Worksheet, item: dict):
         method = worksheet.write_array_formula
         if item.get('dynamic', False):
             method = worksheet.write_dynamic_array_formula
-        cell_format = self.formats.get(item.get('format', ''), None)
+        cell_format = self.formats.get(item.get('format', ''))
         if 'range' in item:
             method(
                 item['range'],
@@ -472,14 +470,14 @@ class WorkbookBuilder:
         if 'margins' in data:
             worksheet.set_margins(**data['margins'])
         if 'header' in data:
-            options = data['header'].get('options', None)
+            options = data['header'].get('options')
             cls._fix_footer_header_images(options)
             worksheet.set_header(
                 header=data['header'].get('content', ''),
                 options=options,
             )
         if 'footer' in data:
-            options = data['footer'].get('options', None)
+            options = data['footer'].get('options')
             cls._fix_footer_header_images(options)
             worksheet.set_footer(
                 footer=data['footer'].get('content', ''),
@@ -500,7 +498,7 @@ class WorkbookBuilder:
 
     @classmethod
     def _setup_worksheet_common(cls, worksheet: Worksheet, container: dict):
-        data: dict | None = container.get('options', None)
+        data: dict | None = container.get('options')
         if data is None:
             return
         if data.get('select', False):
@@ -512,7 +510,7 @@ class WorkbookBuilder:
         if 'protect' in data:
             worksheet.protect(
                 password=data['protect'].get('password', ''),
-                options=data['protect'].get('options', None),
+                options=data['protect'].get('options'),
             )
         if 'zoom' in data:
             worksheet.set_zoom(data['zoom'])
@@ -523,7 +521,7 @@ class WorkbookBuilder:
         cls._setup_worksheet_print(worksheet, data)
 
     def _setup_worksheet_data(self, worksheet: Worksheet, container: dict):
-        data: dict | None = container.get('options', None)
+        data: dict | None = container.get('options')
         if data is None:
             return
         self._setup_worksheet_basic(worksheet, data)
@@ -589,7 +587,7 @@ class WorkbookBuilder:
             for r in data['unprotect_ranges']:
                 worksheet.unprotect_range(
                     cell_range=r.get('range', 'A1'),
-                    range_name=r.get('name', None),
+                    range_name=r.get('name'),
                 )
         if 'top_left_cell' in data:
             if isinstance(data['top_left_cell'], str):
@@ -617,12 +615,12 @@ class WorkbookBuilder:
         if 'repeat_rows' in data:
             worksheet.repeat_rows(
                 first_row=data['repeat_rows'].get('first_row', 0),
-                last_row=data['repeat_rows'].get('last_row', None),
+                last_row=data['repeat_rows'].get('last_row'),
             )
         if 'repeat_columns' in data:
             worksheet.repeat_columns(
                 first_row=data['repeat_columns'].get('first_col', 0),
-                last_row=data['repeat_columns'].get('last_col', None),
+                last_row=data['repeat_columns'].get('last_col'),
             )
         if 'default_row' in data:
             worksheet.set_default_row(
@@ -689,7 +687,7 @@ class WorkbookBuilder:
     def _setup_worksheet_merge_ranges(self, worksheet: Worksheet, data: dict):
         if 'merge_ranges' in data:
             for item in data['merge_ranges']:
-                cell_format = self.formats.get(item.get('format', ''), None)
+                cell_format = self.formats.get(item.get('format', ''))
                 if 'range' in item:
                     worksheet.merge_range(
                         item['range'],
@@ -728,7 +726,7 @@ class WorkbookBuilder:
         if 'conditional_formats' in data:
             for item in data['conditional_formats']:
                 if 'format' in item:
-                    item['format'] = self.formats.get(item['format'], None)
+                    item['format'] = self.formats.get(item['format'])
                 if 'range' in item:
                     worksheet.conditional_format(
                         item['range'],
@@ -784,48 +782,48 @@ class WorkbookBuilder:
         if 'row_pixels' in data:
             for item in data['row_pixels']:
                 if 'format' in item:
-                    item['format'] = self.formats.get(item['format'], None)
+                    item['format'] = self.formats.get(item['format'])
                 worksheet.set_row_pixels(
                     row=item.get('row', 0),
                     height=item.get('height', 15),
-                    cell_format=item.get('format', None),
-                    options=item.get('options', None),
+                    cell_format=item.get('format'),
+                    options=item.get('options'),
                 )
         if 'rows' in data:
             for item in data['rows']:
                 if 'format' in item:
-                    item['format'] = self.formats.get(item['format'], None)
+                    item['format'] = self.formats.get(item['format'])
                 worksheet.set_row(
                     row=item.get('row', 0),
                     height=item.get('height', 15),
-                    cell_format=item.get('format', None),
-                    options=item.get('options', None),
+                    cell_format=item.get('format'),
+                    options=item.get('options'),
                 )
 
     def _setup_worksheet_col_sizing(self, worksheet: Worksheet, data: dict):
         if 'column_pixels' in data:
             for item in data['column_pixels']:
                 if 'format' in item:
-                    item['format'] = self.formats.get(item['format'], None)
+                    item['format'] = self.formats.get(item['format'])
                 first_col = item.get('first_col', item.get('col', 0))
                 worksheet.set_column_pixels(
                     first_col=first_col,
                     last_col=item.get('last_col', first_col),
                     width=item.get('width', 70),
-                    cell_format=item.get('format', None),
-                    options=item.get('options', None),
+                    cell_format=item.get('format'),
+                    options=item.get('options'),
                 )
         if 'columns' in data:
             for item in data['columns']:
                 if 'format' in item:
-                    item['format'] = self.formats.get(item['format'], None)
+                    item['format'] = self.formats.get(item['format'])
                 first_col = item.get('first_col', item.get('col', 0))
                 worksheet.set_column(
                     first_col=first_col,
                     last_col=item.get('last_col', first_col),
                     width=item.get('width', 70),
-                    cell_format=item.get('format', None),
-                    options=item.get('options', None),
+                    cell_format=item.get('format'),
+                    options=item.get('options'),
                 )
 
     @staticmethod
@@ -833,7 +831,7 @@ class WorkbookBuilder:
         if 'background' in data:
             if 'filename' in data['background']:
                 worksheet.set_background(
-                    filename=data['background']['filename'],
+                    source=data['background']['filename'],
                     is_byte_stream=False,
                 )
             elif 'b64bytes' in data['background']:
@@ -848,7 +846,7 @@ class WorkbookBuilder:
             return
         for key, value in data.items():
             if key in keys and isinstance(value, str):
-                data[key] = self.formats.get(value, None)
+                data[key] = self.formats.get(value)
             elif isinstance(value, dict):
                 self._replace_nested_formats(value, keys)
             elif isinstance(value, list):
@@ -885,7 +883,7 @@ class WorkbookBuilder:
 
     @staticmethod
     def build_to_bytes(tmp_file: pathlib.Path, input_data: dict) -> bytes:
-        options = input_data.get('options', None)
+        options = input_data.get('options')
         tmp_file.unlink(missing_ok=True)
         with xlsxwriter.Workbook(str(tmp_file), options) as workbook:
             builder = WorkbookBuilder(workbook=workbook)
@@ -932,17 +930,19 @@ class ExcelStep(Step):
         if is_xlsm:
             file_format = FileFormats.XLSM
         try:
-            data = WorkbookBuilder.build_to_bytes(
-                tmp_file=TMP_DIR / f'result.{file_format.file_extension}',
-                input_data=input_data,
-            )
-            return DocumentFile(
-                file_format=file_format,
-                content=data,
-            )
+            with tempfile.TemporaryDirectory() as temp_dir:
+                root = pathlib.Path(temp_dir)
+                data = WorkbookBuilder.build_to_bytes(
+                    tmp_file=root / f'result.{file_format.file_extension}',
+                    input_data=input_data,
+                )
+                return DocumentFile(
+                    file_format=file_format,
+                    content=data,
+                )
         except Exception as e:
-            raise FormatStepException(f'Failed to construct Excel document '
-                                      f'due to: {str(e)}') from e
+            raise FormatStepError(f'Failed to construct Excel document '
+                                  f'due to: {str(e)}') from e
 
 
 register_step(ExcelStep.NAME, ExcelStep)

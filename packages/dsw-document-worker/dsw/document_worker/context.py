@@ -5,6 +5,7 @@ import pluggy
 
 from dsw.database import Database
 from dsw.storage import S3Storage
+
 from .config import DocumentWorkerConfig
 
 
@@ -54,7 +55,7 @@ class Context:
     @classmethod
     def get(cls) -> _Context:
         if cls._instance is None:
-            raise ContextNotInitializedError()
+            raise ContextNotInitializedError
         return cls._instance
 
     @classmethod
@@ -71,5 +72,5 @@ class Context:
             ),
             job=JobContext(
                 trace_id='-',
-            )
+            ),
         )

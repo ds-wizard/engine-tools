@@ -6,9 +6,10 @@ import typing
 
 import dateutil.parser as dp
 
-from ..consts import NULL_UUID
+from .. import consts
 from ..utils import check_metamodel_version
 from .utils import strip_markdown
+
 
 AnnotationsT = dict[str, str | list[str]]
 TODO_LABEL_UUID = '615b9028-5e3f-414f-b245-12d2ae2eeb20'
@@ -49,7 +50,7 @@ class Color:
     def __init__(self, color_hex: str = DEFAULT_COLOR, default: str = DEFAULT_COLOR):
         color_hex = self.parse_color_to_hex(color_hex) or default
         h = color_hex.lstrip('#')
-        self.red, self.green, self.blue = tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
+        self.red, self.green, self.blue = tuple(int(h[i:i + 2], 16) for i in (0, 2, 4))
 
     @staticmethod
     def parse_color_to_hex(color: str) -> str | None:
@@ -293,7 +294,7 @@ class ApiIntegration(Integration):
     def __init__(self, *, uuid: str, name: str, variables: list[str],
                  allow_custom_reply: bool, request_method: str,
                  request_url: str, request_headers: dict[str, str],
-                 request_body: str | None,  request_allow_empty_search: bool,
+                 request_body: str | None, request_allow_empty_search: bool,
                  response_list_field: str | None, response_item_template: str,
                  response_item_template_for_selection: str | None,
                  annotations: AnnotationsT):
@@ -317,7 +318,7 @@ class ApiIntegration(Integration):
     @staticmethod
     def default():
         return ApiIntegration(
-            uuid=NULL_UUID,
+            uuid=consts.NULL_UUID,
             name='',
             variables=[],
             allow_custom_reply=True,
@@ -342,11 +343,11 @@ class ApiIntegration(Integration):
             request_method=data['requestMethod'],
             request_url=data['requestUrl'],
             request_headers=data['requestHeaders'],
-            request_body=data.get('requestBody', None),
+            request_body=data.get('requestBody'),
             request_allow_empty_search=data.get('requestAllowEmptySearch', False),
-            response_list_field=data.get('responseListField', None),
+            response_list_field=data.get('responseListField'),
             response_item_template=data['responseItemTemplate'],
-            response_item_template_for_selection=data.get('responseItemTemplateForSelection', None),
+            response_item_template_for_selection=data.get('responseItemTemplateForSelection'),
             annotations=_load_annotations(data['annotations']),
         )
 
@@ -385,7 +386,7 @@ class ApiLegacyIntegration(Integration):
     @staticmethod
     def default():
         return ApiLegacyIntegration(
-            uuid=NULL_UUID,
+            uuid=consts.NULL_UUID,
             name='',
             logo='',
             integration_id='',
@@ -487,7 +488,7 @@ class Phase:
 
 
 PHASE_NEVER = Phase(
-    uuid=NULL_UUID,
+    uuid=consts.NULL_UUID,
     title='never',
     description=None,
     order=10000000,
@@ -563,6 +564,7 @@ class Reference(abc.ABC):
             return False
         return other.uuid == self.uuid
 
+    @abc.abstractmethod
     def resolve_links(self, ctx):
         pass
 
@@ -583,6 +585,9 @@ class CrossReference(Reference):
         )
         self.target_uuid = target_uuid
         self.description = description
+
+    def resolve_links(self, ctx):
+        pass
 
     @staticmethod
     def load(data: dict, **options):
@@ -605,6 +610,9 @@ class URLReference(Reference):
         )
         self.label = label
         self.url = url
+
+    def resolve_links(self, ctx):
+        pass
 
     @staticmethod
     def load(data: dict, **options):
@@ -685,10 +693,11 @@ class Reply(abc.ABC):
     def resolve_links_parent(self, ctx):
         question_uuid = self.fragments[-1]
         if question_uuid in ctx.e.questions:
-            self.question = ctx.e.questions.get(question_uuid, None)
+            self.question = ctx.e.questions.get(question_uuid)
             if self.question is not None:
                 self.question.replies[self.path] = self
 
+    @abc.abstractmethod
     def resolve_links(self, ctx):
         pass
 
@@ -727,7 +736,7 @@ class AnswerReply(Reply):
 
     def resolve_links(self, ctx):
         super().resolve_links_parent(ctx)
-        self.answer = ctx.e.answers.get(self.answer_uuid, None)
+        self.answer = ctx.e.answers.get(self.answer_uuid)
 
     @property
     def item_title(self) -> str:
@@ -859,7 +868,7 @@ class MultiChoiceReply(Reply):
 
     @property
     def item_title(self) -> str:
-        return ', '.join((choice.label for choice in self.choices))
+        return ', '.join(choice.label for choice in self.choices)
 
     @staticmethod
     def load(path: str, data: dict, **options):
@@ -874,7 +883,7 @@ class MultiChoiceReply(Reply):
 class IntegrationReply(Reply):
 
     def __init__(self, *, path: str, created_at: datetime.datetime,
-                 created_by: SimpleAuthor | None,  value: str, value_type: str,
+                 created_by: SimpleAuthor | None, value: str, value_type: str,
                  item_id: str | None, raw: typing.Any | None = None):
         super().__init__(
             path=path,
@@ -933,8 +942,8 @@ class IntegrationReply(Reply):
             created_by=SimpleAuthor.load(data['createdBy'], **options),
             value_type=data['value']['value']['type'],
             value=data['value']['value'].get('value', ''),
-            item_id=data['value']['value'].get('id', None),
-            raw=data['value']['value'].get('raw', None),
+            item_id=data['value']['value'].get('id'),
+            raw=data['value']['value'].get('raw'),
         )
 
 
@@ -999,7 +1008,7 @@ class FileReply(Reply):
 
     def resolve_links(self, ctx):
         super().resolve_links_parent(ctx)
-        self.file = ctx.project.files.get(self.file_uuid, None)
+        self.file = ctx.project.files.get(self.file_uuid)
         if self.file is not None:
             self.file.reply = self
 
@@ -1145,6 +1154,7 @@ class Question(abc.ABC):
             self.required_phase = ctx.e.phases.get(self.required_phase_uuid, PHASE_NEVER)
             self.is_required = ctx.current_phase.order >= self.required_phase.order
 
+    @abc.abstractmethod
     def resolve_links(self, ctx):
         pass
 
@@ -1200,7 +1210,7 @@ class ValueQuestionValidation:
         'DomainQuestionValidation': str,
     }
 
-    def __init__(self, *, validation_type: str, value: str | int | float | None = None):
+    def __init__(self, *, validation_type: str, value: str | float | None = None):
         self.type = self.SHORT_TYPE.get(validation_type, 'unknown')
         self.full_type = validation_type
         self.value = value
@@ -1209,7 +1219,7 @@ class ValueQuestionValidation:
     def load(data: dict, **options):
         return ValueQuestionValidation(
             validation_type=data['type'],
-            value=data.get('value', None),
+            value=data.get('value'),
         )
 
 
@@ -1455,7 +1465,7 @@ class IntegrationQuestion(Question):
         super().resolve_links_parent(ctx)
         self.integration = ctx.e.integrations.get(
             self.integration_uuid,
-            None
+            None,
         )
 
     @staticmethod
@@ -1496,7 +1506,7 @@ class ItemSelectQuestion(Question):
 
     def resolve_links(self, ctx):
         super().resolve_links_parent(ctx)
-        self.list_question = ctx.e.questions.get(self.list_question_uuid, None)
+        self.list_question = ctx.e.questions.get(self.list_question_uuid)
 
     @staticmethod
     def load(data: dict, **options):
@@ -1531,6 +1541,9 @@ class FileQuestion(Question):
         )
         self.max_size = max_size
         self.file_types = file_types
+
+    def resolve_links(self, ctx):
+        pass
 
     @staticmethod
     def load(data: dict, **options):
@@ -1627,7 +1640,7 @@ _REPLY_TYPES: dict[str, type[Reply]] = {
 
 def _load_question(data: dict, **options):
     question_type = data['questionType']
-    question_class = _QUESTION_TYPES.get(question_type, None)
+    question_class = _QUESTION_TYPES.get(question_type)
     if question_class is None:
         raise ValueError(f'Unknown question type: {question_type}')
     return question_class.load(data, **options)
@@ -1635,7 +1648,7 @@ def _load_question(data: dict, **options):
 
 def _load_reference(data: dict, **options):
     reference_type = data['referenceType']
-    reference_class = _REFERENCE_TYPES.get(reference_type, None)
+    reference_class = _REFERENCE_TYPES.get(reference_type)
     if reference_class is None:
         raise ValueError(f'Unknown reference type: {reference_type}')
     return reference_class.load(data, **options)
@@ -1643,7 +1656,7 @@ def _load_reference(data: dict, **options):
 
 def _load_integration(data: dict, **options):
     integration_type = data['integrationType']
-    integration_class = _INTEGRATION_TYPES.get(integration_type, None)
+    integration_class = _INTEGRATION_TYPES.get(integration_type)
     if integration_class is None:
         raise ValueError(f'Unknown integration type: {integration_type}')
     return integration_class.load(data, **options)
@@ -1651,7 +1664,7 @@ def _load_integration(data: dict, **options):
 
 def _load_reply(path: str, data: dict, **options):
     reply_type = data['value']['type']
-    reply_class = _REPLY_TYPES.get(reply_type, None)
+    reply_class = _REPLY_TYPES.get(reply_type)
     if reply_class is None:
         raise ValueError(f'Unknown reply type: {reply_type}')
     return reply_class.load(path, data, **options)
@@ -1853,7 +1866,7 @@ class ProjectVersion:
             description=data['description'] or '',
             created_at=_datetime(data['createdAt']),
             updated_at=_datetime(data['updatedAt']),
-            created_by=SimpleAuthor.load(data['createdBy'], **options)
+            created_by=SimpleAuthor.load(data['createdBy'], **options),
         )
 
 
@@ -2089,7 +2102,7 @@ class ReportItem:
                          for d in data['indications']],
             metrics=[ReportMetric.load(d, **options)
                      for d in data['metrics']],
-            chapter_uuid=data.get('chapterUuid', None),
+            chapter_uuid=data.get('chapterUuid'),
         )
 
 

@@ -1,9 +1,8 @@
 import logging
 
-from ..consts import FormatField, StepField
+from .. import consts
 from ..documents import DocumentFile
-from ..templates.steps import create_step, Step, \
-    FormatStepException
+from ..templates.steps import FormatStepError, Step, create_step
 
 
 LOG = logging.getLogger(__name__)
@@ -11,18 +10,18 @@ LOG = logging.getLogger(__name__)
 
 class Format:
 
-    FORMAT_META_REQUIRED = [FormatField.UUID,
-                            FormatField.NAME,
-                            FormatField.STEPS]
+    FORMAT_META_REQUIRED = [consts.FormatField.UUID,
+                            consts.FormatField.NAME,
+                            consts.FormatField.STEPS]
 
-    STEP_META_REQUIRED = [StepField.NAME,
-                          StepField.OPTIONS]
+    STEP_META_REQUIRED = [consts.StepField.NAME,
+                          consts.StepField.OPTIONS]
 
     def __init__(self, template, metadata: dict):
         self.template = template
         self._verify_metadata(metadata)
-        self.uuid = self._trace = metadata[FormatField.UUID]
-        self.name = metadata[FormatField.NAME]
+        self.uuid = self._trace = metadata[consts.FormatField.UUID]
+        self.name = metadata[consts.FormatField.NAME]
         LOG.info('Setting up format "%s" (%s)', self.name, self._trace)
         self.steps = self._create_steps(metadata)
         if len(self.steps) < 1:
@@ -32,7 +31,7 @@ class Format:
         for required_field in self.FORMAT_META_REQUIRED:
             if required_field not in metadata:
                 self.template.raise_exc(f'Missing required field {required_field} for format')
-        for step in metadata[FormatField.STEPS]:
+        for step in metadata[consts.FormatField.STEPS]:
             for required_field in self.STEP_META_REQUIRED:
                 if required_field not in step:
                     self.template.raise_exc(f'Missing required field {required_field} '
@@ -40,14 +39,14 @@ class Format:
 
     def _create_steps(self, metadata: dict) -> list[Step]:
         steps = []
-        for step_meta in metadata[FormatField.STEPS]:
-            step_name = step_meta[StepField.NAME]
-            step_options = step_meta[StepField.OPTIONS]
+        for step_meta in metadata[consts.FormatField.STEPS]:
+            step_name = step_meta[consts.StepField.NAME]
+            step_options = step_meta[consts.StepField.OPTIONS]
             try:
                 steps.append(
-                    create_step(self.template, step_name, step_options)
+                    create_step(self.template, step_name, step_options),
                 )
-            except FormatStepException as e:
+            except FormatStepError as e:
                 LOG.warning('Handling job exception', exc_info=True)
                 self.template.raise_exc(f'Cannot load step "{step_name}" of format "{self.name}"\n'
                                         f'- {e.message}')

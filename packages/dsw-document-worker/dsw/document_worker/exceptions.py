@@ -1,4 +1,4 @@
-class JobException(Exception):
+class JobError(Exception):
 
     def __init__(self, job_id: str, msg: str, exc=None,
                  skip_reporting: bool = False):
@@ -23,22 +23,22 @@ class JobException(Exception):
                f'{str(self.exc)}'
 
 
-class DocumentNotFoundException(JobException):
+class DocumentNotFoundError(JobError):
     pass
 
 
-def create_job_exception(job_id: str, message: str, document_found=True, exc=None):
+def create_job_error(job_id: str, message: str, document_found=True, exc=None):
     if not document_found:
-        return DocumentNotFoundException(
+        return DocumentNotFoundError(
             job_id=job_id,
             msg=message,
             exc=exc,
         )
 
-    if isinstance(exc, JobException):
+    if isinstance(exc, JobError):
         return exc
 
-    return JobException(
+    return JobError(
         job_id=job_id,
         msg=message,
         exc=exc,

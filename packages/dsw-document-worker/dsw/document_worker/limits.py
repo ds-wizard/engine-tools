@@ -1,5 +1,5 @@
 from .context import Context
-from .exceptions import JobException
+from .exceptions import JobError
 from .utils import byte_size_format
 
 
@@ -10,10 +10,10 @@ class LimitsEnforcer:
         max_size = Context.get().app.cfg.experimental.max_doc_size
         if max_size is None or doc_size <= max_size:
             return
-        raise JobException(
+        raise JobError(
             job_id=job_id,
             msg=f'Document exceeded size limit ({byte_size_format(max_size)}): '
-                f'{byte_size_format(doc_size)}.'
+                f'{byte_size_format(doc_size)}.',
         )
 
     @staticmethod
@@ -24,9 +24,9 @@ class LimitsEnforcer:
         if limit_size is None or doc_size + used_size < limit_size:
             return
         remains = limit_size - used_size
-        raise JobException(
+        raise JobError(
             job_id=job_id,
             msg=f'No space left for this document: '
                 f'required {byte_size_format(doc_size)} but '
-                f'only {byte_size_format(remains)} remains.'
+                f'only {byte_size_format(remains)} remains.',
         )

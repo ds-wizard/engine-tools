@@ -3,6 +3,7 @@ import re
 
 import pathspec
 
+
 APP = 'dsw-tdk'
 VERSION = '4.26.1'
 METAMODEL_VERSION_MAJOR = 17

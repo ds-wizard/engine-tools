@@ -16,4 +16,4 @@ docker-image-name:
 .PHONY: test
 test:
 	$(PIP) install -r requirements.test.txt
-	pytest tests
+	pytest -s tests

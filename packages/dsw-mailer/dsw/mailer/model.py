@@ -21,7 +21,7 @@ class Color:
     def __init__(self, color_hex: str = '#000000', default: str = '#000000'):
         color_hex = self.parse_color_to_hex(color_hex) or default
         h = color_hex.lstrip('#')
-        self.red, self.green, self.blue = tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
+        self.red, self.green, self.blue = tuple(int(h[i:i + 2], 16) for i in (0, 2, 4))
 
     @staticmethod
     def parse_color_to_hex(color: str) -> str | None:
@@ -83,14 +83,14 @@ class StyleConfig:
 
     def from_dict(self, data: dict | None):
         data = data or {}
-        if data.get('logoUrl', None) is not None:
+        if data.get('logoUrl') is not None:
             self.logo_url = data.get('logoUrl')
-        if data.get('primaryColor', None) is not None:
+        if data.get('primaryColor') is not None:
             self.primary_color = Color(data.get(
                 'primaryColor',
-                self.default().primary_color.hex
+                self.default().primary_color.hex,
             ), Color.DEFAULT_PRIMARY_HEX)
-        if data.get('illustrationsColor', None) is not None:
+        if data.get('illustrationsColor') is not None:
             self.illustrations_color = Color(data.get(
                 'illustrationsColor',
                 self.default().illustrations_color.hex,
@@ -116,7 +116,7 @@ class TemplateDescriptorPart:
         },
         'plain': {
             'name': 'text',
-            'content-type': 'text/plain'
+            'content-type': 'text/plain',
         },
         '': {
             'name': '',
@@ -136,9 +136,9 @@ class TemplateDescriptorPart:
     def update_from_data(self, data: dict):
         for field in self.FIELDS:
             target_field = field.replace('-', '_')
-            if field in data.keys():
+            if field in data:
                 setattr(self, target_field, data[field])
-            elif field in self.DEFAULTS.get(self.type, {}).keys():
+            elif field in self.DEFAULTS.get(self.type, {}):
                 setattr(self, target_field, self.DEFAULTS[self.type][field])
             else:
                 setattr(self, target_field, self.DEFAULTS[''][field])
@@ -176,11 +176,11 @@ class TemplateDescriptor:
             message_id=data.get('id', ''),
             subject=data.get('subject', ''),
             subject_prefix=data.get('subjectPrefix', True),
-            default_sender_name=data.get('defaultSenderName', None),
+            default_sender_name=data.get('defaultSenderName'),
             language=data.get('language', 'en'),
             importance=data.get('importance', 'normal'),
-            sensitivity=data.get('sensitivity', None),
-            priority=data.get('priority', None),
+            sensitivity=data.get('sensitivity'),
+            priority=data.get('priority'),
         )
         result.parts = [TemplateDescriptorPart.load_from_file(d)
                         for d in data.get('parts', [])]
@@ -196,7 +196,7 @@ class MessageRecipient:
     @classmethod
     def from_dict(cls, data: dict):
         return cls(
-            uuid=data.get('uuid', None),
+            uuid=data.get('uuid'),
             email=data.get('email', ''),
         )
 
@@ -233,7 +233,7 @@ class MessageRequest:
             ctx=data.get('ctx', {}),
             recipients=data.get('recipients', []),
             style=StyleConfig(
-                logo_url=data.get('styleLogoUrl', None),
+                logo_url=data.get('styleLogoUrl'),
                 primary_color=data.get('stylePrimaryColor',
                                        Color.DEFAULT_PRIMARY_HEX),
                 illustrations_color=data.get('styleIllustrationsColor',

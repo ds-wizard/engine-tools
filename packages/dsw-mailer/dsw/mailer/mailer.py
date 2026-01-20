@@ -6,20 +6,18 @@ import time
 
 import dateutil.parser
 
-from dsw.command_queue import CommandWorker, CommandQueue
+from dsw.command_queue import CommandQueue, CommandWorker
 from dsw.config.sentry import SentryReporter
 from dsw.database.database import Database
 from dsw.database.model import PersistentCommand
 from dsw.storage import S3Storage
 
+from . import consts
 from .build_info import BUILD_INFO
-from .config import MailerConfig, MailConfig, merge_mail_configs
-from .consts import PROG_NAME
-from .sender import send
-from .consts import COMPONENT_NAME, CMD_CHANNEL, CMD_COMPONENT, \
-    CMD_FUNCTION
+from .config import MailConfig, MailerConfig, merge_mail_configs
 from .context import Context
-from .model import MessageRequest, MessageRecipient
+from .model import MessageRecipient, MessageRequest
+from .sender import send
 
 
 LOG = logging.getLogger(__name__)
@@ -54,16 +52,16 @@ class Mailer(CommandWorker):
         SentryReporter.initialize(
             config=self.cfg.sentry,
             release=BUILD_INFO.version,
-            prog_name=PROG_NAME,
+            prog_name=consts.PROG_NAME,
         )
 
     @staticmethod
     def _update_component_info():
         built_at = dateutil.parser.parse(BUILD_INFO.built_at)
         LOG.info('Updating component info (%s, %s)',
-                 BUILD_INFO.version, built_at.isoformat(timespec="seconds"))
+                 BUILD_INFO.version, built_at.isoformat(timespec='seconds'))
         Context.get().app.db.update_component_info(
-            name=COMPONENT_NAME,
+            name=consts.COMPONENT_NAME,
             version=BUILD_INFO.version,
             built_at=built_at,
         )
@@ -74,15 +72,14 @@ class Mailer(CommandWorker):
         self._update_component_info()
         # init queue
         LOG.info('Preparing command queue')
-        queue = CommandQueue(
+        return CommandQueue(
             worker=self,
             db=Context.get().app.db,
-            channel=CMD_CHANNEL,
-            component=CMD_COMPONENT,
+            channel=consts.CMD_CHANNEL,
+            component=consts.CMD_COMPONENT,
             wait_timeout=Context.get().app.cfg.db.queue_timeout,
             work_timeout=Context.get().app.cfg.experimental.job_timeout,
         )
-        return queue
 
     def run(self):
         LOG.info('Starting mailer worker (loop)')
@@ -128,7 +125,7 @@ class Mailer(CommandWorker):
     def _get_mail_config(self, command: PersistentCommand) -> MailConfig:
         app_ctx = Context.get().app
         params: dict = command.body.get('parameters', {})
-        mail_config_uuid: str | None = params.get('mailConfigUuid', None)
+        mail_config_uuid: str | None = params.get('mailConfigUuid')
         db_cfg = None
         if mail_config_uuid is not None:
             LOG.debug('Loading mail config from DB: %s', mail_config_uuid)
@@ -249,9 +246,9 @@ class MailerCommand:
 
     @staticmethod
     def load(command: PersistentCommand) -> 'MailerCommand':
-        if command.component != CMD_COMPONENT:
+        if command.component != consts.CMD_COMPONENT:
             raise RuntimeError('Tried to process non-mailer command')
-        if command.function != CMD_FUNCTION:
+        if command.function != consts.CMD_FUNCTION:
             raise RuntimeError(f'Unsupported function: {command.function}')
         try:
             return MailerCommand(

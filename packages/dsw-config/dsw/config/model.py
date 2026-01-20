@@ -1,11 +1,11 @@
 import dataclasses
 
-from .logging import prepare_logging, LOG_FILTER
+from .logging import LOG_FILTER, prepare_logging
 
 
 def _config_to_string(config: object):
     lines = [f'{type(config).__name__}']
-    fields = (f for f in config.__dict__.keys() if not f.startswith('_'))
+    fields = (f for f in config.__dict__ if not f.startswith('_'))
     for field in fields:
         v = str(getattr(config, field))
         t = type(getattr(config, field)).__name__

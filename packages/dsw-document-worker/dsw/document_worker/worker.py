@@ -7,22 +7,20 @@ import typing
 import dateutil.parser
 import sentry_sdk.types as sentry
 
-from dsw.command_queue import CommandWorker, CommandQueue
+from dsw.command_queue import CommandQueue, CommandWorker
 from dsw.config.sentry import SentryReporter
 from dsw.database.database import Database
 from dsw.database.model import DBDocument, PersistentCommand
 from dsw.storage import S3Storage
 
+from . import consts
 from .build_info import BUILD_INFO
 from .config import DocumentWorkerConfig, TemplateConfig
-from .consts import DocumentState, COMPONENT_NAME, NULL_UUID, \
-    CMD_COMPONENT, CMD_CHANNEL, PROG_NAME
 from .context import Context
 from .documents import DocumentFile, DocumentNameGiver
-from .exceptions import create_job_exception, JobException, \
-    DocumentNotFoundException
+from .exceptions import DocumentNotFoundError, JobError, create_job_error
 from .limits import LimitsEnforcer
-from .templates import TemplateRegistry, Template, Format
+from .templates import Format, Template, TemplateRegistry
 from .utils import byte_size_format, check_metamodel_version
 
 
@@ -37,7 +35,7 @@ def handle_job_step(message):
                 return func(job, *args, **kwargs)
             except Exception as e:
                 LOG.info('Handling exception', exc_info=True)
-                new_exception = create_job_exception(
+                new_exception = create_job_error(
                     job_id=job.doc_uuid,
                     message=message,
                     exc=e,
@@ -107,7 +105,7 @@ class Job:
             template='?',
             format='?',
         )
-        if self.tenant_uuid != NULL_UUID:
+        if self.tenant_uuid != consts.NULL_UUID:
             LOG.info('Limiting to tenant with UUID: %s', self.tenant_uuid)
         LOG.info('Getting the document "%s" details from DB', self.doc_uuid)
         self.doc = self.ctx.app.db.fetch_document(
@@ -115,7 +113,7 @@ class Job:
             tenant_uuid=self.tenant_uuid,
         )
         if self.doc is None:
-            raise create_job_exception(
+            raise create_job_error(
                 job_id=self.doc_uuid,
                 message='Document record not found in database',
                 document_found=False,
@@ -125,8 +123,8 @@ class Job:
         # verify state
         state = self.doc.state
         LOG.info('Original state of job is %s', state)
-        if state == DocumentState.FINISHED:
-            raise create_job_exception(
+        if state == consts.DocumentState.FINISHED:
+            raise create_job_error(
                 job_id=self.doc_uuid,
                 message='Document is already marked as finished',
             )
@@ -154,7 +152,7 @@ class Job:
         )
         # prepare format
         if not template.prepare_format(format_uuid):
-            raise create_job_exception(
+            raise create_job_error(
                 job_id=self.doc_uuid,
                 message=f'Format {format_uuid} is not found in template {template_id}',
             )
@@ -334,7 +332,7 @@ class Job:
             LOG.warning('Document %s does not exist, cannot set to FAILED',
                         self.doc_uuid)
             return
-        if self.try_set_job_state(DocumentState.FAILED, message):
+        if self.try_set_job_state(consts.DocumentState.FAILED, message):
             LOG.info('Set state to FAILED')
         else:
             msg = 'Could not set state to FAILED'
@@ -345,15 +343,15 @@ class Job:
     def run(self):
         try:
             self._run()
-        except DocumentNotFoundException as e:
+        except DocumentNotFoundError as e:
             LOG.warning('Document not found: %s', e.log_message())
-        except JobException as e:
+        except JobError as e:
             LOG.warning('Handled job error: %s', e.log_message())
             SentryReporter.capture_exception(e)
             self._set_failed(e.db_message())
         except Exception as e:
             SentryReporter.capture_exception(e)
-            job_exc = create_job_exception(
+            job_exc = create_job_error(
                 job_id=self.doc_uuid,
                 message='Failed with unexpected error',
                 exc=e,
@@ -389,7 +387,7 @@ class DocumentWorker(CommandWorker):
         SentryReporter.initialize(
             config=self.config.sentry,
             release=BUILD_INFO.version,
-            prog_name=PROG_NAME,
+            prog_name=consts.PROG_NAME,
             event_level=None,
         )
 
@@ -401,8 +399,8 @@ class DocumentWorker(CommandWorker):
                 exc_info = hint['exc_info']
                 if isinstance(exc_info, tuple) and len(exc_info) > 1:
                     exc = exc_info[1]
-                    if isinstance(exc, JobException) and exc.skip_reporting:
-                        LOG.debug('Skipping Sentry event (JobException, %s, %s)',
+                    if isinstance(exc, JobError) and exc.skip_reporting:
+                        LOG.debug('Skipping Sentry event (JobError, %s, %s)',
                                   event.get('event_id'), hint)
                         return None
 
@@ -425,9 +423,9 @@ class DocumentWorker(CommandWorker):
     def _update_component_info():
         built_at = dateutil.parser.parse(BUILD_INFO.built_at)
         LOG.info('Updating component info (%s, %s)',
-                 BUILD_INFO.version, built_at.isoformat(timespec="seconds"))
+                 BUILD_INFO.version, built_at.isoformat(timespec='seconds'))
         Context.get().app.db.update_component_info(
-            name=COMPONENT_NAME,
+            name=consts.COMPONENT_NAME,
             version=BUILD_INFO.version,
             built_at=built_at,
         )
@@ -438,15 +436,14 @@ class DocumentWorker(CommandWorker):
         self._update_component_info()
         # init queue
         LOG.info('Preparing command queue')
-        queue = CommandQueue(
+        return CommandQueue(
             worker=self,
             db=Context.get().app.db,
-            channel=CMD_CHANNEL,
-            component=CMD_COMPONENT,
+            channel=consts.CMD_CHANNEL,
+            component=consts.CMD_COMPONENT,
             wait_timeout=Context.get().app.cfg.db.queue_timeout,
             work_timeout=Context.get().app.cfg.experimental.job_timeout,
         )
-        return queue
 
     def run(self):
         LOG.info('Starting document worker (loop)')
@@ -491,7 +488,7 @@ class DocumentWorker(CommandWorker):
 
         if self.current_job is not None:
             self.current_job.try_set_job_state(
-                DocumentState.FAILED,
+                consts.DocumentState.FAILED,
                 'Generating document exceeded the time limit',
             )
             self.current_job = None

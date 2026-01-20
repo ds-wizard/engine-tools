@@ -10,6 +10,7 @@ import tenacity
 
 from dsw.config.model import S3Config
 
+
 LOG = logging.getLogger(__name__)
 
 DOCUMENTS_DIR = 'documents'
@@ -20,11 +21,11 @@ RETRY_S3_TRIES = 3
 
 @contextlib.contextmanager
 def temp_binary_file(data: bytes):
-    file = tempfile.TemporaryFile()
-    file.write(data)
-    file.seek(0)
-    yield file
-    file.close()
+    with tempfile.TemporaryFile() as file:
+        file.write(data)
+        file.seek(0)
+        yield file
+        file.close()
 
 
 class S3Storage:

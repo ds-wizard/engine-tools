@@ -1,14 +1,13 @@
 import logging
 import smtplib
 import ssl
-
 from email.utils import formataddr
 
 import tenacity
 
-from .base import BaseMailSender
 from ..config import MailConfig
 from ..model import MailMessage
+from .base import BaseMailSender
 
 
 RETRY_SMTP_MULTIPLIER = 0.5

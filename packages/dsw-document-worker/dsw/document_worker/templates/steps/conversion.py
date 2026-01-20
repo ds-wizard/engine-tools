@@ -16,7 +16,7 @@ class WeasyPrintStep(Step):
 
     def __init__(self, template, options: dict):
         # pylint: disable-next=import-outside-toplevel
-        import weasyprint  # type: ignore
+        import weasyprint
 
         super().__init__(template, options)
         # PDF options
@@ -27,9 +27,9 @@ class WeasyPrintStep(Step):
     def wp_update_options(self, options: dict):
         optimize_size = tuple(options.get('render.optimize_size', 'fonts').split(','))
         self.wp_options.update({
-            'pdf_identifier': options.get('pdf.identifier', None),
-            'pdf_variant': options.get('pdf.variant', None),
-            'pdf_version': options.get('pdf.version', None),
+            'pdf_identifier': options.get('pdf.identifier'),
+            'pdf_variant': options.get('pdf.variant'),
+            'pdf_version': options.get('pdf.version'),
             'pdf_forms': _is_true(options.get('render.forms', 'false')),
             'uncompressed_pdf': _is_true(options.get('pdf.uncompressed', 'false')),
             'custom_metadata': _is_true(options.get('pdf.custom_metadata', 'false')),
@@ -125,7 +125,7 @@ class PandocStep(Step):
             filter_names=self._extract_filter_names(
                 filters=options.get(self.OPTION_FILTERS, ''),
             ),
-            template_name=options.get(self.OPTION_TEMPLATE, None),
+            template_name=options.get(self.OPTION_TEMPLATE),
         )
 
     @staticmethod

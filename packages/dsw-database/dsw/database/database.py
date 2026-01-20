@@ -11,12 +11,8 @@ import tenacity
 
 from dsw.config.model import DatabaseConfig
 
-from .model import DBDocumentTemplate, DBDocumentTemplateFile, \
-    DBDocumentTemplateAsset, DBDocument, DBComponent, \
-    DocumentState, DBTenantLimits, DBSubmission, \
-    DBInstanceConfigMail, DBProjectSimple, \
-    DBUserEntity, DBLocale, DBDocumentTemplateFormat, \
-    DBDocumentTemplateStep
+from . import model
+
 
 LOG = logging.getLogger(__name__)
 
@@ -144,7 +140,7 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def fetch_document(self, document_uuid: str, tenant_uuid: str) -> DBDocument | None:
+    def fetch_document(self, document_uuid: str, tenant_uuid: str) -> model.DBDocument | None:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
                 query=self.SELECT_DOCUMENT,
@@ -153,7 +149,7 @@ class Database:
             result = cursor.fetchall()
             if len(result) != 1:
                 return None
-            return DBDocument.from_dict_row(result[0])
+            return model.DBDocument.from_dict_row(result[0])
 
     @tenacity.retry(
         reraise=True,
@@ -162,7 +158,7 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def fetch_tenant_limits(self, tenant_uuid: str) -> DBTenantLimits | None:
+    def fetch_tenant_limits(self, tenant_uuid: str) -> model.DBTenantLimits | None:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
                 query=self.SELECT_TENANT_LIMIT,
@@ -171,7 +167,7 @@ class Database:
             result = cursor.fetchall()
             if len(result) != 1:
                 return None
-            return DBTenantLimits.from_dict_row(result[0])
+            return model.DBTenantLimits.from_dict_row(result[0])
 
     @tenacity.retry(
         reraise=True,
@@ -181,8 +177,8 @@ class Database:
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
     def fetch_template(
-            self, template_id: str, tenant_uuid: str
-    ) -> DBDocumentTemplate | None:
+            self, template_id: str, tenant_uuid: str,
+    ) -> model.DBDocumentTemplate | None:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
                 query=self.SELECT_TEMPLATE,
@@ -191,7 +187,7 @@ class Database:
             dt_result = cursor.fetchall()
             if len(dt_result) != 1:
                 return None
-            template = DBDocumentTemplate.from_dict_row(dt_result[0])
+            template = model.DBDocumentTemplate.from_dict_row(dt_result[0])
 
             cursor.execute(
                 query=self.SELECT_TEMPLATE_FORMATS,
@@ -199,7 +195,7 @@ class Database:
             )
             formats_result = cursor.fetchall()
             formats = sorted([
-                DBDocumentTemplateFormat.from_dict_row(x) for x in formats_result
+                model.DBDocumentTemplateFormat.from_dict_row(x) for x in formats_result
             ], key=lambda x: x.name)
             cursor.execute(
                 query=self.SELECT_TEMPLATE_STEPS,
@@ -207,7 +203,7 @@ class Database:
             )
             steps_result = cursor.fetchall()
             steps = sorted([
-                DBDocumentTemplateStep.from_dict_row(x) for x in steps_result
+                model.DBDocumentTemplateStep.from_dict_row(x) for x in steps_result
             ], key=lambda x: x.position)
             steps_dict: dict[str, list[dict]] = {}
             for step in steps:
@@ -233,14 +229,14 @@ class Database:
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
     def fetch_template_files(
-            self, template_id: str, tenant_uuid: str
-    ) -> list[DBDocumentTemplateFile]:
+            self, template_id: str, tenant_uuid: str,
+    ) -> list[model.DBDocumentTemplateFile]:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
                 query=self.SELECT_TEMPLATE_FILES,
                 params=(template_id, tenant_uuid),
             )
-            return [DBDocumentTemplateFile.from_dict_row(x) for x in cursor.fetchall()]
+            return [model.DBDocumentTemplateFile.from_dict_row(x) for x in cursor.fetchall()]
 
     @tenacity.retry(
         reraise=True,
@@ -250,14 +246,14 @@ class Database:
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
     def fetch_template_assets(
-            self, template_id: str, tenant_uuid: str
-    ) -> list[DBDocumentTemplateAsset]:
+            self, template_id: str, tenant_uuid: str,
+    ) -> list[model.DBDocumentTemplateAsset]:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
                 query=self.SELECT_TEMPLATE_ASSETS,
                 params=(template_id, tenant_uuid),
             )
-            return [DBDocumentTemplateAsset.from_dict_row(x) for x in cursor.fetchall()]
+            return [model.DBDocumentTemplateAsset.from_dict_row(x) for x in cursor.fetchall()]
 
     @tenacity.retry(
         reraise=True,
@@ -266,13 +262,14 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def fetch_project_documents(self, project_uuid: str, tenant_uuid: str) -> list[DBDocument]:
+    def fetch_project_documents(self, project_uuid: str,
+                                tenant_uuid: str) -> list[model.DBDocument]:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
                 query=self.SELECT_DOCUMENTS,
                 params=(project_uuid, tenant_uuid),
             )
-            return [DBDocument.from_dict_row(x) for x in cursor.fetchall()]
+            return [model.DBDocument.from_dict_row(x) for x in cursor.fetchall()]
 
     @tenacity.retry(
         reraise=True,
@@ -282,13 +279,13 @@ class Database:
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
     def fetch_document_submissions(self, document_uuid: str,
-                                   tenant_uuid: str) -> list[DBSubmission]:
+                                   tenant_uuid: str) -> list[model.DBSubmission]:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
                 query=self.SELECT_DOCUMENT_SUBMISSIONS,
                 params=(document_uuid, tenant_uuid),
             )
-            return [DBSubmission.from_dict_row(x) for x in cursor.fetchall()]
+            return [model.DBSubmission.from_dict_row(x) for x in cursor.fetchall()]
 
     @tenacity.retry(
         reraise=True,
@@ -298,13 +295,13 @@ class Database:
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
     def fetch_project_submissions(self, project_uuid: str,
-                                  tenant_uuid: str) -> list[DBSubmission]:
+                                  tenant_uuid: str) -> list[model.DBSubmission]:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
                 query=self.SELECT_PROJECT_SUBMISSIONS,
                 params=(project_uuid, tenant_uuid),
             )
-            return [DBSubmission.from_dict_row(x) for x in cursor.fetchall()]
+            return [model.DBSubmission.from_dict_row(x) for x in cursor.fetchall()]
 
     @tenacity.retry(
         reraise=True,
@@ -314,13 +311,13 @@ class Database:
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
     def fetch_project_simple(self, project_uuid: str,
-                             tenant_uuid: str) -> DBProjectSimple:
+                             tenant_uuid: str) -> model.DBProjectSimple:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
                 query=self.SELECT_PROJECT_SIMPLE,
                 params=(project_uuid, tenant_uuid),
             )
-            return DBProjectSimple.from_dict_row(cursor.fetchone())
+            return model.DBProjectSimple.from_dict_row(cursor.fetchone())
 
     @tenacity.retry(
         reraise=True,
@@ -351,7 +348,7 @@ class Database:
                 query=self.UPDATE_DOCUMENT_RETRIEVED,
                 params=(
                     retrieved_at,
-                    DocumentState.PROCESSING.value,
+                    model.DocumentState.PROCESSING.value,
                     document_uuid,
                 ),
             )
@@ -366,14 +363,14 @@ class Database:
     )
     def update_document_finished(
             self, *, finished_at: datetime.datetime, file_name: str, file_size: int,
-            content_type: str,  worker_log: str, document_uuid: str
+            content_type: str, worker_log: str, document_uuid: str,
     ) -> bool:
         with self.conn_query.new_cursor() as cursor:
             cursor.execute(
                 query=self.UPDATE_DOCUMENT_FINISHED,
                 params=(
                     finished_at,
-                    DocumentState.FINISHED.value,
+                    model.DocumentState.FINISHED.value,
                     file_name,
                     content_type,
                     worker_log,
@@ -406,7 +403,7 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def get_mail_config(self, mail_config_uuid: str) -> DBInstanceConfigMail | None:
+    def get_mail_config(self, mail_config_uuid: str) -> model.DBInstanceConfigMail | None:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             if not self._check_table_exists(table_name='instance_config_mail'):
                 return None
@@ -418,7 +415,7 @@ class Database:
                 result = cursor.fetchone()
                 if result is None:
                     return None
-                return DBInstanceConfigMail.from_dict_row(data=result)
+                return model.DBInstanceConfigMail.from_dict_row(data=result)
             except Exception as e:
                 LOG.warning('Could not retrieve instance_config_mail "%s": %s',
                             mail_config_uuid, str(e))
@@ -431,7 +428,7 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def get_user(self, user_uuid: str, tenant_uuid: str) -> DBUserEntity | None:
+    def get_user(self, user_uuid: str, tenant_uuid: str) -> model.DBUserEntity | None:
         if not self._check_table_exists(table_name='user_entity'):
             return None
         with self.conn_query.new_cursor(use_dict=True) as cursor:
@@ -443,7 +440,7 @@ class Database:
                 result = cursor.fetchone()
                 if result is None:
                     return None
-                return DBUserEntity.from_dict_row(data=result)
+                return model.DBUserEntity.from_dict_row(data=result)
             except Exception as e:
                 LOG.warning('Could not retrieve user "%s" for tenant "%s": %s',
                             user_uuid, tenant_uuid, str(e))
@@ -456,7 +453,7 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def get_default_locale(self, tenant_uuid: str) -> DBLocale | None:
+    def get_default_locale(self, tenant_uuid: str) -> model.DBLocale | None:
         if not self._check_table_exists(table_name='locale'):
             return None
         with self.conn_query.new_cursor(use_dict=True) as cursor:
@@ -468,7 +465,7 @@ class Database:
                 result = cursor.fetchone()
                 if result is None:
                     return None
-                return DBLocale.from_dict_row(data=result)
+                return model.DBLocale.from_dict_row(data=result)
             except Exception as e:
                 LOG.warning('Could not retrieve default locale for tenant "%s": %s',
                             tenant_uuid, str(e))
@@ -481,7 +478,7 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def get_locale(self, locale_uuid: str, tenant_uuid: str) -> DBLocale | None:
+    def get_locale(self, locale_uuid: str, tenant_uuid: str) -> model.DBLocale | None:
         if not self._check_table_exists(table_name='locale'):
             return None
         with self.conn_query.new_cursor(use_dict=True) as cursor:
@@ -493,7 +490,7 @@ class Database:
                 result = cursor.fetchone()
                 if result is None:
                     return None
-                return DBLocale.from_dict_row(data=result)
+                return model.DBLocale.from_dict_row(data=result)
             except Exception as e:
                 LOG.warning('Could not retrieve locale "%s" for tenant "%s": %s',
                             locale_uuid, tenant_uuid, str(e))
@@ -533,7 +530,7 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def get_component_info(self, name: str) -> DBComponent | None:
+    def get_component_info(self, name: str) -> model.DBComponent | None:
         if not self._check_table_exists(table_name='component'):
             return None
         with self.conn_query.new_cursor(use_dict=True) as cursor:
@@ -545,7 +542,7 @@ class Database:
                 result = cursor.fetchone()
                 if result is None:
                     return None
-                return DBComponent.from_dict_row(data=result)
+                return model.DBComponent.from_dict_row(data=result)
             except Exception as e:
                 LOG.warning('Could not get component info: %s', str(e))
                 return None

@@ -50,7 +50,7 @@ class Context:
     @classmethod
     def get(cls) -> _Context:
         if cls._instance is None:
-            raise ContextNotInitializedError()
+            raise ContextNotInitializedError
         return cls._instance
 
     @classmethod

@@ -5,18 +5,25 @@ import logging
 import pathlib
 import re
 import tempfile
+import typing
 
 import dateutil.parser
 import jinja2
 import jinja2.sandbox
 import markdown
+import markdown.preprocessors
 import markupsafe
 import polib
 
-from .config import MailerConfig, MailConfig
-from .consts import DEFAULT_ENCODING
-from .model import MailMessage, MailAttachment, MessageRequest, \
-    TemplateDescriptor, TemplateDescriptorPart
+from . import consts
+from .config import MailConfig, MailerConfig
+from .model import (
+    MailAttachment,
+    MailMessage,
+    MessageRequest,
+    TemplateDescriptor,
+    TemplateDescriptorPart,
+)
 
 
 LOG = logging.getLogger(__name__)
@@ -56,7 +63,7 @@ class MailTemplate:
         msg.language = self.descriptor.language
         msg.importance = self.descriptor.importance
         msg.priority = self.descriptor.priority
-        ctx = self._enhance_contxt(ctx, msg)
+        ctx = self._enhance_context(ctx, msg)
         msg.from_mail = mail_from
         msg.from_name = mail_name or self.descriptor.default_sender_name
         if self.html_template is not None:
@@ -68,7 +75,7 @@ class MailTemplate:
         return msg
 
     @staticmethod
-    def _enhance_contxt(ctx: dict, msg: MailMessage) -> dict:
+    def _enhance_context(ctx: dict, msg: MailMessage) -> dict:
         if '_meta' not in ctx:
             ctx['_meta'] = {}
         ctx['_meta']['subject'] = msg.subject
@@ -133,7 +140,7 @@ class TemplateRegistry:
         if not path.exists() or not path.is_file():
             return None
         try:
-            data = json.loads(path.read_text(encoding=DEFAULT_ENCODING))
+            data = json.loads(path.read_text(encoding=consts.DEFAULT_ENCODING))
             return TemplateDescriptor.load_from_file(data)
         except Exception as e:
             LOG.warning('Cannot load template descriptor at %s: %s',
@@ -145,7 +152,7 @@ class TemplateRegistry:
         html_template = None
         plain_template = None
         subject_template = self._make_str_jinja2(
-            str_template='{% trans %}' + descriptor.subject + '{% endtrans %}'
+            str_template='{% trans %}' + descriptor.subject + '{% endtrans %}',
         )
         attachments = []
         html_images = []
@@ -187,19 +194,22 @@ class TemplateRegistry:
             self.templates[descriptor.id] = template
 
     def _uninstall_translations(self):
-        if hasattr(self.j2_env, 'uninstall_gettext_translations'):
-            # pylint: disable-next=no-member
-            self.j2_env.uninstall_gettext_translations('default')
+        fn = getattr(self.j2_env, 'uninstall_gettext_translations', None)
+        if callable(fn):
+            # pylint: disable-next=not-callable
+            fn('default')
 
     def _install_null_translations(self):
-        if hasattr(self.j2_env, 'install_null_translations'):
-            # pylint: disable-next=no-member
-            self.j2_env.install_null_translations()
+        fn = getattr(self.j2_env, 'install_null_translations', None)
+        if callable(fn):
+            # pylint: disable-next=not-callable
+            fn()
 
     def _install_translations(self, translations: gettext.GNUTranslations):
-        if hasattr(self.j2_env, 'install_gettext_translations'):
-            # pylint: disable-next=no-member
-            self.j2_env.install_gettext_translations(translations)
+        fn = getattr(self.j2_env, 'install_gettext_translations', None)
+        if callable(fn):
+            # pylint: disable-next=not-callable
+            fn(translations)
 
     def _load_locale(self, tenant_uuid: str, locale_uuid: str | None, app_ctx,
                      locale_root_dir: pathlib.Path):
@@ -279,6 +289,8 @@ def datetime_format(iso_timestamp: None | datetime.datetime | str, fmt: str):
 
 
 class DSWMarkdownExt(markdown.extensions.Extension):
+
+    @typing.override
     def extendMarkdown(self, md):
         md.preprocessors.register(DSWMarkdownProcessor(md), 'dsw_markdown', 27)
         md.registerExtension(self)
@@ -322,7 +334,7 @@ def render_markdown(md_text: str):
         text=md_text,
         extensions=[
             DSWMarkdownExt(),
-        ]
+        ],
     ))
 
 
@@ -333,5 +345,5 @@ def remove_markdown(md_text: str):
         text=md_text,
         extensions=[
             DSWMarkdownExt(),
-        ]
+        ],
     ))

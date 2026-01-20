@@ -1,10 +1,23 @@
 import dataclasses
 
 from dsw.config import DSWConfigParser
-from dsw.config.keys import ConfigKey, ConfigKeys, ConfigKeysContainer, \
-    cast_str, cast_int, cast_optional_int
-from dsw.config.model import ConfigModel, DatabaseConfig, S3Config, \
-    LoggingConfig, SentryConfig, CloudConfig, GeneralConfig
+from dsw.config.keys import (
+    ConfigKey,
+    ConfigKeys,
+    ConfigKeysContainer,
+    cast_int,
+    cast_optional_int,
+    cast_str,
+)
+from dsw.config.model import (
+    CloudConfig,
+    ConfigModel,
+    DatabaseConfig,
+    GeneralConfig,
+    LoggingConfig,
+    S3Config,
+    SentryConfig,
+)
 
 
 # pylint: disable-next=too-few-public-methods
@@ -18,7 +31,7 @@ class _ExperimentalKeys(ConfigKeysContainer):
 
 
 # pylint: disable-next=too-few-public-methods
-class MailerConfigKeys(ConfigKeys):
+class DataSeederConfigKeys(ConfigKeys):
     experimental = _ExperimentalKeys
 
 
@@ -55,13 +68,13 @@ class SeederConfig:
 class SeederConfigParser(DSWConfigParser):
 
     def __init__(self):
-        super().__init__(keys=MailerConfigKeys)
-        self.keys = MailerConfigKeys  # type: type[MailerConfigKeys]
+        super().__init__(keys=DataSeederConfigKeys)
+        self.keys: type[DataSeederConfigKeys] = DataSeederConfigKeys
 
     @property
     def extra_dbs(self) -> dict[str, DatabaseConfig]:
         result = {}
-        for db_id in self.cfg.get('extraDatabases', {}).keys():
+        for db_id in self.cfg.get('extraDatabases', {}):
             result[db_id] = DatabaseConfig(
                 connection_string=self.get(
                     key=ConfigKey(
@@ -69,7 +82,7 @@ class SeederConfigParser(DSWConfigParser):
                         var_names=[],
                         default=f'postgresql://postgres:postgres@postgres:5432/{db_id}',
                         cast=cast_str,
-                    )
+                    ),
                 ),
                 connection_timeout=self.get(
                     key=ConfigKey(
@@ -77,7 +90,7 @@ class SeederConfigParser(DSWConfigParser):
                         var_names=[],
                         default=30000,
                         cast=cast_int,
-                    )
+                    ),
                 ),
                 queue_timeout=0,
             )
@@ -87,42 +100,42 @@ class SeederConfigParser(DSWConfigParser):
     @property
     def extra_s3s(self) -> dict[str, S3Config]:
         result = {}
-        for s3_id in self.cfg.get('extraS3s', {}).keys():
+        for s3_id in self.cfg.get('extraS3s', {}):
             result[s3_id] = S3Config(
                 url=self.get(
                     key=ConfigKey(
                         yaml_path=['extraS3s', s3_id, 'url'],
                         var_names=[],
                         cast=cast_str,
-                    )
+                    ),
                 ),
                 username=self.get(
                     key=ConfigKey(
                         yaml_path=['extraS3s', s3_id, 'username'],
                         var_names=[],
                         cast=cast_str,
-                    )
+                    ),
                 ),
                 password=self.get(
                     key=ConfigKey(
                         yaml_path=['extraS3s', s3_id, 'password'],
                         var_names=[],
                         cast=cast_str,
-                    )
+                    ),
                 ),
                 bucket=self.get(
                     key=ConfigKey(
                         yaml_path=['extraS3s', s3_id, 'bucket'],
                         var_names=[],
                         cast=cast_str,
-                    )
+                    ),
                 ),
                 region=self.get(
                     key=ConfigKey(
                         yaml_path=['extraS3s', s3_id, 'region'],
                         var_names=[],
                         cast=cast_str,
-                    )
+                    ),
                 ),
             )
 

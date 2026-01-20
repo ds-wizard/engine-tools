@@ -1,0 +1,128 @@
+[project]
+name = "engine-tools"
+version = "4.26.0"
+description = "Python tools for DSW Engine"
+readme = "README.md"
+requires-python = ">=3.12"
+
+[project.urls]
+Homepage = "https://ds-wizard.org"
+Repository = "https://github.com/ds-wizard/engine-tools"
+Documentation = "https://guide.ds-wizard.org"
+Issues = "https://github.com/ds-wizard/ds-wizard/issues"
+
+[dependency-groups]
+dev = [
+    "ruff==0.14.13",
+    "ty==0.0.12",
+]
+
+[tool.uv.sources]
+dsw-command-queue = { workspace = true }
+dsw-config = { workspace = true }
+dsw-data-seeder = { workspace = true }
+dsw-database = { workspace = true }
+dsw-document-worker = { workspace = true }
+dsw-mailer = { workspace = true }
+dsw-models = { workspace = true }
+dsw-storage = { workspace = true }
+dsw-tdk = { workspace = true }
+
+[tool.uv.workspace]
+members = [ "packages/*" ]
+
+[tool.ty.src]
+include = ["packages/*/dsw"]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+indent-width = 4
+include = ["packages/*/dsw/**/*.py"]
+
+[tool.ruff.lint]
+select = [
+    #"A",
+    "E",
+    "F",
+    "COM",
+    "B",
+    #"PL",
+    "UP",
+    "S",
+    "N",
+    "PERF",
+    "PGH",
+    "FURB",
+    "I",
+    "ERA",
+    "FAST",
+    "YTT",
+    #"ANN",
+    #"ASYNC",
+    #"BLE",
+    #"FBT",
+    "C4",
+    #"CPY",
+    "DTZ",
+    "T10",
+    #"EM",
+    "EXE",
+    "FIX",
+    "FA",
+    "INT",
+    #"ISC",
+    "ICN",
+    "LOG",
+    "G",
+    "INP",
+    "PIE",
+    "T20",
+    "PYI",
+    "Q",
+    "RSE",
+    "RET",
+    "SLF",
+    "SIM",
+    "SLOT",
+    #"TID",
+    "TD",
+    "TC",
+    #"ARG",
+    "PTH",
+    "FLY",
+    "C90",
+    #"RUF",
+    #"TRY",
+]
+ignore = [
+    "S404", "S603",  # subprocess used in controlled way only
+]
+preview = true
+
+[tool.ruff.format]
+quote-style = "single"
+indent-style = "space"
+
+[tool.ruff.lint.isort]
+lines-after-imports = 2
+section-order = [
+    "future",
+    "standard-library",
+    "third-party",
+    "monorepo",
+    "first-party",
+    "local-folder",
+]
+
+[tool.ruff.lint.isort.sections]
+"monorepo" = ["dsw"]
+
+[tool.ruff.lint.flake8-bandit]
+allowed-markup-calls = ["markdown.markdown"]
+
+[tool.ruff.lint.flake8-quotes]
+inline-quotes = "single"
+
+[tool.ruff.lint.pep8-naming]
+extend-ignore-names = ["mcs"]

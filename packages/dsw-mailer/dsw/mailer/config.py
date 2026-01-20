@@ -3,11 +3,27 @@ import enum
 import pathlib
 
 from dsw.config import DSWConfigParser
-from dsw.config.keys import ConfigKey, ConfigKeys, ConfigKeysContainer, \
-    cast_str, cast_bool, cast_optional_str, cast_optional_bool, cast_int, \
-    cast_optional_int
-from dsw.config.model import GeneralConfig, SentryConfig, CloudConfig, \
-    DatabaseConfig, LoggingConfig, ConfigModel, AWSConfig, S3Config
+from dsw.config.keys import (
+    ConfigKey,
+    ConfigKeys,
+    ConfigKeysContainer,
+    cast_bool,
+    cast_int,
+    cast_optional_bool,
+    cast_optional_int,
+    cast_optional_str,
+    cast_str,
+)
+from dsw.config.model import (
+    AWSConfig,
+    CloudConfig,
+    ConfigModel,
+    DatabaseConfig,
+    GeneralConfig,
+    LoggingConfig,
+    S3Config,
+    SentryConfig,
+)
 from dsw.database.model import DBInstanceConfigMail
 
 
@@ -361,7 +377,7 @@ class MailerConfigParser(DSWConfigParser):
 
     def __init__(self):
         super().__init__(keys=MailerConfigKeys)
-        self.keys = MailerConfigKeys  # type: type[MailerConfigKeys]
+        self.keys: type[MailerConfigKeys] = MailerConfigKeys
 
     @property
     def mail(self):

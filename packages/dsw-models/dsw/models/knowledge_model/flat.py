@@ -3,8 +3,15 @@ from uuid import UUID
 
 import pydantic
 
-from .common import (BaseModel, TAnnotations, TQuestionValueType, THeaders,
-                     MetricMeasure, QuestionValidation, TypeHintExchange)
+from .common import (
+    BaseModel,
+    MetricMeasure,
+    QuestionValidation,
+    TAnnotations,
+    THeaders,
+    TQuestionValueType,
+    TypeHintExchange,
+)
 
 
 class BaseKMFlatEntity(BaseModel):
@@ -80,11 +87,9 @@ class WidgetIntegration(BaseKMFlatEntity):
 
 
 Integration = typing.Annotated[
-    typing.Union[
-        ApiIntegration,
-        ApiLegacyIntegration,
-        WidgetIntegration,
-    ],
+    ApiIntegration |
+    ApiLegacyIntegration |
+    WidgetIntegration,
     pydantic.Field(discriminator='integration_type'),
 ]
 
@@ -148,15 +153,13 @@ class FileQuestion(QuestionBase):
 
 
 Question = typing.Annotated[
-    typing.Union[
-        OptionsQuestion,
-        MultiChoiceQuestion,
-        ListQuestion,
-        ValueQuestion,
-        IntegrationQuestion,
-        ItemSelectQuestion,
-        FileQuestion,
-    ],
+    OptionsQuestion |
+    MultiChoiceQuestion |
+    ListQuestion |
+    ValueQuestion |
+    IntegrationQuestion |
+    ItemSelectQuestion |
+    FileQuestion,
     pydantic.Field(discriminator='question_type'),
 ]
 
@@ -179,11 +182,9 @@ class CrossReference(BaseKMFlatEntity):
 
 
 Reference = typing.Annotated[
-    typing.Union[
-        ResourcePageReference,
-        URLReference,
-        CrossReference,
-    ],
+    ResourcePageReference |
+    URLReference |
+    CrossReference,
     pydantic.Field(discriminator='reference_type'),
 ]
 
