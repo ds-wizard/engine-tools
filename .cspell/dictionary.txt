@@ -54,6 +54,7 @@ customisation
 dkimpy
 checkmark
 tojson
+openxml
 
 # Software Engineering terms
 bytesize
@@ -99,3 +100,5 @@ SUBM
 # Contributor names
 Marek
 Suchánek
+Kazuki
+Yamamoto

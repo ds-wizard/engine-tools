@@ -17,8 +17,7 @@ class RequestsWrapper:
 
     def get(self, url, params=None, **kwargs) -> requests.Response:
         self._prepare_for_request()
-        resp = requests.get(url=url, params=params, timeout=self.timeout, **kwargs)
-        return resp
+        return requests.get(url=url, params=params, timeout=self.timeout, **kwargs)
 
     def post(self, url, data=None, json=None, **kwargs) -> requests.Response:
         self._prepare_for_request()

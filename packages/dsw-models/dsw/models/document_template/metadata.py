@@ -20,7 +20,7 @@ class DocumentTemplateStep(BaseModel):
 class DocumentTemplateFormat(BaseModel):
     uuid: UUID
     name: str
-    icon: str = ""
+    icon: str
     steps: list[DocumentTemplateStep]
 
 

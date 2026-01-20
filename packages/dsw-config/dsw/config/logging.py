@@ -36,7 +36,7 @@ def prepare_logging(logging_cfg):
         logging.basicConfig(
             stream=sys.stdout,
             level=logging_cfg.global_level,
-            format=logging_cfg.message_format
+            format=logging_cfg.message_format,
         )
         dsw_loggers = (logging.getLogger(name) for name in logger_dict
                        if name.lower().startswith('dsw'))

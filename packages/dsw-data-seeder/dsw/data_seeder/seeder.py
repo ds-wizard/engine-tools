@@ -10,16 +10,15 @@ import uuid
 
 import dateutil.parser
 
-from dsw.command_queue import CommandWorker, CommandQueue
+from dsw.command_queue import CommandQueue, CommandWorker
 from dsw.config.sentry import SentryReporter
 from dsw.database.database import Database
 from dsw.database.model import PersistentCommand
 from dsw.storage import S3Storage
 
+from . import consts
 from .build_info import BUILD_INFO
 from .config import SeederConfig
-from .consts import DEFAULT_ENCODING, DEFAULT_MIMETYPE, DEFAULT_PLACEHOLDER, \
-    COMPONENT_NAME, CMD_COMPONENT, CMD_CHANNEL, PROG_NAME
 from .context import Context
 
 
@@ -29,9 +28,9 @@ LOG = logging.getLogger(__name__)
 def _guess_mimetype(filename: str) -> str:
     try:
         content_type = mimetypes.guess_type(filename)[0]
-        return content_type or DEFAULT_MIMETYPE
+        return content_type or consts.DEFAULT_MIMETYPE
     except Exception:
-        return DEFAULT_MIMETYPE
+        return consts.DEFAULT_MIMETYPE
 
 
 @dataclasses.dataclass
@@ -62,7 +61,7 @@ class SeedRecipeDB:
                 continue
             filepath = pathlib.Path(path)
             if '*' in path:
-                for item in sorted(list(root_path.glob(path))):
+                for item in sorted(root_path.glob(path)):
                     s = SeedRecipeDirective(item, target, index)
                     db_scripts[s.id] = s
             elif filepath.is_absolute():
@@ -73,13 +72,13 @@ class SeedRecipeDB:
                 db_scripts[s.id] = s
         return SeedRecipeDB(
             scripts=db_scripts,
-            tenant_placeholder=data.get('tenantIdPlaceholder', DEFAULT_PLACEHOLDER),
+            tenant_placeholder=data.get('tenantIdPlaceholder', consts.DEFAULT_PLACEHOLDER),
         )
 
     def load_db_scripts(self):
         for script_id, db_script in self.scripts.items():
             self.scripts_data[script_id] = db_script.path.read_text(
-                encoding=DEFAULT_ENCODING,
+                encoding=consts.DEFAULT_ENCODING,
             )
 
 
@@ -116,7 +115,7 @@ class SeedRecipeS3:
                 continue
             filepath = pathlib.Path(path)
             if '*' in path:
-                for item in sorted(list(root_path.glob(path))):
+                for item in sorted(root_path.glob(path)):
                     s = SeedRecipeDirective(item, target, index)
                     copy_instructions[s.id] = s
             elif filepath.is_absolute():
@@ -137,7 +136,7 @@ class SeedRecipeS3:
                 for s3_object_path in s3_copy.path.glob('**/*'):
                     if s3_object_path.is_file():
                         target_object_name = str(
-                            s3_object_path.relative_to(s3_copy.path).as_posix()
+                            s3_object_path.relative_to(s3_copy.path).as_posix(),
                         )
                         for r_from, r_to in self.filename_replace.items():
                             target_object_name = target_object_name.replace(r_from, r_to)
@@ -204,10 +203,10 @@ class SeedRecipe:
         return (obj for obj in self.s3.objects)
 
     def __str__(self):
-        scripts = '\n'.join((f'- {x}' for x in self.db.scripts))
+        scripts = '\n'.join(f'- {x}' for x in self.db.scripts)
         copy_instructions = '\n'.join(f'- {x}' for x in self.s3.copy.values())
         replaces = '\n'.join(
-            (f'- "{x}" -> "{y}"' for x, y in self.s3.filename_replace.items())
+            (f'- "{x}" -> "{y}"' for x, y in self.s3.filename_replace.items()),
         )
         return f'Recipe: {self.name}\n' \
                f'Loaded from: {self.root}\n' \
@@ -223,7 +222,7 @@ class SeedRecipe:
     @staticmethod
     def load_from_json(recipe_file: pathlib.Path) -> 'SeedRecipe':
         data = json.loads(recipe_file.read_text(
-            encoding=DEFAULT_ENCODING,
+            encoding=consts.DEFAULT_ENCODING,
         ))
         db: dict[str, typing.Any] = data.get('db', {})
         s3: dict[str, typing.Any] = data.get('s3', {})
@@ -253,7 +252,7 @@ class SeedRecipe:
             root=pathlib.Path('/dev/null'),
             db=SeedRecipeDB(
                 scripts={},
-                tenant_placeholder=DEFAULT_PLACEHOLDER,
+                tenant_placeholder=consts.DEFAULT_PLACEHOLDER,
             ),
             s3=SeedRecipeS3(
                 copy={},
@@ -296,7 +295,7 @@ class DataSeeder(CommandWorker):
         SentryReporter.initialize(
             config=self.cfg.sentry,
             release=BUILD_INFO.version,
-            prog_name=PROG_NAME,
+            prog_name=consts.PROG_NAME,
         )
 
     def _init_extra_connections(self):
@@ -315,7 +314,7 @@ class DataSeeder(CommandWorker):
         SentryReporter.set_tags(recipe_name=recipe_name)
         LOG.info('Loading recipe "%s"', recipe_name)
         self.recipes = SeedRecipe.load_from_dir(self.workdir)
-        if recipe_name not in self.recipes.keys():
+        if recipe_name not in self.recipes:
             raise RuntimeError(f'Recipe "{recipe_name}" not found')
         LOG.info('Preparing seed recipe "%s"', recipe_name)
         self.recipe = self.recipes[recipe_name]
@@ -327,15 +326,14 @@ class DataSeeder(CommandWorker):
         self._update_component_info()
         # init queue
         LOG.info('Preparing command queue')
-        queue = CommandQueue(
+        return CommandQueue(
             worker=self,
             db=Context.get().app.db,
-            channel=CMD_CHANNEL,
-            component=CMD_COMPONENT,
+            channel=consts.CMD_CHANNEL,
+            component=consts.CMD_COMPONENT,
             wait_timeout=Context.get().app.cfg.db.queue_timeout,
             work_timeout=Context.get().app.cfg.experimental.job_timeout,
         )
-        return queue
 
     def run(self):
         LOG.info('Starting seeder worker (loop)')
@@ -376,9 +374,9 @@ class DataSeeder(CommandWorker):
     def _update_component_info():
         built_at = dateutil.parser.parse(BUILD_INFO.built_at)
         LOG.info('Updating component info (%s, %s)',
-                 BUILD_INFO.version, built_at.isoformat(timespec="seconds"))
+                 BUILD_INFO.version, built_at.isoformat(timespec='seconds'))
         Context.get().app.db.update_component_info(
-            name=COMPONENT_NAME,
+            name=consts.COMPONENT_NAME,
             version=BUILD_INFO.version,
             built_at=built_at,
         )

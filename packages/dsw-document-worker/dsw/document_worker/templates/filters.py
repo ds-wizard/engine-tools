@@ -5,13 +5,15 @@ import typing
 
 import dateutil.parser as dp
 import jinja2
-import markupsafe
 import markdown
+import markdown.preprocessors
+import markupsafe
 
 from dsw.document_worker.utils import byte_size_format
 
-from ..exceptions import JobException
+from ..exceptions import JobError
 from ..model import DocumentContext
+from ..utils import JinjaEnvironment
 from .extraction import extract_replies
 from .tests import tests
 
@@ -20,6 +22,8 @@ LOG = logging.getLogger(__name__)
 
 
 class DSWMarkdownExt(markdown.extensions.Extension):
+
+    @typing.override
     def extendMarkdown(self, md):
         md.preprocessors.register(DSWMarkdownProcessor(md), 'dsw_markdown', 27)
         md.registerExtension(self)
@@ -63,7 +67,7 @@ class _JinjaEnv:
     @property
     def env(self) -> jinja2.Environment:
         if self._env is None:
-            self._env = jinja2.Environment(
+            self._env = JinjaEnvironment(
                 loader=_base_jinja_loader,
                 extensions=['jinja2.ext.do'],
             )
@@ -93,7 +97,7 @@ def datetime_format(iso_timestamp: None | datetime.datetime | str, fmt: str):
 
 
 def extract(obj, keys):
-    return [obj[key] for key in keys if key in obj.keys()]
+    return [obj[key] for key in keys if key in obj]
 
 
 def of_alphabet(n: int) -> str:
@@ -122,7 +126,7 @@ def render_markdown(md_text: str):
         text=md_text,
         extensions=[
             DSWMarkdownExt(),
-        ]
+        ],
     ))
 
 
@@ -133,7 +137,7 @@ def dot(text: str):
 
 
 def _has_value(reply: dict) -> bool:
-    return bool(reply) and ('value' in reply.keys()) and ('value' in reply['value'].keys())
+    return bool(reply) and ('value' in reply) and ('value' in reply['value'])
 
 
 def _get_value(reply: dict) -> typing.Any:
@@ -209,7 +213,7 @@ def to_context_obj(ctx, **options) -> DocumentContext:
     return result
 
 
-class TemplateTriggeredError(JobException):
+class TemplateTriggeredError(JobError):
     """Error invoked from a template to report a problem to a user (not system)."""
 
     def __init__(self, title, message):

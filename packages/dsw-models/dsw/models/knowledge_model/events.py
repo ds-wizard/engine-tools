@@ -5,16 +5,23 @@ from uuid import UUID
 
 import pydantic
 
-from .common import (BaseModel, TAnnotations, THeaders, TQuestionValueType,
-                     MetricMeasure, QuestionValidation, TypeHintExchange)
+from .common import (
+    BaseModel,
+    MetricMeasure,
+    QuestionValidation,
+    TAnnotations,
+    THeaders,
+    TQuestionValueType,
+    TypeHintExchange,
+)
 
 
 T = typing.TypeVar('T')
 
 
-class EditEventField(BaseModel, typing.Generic[T]):
+class EditEventField[T](BaseModel):
     changed: bool
-    value: T | None = None
+    value: T | None
 
     @pydantic.model_serializer(mode='wrap')
     def _serialize(self, handler):
@@ -24,13 +31,13 @@ class EditEventField(BaseModel, typing.Generic[T]):
         data = handler(self)
         return {'changed': True, 'value': data.get('value')}
 
-    @staticmethod
-    def no_change() -> 'EditEventField[T]':
-        return EditEventField(changed=False, value=None)
+    @classmethod
+    def no_change(cls) -> typing.Self:
+        return cls(changed=False, value=None)
 
-    @staticmethod
-    def change(value: T) -> 'EditEventField[T]':
-        return EditEventField(changed=True, value=value)
+    @classmethod
+    def change(cls, value: T) -> typing.Self:
+        return cls(changed=True, value=value)
 
 
 class BaseEventContent(BaseModel):
@@ -124,16 +131,14 @@ class AddFileQuestionEventContent(_AddQuestionEventContent):
 
 
 AddQuestionEventContent = typing.Annotated[
-    typing.Union[
-        AddOptionsQuestionEventContent,
-        AddMultiChoiceQuestionEventContent,
-        AddListQuestionEventContent,
-        AddValueQuestionEventContent,
-        AddIntegrationQuestionEventContent,
-        AddItemSelectQuestionEventContent,
-        AddFileQuestionEventContent,
-    ],
-    pydantic.Field(discriminator='question_type')
+    AddOptionsQuestionEventContent |
+    AddMultiChoiceQuestionEventContent |
+    AddListQuestionEventContent |
+    AddValueQuestionEventContent |
+    AddIntegrationQuestionEventContent |
+    AddItemSelectQuestionEventContent |
+    AddFileQuestionEventContent,
+    pydantic.Field(discriminator='question_type'),
 ]
 
 
@@ -187,16 +192,14 @@ class EditFileQuestionEventContent(_EditQuestionEventContent):
 
 
 EditQuestionEventContent = typing.Annotated[
-    typing.Union[
-        EditOptionsQuestionEventContent,
-        EditMultiChoiceQuestionEventContent,
-        EditListQuestionEventContent,
-        EditValueQuestionEventContent,
-        EditIntegrationQuestionEventContent,
-        EditItemSelectQuestionEventContent,
-        EditFileQuestionEventContent,
-    ],
-    pydantic.Field(discriminator='question_type')
+    EditOptionsQuestionEventContent |
+    EditMultiChoiceQuestionEventContent |
+    EditListQuestionEventContent |
+    EditValueQuestionEventContent |
+    EditIntegrationQuestionEventContent |
+    EditItemSelectQuestionEventContent |
+    EditFileQuestionEventContent,
+    pydantic.Field(discriminator='question_type'),
 ]
 
 
@@ -263,12 +266,10 @@ class AddCrossReferenceEventContent(_AddReferenceEventContent):
 
 
 AddReferenceEventContent = typing.Annotated[
-    typing.Union[
-        AddResourcePageReferenceEventContent,
-        AddURLReferenceEventContent,
-        AddCrossReferenceEventContent,
-    ],
-    pydantic.Field(discriminator='reference_type')
+    AddResourcePageReferenceEventContent |
+    AddURLReferenceEventContent |
+    AddCrossReferenceEventContent,
+    pydantic.Field(discriminator='reference_type'),
 ]
 
 
@@ -295,12 +296,10 @@ class EditCrossReferenceEventContent(_EditReferenceEventContent):
 
 
 EditReferenceEventContent = typing.Annotated[
-    typing.Union[
-        EditResourcePageReferenceEventContent,
-        EditURLReferenceEventContent,
-        EditCrossReferenceEventContent,
-    ],
-    pydantic.Field(discriminator='reference_type')
+    EditResourcePageReferenceEventContent |
+    EditURLReferenceEventContent |
+    EditCrossReferenceEventContent,
+    pydantic.Field(discriminator='reference_type'),
 ]
 
 
@@ -373,12 +372,10 @@ class AddWidgetIntegrationEventContent(_AddIntegrationEventContent):
 
 
 AddIntegrationEventContent = typing.Annotated[
-    typing.Union[
-        AddApiIntegrationEventContent,
-        AddApiLegacyIntegrationEventContent,
-        AddWidgetIntegrationEventContent,
-    ],
-    pydantic.Field(discriminator='integration_type')
+    AddApiIntegrationEventContent |
+    AddApiLegacyIntegrationEventContent |
+    AddWidgetIntegrationEventContent,
+    pydantic.Field(discriminator='integration_type'),
 ]
 
 
@@ -429,12 +426,10 @@ class EditWidgetIntegrationEventContent(_EditIntegrationEventContent):
 
 
 EditIntegrationEventContent = typing.Annotated[
-    typing.Union[
-        EditApiIntegrationEventContent,
-        EditApiLegacyIntegrationEventContent,
-        EditWidgetIntegrationEventContent,
-    ],
-    pydantic.Field(discriminator='integration_type')
+    EditApiIntegrationEventContent |
+    EditApiLegacyIntegrationEventContent |
+    EditWidgetIntegrationEventContent,
+    pydantic.Field(discriminator='integration_type'),
 ]
 
 
@@ -557,52 +552,50 @@ class MoveExpertEventContent(_MoveQuestionEventContent):
 
 # Event
 EventContent = typing.Annotated[
-    typing.Union[
-        AddKnowledgeModelEventContent,
-        EditKnowledgeModelEventContent,
-        AddChapterEventContent,
-        EditChapterEventContent,
-        DeleteChapterEventContent,
-        AddQuestionEventContent,
-        EditQuestionEventContent,
-        DeleteQuestionEventContent,
-        AddAnswerEventContent,
-        EditAnswerEventContent,
-        DeleteAnswerEventContent,
-        AddChoiceEventContent,
-        EditChoiceEventContent,
-        DeleteChoiceEventContent,
-        AddReferenceEventContent,
-        EditReferenceEventContent,
-        DeleteReferenceEventContent,
-        AddExpertEventContent,
-        EditExpertEventContent,
-        DeleteExpertEventContent,
-        AddIntegrationEventContent,
-        EditIntegrationEventContent,
-        DeleteIntegrationEventContent,
-        AddTagEventContent,
-        EditTagEventContent,
-        DeleteTagEventContent,
-        AddMetricEventContent,
-        EditMetricEventContent,
-        DeleteMetricEventContent,
-        AddPhaseEventContent,
-        EditPhaseEventContent,
-        DeletePhaseEventContent,
-        AddResourceCollectionEventContent,
-        EditResourceCollectionEventContent,
-        DeleteResourceCollectionEventContent,
-        AddResourcePageEventContent,
-        EditResourcePageEventContent,
-        DeleteResourcePageEventContent,
-        MoveQuestionEventContent,
-        MoveAnswerEventContent,
-        MoveChoiceEventContent,
-        MoveReferenceEventContent,
-        MoveExpertEventContent,
-    ],
-    pydantic.Field(discriminator='event_type')
+    AddKnowledgeModelEventContent |
+    EditKnowledgeModelEventContent |
+    AddChapterEventContent |
+    EditChapterEventContent |
+    DeleteChapterEventContent |
+    AddQuestionEventContent |
+    EditQuestionEventContent |
+    DeleteQuestionEventContent |
+    AddAnswerEventContent |
+    EditAnswerEventContent |
+    DeleteAnswerEventContent |
+    AddChoiceEventContent |
+    EditChoiceEventContent |
+    DeleteChoiceEventContent |
+    AddReferenceEventContent |
+    EditReferenceEventContent |
+    DeleteReferenceEventContent |
+    AddExpertEventContent |
+    EditExpertEventContent |
+    DeleteExpertEventContent |
+    AddIntegrationEventContent |
+    EditIntegrationEventContent |
+    DeleteIntegrationEventContent |
+    AddTagEventContent |
+    EditTagEventContent |
+    DeleteTagEventContent |
+    AddMetricEventContent |
+    EditMetricEventContent |
+    DeleteMetricEventContent |
+    AddPhaseEventContent |
+    EditPhaseEventContent |
+    DeletePhaseEventContent |
+    AddResourceCollectionEventContent |
+    EditResourceCollectionEventContent |
+    DeleteResourceCollectionEventContent |
+    AddResourcePageEventContent |
+    EditResourcePageEventContent |
+    DeleteResourcePageEventContent |
+    MoveQuestionEventContent |
+    MoveAnswerEventContent |
+    MoveChoiceEventContent |
+    MoveReferenceEventContent |
+    MoveExpertEventContent,
+    pydantic.Field(discriminator='event_type'),
 ]
 
 

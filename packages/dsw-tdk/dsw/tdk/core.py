@@ -10,11 +10,11 @@ import zipfile
 
 import watchfiles
 
+from . import consts
 from .api_client import WizardAPIClient, WizardCommunicationError
-from .consts import DEFAULT_ENCODING
-from .model import TemplateProject, Template, TemplateFile, TemplateFileType
+from .model import Template, TemplateFile, TemplateFileType, TemplateProject
 from .utils import UUIDGen
-from .validation import ValidationError, TemplateValidator
+from .validation import TemplateValidator, ValidationError
 
 
 ChangeItem = tuple[watchfiles.Change, pathlib.Path]
@@ -65,7 +65,8 @@ class TDKCore:
                                 'but still compatible', mm_ver, mmr_ver)
         else:
             raise TDKProcessingError(
-                f'Unsupported metamodel version: local {mm_ver}, remote {mmr_ver}', hint
+                f'Unsupported metamodel version: local {mm_ver}, remote {mmr_ver}',
+                hint,
             )
 
     def __init__(self, template: Template | None = None, project: TemplateProject | None = None,
@@ -155,8 +156,10 @@ class TDKCore:
         if self.project is None:
             raise RuntimeError('No template project is initialized')
         self.project.template = self.safe_template
-        if len(self.project.template.tdk_config.files) == 0:
-            self.project.template.tdk_config.use_default_files()
+        if self.project.template is None:
+            raise RuntimeError('No template is loaded in the project')
+        if len(self.project.safe_template.tdk_config.files) == 0:
+            self.project.safe_template.tdk_config.use_default_files()
             self.logger.warning('Using default _tdk.files in template.json, you may want '
                                 'to change it to include relevant files')
         self.logger.debug('Initiating storing local template project (force=%s)', force)
@@ -318,7 +321,7 @@ class TDKCore:
                     self.logger.info('Adding template file %s', file.filename.as_posix())
                     files.append({
                         'uuid': str(UUIDGen.generate()),
-                        'content': file.content.decode(encoding=DEFAULT_ENCODING),
+                        'content': file.content.decode(encoding=consts.DEFAULT_ENCODING),
                         'fileName': str(file.filename.as_posix()),
                     })
                 else:
@@ -359,7 +362,7 @@ class TDKCore:
             self.logger.debug('Extracting template data')
             if not file.exists():
                 raise RuntimeError('Malformed package: missing template.json file')
-            data = json.loads(file.read_text(encoding=DEFAULT_ENCODING))
+            data = json.loads(file.read_text(encoding=consts.DEFAULT_ENCODING))
             template = Template.load_local(data)
             template.tdk_config.use_default_files()
             self.logger.warning('Using default _tdk.files in template.json, you may want '
@@ -377,13 +380,13 @@ class TDKCore:
             local_template_json = template_dir / 'template.json'
             local_template_json.write_text(
                 data=json.dumps(template.serialize_local_new(), indent=2),
-                encoding=DEFAULT_ENCODING,
+                encoding=consts.DEFAULT_ENCODING,
             )
             self.logger.debug('Extracting README.md from package')
             local_readme = template_dir / 'README.md'
             local_readme.write_text(
                 data=data['readme'].replace('\r\n', '\n'),
-                encoding=DEFAULT_ENCODING,
+                encoding=consts.DEFAULT_ENCODING,
             )
             self.logger.debug('Extracting assets from package')
             for asset_file in assets_dir.rglob('*'):
@@ -399,7 +402,7 @@ class TDKCore:
                 target_file = template_dir / filename
                 target_dir = target_file.parent
                 target_dir.mkdir(parents=True, exist_ok=True)
-                target_file.write_text(data=content, encoding=DEFAULT_ENCODING)
+                target_file.write_text(data=content, encoding=consts.DEFAULT_ENCODING)
         self.logger.debug('Extracting package done')
 
     async def watch_project(self, callback, stop_event: asyncio.Event):
@@ -407,12 +410,14 @@ class TDKCore:
                 self.safe_project.template_dir,
                 stop_event=stop_event,
         ):
-            await callback((
+            await callback(
                 change for change in ((change[0], pathlib.Path(change[1])) for change in changes)
                 if self.safe_project.is_template_file(
-                    change[1], include_descriptor=True, include_readme=True
+                    change[1],
+                    include_descriptor=True,
+                    include_readme=True,
                 )
-            ))
+            )
 
     async def update_descriptor(self):
         try:

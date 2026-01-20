@@ -6,8 +6,8 @@ import subprocess
 
 import rdflib
 
+from . import consts
 from .config import DocumentWorkerConfig
-from .consts import EXIT_SUCCESS, DEFAULT_ENCODING
 from .documents import FileFormat, FileFormats
 
 
@@ -23,15 +23,16 @@ def run_conversion(*, args: list, workdir: str, input_data: bytes, name: str,
                           stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
         stdout, stderr = proc.communicate(input=input_data, timeout=timeout)
         exit_code = proc.returncode
-    if exit_code != EXIT_SUCCESS:
-        raise FormatConversionException(
+    if exit_code != consts.EXIT_SUCCESS:
+        raise FormatConversionError(
             name, source_format, target_format,
-            f'Failed to execute (exit code: {exit_code}): {stderr.decode(DEFAULT_ENCODING)}'
+            f'Failed to execute (exit code: {exit_code}): '
+            f'{stderr.decode(consts.DEFAULT_ENCODING)}',
         )
     return stdout
 
 
-class FormatConversionException(Exception):
+class FormatConversionError(Exception):
 
     def __init__(self, convertor, source_format, target_format, message):
         self.convertor = convertor
@@ -115,11 +116,10 @@ class RdfLibConvert:
                  data: bytes, metadata: dict) -> bytes:
         g = rdflib.Dataset()
         g.parse(
-            data=data.decode(DEFAULT_ENCODING),
+            data=data.decode(consts.DEFAULT_ENCODING),
             format=self.FORMATS.get(source_format) or 'turtle',
         )
-        result = g.serialize(
+        return g.serialize(
             format=self.FORMATS.get(target_format) or 'turtle',
-            encoding=DEFAULT_ENCODING,
+            encoding=consts.DEFAULT_ENCODING,
         )
-        return result

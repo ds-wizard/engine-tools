@@ -36,7 +36,7 @@ USER user
 
 # Prepare dirs
 WORKDIR /home/user
-RUN mkdir /tmp/docworker && mkdir -p /home/user/templates
+RUN mkdir -p /home/user/templates
 COPY --chown=user:user packages/dsw-document-worker/data /home/user/data
 
 # Install Python packages

@@ -5,7 +5,7 @@ import pathlib
 
 import dotenv
 
-from .consts import DEFAULT_ENCODING
+from . import consts
 
 
 def _rectify_api_url(api_url: str | None) -> str:
@@ -44,11 +44,8 @@ class TDKConfig:
         self.default_env_name = None  # type: str | None
 
     def load_dotenv(self, path: pathlib.Path):
-        try:
-            if path.exists():
-                dotenv.load_dotenv(path)
-        except Exception as e:
-            print(f"Error loading .env file: {e}")
+        if path.exists():
+            dotenv.load_dotenv(path)
         api_url = os.getenv('DSW_API_URL', '')
         api_key = os.getenv('DSW_API_KEY', '')
 
@@ -147,8 +144,8 @@ class TDKConfig:
             config.set(section_name, 'api_url', env.api_url)
             config.set(section_name, 'api_key', env.api_key)
 
-        with open(output, 'w', encoding=DEFAULT_ENCODING) as configfile:
-            config.write(configfile)
+        with output.open(mode='w', encoding=consts.DEFAULT_ENCODING) as config_file:
+            config.write(config_file)
 
 
 CONFIG = TDKConfig()

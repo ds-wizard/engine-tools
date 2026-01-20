@@ -1,11 +1,12 @@
+import pathlib
 import typing
 
 import pathvalidate
 import slugify
 
-from dsw.database.database import DBDocument
+from dsw.database.model import DBDocument
 
-from .consts import DEFAULT_ENCODING, DocumentNamingStrategy
+from . import consts
 from .context import Context
 
 
@@ -109,7 +110,7 @@ class FileFormats:
             'xlsx': FileFormats.XLSX,
             'xlsm': FileFormats.XLSM,
         }
-        return known_formats.get(name, None)
+        return known_formats.get(name)
 
 
 class DocumentFile:
@@ -127,7 +128,7 @@ class DocumentFile:
 
     @property
     def safe_encoding(self) -> str:
-        return self.encoding or DEFAULT_ENCODING
+        return self.encoding or consts.DEFAULT_ENCODING
 
     @property
     def content(self) -> bytes:
@@ -142,8 +143,7 @@ class DocumentFile:
         return f'{name}.{self.file_format.file_extension}'
 
     def store(self, name: str):
-        with open(self.filename(name), mode='bw') as f:
-            f.write(self.content)
+        pathlib.Path(self.filename(name)).write_bytes(self.content)
 
     @property
     def object_content_type(self) -> str:
@@ -174,9 +174,9 @@ class DocumentNameGiver:
 
     _FALLBACK: typing.Callable[[DBDocument], str] = _name_uuid
     _STRATEGIES: dict[str, typing.Callable[[DBDocument], str]] = {
-        DocumentNamingStrategy.UUID: _name_uuid,
-        DocumentNamingStrategy.SANITIZE: _name_sanitize,
-        DocumentNamingStrategy.SLUGIFY: _name_slugify,
+        consts.DocumentNamingStrategy.UUID: _name_uuid,
+        consts.DocumentNamingStrategy.SANITIZE: _name_sanitize,
+        consts.DocumentNamingStrategy.SLUGIFY: _name_slugify,
     }
 
     @classmethod

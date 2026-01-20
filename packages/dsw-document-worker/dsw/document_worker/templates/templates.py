@@ -5,21 +5,24 @@ import logging
 import pathlib
 import shutil
 
-from dsw.database.database import DBDocumentTemplate, \
-    DBDocumentTemplateFile, DBDocumentTemplateAsset
+from dsw.database.model import (
+    DBDocumentTemplate,
+    DBDocumentTemplateAsset,
+    DBDocumentTemplateFile,
+)
 
-from ..consts import FormatField
+from .. import consts
 from ..context import Context
 from ..documents import DocumentFile
-from .formats import Format
 from ..model.context import ProjectFile
-from .steps.base import register_step, Step
+from .formats import Format
+from .steps.base import Step, register_step
 
 
 LOG = logging.getLogger(__name__)
 
 
-class TemplateException(Exception):
+class TemplateError(Exception):
 
     def __init__(self, template_id: str, message: str):
         self.template_id = template_id
@@ -78,7 +81,7 @@ class Template:
         self.project_uuid: str | None = None
 
     def raise_exc(self, message: str):
-        raise TemplateException(self.template_id, message)
+        raise TemplateError(self.template_id, message)
 
     def fetch_asset(self, file_name: str) -> Asset | None:
         LOG.info('Fetching asset "%s"', file_name)
@@ -107,9 +110,9 @@ class Template:
         )
 
     def fetch_project_file_dict(self, file: dict) -> Asset | None:
-        file_uuid = file.get('uuid', None)
-        name = file.get('fileName', None)
-        content_type = file.get('contentType', None)
+        file_uuid = file.get('uuid')
+        name = file.get('fileName')
+        content_type = file.get('contentType')
         if isinstance(file_uuid, str) and isinstance(name, str) and isinstance(content_type, str):
             return self._fetch_project_file(
                 file_uuid=file_uuid,
@@ -260,16 +263,16 @@ class Template:
 
     def prepare_format(self, format_uuid: str):
         for format_meta in self.db_template.template.formats:
-            if format_uuid == format_meta.get(FormatField.UUID, None):
+            if format_uuid == format_meta.get(consts.FormatField.UUID):
                 self.formats[format_uuid] = Format(self, format_meta)
                 return True
         return False
 
     def has_format(self, format_uuid: str) -> bool:
-        return any(map(
-            lambda f: f[FormatField.UUID] == format_uuid,
-            self.db_template.template.formats
-        ))
+        return any(
+            f[consts.FormatField.UUID] == format_uuid
+            for f in self.db_template.template.formats
+        )
 
     def __getitem__(self, format_uuid: str) -> Format:
         return self.formats[format_uuid]

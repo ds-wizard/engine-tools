@@ -6,8 +6,7 @@ import platform
 import select
 import signal
 
-import func_timeout  # type: ignore
-import psycopg
+import func_timeout
 import psycopg.generators
 import tenacity
 
@@ -15,6 +14,7 @@ from dsw.database import Database
 from dsw.database.model import PersistentCommand
 
 from .query import CommandQueries
+
 
 LOG = logging.getLogger(__name__)
 
@@ -90,8 +90,8 @@ class CommandQueue:
         self.db = db
         self.queries = CommandQueries(
             channel=channel,
-            component=component
         )
+        self.component = component
         self.wait_timeout = wait_timeout
         self.work_timeout = work_timeout
         self._interrupted = False
@@ -110,7 +110,7 @@ class CommandQueue:
         LOG.info('Preparing to listen to command queue (issuing LISTEN)')
         queue_conn = self.db.conn_queue
         queue_conn.connection.execute(
-            query=self.queries.query_listen(),
+            query=self.queries.query_listen().encode(),
         )
         queue_conn.listening = True
         LOG.info('Listening to notifications in command queue')
@@ -162,7 +162,10 @@ class CommandQueue:
         cursor = self.db.conn_query.new_cursor(use_dict=True)
         cursor.execute(
             query=self.queries.query_get_command(),
-            params={'now': datetime.datetime.now(tz=datetime.UTC)},
+            params={
+                'component': self.component,
+                'now': datetime.datetime.now(tz=datetime.UTC),
+            },
         )
         result = cursor.fetchall()
         if len(result) != 1:

@@ -2,12 +2,24 @@ import dataclasses
 import shlex
 
 from dsw.config import DSWConfigParser
-from dsw.config.keys import ConfigKey, ConfigKeys, ConfigKeysContainer, \
-    cast_str, cast_optional_int
-from dsw.config.model import GeneralConfig, SentryConfig, DatabaseConfig, \
-    S3Config, LoggingConfig, CloudConfig, ConfigModel
+from dsw.config.keys import (
+    ConfigKey,
+    ConfigKeys,
+    ConfigKeysContainer,
+    cast_optional_int,
+    cast_str,
+)
+from dsw.config.model import (
+    CloudConfig,
+    ConfigModel,
+    DatabaseConfig,
+    GeneralConfig,
+    LoggingConfig,
+    S3Config,
+    SentryConfig,
+)
 
-from .consts import DocumentNamingStrategy
+from . import consts
 
 
 # pylint: disable-next=too-few-public-methods
@@ -129,7 +141,7 @@ class DocumentsConfig(ConfigModel):
     naming_strategy: str
 
     def __init__(self, naming_strategy: str):
-        self.naming_strategy = DocumentNamingStrategy.get(naming_strategy)
+        self.naming_strategy = consts.DocumentNamingStrategy.get(naming_strategy)
 
 
 @dataclasses.dataclass
@@ -202,8 +214,7 @@ class TemplatesConfig:
 
     def get_config(self, template_id: str) -> TemplateConfig | None:
         for template in self.templates:
-            if any((template_id.startswith(prefix)
-                    for prefix in template.ids)):
+            if any(template_id.startswith(prefix) for prefix in template.ids):
                 return template
         return None
 
@@ -243,12 +254,12 @@ class DocumentWorkerConfigParser(DSWConfigParser):
 
     def __init__(self):
         super().__init__(keys=DocWorkerConfigKeys)
-        self.keys = DocWorkerConfigKeys  # type: type[DocWorkerConfigKeys]
+        self.keys: type[DocWorkerConfigKeys] = DocWorkerConfigKeys
 
     @property
     def documents(self) -> DocumentsConfig:
         return DocumentsConfig(
-            naming_strategy=self.get(self.keys.documents.naming_strategy)
+            naming_strategy=self.get(self.keys.documents.naming_strategy),
         )
 
     @property
