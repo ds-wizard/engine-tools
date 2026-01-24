@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
+## [4.27.0]
+
+### Fixed
+
+- Fixed slow put-update due to redundant cleaning of files and assets
+
 ## [4.26.1]
 
 Released for version consistency with other DSW tools.
@@ -354,7 +360,7 @@ Released for version consistency with other DSW tools.
 ### Fixed
 
 - Fixed issue with `remote_type` resolution
-- Serialization of path for `get` command 
+- Serialization of path for `get` command
 
 ## [3.19.0]
 
@@ -664,3 +670,4 @@ Initial DSW Template Development Kit (versioned as part of the [DSW platform](ht
 [4.25.1]: /../../tree/v4.25.1
 [4.26.0]: /../../tree/v4.26.0
 [4.26.1]: /../../tree/v4.26.1
+[4.27.0]: /../../tree/v4.27.0

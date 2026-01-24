@@ -8,6 +8,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 
+## [4.27.0]
+
+### Added
+
+- Added models for project events and replies
+
 ## [4.26.1]
 
 Released for version consistency with other DSW tools.
@@ -342,3 +348,4 @@ Released for version consistency with other DSW tools.
 [4.25.1]: /../../tree/v4.25.1
 [4.26.0]: /../../tree/v4.26.0
 [4.26.1]: /../../tree/v4.26.1
+[4.27.0]: /../../tree/v4.27.0
