@@ -1,4 +1,4 @@
-from ...consts import DEFAULT_ENCODING
+from ... import consts
 from ...context import Context
 from ...conversions import Pandoc, RdfLibConvert
 from ...documents import DocumentFile, FileFormats
@@ -51,8 +51,7 @@ class WeasyPrintStep(Step):
                            f' format as input')
         file_uri = self.template.template_dir / '_file.html'
         wp_html = weasyprint.HTML(
-            string=document.content.decode(DEFAULT_ENCODING),
-            encoding=DEFAULT_ENCODING,
+            string=document.content.decode(consts.DEFAULT_ENCODING),
             media_type='print',
             base_url=file_uri.as_uri(),
         )
@@ -94,16 +93,16 @@ class PandocStep(Step):
         FileFormats.RTF,
     ])
     OUTPUT_ENCODINGS = {
-        FileFormats.ADoc: DEFAULT_ENCODING,
+        FileFormats.ADoc: consts.DEFAULT_ENCODING,
         FileFormats.DocBook4: None,
         FileFormats.DocBook5: None,
         FileFormats.DOCX: None,
         FileFormats.EPUB: None,
-        FileFormats.HTML: DEFAULT_ENCODING,
-        FileFormats.LaTeX: DEFAULT_ENCODING,
-        FileFormats.Markdown: DEFAULT_ENCODING,
+        FileFormats.HTML: consts.DEFAULT_ENCODING,
+        FileFormats.LaTeX: consts.DEFAULT_ENCODING,
+        FileFormats.Markdown: consts.DEFAULT_ENCODING,
         FileFormats.ODT: None,
-        FileFormats.RST: DEFAULT_ENCODING,
+        FileFormats.RST: consts.DEFAULT_ENCODING,
         FileFormats.RTF: None,
     }
 
@@ -201,7 +200,7 @@ class RdfLibConvertStep(Step):
         return DocumentFile(
             file_format=self.output_format,
             content=data,
-            encoding=DEFAULT_ENCODING,
+            encoding=consts.DEFAULT_ENCODING,
         )
 
 
