@@ -77,8 +77,16 @@ class SimpleExtractor(ContextExtractor):
         self._objects = {}  # type: dict[str, dict]
 
     def _visit_chapter(self, key: str, chapter: dc.Chapter):
-        for question in chapter.questions:
-            self._visit_question(key, question, chapter.uuid)
+        a_key = _get_annotation(chapter.a, self._a_key)
+        if a_key is not None:
+            self._objects[chapter.uuid] = {}
+            for question in chapter.questions:
+                self._visit_question(chapter.uuid, question, chapter.uuid)
+            self._objects[key][a_key] = self._objects[chapter.uuid]
+            self._objects.pop(chapter.uuid)
+        else:
+            for question in chapter.questions:
+                self._visit_question(key, question, chapter.uuid)
 
     def _visit_question(self, key: str, question: dc.Question, path: str):
         path = f'{path}.{question.uuid}'
