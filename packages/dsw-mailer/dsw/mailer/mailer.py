@@ -105,7 +105,7 @@ class Mailer(CommandWorker):
             tenant_uuid=tenant_uuid,
         )
         if default_locale is not None:
-            return default_locale.id
+            return default_locale.uuid
         return None
 
     def _get_msg_request(self, command: PersistentCommand) -> MessageRequest:
