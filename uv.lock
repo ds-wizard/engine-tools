@@ -689,7 +689,7 @@ provides-extras = ["test"]
 
 [[package]]
 name = "engine-tools"
-version = "4.27.0rc1"
+version = "4.27.0"
 source = { virtual = "." }
 
 [package.dev-dependencies]
