@@ -16,8 +16,8 @@ def unmark_element(element, stream=None):
 
 
 # patching Markdown
-markdown.Markdown.output_formats['plain'] = unmark_element  # type: ignore
-__md = markdown.Markdown(output_format='plain')  # type: ignore
+markdown.Markdown.output_formats['plain'] = unmark_element
+__md = markdown.Markdown(output_format='plain')
 __md.stripTopLevelTags = False
 
 

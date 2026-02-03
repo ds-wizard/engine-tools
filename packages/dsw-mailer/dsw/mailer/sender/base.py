@@ -1,18 +1,17 @@
 import abc
 import datetime
 import logging
-
 from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from email.utils import formataddr, format_datetime, make_msgid
+from email.utils import format_datetime, formataddr, make_msgid
 
 import pathvalidate
 
+from .. import consts
 from ..config import MailConfig
-from ..consts import DEFAULT_ENCODING
-from ..model import MailMessage, MailAttachment
+from ..model import MailAttachment, MailMessage
 
 
 LOG = logging.getLogger(__name__)
@@ -55,7 +54,7 @@ class BaseMailSender(abc.ABC):
 
         def add_header(name: str, value: str):
             msg.add_header(name, value)
-            headers.append(name.encode(encoding=DEFAULT_ENCODING))
+            headers.append(name.encode(encoding=consts.DEFAULT_ENCODING))
 
         add_header('From', formataddr((mail.from_name, mail.from_mail)))
         add_header('To', ', '.join(mail.recipients))
@@ -72,7 +71,7 @@ class BaseMailSender(abc.ABC):
 
         if self.cfg.dkim_selector and self.cfg.dkim_privkey:
             # pylint: disable=import-outside-toplevel
-            import dkim  # type: ignore
+            import dkim
 
             sender_domain = mail.from_mail.split('@')[-1]
             signature = dkim.sign(
@@ -82,8 +81,7 @@ class BaseMailSender(abc.ABC):
                 privkey=self.cfg.dkim_privkey,
                 include_headers=headers,
             ).decode()
-            if signature.startswith('DKIM-Signature: '):
-                signature = signature[len('DKIM-Signature: '):]
+            signature = signature.removeprefix('DKIM-Signature: ').strip()
             msg.add_header('DKIM-Signature', signature)
 
         return msg
@@ -103,8 +101,8 @@ class BaseMailSender(abc.ABC):
     def _convert_html_part(cls, mail: MailMessage) -> MIMEBase:
         if mail.html_body is None:
             raise RuntimeError('Requested HTML body but there is none')
-        txt_part = MIMEText(mail.html_body, 'html', DEFAULT_ENCODING)
-        txt_part.set_charset(DEFAULT_ENCODING)
+        txt_part = MIMEText(mail.html_body, 'html', consts.DEFAULT_ENCODING)
+        txt_part.set_charset(consts.DEFAULT_ENCODING)
         if len(mail.html_images) > 0:
             part = MIMEMultipart('related')
             part.attach(txt_part)
@@ -117,7 +115,7 @@ class BaseMailSender(abc.ABC):
     def _convert_plain_part(mail: MailMessage) -> MIMEText:
         if mail.plain_body is None:
             raise RuntimeError('Requested plain body but there is none')
-        return MIMEText(mail.plain_body, 'plain', DEFAULT_ENCODING)
+        return MIMEText(mail.plain_body, 'plain', consts.DEFAULT_ENCODING)
 
     @classmethod
     def _convert_txt_parts(cls, mail: MailMessage) -> MIMEBase:
@@ -126,7 +124,7 @@ class BaseMailSender(abc.ABC):
         if mail.html_body is None:
             return cls._convert_plain_part(mail)
         part = MIMEMultipart('alternative')
-        part.set_charset(DEFAULT_ENCODING)
+        part.set_charset(consts.DEFAULT_ENCODING)
         part.attach(cls._convert_plain_part(mail))
         part.attach(cls._convert_html_part(mail))
         return part

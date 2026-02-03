@@ -3,11 +3,27 @@ import enum
 import pathlib
 
 from dsw.config import DSWConfigParser
-from dsw.config.keys import ConfigKey, ConfigKeys, ConfigKeysContainer, \
-    cast_str, cast_bool, cast_optional_str, cast_optional_bool, cast_int, \
-    cast_optional_int
-from dsw.config.model import GeneralConfig, SentryConfig, CloudConfig, \
-    DatabaseConfig, LoggingConfig, ConfigModel, AWSConfig, S3Config
+from dsw.config.keys import (
+    ConfigKey,
+    ConfigKeys,
+    ConfigKeysContainer,
+    cast_bool,
+    cast_int,
+    cast_optional_bool,
+    cast_optional_int,
+    cast_optional_str,
+    cast_str,
+)
+from dsw.config.model import (
+    AWSConfig,
+    CloudConfig,
+    ConfigModel,
+    DatabaseConfig,
+    GeneralConfig,
+    LoggingConfig,
+    S3Config,
+    SentryConfig,
+)
 from dsw.database.model import DBInstanceConfigMail
 
 
@@ -220,7 +236,7 @@ class MailSMTPConfig:
             self.security = SMTPSecurityMode[security.upper()]
         elif ssl is not None:
             self.security = SMTPSecurityMode.SSL if ssl else SMTPSecurityMode.PLAIN
-        self.port = port or self._default_port()
+        self.port = port or self.default_port
         self.auth = auth_enabled
         if self.auth is None:
             self.auth = username is not None and password is not None
@@ -248,7 +264,8 @@ class MailSMTPConfig:
     def is_tls(self):
         return self.security == SMTPSecurityMode.TLS
 
-    def _default_port(self) -> int:
+    @property
+    def default_port(self) -> int:
         if self.is_plain:
             return 25
         if self.is_ssl:
@@ -360,7 +377,7 @@ class MailerConfigParser(DSWConfigParser):
 
     def __init__(self):
         super().__init__(keys=MailerConfigKeys)
-        self.keys = MailerConfigKeys  # type: type[MailerConfigKeys]
+        self.keys: type[MailerConfigKeys] = MailerConfigKeys
 
     @property
     def mail(self):
@@ -441,12 +458,18 @@ def merge_mail_configs(cfg: MailerConfig, db_cfg: DBInstanceConfigMail | None) -
             smtp.password = cfg.mail.smtp.password
             smtp.timeout = cfg.mail.smtp.timeout
         else:
+            if db_cfg.smtp_security is None:
+                smtp.security = cfg.mail.smtp.security
+            elif SMTPSecurityMode.has(db_cfg.smtp_security.upper()):
+                smtp.security = SMTPSecurityMode[db_cfg.smtp_security.upper()]
+            else:
+                smtp.security = SMTPSecurityMode.PLAIN
             smtp.host = db_cfg.smtp_host
-            smtp.port = db_cfg.smtp_port
-            smtp.security = db_cfg.smtp_security
+            smtp.port = db_cfg.smtp_port or smtp.default_port
             smtp.username = db_cfg.smtp_username
             smtp.password = db_cfg.smtp_password
-            smtp.timeout = db_cfg.timeout
+            if db_cfg.timeout:
+                smtp.timeout = db_cfg.timeout
     elif db_cfg.provider.lower() == 'amazonses':
         if db_cfg.aws_access_key_id is None and db_cfg.aws_secret_access_key is None:
             amazon_ses.access_key_id = cfg.mail.amazon_ses.access_key_id
@@ -459,13 +482,13 @@ def merge_mail_configs(cfg: MailerConfig, db_cfg: DBInstanceConfigMail | None) -
 
     result = MailConfig(
         enabled=cfg.mail.enabled,
-        name=db_cfg.sender_name,
-        email=db_cfg.sender_email,
+        name=db_cfg.sender_name or cfg.mail.name,
+        email=db_cfg.sender_email or cfg.mail.email,
         provider=db_cfg.provider,
         smtp=smtp,
         amazon_ses=amazon_ses,
-        rate_limit_window=db_cfg.rate_limit_window,
-        rate_limit_count=db_cfg.rate_limit_count,
+        rate_limit_window=db_cfg.rate_limit_window or cfg.mail.rate_limit_window,
+        rate_limit_count=db_cfg.rate_limit_count or cfg.mail.rate_limit_count,
         dkim_privkey_file=None,
         dkim_selector=None,
     )

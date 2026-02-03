@@ -101,22 +101,20 @@ class DomainQuestionValidation(pydantic.BaseModel):
 
 
 QuestionValidation = typing.Annotated[
-    typing.Union[
-        MinLengthQuestionValidation,
-        MaxLengthQuestionValidation,
-        RegexQuestionValidation,
-        OrcidQuestionValidation,
-        DoiQuestionValidation,
-        MinNumberQuestionValidation,
-        MaxNumberQuestionValidation,
-        FromDateQuestionValidation,
-        ToDateQuestionValidation,
-        FromDateTimeQuestionValidation,
-        ToDateTimeQuestionValidation,
-        FromTimeQuestionValidation,
-        ToTimeQuestionValidation,
-        DomainQuestionValidation,
-    ],
+    MinLengthQuestionValidation |
+    MaxLengthQuestionValidation |
+    RegexQuestionValidation |
+    OrcidQuestionValidation |
+    DoiQuestionValidation |
+    MinNumberQuestionValidation |
+    MaxNumberQuestionValidation |
+    FromDateQuestionValidation |
+    ToDateQuestionValidation |
+    FromDateTimeQuestionValidation |
+    ToDateTimeQuestionValidation |
+    FromTimeQuestionValidation |
+    ToTimeQuestionValidation |
+    DomainQuestionValidation,
     pydantic.Field(discriminator='type'),
 ]
 
@@ -152,11 +150,9 @@ class RequestFailedTypeHintResponse(BaseTypeHintResponse):
 
 
 TypeHintResponse = typing.Annotated[
-    typing.Union[
-        SuccessTypeHintResponse,
-        RemoteErrorTypeHintResponse,
-        RequestFailedTypeHintResponse,
-    ],
+    SuccessTypeHintResponse |
+    RemoteErrorTypeHintResponse |
+    RequestFailedTypeHintResponse,
     pydantic.Field(discriminator='response_type'),
 ]
 

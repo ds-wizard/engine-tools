@@ -6,20 +6,18 @@ import time
 
 import dateutil.parser
 
-from dsw.command_queue import CommandWorker, CommandQueue
+from dsw.command_queue import CommandQueue, CommandWorker
 from dsw.config.sentry import SentryReporter
 from dsw.database.database import Database
 from dsw.database.model import PersistentCommand
 from dsw.storage import S3Storage
 
+from . import consts
 from .build_info import BUILD_INFO
-from .config import MailerConfig, MailConfig, merge_mail_configs
-from .consts import PROG_NAME
-from .sender import send
-from .consts import COMPONENT_NAME, CMD_CHANNEL, CMD_COMPONENT, \
-    CMD_FUNCTION
+from .config import MailConfig, MailerConfig, merge_mail_configs
 from .context import Context
-from .model import MessageRequest, MessageRecipient
+from .model import MessageRecipient, MessageRequest
+from .sender import send
 
 
 LOG = logging.getLogger(__name__)
@@ -54,16 +52,16 @@ class Mailer(CommandWorker):
         SentryReporter.initialize(
             config=self.cfg.sentry,
             release=BUILD_INFO.version,
-            prog_name=PROG_NAME,
+            prog_name=consts.PROG_NAME,
         )
 
     @staticmethod
     def _update_component_info():
         built_at = dateutil.parser.parse(BUILD_INFO.built_at)
         LOG.info('Updating component info (%s, %s)',
-                 BUILD_INFO.version, built_at.isoformat(timespec="seconds"))
+                 BUILD_INFO.version, built_at.isoformat(timespec='seconds'))
         Context.get().app.db.update_component_info(
-            name=COMPONENT_NAME,
+            name=consts.COMPONENT_NAME,
             version=BUILD_INFO.version,
             built_at=built_at,
         )
@@ -74,15 +72,14 @@ class Mailer(CommandWorker):
         self._update_component_info()
         # init queue
         LOG.info('Preparing command queue')
-        queue = CommandQueue(
+        return CommandQueue(
             worker=self,
             db=Context.get().app.db,
-            channel=CMD_CHANNEL,
-            component=CMD_COMPONENT,
+            channel=consts.CMD_CHANNEL,
+            component=consts.CMD_COMPONENT,
             wait_timeout=Context.get().app.cfg.db.queue_timeout,
             work_timeout=Context.get().app.cfg.experimental.job_timeout,
         )
-        return queue
 
     def run(self):
         LOG.info('Starting mailer worker (loop)')
@@ -94,7 +91,7 @@ class Mailer(CommandWorker):
         queue = self._run_preparation()
         queue.run_once()
 
-    def _get_locale_id(self, recipient_uuid: str, tenant_uuid: str) -> str | None:
+    def _get_locale_uuid(self, recipient_uuid: str, tenant_uuid: str) -> str | None:
         app_ctx = Context.get().app
         user = app_ctx.db.get_user(
             user_uuid=recipient_uuid,
@@ -108,7 +105,7 @@ class Mailer(CommandWorker):
             tenant_uuid=tenant_uuid,
         )
         if default_locale is not None:
-            return default_locale.id
+            return default_locale.uuid
         return None
 
     def _get_msg_request(self, command: PersistentCommand) -> MessageRequest:
@@ -116,19 +113,19 @@ class Mailer(CommandWorker):
         if len(mc.recipients) == 0:
             raise RuntimeError('No recipients specified')
         first_recipient = mc.recipients[0]
-        locale_id = None
+        locale_uuid = None
         if first_recipient.uuid is not None:
-            locale_id = self._get_locale_id(first_recipient.uuid, command.tenant_uuid)
+            locale_uuid = self._get_locale_uuid(first_recipient.uuid, command.tenant_uuid)
         return mc.to_request(
             msg_id=command.uuid,
             trigger='PersistentComment',
-            locale_id=locale_id,
+            locale_uuid=locale_uuid,
         )
 
     def _get_mail_config(self, command: PersistentCommand) -> MailConfig:
         app_ctx = Context.get().app
         params: dict = command.body.get('parameters', {})
-        mail_config_uuid: str | None = params.get('mailConfigUuid', None)
+        mail_config_uuid: str | None = params.get('mailConfigUuid')
         db_cfg = None
         if mail_config_uuid is not None:
             LOG.debug('Loading mail config from DB: %s', mail_config_uuid)
@@ -180,7 +177,7 @@ class Mailer(CommandWorker):
             raise RuntimeError(f'Template not found: {rq.template_name}')
         # render
         LOG.info('Rendering message: %s', rq.template_name)
-        LOG.warning('Should send with locale: %s', rq.locale_id)
+        LOG.warning('Should send with locale: %s', rq.locale_uuid)
         msg = self.ctx.templates.render(rq, cfg, Context.get().app)
         # send
         LOG.info('Sending message: %s', rq.template_name)
@@ -225,12 +222,12 @@ class MailerCommand:
         self.cmd_uuid = cmd_uuid
         self._enrich_context()
 
-    def to_request(self, msg_id: str, locale_id: str | None, trigger: str) -> MessageRequest:
+    def to_request(self, msg_id: str, locale_uuid: str | None, trigger: str) -> MessageRequest:
         rq = MessageRequest(
             message_id=msg_id,
             template_name=f'{self.mode}:{self.template}',
             tenant_uuid=self.tenant_uuid,
-            locale_id=locale_id,
+            locale_uuid=locale_uuid,
             trigger=trigger,
             ctx=self.ctx,
             recipients=self.recipients,
@@ -249,9 +246,9 @@ class MailerCommand:
 
     @staticmethod
     def load(command: PersistentCommand) -> 'MailerCommand':
-        if command.component != CMD_COMPONENT:
+        if command.component != consts.CMD_COMPONENT:
             raise RuntimeError('Tried to process non-mailer command')
-        if command.function != CMD_FUNCTION:
+        if command.function != consts.CMD_FUNCTION:
             raise RuntimeError(f'Unsupported function: {command.function}')
         try:
             return MailerCommand(

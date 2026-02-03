@@ -1,15 +1,14 @@
 import json
 import pathlib
-import typing
 import sys
+import typing
 
 import click
 
 from dsw.config.parser import MissingConfigurationError
 
+from . import consts
 from .config import MailerConfig, MailerConfigParser
-from .consts import (VERSION, VAR_APP_CONFIG_PATH, VAR_WORKDIR_PATH,
-                     DEFAULT_ENCODING)
 from .mailer import Mailer, SentryReporter
 from .model import MessageRequest
 
@@ -56,11 +55,11 @@ def extract_message_request(ctx, param, value: typing.IO):
 
 @click.group(name='dsw-mailer', help='Mailer for sending emails from DSW')
 @click.pass_context
-@click.version_option(version=VERSION)
-@click.option('-c', '--config', envvar=VAR_APP_CONFIG_PATH,
+@click.version_option(version=consts.VERSION)
+@click.option('-c', '--config', envvar=consts.VAR_APP_CONFIG_PATH,
               required=False, callback=validate_config,
-              type=click.File('r', encoding=DEFAULT_ENCODING))
-@click.option('-w', '--workdir', envvar=VAR_WORKDIR_PATH,
+              type=click.File('r', encoding=consts.DEFAULT_ENCODING))
+@click.option('-w', '--workdir', envvar=consts.VAR_WORKDIR_PATH,
               type=click.Path(dir_okay=True, exists=True))
 def cli(ctx, config: MailerConfig, workdir: str):
     path_workdir = pathlib.Path(workdir)
@@ -70,11 +69,11 @@ def cli(ctx, config: MailerConfig, workdir: str):
 
 @cli.command(name='send', help='Send message(s) from given file directly.')
 @click.pass_context
-@click.argument('msg-request', type=click.File('r', encoding=DEFAULT_ENCODING),
+@click.argument('msg-request', type=click.File('r', encoding=consts.DEFAULT_ENCODING),
                 callback=extract_message_request)
-@click.option('-c', '--config', envvar=VAR_APP_CONFIG_PATH,
+@click.option('-c', '--config', envvar=consts.VAR_APP_CONFIG_PATH,
               required=False, callback=validate_config,
-              type=click.File('r', encoding=DEFAULT_ENCODING))
+              type=click.File('r', encoding=consts.DEFAULT_ENCODING))
 def send(ctx, msg_request: MessageRequest, config: MailerConfig):
     mailer: Mailer = ctx.obj['mailer']
     try:

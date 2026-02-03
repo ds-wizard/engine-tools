@@ -2,6 +2,7 @@
 import collections
 import typing
 
+
 T = typing.TypeVar('T')
 
 
@@ -51,7 +52,7 @@ def cast_optional_dict(value: typing.Any) -> dict | None:
     return value
 
 
-class ConfigKey(typing.Generic[T]):
+class ConfigKey[T]:
 
     def __init__(self, *, yaml_path: list[str],
                  cast: typing.Callable[[typing.Any], T],
@@ -82,10 +83,9 @@ class ConfigKeysMeta(type):
             value = getattr(cls, attr)
             if isinstance(value, ConfigKey):
                 cls._config_keys.append(value)
-            if hasattr(value, '_config_keys'):
-                keys = getattr(value, '_config_keys')
-                if isinstance(keys, list):
-                    cls._config_keys.extend(keys)
+            keys = getattr(value, '_config_keys', None)
+            if keys is not None and isinstance(keys, list):
+                cls._config_keys.extend(keys)
         super().__init__(name, bases, namespace)
 
     def __iter__(cls):
@@ -266,8 +266,3 @@ class ConfigKeys(ConfigKeysContainer):
     logging = _LoggingKeys
     s3 = _S3Keys
     sentry = _SentryKeys
-
-
-if __name__ == '__main__':
-    for key in ConfigKeys:
-        print(str(key))

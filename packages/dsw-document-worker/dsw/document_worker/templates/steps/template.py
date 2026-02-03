@@ -1,10 +1,9 @@
+import gettext
 import json
 import typing
 
-import gettext
 import jinja2
 import jinja2.exceptions
-import jinja2.sandbox
 import rdflib
 
 from ...consts import DEFAULT_ENCODING
@@ -12,6 +11,7 @@ from ...context import Context
 from ...documents import DocumentFile, FileFormat, FileFormats
 from ...model.context import ProjectFile
 from ...model.http import RequestsWrapper
+from ...utils import JinjaEnvironment
 from ..filters import filters
 from ..tests import tests
 from .base import Step, register_step
@@ -25,21 +25,11 @@ class JSONStep(Step):
         return DocumentFile(
             self.OUTPUT_FORMAT,
             json.dumps(context, indent=2, sort_keys=True).encode(DEFAULT_ENCODING),
-            DEFAULT_ENCODING
+            DEFAULT_ENCODING,
         )
 
     def execute_follow(self, document: DocumentFile, context: dict) -> DocumentFile:
         return self.raise_exc(f'Step "{self.NAME}" cannot process other files')
-
-
-class JinjaEnvironment(jinja2.sandbox.SandboxedEnvironment):
-
-    def is_safe_attribute(self, obj: typing.Any, attr: str, value: typing.Any) -> bool:
-        if attr in ['os', 'subprocess', 'eval', 'exec', 'popen', 'system']:
-            return False
-        if attr == '__setitem__' and isinstance(obj, dict):
-            return True
-        return super().is_safe_attribute(obj, attr, value)
 
 
 class JinjaPoweredStep(Step):
@@ -51,7 +41,7 @@ class JinjaPoweredStep(Step):
     def __init__(self, template, options):
         super().__init__(template, options)
         self.jinja_ext = frozenset(
-            map(lambda x: x.strip(), self.options.get(self.OPTION_JINJA_EXT, '').split(','))
+            opt.strip() for opt in self.options.get(self.OPTION_JINJA_EXT, '').split(',')
         )
         self.i18n_dir = self.options.get(self.OPTION_I18N_DIR, None)
         self.i18n_domain = self.options.get(self.OPTION_I18N_DOMAIN, 'default')
@@ -129,13 +119,17 @@ class JinjaPoweredStep(Step):
             translations = gettext.translation(
                 domain=self.i18n_domain,
                 localedir=locale_path,
-                languages=map(lambda x: x.strip(), self.i18n_lang.split(',')),
+                languages=(lang.strip() for lang in self.i18n_lang.split(',')),
             )
-            # pylint: disable-next=no-member
-            self.j2_env.install_gettext_translations(translations, newstyle=True)  # type: ignore
+            install_translations = getattr(self.j2_env, 'install_gettext_translations', None)
+            if callable(install_translations):
+                # pylint: disable-next=not-callable
+                install_translations(translations, newstyle=True)
         else:
-            # pylint: disable-next=no-member
-            self.j2_env.install_null_translations(newstyle=True)  # type: ignore
+            install_translations = getattr(self.j2_env, 'install_null_translations', None)
+            if callable(install_translations):
+                # pylint: disable-next=not-callable
+                install_translations(newstyle=True)
 
     def _add_j2_enhancements(self):
         self.j2_env.filters.update(filters)

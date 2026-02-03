@@ -1,10 +1,7 @@
 import re
 
-from typing import List, Dict
-
-from .consts import REGEX_SEMVER, REGEX_ORGANIZATION_ID, \
-    REGEX_TEMPLATE_ID, REGEX_MIME_TYPE, REGEX_KM_ID
-from .model import PackageFilter, Format, Step
+from . import consts
+from .model import Format, PackageFilter, Step
 
 
 class ValidationError(BaseException):
@@ -13,7 +10,7 @@ class ValidationError(BaseException):
         self.message = message
 
 
-def _validate_required(field_name: str, value) -> List[ValidationError]:
+def _validate_required(field_name: str, value) -> list[ValidationError]:
     if value is None:
         return [ValidationError(
             field_name=field_name,
@@ -22,7 +19,7 @@ def _validate_required(field_name: str, value) -> List[ValidationError]:
     return []
 
 
-def _validate_non_empty(field_name: str, value) -> List[ValidationError]:
+def _validate_non_empty(field_name: str, value) -> list[ValidationError]:
     if value is not None and len(value.strip()) == 0:
         return [ValidationError(
             field_name=field_name,
@@ -31,8 +28,8 @@ def _validate_non_empty(field_name: str, value) -> List[ValidationError]:
     return []
 
 
-def _validate_content_type(field_name: str, value) -> List[ValidationError]:
-    if value is not None and re.match(REGEX_MIME_TYPE, value) is None:
+def _validate_content_type(field_name: str, value) -> list[ValidationError]:
+    if value is not None and re.match(consts.REGEX_MIME_TYPE, value) is None:
         return [ValidationError(
             field_name=field_name,
             message='Content type should be valid IANA media type',
@@ -40,8 +37,8 @@ def _validate_content_type(field_name: str, value) -> List[ValidationError]:
     return []
 
 
-def _validate_extension(field_name: str, value) -> List[ValidationError]:
-    if value is not None and re.match(REGEX_ORGANIZATION_ID, value) is None:
+def _validate_extension(field_name: str, value) -> list[ValidationError]:
+    if value is not None and re.match(consts.REGEX_ORGANIZATION_ID, value) is None:
         return [ValidationError(
             field_name=field_name,
             message='File extension should contain only letters, numbers, '
@@ -50,8 +47,8 @@ def _validate_extension(field_name: str, value) -> List[ValidationError]:
     return []
 
 
-def _validate_organization_id(field_name: str, value) -> List[ValidationError]:
-    if value is not None and re.match(REGEX_ORGANIZATION_ID, value) is None:
+def _validate_organization_id(field_name: str, value) -> list[ValidationError]:
+    if value is not None and re.match(consts.REGEX_ORGANIZATION_ID, value) is None:
         return [ValidationError(
             field_name=field_name,
             message='Organization ID may contain only letters, numbers, '
@@ -60,8 +57,8 @@ def _validate_organization_id(field_name: str, value) -> List[ValidationError]:
     return []
 
 
-def _validate_template_id(field_name: str, value) -> List[ValidationError]:
-    if value is not None and re.match(REGEX_TEMPLATE_ID, value) is None:
+def _validate_template_id(field_name: str, value) -> list[ValidationError]:
+    if value is not None and re.match(consts.REGEX_TEMPLATE_ID, value) is None:
         return [ValidationError(
             field_name=field_name,
             message='Template ID may contain only letters, numbers, '
@@ -70,8 +67,8 @@ def _validate_template_id(field_name: str, value) -> List[ValidationError]:
     return []
 
 
-def _validate_km_id(field_name: str, value) -> List[ValidationError]:
-    if value is not None and re.match(REGEX_KM_ID, value) is None:
+def _validate_km_id(field_name: str, value) -> list[ValidationError]:
+    if value is not None and re.match(consts.REGEX_KM_ID, value) is None:
         return [ValidationError(
             field_name=field_name,
             message='KM ID may contain only letters, numbers, '
@@ -80,8 +77,8 @@ def _validate_km_id(field_name: str, value) -> List[ValidationError]:
     return []
 
 
-def _validate_version(field_name: str, value) -> List[ValidationError]:
-    if value is not None and re.match(REGEX_SEMVER, value) is None:
+def _validate_version(field_name: str, value) -> list[ValidationError]:
+    if value is not None and re.match(consts.REGEX_SEMVER, value) is None:
         return [ValidationError(
             field_name=field_name,
             message='Version must be in semver format <NUM>.<NUM>.<NUM>',
@@ -89,7 +86,7 @@ def _validate_version(field_name: str, value) -> List[ValidationError]:
     return []
 
 
-def _validate_natural(field_name: str, value) -> List[ValidationError]:
+def _validate_natural(field_name: str, value) -> list[ValidationError]:
     if value is not None and (not isinstance(value, int) or value < 1):
         return [ValidationError(
             field_name=field_name,
@@ -98,7 +95,7 @@ def _validate_natural(field_name: str, value) -> List[ValidationError]:
     return []
 
 
-def _validate_metamodel_version(field_name: str, value) -> List[ValidationError]:
+def _validate_metamodel_version(field_name: str, value) -> list[ValidationError]:
     if isinstance(value, int) and value > 0:
         return []
     if isinstance(value, str) and '.' in value:
@@ -130,7 +127,7 @@ def _validate_metamodel_version(field_name: str, value) -> List[ValidationError]
     )]
 
 
-def _validate_package_id(field_name: str, value: str) -> List[ValidationError]:
+def _validate_package_id(field_name: str, value: str) -> list[ValidationError]:
     res = []
     if value is None:
         return res
@@ -145,17 +142,17 @@ def _validate_package_id(field_name: str, value: str) -> List[ValidationError]:
             field_name=field_name,
             message=f'Package ID is not valid (only {len(parts)} parts)',
         ))
-    if re.match(REGEX_ORGANIZATION_ID, parts[0]) is None:
+    if re.match(consts.REGEX_ORGANIZATION_ID, parts[0]) is None:
         res.append(ValidationError(
             field_name=field_name,
             message='Package ID contains invalid organization id',
         ))
-    if re.match(REGEX_KM_ID, parts[1]) is None:
+    if re.match(consts.REGEX_KM_ID, parts[1]) is None:
         res.append(ValidationError(
             field_name=field_name,
             message='Package ID contains invalid KM id',
         ))
-    if re.match(REGEX_SEMVER, parts[2]) is None:
+    if re.match(consts.REGEX_SEMVER, parts[2]) is None:
         res.append(ValidationError(
             field_name=field_name,
             message='Package ID contains invalid version',
@@ -163,12 +160,12 @@ def _validate_package_id(field_name: str, value: str) -> List[ValidationError]:
     return res
 
 
-def _validate_jinja_options(field_name: str, value: Dict[str, str]) -> List[ValidationError]:
+def _validate_jinja_options(field_name: str, value: dict[str, str]) -> list[ValidationError]:
     res = []
     if value is None:
         return res
     for k in ('template', 'content-type', 'extension'):
-        if k not in value.keys():
+        if k not in value:
             res.append(ValidationError(
                 field_name=field_name,
                 message='Jinja option cannot be left out',
@@ -178,7 +175,7 @@ def _validate_jinja_options(field_name: str, value: Dict[str, str]) -> List[Vali
                 field_name=field_name,
                 message='Jinja option cannot be empty',
             ))
-    if 'content-type' in value.keys():
+    if 'content-type' in value:
         res.extend(_validate_content_type(
             field_name=f'{field_name}.content-type',
             value=value['content-type'],
@@ -205,12 +202,12 @@ class GenericValidator:
                 err = validator(field_name_prefix + field_name, getattr(entity, field_name))
                 if len(err) != 0:
                     raise err[0]
-        if '__all' in self.rules.keys():
+        if '__all' in self.rules:
             err = self.rules['__all'](field_name_prefix, entity)
             if len(err) != 0:
                 raise err[0]
 
-    def collect_errors(self, entity, field_name_prefix: str = '') -> List[ValidationError]:
+    def collect_errors(self, entity, field_name_prefix: str = '') -> list[ValidationError]:
         result = []
         for field_name, validators in self.rules.items():
             if field_name.startswith('__'):
@@ -220,7 +217,7 @@ class GenericValidator:
                     field_name=f'{field_name_prefix}{field_name}',
                     value=getattr(entity, field_name),
                 ))
-        if '__all' in self.rules.keys():
+        if '__all' in self.rules:
             result.extend(self.rules['__all'](field_name_prefix, entity))
         return result
 
@@ -233,14 +230,14 @@ PackageFilterValidator = GenericValidator({
 })
 
 
-def _validate_package_filters(field_name: str, value: List[PackageFilter]) -> List[ValidationError]:
+def _validate_package_filters(field_name: str, value: list[PackageFilter]) -> list[ValidationError]:
     res = []
     for v in value:
         res.extend(PackageFilterValidator.collect_errors(v, field_name_prefix=f'{field_name}.'))
     return res
 
 
-def _validate_step(field_name_prefix: str, value: Step) -> List[ValidationError]:
+def _validate_step(field_name_prefix: str, value: Step) -> list[ValidationError]:
     if value.name == 'jinja':
         return _validate_jinja_options(f'{field_name_prefix}options', value.options)
     return []
@@ -249,11 +246,11 @@ def _validate_step(field_name_prefix: str, value: Step) -> List[ValidationError]
 StepValidator = GenericValidator({
     'name': [_validate_non_empty],
     'options': [],
-    '__all': _validate_step
+    '__all': _validate_step,
 })
 
 
-def _validate_steps(field_name: str, value: List[Step]) -> List[ValidationError]:
+def _validate_steps(field_name: str, value: list[Step]) -> list[ValidationError]:
     res = []
     for v in value:
         res.extend(StepValidator.collect_errors(v, field_name_prefix=f'{field_name}.'))
@@ -268,7 +265,7 @@ FormatValidator = GenericValidator({
 })
 
 
-def _validate_formats(field_name: str, value: List[Format]) -> List[ValidationError]:
+def _validate_formats(field_name: str, value: list[Format]) -> list[ValidationError]:
     res = []
     uuids = set()
     for v in value:

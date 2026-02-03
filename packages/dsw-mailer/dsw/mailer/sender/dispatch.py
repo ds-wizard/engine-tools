@@ -1,11 +1,10 @@
 import logging
 
-from .base import BaseMailSender, NoProviderSender
-from .amazon_ses import AmazonSESSender
-from .smtp import SMTPSender
-
 from ..config import MailConfig, MailProvider
 from ..model import MailMessage
+from .amazon_ses import AmazonSESSender
+from .base import BaseMailSender, NoProviderSender
+from .smtp import SMTPSender
 
 
 LOG = logging.getLogger(__name__)

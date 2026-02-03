@@ -10,6 +10,7 @@ import tenacity
 
 from dsw.config.model import S3Config
 
+
 LOG = logging.getLogger(__name__)
 
 DOCUMENTS_DIR = 'documents'
@@ -20,11 +21,11 @@ RETRY_S3_TRIES = 3
 
 @contextlib.contextmanager
 def temp_binary_file(data: bytes):
-    file = tempfile.TemporaryFile()
-    file.write(data)
-    file.seek(0)
-    yield file
-    file.close()
+    with tempfile.TemporaryFile() as file:
+        file.write(data)
+        file.seek(0)
+        yield file
+        file.close()
 
 
 class S3Storage:
@@ -121,11 +122,11 @@ class S3Storage:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def download_locale(self, *, tenant_uuid: str, locale_id: str,
+    def download_locale(self, *, tenant_uuid: str, locale_uuid: str,
                         file_name: str, target_path: pathlib.Path) -> bool:
         return self._download_file(
             tenant_uuid=tenant_uuid,
-            file_name=f'locales/{locale_id}/{file_name}',
+            file_name=f'locales/{locale_uuid}/{file_name}',
             target_path=target_path,
         )
 

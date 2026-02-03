@@ -31,12 +31,11 @@ def _merge_config(a: dict, b: dict, path=None) -> dict:
 
 
 def _get_annotation(annotations: dc.AnnotationsT, key: str) -> str | None:
-    value = annotations.get(key, None)
+    value = annotations.get(key)
     if isinstance(value, str):
         return value
-    if isinstance(value, list):
-        if len(value) > 0:
-            return value[0]
+    if isinstance(value, list) and len(value) > 0:
+        return value[0]
     return None
 
 
@@ -78,8 +77,16 @@ class SimpleExtractor(ContextExtractor):
         self._objects = {}  # type: dict[str, dict]
 
     def _visit_chapter(self, key: str, chapter: dc.Chapter):
-        for question in chapter.questions:
-            self._visit_question(key, question, chapter.uuid)
+        a_key = _get_annotation(chapter.a, self._a_key)
+        if a_key is not None:
+            self._objects[chapter.uuid] = {}
+            for question in chapter.questions:
+                self._visit_question(chapter.uuid, question, chapter.uuid)
+            self._objects[key][a_key] = self._objects[chapter.uuid]
+            self._objects.pop(chapter.uuid)
+        else:
+            for question in chapter.questions:
+                self._visit_question(key, question, chapter.uuid)
 
     def _visit_question(self, key: str, question: dc.Question, path: str):
         path = f'{path}.{question.uuid}'
@@ -100,7 +107,7 @@ class SimpleExtractor(ContextExtractor):
 
     def _visit_value_question(self, key: str, question: dc.ValueQuestion, path: str):
         a_key = _get_annotation(question.a, self._a_key)
-        reply = question.replies.get(path, None)
+        reply = question.replies.get(path)
 
         if a_key is not None:
             if reply is not None and isinstance(reply, dc.StringReply):
@@ -115,7 +122,7 @@ class SimpleExtractor(ContextExtractor):
 
     def _visit_integration_question(self, key: str, question: dc.IntegrationQuestion, path: str):
         a_key = _get_annotation(question.a, self._a_key)
-        reply = question.replies.get(path, None)
+        reply = question.replies.get(path)
 
         if a_key is not None:
             self._objects[key][a_key] = None
@@ -145,7 +152,7 @@ class SimpleExtractor(ContextExtractor):
 
     def _visit_options_question(self, key: str, question: dc.OptionsQuestion, path: str):
         a_key = _get_annotation(question.a, self._a_key)
-        reply = question.replies.get(path, None)
+        reply = question.replies.get(path)
 
         if a_key is not None:
             if reply is not None and isinstance(reply, dc.AnswerReply) and reply.answer is not None:
@@ -179,7 +186,7 @@ class SimpleExtractor(ContextExtractor):
 
     def _visit_multi_choice_question(self, key: str, question: dc.MultiChoiceQuestion, path: str):
         a_key = _get_annotation(question.a, self._a_key)
-        reply = question.replies.get(path, None)
+        reply = question.replies.get(path)
 
         if a_key is not None:
             self._objects[key][a_key] = []
@@ -205,7 +212,7 @@ class SimpleExtractor(ContextExtractor):
 
     def _visit_list_question(self, key: str, question: dc.ListQuestion, path: str):
         a_key = _get_annotation(question.a, self._a_key)
-        reply = question.replies.get(path, None)
+        reply = question.replies.get(path)
 
         if a_key is not None:
             self._objects[key][a_key] = []
@@ -224,7 +231,7 @@ class SimpleExtractor(ContextExtractor):
 
     def _visit_item_select_question(self, key: str, question: dc.ItemSelectQuestion, path: str):
         a_key = _get_annotation(question.a, self._a_key)
-        reply = question.replies.get(path, None)
+        reply = question.replies.get(path)
 
         if a_key is not None:
             self._objects[key][a_key] = None
@@ -239,7 +246,7 @@ class SimpleExtractor(ContextExtractor):
 
     def _visit_file_question(self, key: str, question: dc.FileQuestion, path: str):
         a_key = _get_annotation(question.a, self._a_key)
-        reply = question.replies.get(path, None)
+        reply = question.replies.get(path)
 
         if a_key is not None:
             self._objects[key][a_key] = None
@@ -271,7 +278,7 @@ EXTRACTORS: dict[str, type[ContextExtractor]] = {
 def extract_replies(ctx: dc.DocumentContext, config: dict | None = None):
     cfg = DEFAULT_CONFIG if config is None else _merge_config(config, DEFAULT_CONFIG)
     extractor_key = f'{cfg["variant"]}:{cfg["version"]}'
-    extractor_class = EXTRACTORS.get(extractor_key, None)
+    extractor_class = EXTRACTORS.get(extractor_key)
     if extractor_class is None:
         raise ValueError(f'No extractor found for key: {extractor_key}')
     extractor = extractor_class(ctx, cfg)

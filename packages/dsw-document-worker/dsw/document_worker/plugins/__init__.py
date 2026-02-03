@@ -1,3 +1,4 @@
-from .specs import hookspec, hookimpl
+from .specs import hookimpl, hookspec
 
-__all__ = ['hookspec', 'hookimpl']
+
+__all__ = ['hookimpl', 'hookspec']

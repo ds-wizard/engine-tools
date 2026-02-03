@@ -2,9 +2,9 @@ import logging
 
 import boto3
 
-from .base import BaseMailSender
 from ..config import MailConfig
 from ..model import MailMessage
+from .base import BaseMailSender
 
 
 LOG = logging.getLogger(__name__)

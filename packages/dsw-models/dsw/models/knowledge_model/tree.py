@@ -2,8 +2,13 @@ from uuid import UUID
 
 import pydantic
 
-from .common import (BaseModel, TAnnotations, TQuestionValueType,
-                     QuestionValidation, TypeHintExchange)
+from .common import (
+    BaseModel,
+    QuestionValidation,
+    TAnnotations,
+    TQuestionValueType,
+    TypeHintExchange,
+)
 
 
 class BaseKMTreeEntity(BaseModel):

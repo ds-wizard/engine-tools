@@ -8,6 +8,18 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 
+## [4.27.0]
+
+### Changed
+
+- Support `json.key` for chapters in replies extraction
+- Updated to newer Docker base image with Pandoc 3.8.3
+
+### Fixed
+
+- Fixed handling deleted document during generation
+- Fixed repeated arguments in Pandoc invocation for PDF generation
+
 ## [4.26.1]
 
 ### Fixed
@@ -101,7 +113,7 @@ Released for version consistency with other DSW tools.
 ### Added
 
 - Support item title for all types of questions
-- Add Jinja filter and mechanism to extract replies using KM annotations 
+- Add Jinja filter and mechanism to extract replies using KM annotations
 
 ### Fixed
 
@@ -555,3 +567,4 @@ Released for version consistency with other DSW tools.
 [4.25.1]: /../../tree/v4.25.1
 [4.26.0]: /../../tree/v4.26.0
 [4.26.1]: /../../tree/v4.26.1
+[4.27.0]: /../../tree/v4.27.0

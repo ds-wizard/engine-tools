@@ -12,13 +12,14 @@ import humanize
 import slugify
 import watchfiles
 
+from . import consts
 from .api_client import WizardCommunicationError
 from .config import CONFIG
-from .consts import VERSION, DEFAULT_LIST_FORMAT, DEFAULT_ENCODING
 from .core import TDKCore, TDKProcessingError
 from .model import Template
-from .utils import TemplateBuilder, FormatSpec, safe_utf8, create_dot_env
+from .utils import FormatSpec, TemplateBuilder, create_dot_env, safe_utf8
 from .validation import ValidationError
+
 
 CURRENT_DIR = pathlib.Path.cwd()
 DIR_TYPE = click.Path(exists=True, dir_okay=True, file_okay=False, resolve_path=True,
@@ -27,6 +28,10 @@ FILE_READ_TYPE = click.Path(exists=True, dir_okay=False, file_okay=True, resolve
                             readable=True)
 NEW_DIR_TYPE = click.Path(dir_okay=True, file_okay=False, resolve_path=True,
                           readable=True, writable=True)
+
+
+def _now() -> datetime.datetime:
+    return datetime.datetime.now(tz=datetime.UTC)
 
 
 class ClickPrinter:
@@ -64,7 +69,7 @@ class ClickPrinter:
     @classmethod
     def watch_change(cls, change_type: watchfiles.Change, filepath: pathlib.Path,
                      root: pathlib.Path):
-        timestamp = datetime.datetime.now().isoformat(timespec='milliseconds')
+        timestamp = _now().isoformat(timespec='milliseconds')
         sign = cls.CHANGE_SIGNS[change_type]
         click.secho('WATCH', fg='blue', bold=True, nl=False)
         click.echo(f'@{timestamp} {sign} {filepath.relative_to(root)}')
@@ -149,7 +154,7 @@ class ClickLogger(logging.Logger):
 
     def _print_message(self, level, message):
         if self.show_timestamp:
-            timestamp = datetime.datetime.now().isoformat(timespec='milliseconds')
+            timestamp = _now().isoformat(timespec='milliseconds')
             click.echo(timestamp + ' | ', nl=False)
         if self.show_level:
             sep = ' | ' if self.show_timestamp else ': '
@@ -204,7 +209,7 @@ def interact_formats() -> dict[str, FormatSpec]:
         format_spec = FormatSpec()
         prompt_fill('Format name', obj=format_spec, attr='name', default='HTML')
         if format_spec.name not in formats or click.confirm(
-                'There is already a format with this name. Do you want to change it?'
+                'There is already a format with this name. Do you want to change it?',
         ):
             prompt_fill('File extension', obj=format_spec, attr='file_extension',
                         default=format_spec.name.lower() if ' ' not in format_spec.name else None)
@@ -267,7 +272,7 @@ def dir_from_id(template_id: str) -> pathlib.Path:
               help='Hide additional information logs.')
 @click.option('--debug', is_flag=True,
               help='Enable debug logging.')
-@click.version_option(version=VERSION)
+@click.version_option(version=consts.VERSION)
 @click.pass_context
 def main(ctx, quiet, debug, dot_env, environment, no_dot_env, no_config):
     if not no_config:
@@ -499,7 +504,7 @@ def extract_package(ctx, template_package, output, force: bool):
               help='URL of Wizard server API.')
 @click.option('-k', '--api-key', metavar='API-KEY', envvar='DSW_API_KEY',
               help='API key for Wizard instance.')
-@click.option('--output-format', default=DEFAULT_LIST_FORMAT,
+@click.option('--output-format', default=consts.DEFAULT_LIST_FORMAT,
               metavar='FORMAT', help='Entry format string for printing.')
 @click.option('-r', '--released-only', is_flag=True, help='List only released templates')
 @click.option('-d', '--drafts-only', is_flag=True, help='List only template drafts')
@@ -652,7 +657,7 @@ def config_check():
         else:
             env_out = click.style(env_name, fg='blue', bold=True)
             click.echo(env_out)
-        click.echo(f'  API URL: {env.api_url if env.api_url else not_set}')
+        click.echo(f'  API URL: {env.api_url or not_set}')
         click.echo(f'  API Key: {hidden if env.api_key else not_set}')
     click.echo('')
     click.secho('Project-local configuration:', bold=True)
@@ -687,7 +692,7 @@ def config_create_dotenv(ctx, template_dir, api_url, api_key, force):
     try:
         if output.exists():
             if force:
-                ClickPrinter.warning(f'Overwriting {output.as_posix()} (forced)', )
+                ClickPrinter.warning(f'Overwriting {output.as_posix()} (forced)')
             else:
                 raise FileExistsError(f'File {output.as_posix()} already exists (not forced)')
         output.write_text(
@@ -695,7 +700,7 @@ def config_create_dotenv(ctx, template_dir, api_url, api_key, force):
                 api_url=CONFIG.env.api_url,
                 api_key=CONFIG.env.api_key,
             ),
-            encoding=DEFAULT_ENCODING,
+            encoding=consts.DEFAULT_ENCODING,
         )
     except Exception as e:
         ClickPrinter.failure('Failed to create dot-env file')

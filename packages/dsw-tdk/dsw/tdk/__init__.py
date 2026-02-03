@@ -6,10 +6,11 @@ Template Development Kit for `Data Stewardship Wizard`_.
    https://ds-wizard.org
 
 """
+from . import consts
 from .cli import main
-from .consts import APP, VERSION
 
-__app__ = APP
-__version__ = VERSION
+
+__app__ = consts.APP
+__version__ = consts.VERSION
 
 __all__ = ['__app__', '__version__', 'main']

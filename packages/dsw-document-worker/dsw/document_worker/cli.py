@@ -7,9 +7,8 @@ import click
 from dsw.config.parser import MissingConfigurationError
 from dsw.config.sentry import SentryReporter
 
+from . import consts
 from .config import DocumentWorkerConfig, DocumentWorkerConfigParser
-from .consts import (VERSION, VAR_APP_CONFIG_PATH, VAR_WORKDIR_PATH,
-                     DEFAULT_ENCODING)
 from .worker import DocumentWorker
 
 
@@ -43,16 +42,16 @@ def validate_config(ctx, param, value: typing.IO | None):
 
 
 @click.group(name='dsw-document-worker')
-@click.version_option(version=VERSION)
+@click.version_option(version=consts.VERSION)
 def main():
     pass
 
 
 @main.command()
-@click.argument('config', envvar=VAR_APP_CONFIG_PATH,
+@click.argument('config', envvar=consts.VAR_APP_CONFIG_PATH,
                 required=False, callback=validate_config,
-                type=click.File('r', encoding=DEFAULT_ENCODING))
-@click.argument('workdir', envvar=VAR_WORKDIR_PATH,)
+                type=click.File('r', encoding=consts.DEFAULT_ENCODING))
+@click.argument('workdir', envvar=consts.VAR_WORKDIR_PATH)
 def run(config: DocumentWorkerConfig, workdir: str):
     config.log.apply()
     workdir_path = pathlib.Path(workdir)

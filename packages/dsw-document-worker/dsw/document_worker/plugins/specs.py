@@ -1,12 +1,13 @@
 # pylint: disable=unused-argument
-import pluggy
 import jinja2
+import pluggy
 
-from ..consts import PACKAGE_NAME
+from .. import consts
 from ..templates.steps import Step
 
-hookspec = pluggy.HookspecMarker(PACKAGE_NAME)
-hookimpl = pluggy.HookimplMarker(PACKAGE_NAME)
+
+hookspec = pluggy.HookspecMarker(consts.PACKAGE_NAME)
+hookimpl = pluggy.HookimplMarker(consts.PACKAGE_NAME)
 
 
 @hookspec

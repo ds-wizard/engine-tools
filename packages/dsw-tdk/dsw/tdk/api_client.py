@@ -5,7 +5,7 @@ import urllib.parse
 import aiohttp
 import aiohttp.client_exceptions
 
-from .consts import DEFAULT_ENCODING, APP, VERSION
+from . import consts
 from .model import Template, TemplateFile, TemplateFileType
 
 
@@ -34,27 +34,27 @@ def handle_client_errors(func):
         except aiohttp.client_exceptions.ContentTypeError as e:
             raise WizardCommunicationError(
                 reason='Unexpected response type',
-                message=e.message
+                message=e.message,
             ) from e
         except aiohttp.client_exceptions.ClientResponseError as e:
             raise WizardCommunicationError(
                 reason='Error response status',
-                message=f'Server responded with error HTTP status {e.status}: {e.message}'
+                message=f'Server responded with error HTTP status {e.status}: {e.message}',
             ) from e
         except aiohttp.client_exceptions.InvalidURL as e:
             raise WizardCommunicationError(
                 reason='Invalid URL',
-                message=f'Provided API URL seems invalid: {e.url}'
+                message=f'Provided API URL seems invalid: {e.url}',
             ) from e
         except aiohttp.client_exceptions.ClientConnectorError as e:
             raise WizardCommunicationError(
                 reason='Server unreachable',
-                message=f'Desired server is not reachable (errno {e.os_error.errno})'
+                message=f'Desired server is not reachable (errno {e.os_error.errno})',
             ) from e
         except Exception as e:
             raise WizardCommunicationError(
                 reason='Communication error',
-                message=f'Communication with server failed ({e})'
+                message=f'Communication with server failed ({e})',
             ) from e
     return handled_client_call
 
@@ -65,7 +65,7 @@ class WizardAPIClient:
     def _headers(self, extra=None):
         headers = {
             'Authorization': f'Bearer {self.token}',
-            'User-Agent': f'{APP}/{VERSION}'
+            'User-Agent': f'{consts.APP}/{consts.VERSION}',
         }
         if extra is not None:
             headers.update(extra)
@@ -78,7 +78,7 @@ class WizardAPIClient:
             raise WizardCommunicationError(
                 reason='Unexpected response status',
                 message=f'Server responded with unexpected HTTP status {r.status}: '
-                        f'{r.reason} (expecting {expected_status})'
+                        f'{r.reason} (expecting {expected_status})',
             )
 
     def __init__(self, api_url: str, api_key: str, session=None):
@@ -158,11 +158,11 @@ class WizardAPIClient:
     async def login(self, email: str, password: str) -> str | None:
         req = {'email': email, 'password': password}
         body = await self._post_json('/tokens', json=req)
-        token_value = body.get('token', None)
+        token_value = body.get('token')
         if not isinstance(token_value, str):
             raise WizardCommunicationError(
                 reason='Invalid response',
-                message='Server did not return a valid token'
+                message='Server did not return a valid token',
             )
         self.token = token_value
         return self.token
@@ -263,7 +263,7 @@ class WizardAPIClient:
             raise RuntimeError('Organization ID changed during the process')
         body = await self._put_json(
             endpoint=f'/document-template-drafts/{remote_id}',
-            json=template.serialize_for_update()
+            json=template.serialize_for_update(),
         )
         return _load_remote_template(body)
 
@@ -281,8 +281,8 @@ class WizardAPIClient:
             endpoint=f'/document-template-drafts/{remote_id}/files',
             json={
                 'fileName': file.filename.as_posix(),
-                'content': file.content.decode(DEFAULT_ENCODING)
-            }
+                'content': file.content.decode(consts.DEFAULT_ENCODING),
+            },
         )
         return _load_remote_file(data)
 
@@ -338,7 +338,7 @@ class WizardAPIClient:
                 f'{self.api_url}/document-template-drafts/{remote_id}'
                 f'/assets/{file.remote_id}/content',
                 data=data,
-                headers=self._headers()
+                headers=self._headers(),
         ) as r:
             self._check_status(r, expected_status=200)
             body = await r.json()
@@ -363,15 +363,15 @@ class WizardAPIClient:
     @handle_client_errors
     async def get_api_version(self) -> tuple[str, str | None]:
         body = await self._get_json('/')
-        version = body.get('version', None)
+        version = body.get('version')
         metamodel_version = None
         for item in body.get('metamodelVersions', []):
             if item.get('name', '') == 'Document Template':
-                metamodel_version = item.get('version', None)
+                metamodel_version = item.get('version')
         if version is None:
             raise WizardCommunicationError(
                 reason='Invalid response',
-                message='Server did not return valid API version information (incompatible TDK?)'
+                message='Server did not return valid API version information (incompatible TDK?)',
             )
         return version, metamodel_version
 
@@ -384,25 +384,23 @@ class WizardAPIClient:
 def _load_remote_file(data: dict) -> TemplateFile:
     content: str = data.get('content', '')
     filename: str = str(data.get('fileName', ''))
-    file = TemplateFile(
-        remote_id=data.get('uuid', None),
+    return TemplateFile(
+        remote_id=data.get('uuid'),
         remote_type=TemplateFileType.FILE,
         filename=pathlib.Path(urllib.parse.unquote(filename)),
-        content=content.encode(encoding=DEFAULT_ENCODING),
+        content=content.encode(encoding=consts.DEFAULT_ENCODING),
     )
-    return file
 
 
 def _load_remote_asset(data: dict, content: bytes) -> TemplateFile:
     filename = str(data.get('fileName', ''))
-    asset = TemplateFile(
-        remote_id=data.get('uuid', None),
+    return TemplateFile(
+        remote_id=data.get('uuid'),
         remote_type=TemplateFileType.ASSET,
         filename=pathlib.Path(urllib.parse.unquote(filename)),
-        content_type=data.get('contentType', None),
+        content_type=data.get('contentType'),
         content=content,
     )
-    return asset
 
 
 def _load_remote_template(data: dict) -> Template:

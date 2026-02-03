@@ -1,8 +1,10 @@
+import pathlib
 import tarfile
+import tempfile
 import zipfile
 
 from ...documents import DocumentFile, FileFormats
-from .base import Step, TMP_DIR, register_step
+from .base import Step, register_step
 
 
 class ArchiveStep(Step):
@@ -93,58 +95,64 @@ class ArchiveStep(Step):
 
     def _create_zip(self) -> DocumentFile:
         compression = self.MODES_ZIP[self.mode]
-        zip_file = TMP_DIR / 'result.zip'
-        with zipfile.ZipFile(
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = pathlib.Path(temp_dir)
+            zip_file = root / 'result.zip'
+            with zipfile.ZipFile(
                 file=str(zip_file),
                 mode='w',
                 compression=compression,
                 compresslevel=self.compression_level,
-        ) as archive:
-            archive.write(self.input_file_src, self.input_file_dst)
-        data = zip_file.read_bytes()
-        zip_file.unlink()
-        return DocumentFile(
-            file_format=FileFormats.ZIP,
-            content=data,
-        )
+            ) as archive:
+                archive.write(self.input_file_src, self.input_file_dst)
+            data = zip_file.read_bytes()
+            zip_file.unlink()
+            return DocumentFile(
+                file_format=FileFormats.ZIP,
+                content=data,
+            )
+
+    def _tar_add(self, tar_file: pathlib.Path):
+        tar_format = self.FORMATS_TAR[self.format]
+        name = str(tar_file)
+        if self.MODES_TAR[self.mode] == 'gz':
+            with tarfile.open(name=name, mode='x:gz', format=tar_format) as tar:
+                tar.add(self.input_file_src, self.input_file_dst)
+        elif self.MODES_TAR[self.mode] == 'bz2':
+            with tarfile.open(name=name, mode='x:bz2', format=tar_format) as tar:
+                tar.add(self.input_file_src, self.input_file_dst)
+        elif self.MODES_TAR[self.mode] == 'xz':
+            with tarfile.open(name=name, mode='x:xz', format=tar_format) as tar:
+                tar.add(self.input_file_src, self.input_file_dst)
+        else:
+            with tarfile.open(name=name, mode='x', format=tar_format) as tar:
+                tar.add(self.input_file_src, self.input_file_dst)
 
     def _create_tar(self) -> DocumentFile:
-        compression = self.MODES_TAR[self.mode]
-        tar_format = self.FORMATS_TAR[self.format]
-        tar_file = TMP_DIR / 'result.tar'
-        extra_opts = {}
-        if compression in ('gz', 'bz2'):
-            extra_opts['compresslevel'] = self.compression_level
-        with tarfile.open(  # type: ignore
-            name=str(tar_file),
-            mode=f'x:{compression}',
-            format=tar_format,
-            **extra_opts,
-        ) as archive:
-            archive.add(self.input_file_src, self.input_file_dst)
-        data = tar_file.read_bytes()
-        tar_file.unlink()
-        return DocumentFile(
-            file_format=self.tar_format,
-            content=data,
-        )
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = pathlib.Path(temp_dir)
+            tar_file = root / 'result.tar'
+            self._tar_add(tar_file)
+            data = tar_file.read_bytes()
+            tar_file.unlink()
+            return DocumentFile(
+                file_format=self.tar_format,
+                content=data,
+            )
 
     def execute_follow(self, document: DocumentFile, context: dict) -> DocumentFile:
         # (future) allow multiple files to be archived
         self.input_file_src = document.filename('document')
         if self.input_file_dst == '':
             self.input_file_dst = self.input_file_src
-        tmp_file = TMP_DIR / self.input_file_src
-        tmp_file.write_bytes(document.content)
-        self.input_file_src = str(tmp_file)
-
-        if self.type == self.TYPE_TAR:
-            file = self._create_tar()
-        else:
-            file = self._create_zip()
-
-        tmp_file.unlink()
-        return file
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = pathlib.Path(temp_dir)
+            tmp_file = root / self.input_file_src
+            tmp_file.write_bytes(document.content)
+            self.input_file_src = str(tmp_file)
+            file = self._create_tar() if self.type == self.TYPE_TAR else self._create_zip()
+            tmp_file.unlink()
+            return file
 
 
 register_step(ArchiveStep.NAME, ArchiveStep)

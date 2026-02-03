@@ -10,57 +10,56 @@ class CommandState(enum.Enum):
 
 class CommandQueries:
 
-    def __init__(self, channel: str, component: str):
+    def __init__(self, channel: str):
         self.channel = channel
-        self.component = component
 
     def query_listen(self) -> str:
         return f'LISTEN persistent_command_channel__{self.channel};'
 
-    def query_get_command(self, exp=2, interval='1 min') -> str:
-        return f"""
+    def query_get_command(self) -> str:
+        return """
             SELECT *
             FROM persistent_command
-            WHERE component = '{self.component}'
+            WHERE component = %(component)s
               AND attempts < max_attempts
-              AND state != '{CommandState.DONE.value}'
-              AND state != '{CommandState.IGNORE.value}'
+              AND state != 'DonePersistentCommandState'
+              AND state != 'IgnorePersistentCommandState'
               AND (created_at AT TIME ZONE 'UTC')
                     <
-                  (%(now)s - ({exp} ^ attempts - 1) * INTERVAL '{interval}')
+                  (%(now)s - (2 ^ attempts - 1) * INTERVAL '1 min')
             ORDER BY attempts ASC, updated_at DESC
             LIMIT 1 FOR UPDATE SKIP LOCKED;
         """
 
     @staticmethod
     def query_command_error() -> str:
-        return f"""
+        return """
             UPDATE persistent_command
             SET attempts = %(attempts)s,
                 last_error_message = %(error_message)s,
-                state = '{CommandState.ERROR.value}',
+                state = 'ErrorPersistentCommandState',
                 updated_at = %(updated_at)s
             WHERE uuid = %(uuid)s;
         """
 
     @staticmethod
     def query_command_error_stop() -> str:
-        return f"""
+        return """
             UPDATE persistent_command
             SET attempts = %(attempts)s,
                 max_attempts = %(attempts)s,
                 last_error_message = %(error_message)s,
-                state = '{CommandState.ERROR}',
+                state = 'ErrorPersistentCommandState',
                 updated_at = %(updated_at)s
             WHERE uuid = %(uuid)s;
         """
 
     @staticmethod
     def query_command_done() -> str:
-        return f"""
+        return """
             UPDATE persistent_command
             SET attempts = %(attempts)s,
-                state = '{CommandState.DONE.value}',
+                state = 'DonePersistentCommandState',
                 updated_at = %(updated_at)s
             WHERE uuid = %(uuid)s;
         """

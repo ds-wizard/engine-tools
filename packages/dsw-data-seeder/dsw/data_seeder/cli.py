@@ -6,9 +6,8 @@ import click
 
 from dsw.config.parser import MissingConfigurationError
 
+from . import consts
 from .config import SeederConfig, SeederConfigParser
-from .consts import (PROG_NAME, VERSION, NULL_UUID, DEFAULT_ENCODING,
-                     VAR_SEEDER_RECIPE, VAR_WORKDIR_PATH, VAR_APP_CONFIG_PATH)
 from .seeder import DataSeeder, SeedRecipe, SentryReporter
 
 
@@ -41,12 +40,12 @@ def validate_config(ctx, param, value: typing.IO | None):
     return load_config_str(content)
 
 
-@click.group(name=PROG_NAME)
-@click.version_option(version=VERSION)
-@click.option('-c', '--config', envvar=VAR_APP_CONFIG_PATH,
+@click.group(name=consts.PROG_NAME)
+@click.version_option(version=consts.VERSION)
+@click.option('-c', '--config', envvar=consts.VAR_APP_CONFIG_PATH,
               required=False, callback=validate_config,
-              type=click.File('r', encoding=DEFAULT_ENCODING))
-@click.option('-w', '--workdir', envvar=VAR_WORKDIR_PATH,
+              type=click.File('r', encoding=consts.DEFAULT_ENCODING))
+@click.option('-w', '--workdir', envvar=consts.VAR_WORKDIR_PATH,
               type=click.Path(dir_okay=True, exists=True))
 @click.pass_context
 def cli(ctx: click.Context, config: SeederConfig, workdir: str):
@@ -55,7 +54,7 @@ def cli(ctx: click.Context, config: SeederConfig, workdir: str):
 
 
 @cli.command(name='run', help='Run worker that listens to persistent commands.')
-@click.option('-r', '--recipe', envvar=VAR_SEEDER_RECIPE, required=True)
+@click.option('-r', '--recipe', envvar=consts.VAR_SEEDER_RECIPE, required=True)
 @click.pass_context
 def run(ctx: click.Context, recipe: str):
     cfg = ctx.obj['cfg']
@@ -74,8 +73,8 @@ def run(ctx: click.Context, recipe: str):
 
 
 @cli.command(name='seed', help='Seed data directly.')
-@click.option('-r', '--recipe', envvar=VAR_SEEDER_RECIPE, required=True)
-@click.option('-t', '--tenant-uuid', default=NULL_UUID)
+@click.option('-r', '--recipe', envvar=consts.VAR_SEEDER_RECIPE, required=True)
+@click.option('-t', '--tenant-uuid', default=consts.NULL_UUID)
 @click.pass_context
 def seed(ctx: click.Context, recipe: str, tenant_uuid: str):
     cfg = ctx.obj['cfg']
@@ -103,7 +102,7 @@ def recipes_list(ctx: click.Context):
     recipes = SeedRecipe.load_from_dir(workdir)
     for recipe in recipes.values():
         click.echo(recipe)
-        click.echo('-'*40)
+        click.echo('-' * 40)
 
 
 def main():

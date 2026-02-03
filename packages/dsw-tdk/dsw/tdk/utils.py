@@ -3,9 +3,9 @@ import uuid
 
 import jinja2
 
-from .consts import DEFAULT_ENCODING, DEFAULT_README
-from .model import Template, TemplateFile, Format, Step, PackageFilter
-from .validation import TemplateValidator, FormatValidator, StepValidator
+from . import consts
+from .model import Format, PackageFilter, Step, Template, TemplateFile
+from .validation import FormatValidator, StepValidator, TemplateValidator
 
 
 TEMPLATES_DIR = pathlib.Path(__file__).parent / 'templates'
@@ -44,7 +44,7 @@ class FormatSpec:
                 'template': 'template.html.j2',
                 'content-type': 'text/html',
                 'extension': 'html',
-            }
+            },
         )
         self.format.uuid = str(UUIDGen.generate())
         self.format.steps.append(self.step)
@@ -160,7 +160,7 @@ class TemplateBuilder:
     def build(self) -> Template:
         readme = j2_env.get_template('README.md.j2').render(template=self.template)
         self.template.readme = readme
-        self.template.tdk_config.readme_file = DEFAULT_README
+        self.template.tdk_config.readme_file = consts.DEFAULT_README
         TemplateValidator.validate(self.template)
 
         for format_spec in self._formats:
@@ -168,7 +168,7 @@ class TemplateBuilder:
             self.template.files[format_spec.filename] = TemplateFile(
                 filename=format_spec.filename,
                 content_type='text/plain',
-                content=content.encode(encoding=DEFAULT_ENCODING),
+                content=content.encode(encoding=consts.DEFAULT_ENCODING),
             )
         self.template.tdk_config.files = ['src/**/*', '!.git/', '!.env']
         self.template.allowed_packages.append(PackageFilter())
@@ -178,13 +178,13 @@ class TemplateBuilder:
         self.template.files['LICENSE'] = TemplateFile(
             filename=pathlib.Path('LICENSE'),
             content_type='text/plain',
-            content=license_file.encode(encoding=DEFAULT_ENCODING),
+            content=license_file.encode(encoding=consts.DEFAULT_ENCODING),
         )
 
         self.template.files['.env'] = TemplateFile(
             filename=pathlib.Path('.env'),
             content_type='text/plain',
-            content=create_dot_env().encode(encoding=DEFAULT_ENCODING),
+            content=create_dot_env().encode(encoding=consts.DEFAULT_ENCODING),
         )
 
         return self.template

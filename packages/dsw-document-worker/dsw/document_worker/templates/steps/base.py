@@ -1,12 +1,7 @@
-import pathlib
-
 from ...documents import DocumentFile
 
 
-TMP_DIR = pathlib.Path('/tmp/docworker')
-
-
-class FormatStepException(Exception):
+class FormatStepError(Exception):
 
     def __init__(self, message):
         self.message = message
@@ -38,7 +33,7 @@ class Step:
         return self.raise_exc('Called execute_follow on Step class')
 
     def raise_exc(self, message: str):
-        raise FormatStepException(message)
+        raise FormatStepError(message)
 
 
 STEPS: dict[str, type[Step]] = {}
