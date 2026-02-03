@@ -1,6 +1,6 @@
 [project]
 name = "engine-tools"
-version = "4.27.0rc1"
+version = "4.27.0"
 description = "Python tools for DSW Engine"
 readme = "README.md"
 requires-python = ">=3.12"
