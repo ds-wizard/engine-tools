@@ -4,6 +4,8 @@ import typing
 from uuid import UUID
 
 import pydantic
+from pydantic.generics import GenericModel
+
 
 from .common import (
     BaseModel,
@@ -19,25 +21,20 @@ from .common import (
 T = typing.TypeVar('T')
 
 
-class EditEventField[T](BaseModel):
-    changed: bool
-    value: T | None
+class EditEventFieldNoChange(BaseModel):
+    changed: typing.Literal[False] = False
 
-    @pydantic.model_serializer(mode='wrap')
-    def _serialize(self, handler):
-        if not self.changed:
-            return {'changed': False}
-        # default serialization includes both fields; we only keep what we want
-        data = handler(self)
-        return {'changed': True, 'value': data.get('value')}
 
-    @classmethod
-    def no_change(cls) -> typing.Self:
-        return cls(changed=False, value=None)
+class EditEventFieldChanged[T](pydantic.generics.GenericModel):
+    changed: typing.Literal[True] = True
+    value: T
 
-    @classmethod
-    def change(cls, value: T) -> typing.Self:
-        return cls(changed=True, value=value)
+
+EditEventField = typing.Annotated[
+    EditEventFieldNoChange |
+    EditEventFieldChanged[T],
+    pydantic.Field(discriminator='changed'),
+]
 
 
 class BaseEventContent(BaseModel):
