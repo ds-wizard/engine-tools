@@ -31,7 +31,6 @@ class DocumentTemplateTDK(BaseModel):
 
 
 class DocumentTemplateMetadata(BaseModel):
-    id: str | None
     organization_id: str
     template_id: str
     version: str
@@ -39,7 +38,11 @@ class DocumentTemplateMetadata(BaseModel):
     description: str
     metamodel_version: str
     license: str
-    readme: str
+    readme: str = ""
     allowed_packages: list[PackagePattern]
     formats: list[DocumentTemplateFormat]
     tdk: DocumentTemplateTDK | None = pydantic.Field(default=None, alias='_tdk')
+
+    @property
+    def id(self) -> str:
+        return f"{self.organization_id}:{self.template_id}:{self.version}"
