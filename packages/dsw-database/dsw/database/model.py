@@ -48,7 +48,7 @@ class DBDocument:
     project_uuid: str | None
     project_event_uuid: str | None
     project_replies_hash: str
-    document_template_id: str
+    document_template_uuid: str
     format_uuid: str
     file_name: str
     content_type: str
@@ -72,7 +72,7 @@ class DBDocument:
             project_uuid=str(project_uuid) if project_uuid else None,
             project_event_uuid=str(event_uuid) if event_uuid else None,
             project_replies_hash=data['project_replies_hash'],
-            document_template_id=data['document_template_id'],
+            document_template_uuid=data['document_template_uuid'],
             format_uuid=str(data['format_uuid']),
             created_by=str(data['created_by']),
             retrieved_at=data['retrieved_at'],
@@ -88,7 +88,7 @@ class DBDocument:
 
 @dataclasses.dataclass
 class DBDocumentTemplate:
-    id: str
+    uuid: str
     name: str
     organization_id: str
     template_id: str
@@ -116,10 +116,14 @@ class DBDocumentTemplate:
     def is_deprecated(self):
         return self.phase == DocumentTemplatePhase.DEPRECATED
 
+    @property
+    def coordinates(self) -> str:
+        return f'{self.organization_id}:{self.template_id}:{self.version}'
+
     @staticmethod
     def from_dict_row(data: dict) -> 'DBDocumentTemplate':
         return DBDocumentTemplate(
-            id=data['id'],
+            uuid=data['uuid'],
             name=data['name'],
             organization_id=data['organization_id'],
             template_id=data['template_id'],
@@ -139,7 +143,7 @@ class DBDocumentTemplate:
 
 @dataclasses.dataclass
 class DBDocumentTemplateFormat:
-    document_template_id: str
+    document_template_uuid: str
     uuid: str
     name: str
     icon: str
@@ -150,7 +154,7 @@ class DBDocumentTemplateFormat:
     @staticmethod
     def from_dict_row(data: dict) -> 'DBDocumentTemplateFormat':
         return DBDocumentTemplateFormat(
-            document_template_id=data['document_template_id'],
+            document_template_uuid=data['document_template_uuid'],
             uuid=str(data['uuid']),
             name=data['name'],
             icon=data['icon'],
@@ -162,7 +166,7 @@ class DBDocumentTemplateFormat:
 
 @dataclasses.dataclass
 class DBDocumentTemplateStep:
-    document_template_id: str
+    document_template_uuid: str
     format_uuid: str
     position: int
     name: str
@@ -174,7 +178,7 @@ class DBDocumentTemplateStep:
     @staticmethod
     def from_dict_row(data: dict) -> 'DBDocumentTemplateStep':
         return DBDocumentTemplateStep(
-            document_template_id=data['document_template_id'],
+            document_template_uuid=data['document_template_uuid'],
             format_uuid=str(data['format_uuid']),
             position=data['position'],
             name=data['name'],
@@ -187,7 +191,7 @@ class DBDocumentTemplateStep:
 
 @dataclasses.dataclass
 class DBDocumentTemplateFile:
-    document_template_id: str
+    document_template_uuid: str
     uuid: str
     file_name: str
     content: str
@@ -198,7 +202,7 @@ class DBDocumentTemplateFile:
     @staticmethod
     def from_dict_row(data: dict) -> 'DBDocumentTemplateFile':
         return DBDocumentTemplateFile(
-            document_template_id=data['document_template_id'],
+            document_template_uuid=data['document_template_uuid'],
             uuid=str(data['uuid']),
             file_name=data['file_name'],
             content=data['content'],
@@ -210,7 +214,7 @@ class DBDocumentTemplateFile:
 
 @dataclasses.dataclass
 class DBDocumentTemplateAsset:
-    document_template_id: str
+    document_template_uuid: str
     uuid: str
     file_name: str
     content_type: str
@@ -222,7 +226,7 @@ class DBDocumentTemplateAsset:
     @staticmethod
     def from_dict_row(data: dict) -> 'DBDocumentTemplateAsset':
         return DBDocumentTemplateAsset(
-            document_template_id=data['document_template_id'],
+            document_template_uuid=data['document_template_uuid'],
             uuid=str(data['uuid']),
             file_name=data['file_name'],
             content_type=data['content_type'],
@@ -334,8 +338,8 @@ class DBProjectSimple:
     name: str
     visibility: str
     sharing: str
-    package_id: str
-    document_template_id: str
+    knowledge_package_uuid: str
+    document_template_uuid: str
     format_uuid: str
     created_by: str
     created_at: datetime.datetime
@@ -352,8 +356,8 @@ class DBProjectSimple:
             name=data['name'],
             visibility=data['visibility'],
             sharing=data['sharing'],
-            package_id=data['package_id'],
-            document_template_id=data['document_template_id'],
+            knowledge_package_uuid=data['knowledge_package_uuid'],
+            document_template_uuid=data['document_template_uuid'],
             format_uuid=str(data['format_uuid']),
             created_by=str(data['created_by']),
             created_at=data['created_at'],
@@ -370,8 +374,8 @@ class DBProjectSimple:
             'name': self.name,
             'visibility': self.visibility,
             'sharing': self.sharing,
-            'package_id': self.package_id,
-            'document_template_id': self.document_template_id,
+            'knowledge_package_uuid': self.knowledge_package_uuid,
+            'document_template_uuid': self.document_template_uuid,
             'format_uuid': self.format_uuid,
             'created_by': self.created_by,
             'created_at': self.created_at.isoformat(timespec='milliseconds'),

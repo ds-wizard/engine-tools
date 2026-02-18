@@ -134,9 +134,10 @@ class TemplateFile:
     DEFAULT_CONTENT_TYPE = 'application/octet-stream'
     TEMPLATE_EXTENSIONS = ('.j2', '.jinja', '.jinja2', '.jnj')
 
-    def __init__(self, *, filename: pathlib.Path,
+    def __init__(self, *, filename: pathlib.Path, remote_uuid: str | None = None,
                  remote_id: str | None = None, remote_type: TemplateFileType | None = None,
                  content_type: str | None = None, content: bytes = b''):
+        self.remote_uuid: str | None = remote_uuid
         self.remote_id = remote_id
         self.filename = filename
         self.content = content
@@ -170,9 +171,11 @@ class TemplateFile:
 class Template:
 
     # pylint: disable-next=too-many-arguments
-    def __init__(self, *, template_id=None, organization_id=None, version=None, name=None,
+    def __init__(self, *, uuid=None, template_id=None, organization_id=None,
+                 version=None, name=None,
                  description=None, readme=None, template_license=None,
                  metamodel_version=None, tdk_config=None, loaded_json=None):
+        self.uuid: str | None = uuid
         self.template_id: str | None = template_id
         self.organization_id: str | None = organization_id
         self.version: str | None = version
@@ -189,8 +192,12 @@ class Template:
         self.loaded_json: collections.OrderedDict = loaded_json or collections.OrderedDict()
 
     @property
-    def id(self) -> str:
+    def coordinates(self) -> str:
         return f'{self.organization_id}:{self.template_id}:{self.version}'
+
+    @property
+    def id(self) -> str:
+        return self.coordinates
 
     def id_with_org(self, organization_id: str) -> str:
         return f'{organization_id}:{self.template_id}:{self.version}'
@@ -201,17 +208,17 @@ class Template:
             composite_id = data['id']  # type: str
             if composite_id.count(':') != 2:
                 raise RuntimeError(f'Invalid template ID: {composite_id}')
-            org_id, tmp_id, version = composite_id.split(':')
+            _, tmp_id, version = composite_id.split(':')
         else:
             try:
-                org_id = data['organizationId']
                 tmp_id = data['templateId']
                 version = data['version']
             except KeyError as e:
                 raise RuntimeError('Cannot retrieve template ID') from e
         template = Template(
+            uuid=data.get('uuid', None),
+            organization_id=data.get('organizationId', '~'),
             template_id=tmp_id,
-            organization_id=org_id,
             version=version,
             name=data.get('name', 'Unknown template'),
             description=data.get('description', ''),
@@ -252,7 +259,7 @@ class Template:
 
     def serialize_remote(self) -> dict[str, typing.Any]:
         return {
-            'id': self.id,
+            'uuid': self.uuid,
             'templateId': self.template_id,
             'organizationId': self.organization_id,
             'version': self.version,

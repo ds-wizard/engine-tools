@@ -86,7 +86,7 @@ def prompt_fill(text: str, obj, attr, **kwargs):
 
 
 def print_template_info(template: Template):
-    click.echo(f'Template ID: {template.id}')
+    click.echo(f'Template ID: {template.coordinates}')
     click.echo(f'Name:        {template.name}')
     click.echo(f'License:     {template.license}')
     click.echo(f'Description: {template.description}')
@@ -312,7 +312,7 @@ def new_template(ctx, template_dir, force):
         ClickPrinter.failure('Exited...')
         sys.exit(1)
     tdk = TDKCore(template=builder.build(), logger=ctx.obj.logger)
-    template_dir = template_dir or dir_from_id(tdk.safe_template.id)
+    template_dir = template_dir or dir_from_id(tdk.safe_template.coordinates)
     tdk.prepare_local(template_dir=template_dir)
     try:
         tdk.store_local(force=force)
@@ -422,7 +422,7 @@ def put_template(ctx, template_dir, api_url, api_key, force, watch):
                 api_key=CONFIG.env.api_key,
             )
             await tdk.store_remote(force=force)
-            ClickPrinter.success(f'Template {tdk.safe_project.safe_template.id} '
+            ClickPrinter.success(f'Template {tdk.safe_project.safe_template.coordinates} '
                                  f'uploaded to {CONFIG.env.api_url}')
 
             if watch:

@@ -3,14 +3,17 @@ interactions:
     body: null
     headers:
       Authorization:
-      - Bearer dummy-token
+      - Bearer eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE3NzE5NzQwMDAsInRlbmFudFV1aWQiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJ0b2tlblV1aWQiOiIwNzU4MzIwOS0zMWM3LTQzNDAtYTNjNS0xNjE1MjJlOTEzOTIiLCJ1c2VyVXVpZCI6ImVjNmY4ZTkwLTJhOTEtNDllYy1hYTNmLTllYWIyMjY3ZmM2NiIsInZlcnNpb24iOjR9.bw-6wNcflwtewdeueOg6gAM9O93kgb3gtXhHWNXVFnM0p_FtlRsbW-ZR_pxjh3CCtLHJ2QQmaa7fXVCC1OsVgOwgtgO5rIGhT62UU4DfL1d2oNXq5huyHCxTzgung_YEI1Eg76RulfWb5wUPhHfaBJbPYLuPh5Q56U8RD-khTQeqcLuvNLWBKYTHqe7k7X41vJw__sL1GyC60bXXYUlqLZaiPkvc5JNWxxxTL2R4lw1zlpnJxFHhLq8TWPDehtBuYADWyxDdS3s-4Vr_axSuenE7ZCHU-AFF4Vr1mS-w_Kx69s_wpsgRxtZh3s5yIAQ45tikMXR5cijEEuJYO7VorTjclQvbh-Sk29Y7r8lZ2scZp8z8Zf8kiLpPKnJpItpKZLmjLYOJZRCBX6EW3fN92sbsOq3yPxFchl6DB-cmmGs9EoLvWLimNm8rqpO5pXyGiATah6R0fFRTNtfRcfhfkAIr_X6e3PVtnpOCFtACpUzHnl0p7tYbF-OvhdgAUVZCOZjnFQ5z5EFZjEKbaImqUZJQMz5J8wwsP-N7j8GHjrR5fHgotu-5Ps8WAm2ibYrM15MReorfhWUQmeh7wvNoJ4lj9mFByb0qgTwNgnnLpfFGbglZhyB1jvTiB4TxFoCsaEuyVOBQVAKS9_ufT5wymBcL_fa3PGeDTzPGjA1pv_Q
       User-Agent:
-      - dsw-tdk/3.22.0
+      - dsw-tdk/4.27.0
     method: GET
-    uri: http://localhost:3000/
+    uri: http://localhost:3000/wizard-api/
   response:
     body:
-      string: '{"builtAt":"2023-04-21T02:27:50Z","components":[],"name":"Engine Wizard","version":"develop~13e28c13"}'
+      string: '{"builtAt":"2026-02-20T08:28:05Z","components":[{"builtAt":"2026-02-20T09:47:33Z","createdAt":"2026-02-19T12:59:11.534362Z","name":"Document
+        Worker","updatedAt":"2026-02-22T06:26:24.005577Z","version":"refactor/id-to-uuid~cfe4120"}],"metamodelVersions":[{"name":"Knowledge
+        Model","version":"19"},{"name":"Document Template","version":"17.1"}],"name":"Engine
+        Wizard","version":"feature/refactor-id-to-uuid~a92aba6c"}'
     headers:
       Access-Control-Allow-Credential:
       - 'true'
@@ -23,29 +26,28 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Tue, 25 Apr 2023 13:27:14 GMT
+      - Tue, 24 Feb 2026 06:29:48 GMT
       Server:
-      - Warp/3.3.25
+      - Warp/3.3.31
       Transfer-Encoding:
       - chunked
       x-trace-uuid:
-      - c1def8e2-7de3-4e0e-a96b-21f22c2016c2
+      - 870a52e0-f946-4322-b154-38e4830130a8
     status:
       code: 200
       message: OK
-    url: http://localhost:3000/
 - request:
     body: null
     headers:
       Authorization:
-      - Bearer dummy-token
+      - Bearer eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE3NzE5NzQwMDAsInRlbmFudFV1aWQiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJ0b2tlblV1aWQiOiIwNzU4MzIwOS0zMWM3LTQzNDAtYTNjNS0xNjE1MjJlOTEzOTIiLCJ1c2VyVXVpZCI6ImVjNmY4ZTkwLTJhOTEtNDllYy1hYTNmLTllYWIyMjY3ZmM2NiIsInZlcnNpb24iOjR9.bw-6wNcflwtewdeueOg6gAM9O93kgb3gtXhHWNXVFnM0p_FtlRsbW-ZR_pxjh3CCtLHJ2QQmaa7fXVCC1OsVgOwgtgO5rIGhT62UU4DfL1d2oNXq5huyHCxTzgung_YEI1Eg76RulfWb5wUPhHfaBJbPYLuPh5Q56U8RD-khTQeqcLuvNLWBKYTHqe7k7X41vJw__sL1GyC60bXXYUlqLZaiPkvc5JNWxxxTL2R4lw1zlpnJxFHhLq8TWPDehtBuYADWyxDdS3s-4Vr_axSuenE7ZCHU-AFF4Vr1mS-w_Kx69s_wpsgRxtZh3s5yIAQ45tikMXR5cijEEuJYO7VorTjclQvbh-Sk29Y7r8lZ2scZp8z8Zf8kiLpPKnJpItpKZLmjLYOJZRCBX6EW3fN92sbsOq3yPxFchl6DB-cmmGs9EoLvWLimNm8rqpO5pXyGiATah6R0fFRTNtfRcfhfkAIr_X6e3PVtnpOCFtACpUzHnl0p7tYbF-OvhdgAUVZCOZjnFQ5z5EFZjEKbaImqUZJQMz5J8wwsP-N7j8GHjrR5fHgotu-5Ps8WAm2ibYrM15MReorfhWUQmeh7wvNoJ4lj9mFByb0qgTwNgnnLpfFGbglZhyB1jvTiB4TxFoCsaEuyVOBQVAKS9_ufT5wymBcL_fa3PGeDTzPGjA1pv_Q
       User-Agent:
-      - dsw-tdk/3.22.0
+      - dsw-tdk/4.27.0
     method: GET
-    uri: http://localhost:3000/users/current
+    uri: http://localhost:3000/wizard-api/users/current
   response:
     body:
-      string: '{"active":true,"affiliation":"My University","createdAt":"2018-01-20T00:00:00Z","email":"albert.einstein@example.com","firstName":"Albert","imageUrl":null,"lastName":"Einstein","permissions":["UM_PERM","KM_PERM","KM_UPGRADE_PERM","KM_PUBLISH_PERM","PM_READ_PERM","PM_WRITE_PERM","QTN_PERM","CFG_PERM","SUBM_PERM","DOC_PERM","QTN_TML_PERM","QTN_IMPORTER_PERM","LOC_PERM","DOC_TML_WRITE_PERM","DOC_TML_READ_PERM"],"role":"admin","sources":["internal"],"submissionProps":[],"updatedAt":"2018-01-25T00:00:00Z","uuid":"ec6f8e90-2a91-49ec-aa3f-9eab2267fc66"}'
+      string: '{"active":true,"affiliation":"My University","createdAt":"2018-01-20T00:00:00Z","email":"albert.einstein@example.com","firstName":"Albert","imageUrl":null,"lastName":"Einstein","lastSeenNewsId":null,"locale":null,"permissions":["UM_PERM","KM_PERM","KM_UPGRADE_PERM","KM_PUBLISH_PERM","PM_READ_PERM","PM_WRITE_PERM","PRJ_PERM","CFG_PERM","SUBM_PERM","DOC_PERM","PRJ_TML_PERM","LOC_PERM","DOC_TML_WRITE_PERM","DOC_TML_READ_PERM","PRJ_FILE_PERM"],"role":"admin","sources":["internal"],"updatedAt":"2018-01-25T00:00:00Z","uuid":"ec6f8e90-2a91-49ec-aa3f-9eab2267fc66"}'
     headers:
       Access-Control-Allow-Credential:
       - 'true'
@@ -58,33 +60,29 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Tue, 25 Apr 2023 13:27:14 GMT
+      - Tue, 24 Feb 2026 06:29:48 GMT
       Server:
-      - Warp/3.3.25
+      - Warp/3.3.31
       Transfer-Encoding:
       - chunked
       x-trace-uuid:
-      - bf19235d-77d5-4579-adcf-d8df94219c03
+      - d472babb-3aeb-4c21-a968-69b6086bf1d5
     status:
       code: 200
       message: OK
-    url: http://localhost:3000/users/current
 - request:
     body: null
     headers:
       Authorization:
-      - Bearer dummy-token
+      - Bearer eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE3NzE5NzQwMDAsInRlbmFudFV1aWQiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJ0b2tlblV1aWQiOiIwNzU4MzIwOS0zMWM3LTQzNDAtYTNjNS0xNjE1MjJlOTEzOTIiLCJ1c2VyVXVpZCI6ImVjNmY4ZTkwLTJhOTEtNDllYy1hYTNmLTllYWIyMjY3ZmM2NiIsInZlcnNpb24iOjR9.bw-6wNcflwtewdeueOg6gAM9O93kgb3gtXhHWNXVFnM0p_FtlRsbW-ZR_pxjh3CCtLHJ2QQmaa7fXVCC1OsVgOwgtgO5rIGhT62UU4DfL1d2oNXq5huyHCxTzgung_YEI1Eg76RulfWb5wUPhHfaBJbPYLuPh5Q56U8RD-khTQeqcLuvNLWBKYTHqe7k7X41vJw__sL1GyC60bXXYUlqLZaiPkvc5JNWxxxTL2R4lw1zlpnJxFHhLq8TWPDehtBuYADWyxDdS3s-4Vr_axSuenE7ZCHU-AFF4Vr1mS-w_Kx69s_wpsgRxtZh3s5yIAQ45tikMXR5cijEEuJYO7VorTjclQvbh-Sk29Y7r8lZ2scZp8z8Zf8kiLpPKnJpItpKZLmjLYOJZRCBX6EW3fN92sbsOq3yPxFchl6DB-cmmGs9EoLvWLimNm8rqpO5pXyGiATah6R0fFRTNtfRcfhfkAIr_X6e3PVtnpOCFtACpUzHnl0p7tYbF-OvhdgAUVZCOZjnFQ5z5EFZjEKbaImqUZJQMz5J8wwsP-N7j8GHjrR5fHgotu-5Ps8WAm2ibYrM15MReorfhWUQmeh7wvNoJ4lj9mFByb0qgTwNgnnLpfFGbglZhyB1jvTiB4TxFoCsaEuyVOBQVAKS9_ufT5wymBcL_fa3PGeDTzPGjA1pv_Q
       User-Agent:
-      - dsw-tdk/3.22.0
+      - dsw-tdk/4.27.0
     method: GET
-    uri: http://localhost:3000/document-template-drafts?size=10000
+    uri: http://localhost:3000/wizard-api/document-template-drafts?size=10000
   response:
     body:
-      string: '{"_embedded":{"documentTemplateDrafts":[{"createdAt":"2023-04-25T13:01:54.430803Z","description":"Dummy
-        document template 01 for testing purposes","id":"organization:example01:1.0.0","name":"Test
-        template 01","organizationId":"organization","templateId":"example01","updatedAt":"2023-04-25T13:12:30.16158Z","version":"1.0.0"},{"createdAt":"2023-04-25T13:13:28.596463Z","description":"Exported
-        questions and answers from a questionnaire","id":"organization:questionnaire-report:2.9.0","name":"Questionnaire
-        Report","organizationId":"organization","templateId":"questionnaire-report","updatedAt":"2023-04-25T13:13:28.656434Z","version":"2.9.0"}]},"page":{"number":0,"size":10000,"totalElements":2,"totalPages":1}}'
+      string: '{"_embedded":{"documentTemplateDrafts":[{"createdAt":"2026-02-24T06:15:04.677049Z","description":"Exported
+        questions and answers from a questionnaire","name":"Questionnaire Report","organizationId":"organization","templateId":"questionnaire-report","updatedAt":"2026-02-24T06:15:04.734896Z","uuid":"7e4da640-82ba-40cb-a072-288112911fba","version":"2.17.0"},{"createdAt":"2026-02-24T06:27:18.088264Z","description":"","name":"test-template-x","organizationId":"organization","templateId":"test-template-x","updatedAt":"2026-02-24T06:27:18.088264Z","uuid":"c4924abd-88a1-418e-afa6-b1f26da5cb75","version":"0.1.0"}]},"page":{"number":0,"size":10000,"totalElements":2,"totalPages":1}}'
     headers:
       Access-Control-Allow-Credential:
       - 'true'
@@ -97,15 +95,14 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Tue, 25 Apr 2023 13:27:14 GMT
+      - Tue, 24 Feb 2026 06:29:48 GMT
       Server:
-      - Warp/3.3.25
+      - Warp/3.3.31
       Transfer-Encoding:
       - chunked
       x-trace-uuid:
-      - c18d08dd-1733-4473-a04b-1da49fa1cdf9
+      - 45667545-4595-435a-a050-4112fdd4da71
     status:
       code: 200
       message: OK
-    url: http://localhost:3000/document-template-drafts?size=10000
 version: 1

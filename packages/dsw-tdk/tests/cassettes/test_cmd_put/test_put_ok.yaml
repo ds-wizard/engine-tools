@@ -3,14 +3,17 @@ interactions:
     body: null
     headers:
       Authorization:
-      - Bearer dummy-token
+      - Bearer eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE3NzE5NzQwMDAsInRlbmFudFV1aWQiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJ0b2tlblV1aWQiOiIwNzU4MzIwOS0zMWM3LTQzNDAtYTNjNS0xNjE1MjJlOTEzOTIiLCJ1c2VyVXVpZCI6ImVjNmY4ZTkwLTJhOTEtNDllYy1hYTNmLTllYWIyMjY3ZmM2NiIsInZlcnNpb24iOjR9.bw-6wNcflwtewdeueOg6gAM9O93kgb3gtXhHWNXVFnM0p_FtlRsbW-ZR_pxjh3CCtLHJ2QQmaa7fXVCC1OsVgOwgtgO5rIGhT62UU4DfL1d2oNXq5huyHCxTzgung_YEI1Eg76RulfWb5wUPhHfaBJbPYLuPh5Q56U8RD-khTQeqcLuvNLWBKYTHqe7k7X41vJw__sL1GyC60bXXYUlqLZaiPkvc5JNWxxxTL2R4lw1zlpnJxFHhLq8TWPDehtBuYADWyxDdS3s-4Vr_axSuenE7ZCHU-AFF4Vr1mS-w_Kx69s_wpsgRxtZh3s5yIAQ45tikMXR5cijEEuJYO7VorTjclQvbh-Sk29Y7r8lZ2scZp8z8Zf8kiLpPKnJpItpKZLmjLYOJZRCBX6EW3fN92sbsOq3yPxFchl6DB-cmmGs9EoLvWLimNm8rqpO5pXyGiATah6R0fFRTNtfRcfhfkAIr_X6e3PVtnpOCFtACpUzHnl0p7tYbF-OvhdgAUVZCOZjnFQ5z5EFZjEKbaImqUZJQMz5J8wwsP-N7j8GHjrR5fHgotu-5Ps8WAm2ibYrM15MReorfhWUQmeh7wvNoJ4lj9mFByb0qgTwNgnnLpfFGbglZhyB1jvTiB4TxFoCsaEuyVOBQVAKS9_ufT5wymBcL_fa3PGeDTzPGjA1pv_Q
       User-Agent:
-      - dsw-tdk/3.22.0
+      - dsw-tdk/4.27.0
     method: GET
-    uri: http://localhost:3000/
+    uri: http://localhost:3000/wizard-api/
   response:
     body:
-      string: '{"builtAt":"2023-04-21T02:27:50Z","components":[],"name":"Engine Wizard","version":"develop~13e28c13"}'
+      string: '{"builtAt":"2026-02-20T08:28:05Z","components":[{"builtAt":"2026-02-20T09:47:33Z","createdAt":"2026-02-19T12:59:11.534362Z","name":"Document
+        Worker","updatedAt":"2026-02-22T06:26:24.005577Z","version":"refactor/id-to-uuid~cfe4120"}],"metamodelVersions":[{"name":"Knowledge
+        Model","version":"19"},{"name":"Document Template","version":"17.1"}],"name":"Engine
+        Wizard","version":"feature/refactor-id-to-uuid~a92aba6c"}'
     headers:
       Access-Control-Allow-Credential:
       - 'true'
@@ -23,29 +26,28 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Tue, 25 Apr 2023 13:27:26 GMT
+      - Tue, 24 Feb 2026 06:36:50 GMT
       Server:
-      - Warp/3.3.25
+      - Warp/3.3.31
       Transfer-Encoding:
       - chunked
       x-trace-uuid:
-      - a28dd46e-435a-49d4-b505-7ae16d1cfa09
+      - f2133f2c-8c94-4f3a-8c36-4c0cfa3b4a8e
     status:
       code: 200
       message: OK
-    url: http://localhost:3000/
 - request:
     body: null
     headers:
       Authorization:
-      - Bearer dummy-token
+      - Bearer eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE3NzE5NzQwMDAsInRlbmFudFV1aWQiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJ0b2tlblV1aWQiOiIwNzU4MzIwOS0zMWM3LTQzNDAtYTNjNS0xNjE1MjJlOTEzOTIiLCJ1c2VyVXVpZCI6ImVjNmY4ZTkwLTJhOTEtNDllYy1hYTNmLTllYWIyMjY3ZmM2NiIsInZlcnNpb24iOjR9.bw-6wNcflwtewdeueOg6gAM9O93kgb3gtXhHWNXVFnM0p_FtlRsbW-ZR_pxjh3CCtLHJ2QQmaa7fXVCC1OsVgOwgtgO5rIGhT62UU4DfL1d2oNXq5huyHCxTzgung_YEI1Eg76RulfWb5wUPhHfaBJbPYLuPh5Q56U8RD-khTQeqcLuvNLWBKYTHqe7k7X41vJw__sL1GyC60bXXYUlqLZaiPkvc5JNWxxxTL2R4lw1zlpnJxFHhLq8TWPDehtBuYADWyxDdS3s-4Vr_axSuenE7ZCHU-AFF4Vr1mS-w_Kx69s_wpsgRxtZh3s5yIAQ45tikMXR5cijEEuJYO7VorTjclQvbh-Sk29Y7r8lZ2scZp8z8Zf8kiLpPKnJpItpKZLmjLYOJZRCBX6EW3fN92sbsOq3yPxFchl6DB-cmmGs9EoLvWLimNm8rqpO5pXyGiATah6R0fFRTNtfRcfhfkAIr_X6e3PVtnpOCFtACpUzHnl0p7tYbF-OvhdgAUVZCOZjnFQ5z5EFZjEKbaImqUZJQMz5J8wwsP-N7j8GHjrR5fHgotu-5Ps8WAm2ibYrM15MReorfhWUQmeh7wvNoJ4lj9mFByb0qgTwNgnnLpfFGbglZhyB1jvTiB4TxFoCsaEuyVOBQVAKS9_ufT5wymBcL_fa3PGeDTzPGjA1pv_Q
       User-Agent:
-      - dsw-tdk/3.22.0
+      - dsw-tdk/4.27.0
     method: GET
-    uri: http://localhost:3000/users/current
+    uri: http://localhost:3000/wizard-api/users/current
   response:
     body:
-      string: '{"active":true,"affiliation":"My University","createdAt":"2018-01-20T00:00:00Z","email":"albert.einstein@example.com","firstName":"Albert","imageUrl":null,"lastName":"Einstein","permissions":["UM_PERM","KM_PERM","KM_UPGRADE_PERM","KM_PUBLISH_PERM","PM_READ_PERM","PM_WRITE_PERM","QTN_PERM","CFG_PERM","SUBM_PERM","DOC_PERM","QTN_TML_PERM","QTN_IMPORTER_PERM","LOC_PERM","DOC_TML_WRITE_PERM","DOC_TML_READ_PERM"],"role":"admin","sources":["internal"],"submissionProps":[],"updatedAt":"2018-01-25T00:00:00Z","uuid":"ec6f8e90-2a91-49ec-aa3f-9eab2267fc66"}'
+      string: '{"active":true,"affiliation":"My University","createdAt":"2018-01-20T00:00:00Z","email":"albert.einstein@example.com","firstName":"Albert","imageUrl":null,"lastName":"Einstein","lastSeenNewsId":null,"locale":null,"permissions":["UM_PERM","KM_PERM","KM_UPGRADE_PERM","KM_PUBLISH_PERM","PM_READ_PERM","PM_WRITE_PERM","PRJ_PERM","CFG_PERM","SUBM_PERM","DOC_PERM","PRJ_TML_PERM","LOC_PERM","DOC_TML_WRITE_PERM","DOC_TML_READ_PERM","PRJ_FILE_PERM"],"role":"admin","sources":["internal"],"updatedAt":"2018-01-25T00:00:00Z","uuid":"ec6f8e90-2a91-49ec-aa3f-9eab2267fc66"}'
     headers:
       Access-Control-Allow-Credential:
       - 'true'
@@ -58,30 +60,29 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Tue, 25 Apr 2023 13:27:26 GMT
+      - Tue, 24 Feb 2026 06:36:50 GMT
       Server:
-      - Warp/3.3.25
+      - Warp/3.3.31
       Transfer-Encoding:
       - chunked
       x-trace-uuid:
-      - 253fa2f2-c903-4a76-9a55-fbc7c73f67b0
+      - b99d7e3f-8b92-496a-bd53-57e5f4ce4552
     status:
       code: 200
       message: OK
-    url: http://localhost:3000/users/current
 - request:
     body: null
     headers:
       Authorization:
-      - Bearer dummy-token
+      - Bearer eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE3NzE5NzQwMDAsInRlbmFudFV1aWQiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJ0b2tlblV1aWQiOiIwNzU4MzIwOS0zMWM3LTQzNDAtYTNjNS0xNjE1MjJlOTEzOTIiLCJ1c2VyVXVpZCI6ImVjNmY4ZTkwLTJhOTEtNDllYy1hYTNmLTllYWIyMjY3ZmM2NiIsInZlcnNpb24iOjR9.bw-6wNcflwtewdeueOg6gAM9O93kgb3gtXhHWNXVFnM0p_FtlRsbW-ZR_pxjh3CCtLHJ2QQmaa7fXVCC1OsVgOwgtgO5rIGhT62UU4DfL1d2oNXq5huyHCxTzgung_YEI1Eg76RulfWb5wUPhHfaBJbPYLuPh5Q56U8RD-khTQeqcLuvNLWBKYTHqe7k7X41vJw__sL1GyC60bXXYUlqLZaiPkvc5JNWxxxTL2R4lw1zlpnJxFHhLq8TWPDehtBuYADWyxDdS3s-4Vr_axSuenE7ZCHU-AFF4Vr1mS-w_Kx69s_wpsgRxtZh3s5yIAQ45tikMXR5cijEEuJYO7VorTjclQvbh-Sk29Y7r8lZ2scZp8z8Zf8kiLpPKnJpItpKZLmjLYOJZRCBX6EW3fN92sbsOq3yPxFchl6DB-cmmGs9EoLvWLimNm8rqpO5pXyGiATah6R0fFRTNtfRcfhfkAIr_X6e3PVtnpOCFtACpUzHnl0p7tYbF-OvhdgAUVZCOZjnFQ5z5EFZjEKbaImqUZJQMz5J8wwsP-N7j8GHjrR5fHgotu-5Ps8WAm2ibYrM15MReorfhWUQmeh7wvNoJ4lj9mFByb0qgTwNgnnLpfFGbglZhyB1jvTiB4TxFoCsaEuyVOBQVAKS9_ufT5wymBcL_fa3PGeDTzPGjA1pv_Q
       User-Agent:
-      - dsw-tdk/3.22.0
+      - dsw-tdk/4.27.0
     method: GET
-    uri: http://localhost:3000/configs/bootstrap
+    uri: http://localhost:3000/wizard-api/configs/bootstrap
   response:
     body:
-      string: '{"authentication":{"defaultRole":"dataSteward","external":{"services":[]},"internal":{"registration":{"enabled":true},"twoFactorAuth":{"codeLength":6,"enabled":false,"expiration":600}}},"cloud":{"enabled":false,"serverUrl":"https://server.example.com"},"dashboardAndLoginScreen":{"announcements":[],"dashboardType":"RoleBasedDashboardType","loginInfo":null,"loginInfoSidebar":null},"feature":{"clientCustomizationEnabled":false,"pdfOnlyEnabled":false,"pdfWatermarkEnabled":false},"locales":[{"code":"en","defaultLocale":true,"name":"English"}],"lookAndFeel":{"appTitle":null,"appTitleShort":null,"customMenuLinks":[],"illustrationsColor":null,"logoUrl":null,"primaryColor":null,"styleUrl":null},"organization":{"affiliations":[],"description":"My
-        Organization Description","name":"My Organization","organizationId":"organization"},"owl":{"enabled":false,"kmId":"","name":"","organizationId":"","previousPackageId":null,"rootElement":"","version":""},"privacyAndSupport":{"privacyUrl":null,"supportEmail":null,"supportSiteIcon":null,"supportSiteName":null,"supportSiteUrl":null,"termsOfServiceUrl":null},"questionnaire":{"feedback":{"enabled":false},"projectTagging":{"enabled":true},"questionnaireCreation":"TemplateAndCustomQuestionnaireCreation","questionnaireSharing":{"anonymousEnabled":false,"defaultValue":"RestrictedQuestionnaire","enabled":true},"questionnaireVisibility":{"defaultValue":"PrivateQuestionnaire","enabled":true},"summaryReport":{"enabled":true}},"registry":{"enabled":false,"url":"https://registry.ds-wizard.org"},"submission":{"enabled":true}}'
+      string: '{"admin":{"clientUrl":null,"enabled":false},"authentication":{"defaultRole":"researcher","external":{"services":[]},"internal":{"registration":{"enabled":true},"twoFactorAuth":{"codeLength":6,"enabled":false,"expiration":600}}},"cloud":{"enabled":false,"serverUrl":"https://server.example.com"},"dashboardAndLoginScreen":{"announcements":[],"createdAt":"2018-01-20T00:00:00Z","dashboardType":"RoleBasedDashboardType","loginInfo":null,"loginInfoSidebar":null,"tenantUuid":"00000000-0000-0000-0000-000000000000","updatedAt":"2026-02-24T06:14:55.475385Z"},"features":{"aiAssistantEnabled":false,"toursEnabled":true},"lookAndFeel":{"appTitle":null,"appTitleShort":null,"createdAt":"2018-01-20T00:00:00Z","customMenuLinks":[],"illustrationsColor":null,"logoUrl":null,"primaryColor":null,"tenantUuid":"00000000-0000-0000-0000-000000000000","updatedAt":"2026-02-24T06:14:55.475385Z"},"modules":[],"organization":{"affiliations":[],"createdAt":"2018-01-20T00:00:00Z","description":"My
+        Organization Description","name":"My Organization","organizationId":"organization","tenantUuid":"00000000-0000-0000-0000-000000000000","updatedAt":"2026-02-24T06:14:55.475385Z"},"owl":{"createdAt":"2018-01-20T00:00:00Z","enabled":false,"kmId":"","name":"","organizationId":"","previousKnowledgeModelPackageId":null,"rootElement":"","tenantUuid":"00000000-0000-0000-0000-000000000000","updatedAt":"2018-01-20T00:00:00Z","version":""},"pluginSettings":{},"plugins":[],"privacyAndSupport":{"createdAt":"2018-01-20T00:00:00Z","privacyUrl":null,"supportEmail":null,"supportSiteIcon":null,"supportSiteName":null,"supportSiteUrl":null,"tenantUuid":"00000000-0000-0000-0000-000000000000","termsOfServiceUrl":null,"updatedAt":"2026-02-24T06:14:55.475385Z"},"project":{"feedback":{"enabled":false},"projectCreation":"TemplateAndCustomProjectCreation","projectSharing":{"anonymousEnabled":false,"defaultValue":"RestrictedProjectSharing","enabled":true},"projectTagging":{"enabled":true},"projectVisibility":{"defaultValue":"PrivateProjectVisibility","enabled":true},"summaryReport":{"enabled":true}},"registry":{"enabled":false,"url":"https://registry.ds-wizard.org"},"signalBridge":{"webSocketUrl":null},"submission":{"enabled":true},"tours":["dashboard","projects_index","projects_create","projects_detail"],"type":"ClientConfig","user":{"email":"albert.einstein@example.com","firstName":"Albert","imageUrl":null,"lastName":"Einstein","lastSeenNewsId":null,"permissions":["UM_PERM","KM_PERM","KM_UPGRADE_PERM","KM_PUBLISH_PERM","PM_READ_PERM","PM_WRITE_PERM","PRJ_PERM","CFG_PERM","SUBM_PERM","DOC_PERM","PRJ_TML_PERM","LOC_PERM","DOC_TML_WRITE_PERM","DOC_TML_READ_PERM","PRJ_FILE_PERM"],"pluginSettings":{},"role":"admin","userGroupUuids":[],"uuid":"ec6f8e90-2a91-49ec-aa3f-9eab2267fc66"}}'
     headers:
       Access-Control-Allow-Credential:
       - 'true'
@@ -94,34 +95,28 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Tue, 25 Apr 2023 13:27:26 GMT
+      - Tue, 24 Feb 2026 06:36:50 GMT
       Server:
-      - Warp/3.3.25
+      - Warp/3.3.31
       Transfer-Encoding:
       - chunked
       x-trace-uuid:
-      - 6f159536-fd3b-45dc-a6fd-62d668eca02a
+      - f7b667f5-92a9-4ec3-8ad0-cc3ace94eabe
     status:
       code: 200
       message: OK
-    url: http://localhost:3000/configs/bootstrap
 - request:
     body: null
     headers:
       Authorization:
-      - Bearer dummy-token
+      - Bearer eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE3NzE5NzQwMDAsInRlbmFudFV1aWQiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJ0b2tlblV1aWQiOiIwNzU4MzIwOS0zMWM3LTQzNDAtYTNjNS0xNjE1MjJlOTEzOTIiLCJ1c2VyVXVpZCI6ImVjNmY4ZTkwLTJhOTEtNDllYy1hYTNmLTllYWIyMjY3ZmM2NiIsInZlcnNpb24iOjR9.bw-6wNcflwtewdeueOg6gAM9O93kgb3gtXhHWNXVFnM0p_FtlRsbW-ZR_pxjh3CCtLHJ2QQmaa7fXVCC1OsVgOwgtgO5rIGhT62UU4DfL1d2oNXq5huyHCxTzgung_YEI1Eg76RulfWb5wUPhHfaBJbPYLuPh5Q56U8RD-khTQeqcLuvNLWBKYTHqe7k7X41vJw__sL1GyC60bXXYUlqLZaiPkvc5JNWxxxTL2R4lw1zlpnJxFHhLq8TWPDehtBuYADWyxDdS3s-4Vr_axSuenE7ZCHU-AFF4Vr1mS-w_Kx69s_wpsgRxtZh3s5yIAQ45tikMXR5cijEEuJYO7VorTjclQvbh-Sk29Y7r8lZ2scZp8z8Zf8kiLpPKnJpItpKZLmjLYOJZRCBX6EW3fN92sbsOq3yPxFchl6DB-cmmGs9EoLvWLimNm8rqpO5pXyGiATah6R0fFRTNtfRcfhfkAIr_X6e3PVtnpOCFtACpUzHnl0p7tYbF-OvhdgAUVZCOZjnFQ5z5EFZjEKbaImqUZJQMz5J8wwsP-N7j8GHjrR5fHgotu-5Ps8WAm2ibYrM15MReorfhWUQmeh7wvNoJ4lj9mFByb0qgTwNgnnLpfFGbglZhyB1jvTiB4TxFoCsaEuyVOBQVAKS9_ufT5wymBcL_fa3PGeDTzPGjA1pv_Q
       User-Agent:
-      - dsw-tdk/3.22.0
+      - dsw-tdk/4.27.0
     method: GET
-    uri: http://localhost:3000/document-template-drafts/organization:example01:1.0.0
+    uri: http://localhost:3000/wizard-api/document-template-drafts?size=10000&page=0&q=example01
   response:
     body:
-      string: '{"allowedPackages":[{"kmId":null,"maxVersion":null,"minVersion":null,"orgId":null}],"createdAt":"2023-04-25T13:01:54.430803Z","description":"Dummy
-        document template 01 for testing purposes","formatUuid":null,"formats":[{"icon":"far
-        fa-file","name":"JSON Data","steps":[{"name":"json","options":{}}],"uuid":"d3e98eb6-344d-481f-8e37-6a67b6cd1ad2"},{"icon":"far
-        fa-file-code","name":"HTML Document","steps":[{"name":"jinja","options":{"content-type":"text/html","extension":"html","template":"src/template.html.j2"}}],"uuid":"a9293d08-59a4-4e6b-ae62-7a6a570b031c"}],"id":"organization:example01:1.0.0","license":"Apache-2.0","name":"Test
-        template 01","questionnaire":null,"questionnaireUuid":null,"readme":"# Example
-        Template\n","templateId":"example01","updatedAt":"2023-04-25T13:12:30.16158Z","version":"1.0.0"}'
+      string: '{"_embedded":{"documentTemplateDrafts":[]},"page":{"number":0,"size":10000,"totalElements":0,"totalPages":0}}'
     headers:
       Access-Control-Allow-Credential:
       - 'true'
@@ -134,211 +129,28 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Tue, 25 Apr 2023 13:27:26 GMT
+      - Tue, 24 Feb 2026 06:36:50 GMT
       Server:
-      - Warp/3.3.25
+      - Warp/3.3.31
       Transfer-Encoding:
       - chunked
       x-trace-uuid:
-      - 273e1f10-747e-4aa3-b4ee-1fa9a3fdeaf8
+      - e865a251-f9ee-49a3-81f9-acdb8f89b362
     status:
       code: 200
       message: OK
-    url: http://localhost:3000/document-template-drafts/organization:example01:1.0.0
 - request:
     body: null
     headers:
       Authorization:
-      - Bearer dummy-token
+      - Bearer eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE3NzE5NzQwMDAsInRlbmFudFV1aWQiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJ0b2tlblV1aWQiOiIwNzU4MzIwOS0zMWM3LTQzNDAtYTNjNS0xNjE1MjJlOTEzOTIiLCJ1c2VyVXVpZCI6ImVjNmY4ZTkwLTJhOTEtNDllYy1hYTNmLTllYWIyMjY3ZmM2NiIsInZlcnNpb24iOjR9.bw-6wNcflwtewdeueOg6gAM9O93kgb3gtXhHWNXVFnM0p_FtlRsbW-ZR_pxjh3CCtLHJ2QQmaa7fXVCC1OsVgOwgtgO5rIGhT62UU4DfL1d2oNXq5huyHCxTzgung_YEI1Eg76RulfWb5wUPhHfaBJbPYLuPh5Q56U8RD-khTQeqcLuvNLWBKYTHqe7k7X41vJw__sL1GyC60bXXYUlqLZaiPkvc5JNWxxxTL2R4lw1zlpnJxFHhLq8TWPDehtBuYADWyxDdS3s-4Vr_axSuenE7ZCHU-AFF4Vr1mS-w_Kx69s_wpsgRxtZh3s5yIAQ45tikMXR5cijEEuJYO7VorTjclQvbh-Sk29Y7r8lZ2scZp8z8Zf8kiLpPKnJpItpKZLmjLYOJZRCBX6EW3fN92sbsOq3yPxFchl6DB-cmmGs9EoLvWLimNm8rqpO5pXyGiATah6R0fFRTNtfRcfhfkAIr_X6e3PVtnpOCFtACpUzHnl0p7tYbF-OvhdgAUVZCOZjnFQ5z5EFZjEKbaImqUZJQMz5J8wwsP-N7j8GHjrR5fHgotu-5Ps8WAm2ibYrM15MReorfhWUQmeh7wvNoJ4lj9mFByb0qgTwNgnnLpfFGbglZhyB1jvTiB4TxFoCsaEuyVOBQVAKS9_ufT5wymBcL_fa3PGeDTzPGjA1pv_Q
       User-Agent:
-      - dsw-tdk/3.22.0
-    method: PUT
-    uri: http://localhost:3000/document-template-drafts/organization:example01:1.0.0
-  response:
-    body:
-      string: '{"allowedPackages":[{"kmId":null,"maxVersion":null,"minVersion":null,"orgId":null}],"createdAt":"2023-04-25T13:01:54.430803Z","description":"Dummy
-        document template 01 for testing purposes","formatUuid":null,"formats":[{"icon":"far
-        fa-file","name":"JSON Data","steps":[{"name":"json","options":{}}],"uuid":"d3e98eb6-344d-481f-8e37-6a67b6cd1ad2"},{"icon":"far
-        fa-file-code","name":"HTML Document","steps":[{"name":"jinja","options":{"content-type":"text/html","extension":"html","template":"src/template.html.j2"}}],"uuid":"a9293d08-59a4-4e6b-ae62-7a6a570b031c"}],"id":"organization:example01:1.0.0","license":"Apache-2.0","name":"Test
-        template 01","questionnaire":null,"questionnaireUuid":null,"readme":"# Example
-        Template\n","templateId":"example01","updatedAt":"2023-04-25T13:12:30.16158Z","version":"1.0.0"}'
-    headers:
-      Access-Control-Allow-Credential:
-      - 'true'
-      Access-Control-Allow-Headers:
-      - Origin, X-Requested-With, Content-Type, Accept, Authorization
-      Access-Control-Allow-Methods:
-      - OPTIONS, HEAD, GET, POST, PUT, DELETE
-      Access-Control-Allow-Origin:
-      - '*'
-      Content-Type:
-      - application/json
-      Date:
-      - Tue, 25 Apr 2023 13:27:26 GMT
-      Server:
-      - Warp/3.3.25
-      Transfer-Encoding:
-      - chunked
-      x-trace-uuid:
-      - 1034fc95-43db-4d9e-8b6b-ce95c0c2e422
-    status:
-      code: 200
-      message: OK
-    url: http://localhost:3000/document-template-drafts/organization:example01:1.0.0
-- request:
-    body: null
-    headers:
-      Authorization:
-      - Bearer dummy-token
-      User-Agent:
-      - dsw-tdk/3.22.0
-    method: GET
-    uri: http://localhost:3000/document-template-drafts/organization:example01:1.0.0/assets
-  response:
-    body:
-      string: '[]'
-    headers:
-      Access-Control-Allow-Credential:
-      - 'true'
-      Access-Control-Allow-Headers:
-      - Origin, X-Requested-With, Content-Type, Accept, Authorization
-      Access-Control-Allow-Methods:
-      - OPTIONS, HEAD, GET, POST, PUT, DELETE
-      Access-Control-Allow-Origin:
-      - '*'
-      Content-Type:
-      - application/json
-      Date:
-      - Tue, 25 Apr 2023 13:27:26 GMT
-      Server:
-      - Warp/3.3.25
-      Transfer-Encoding:
-      - chunked
-      x-trace-uuid:
-      - d3135643-79df-44f6-b4dc-ec1eb36ff35a
-    status:
-      code: 200
-      message: OK
-    url: http://localhost:3000/document-template-drafts/organization:example01:1.0.0/assets
-- request:
-    body: null
-    headers:
-      Authorization:
-      - Bearer dummy-token
-      User-Agent:
-      - dsw-tdk/3.22.0
-    method: GET
-    uri: http://localhost:3000/document-template-drafts/organization:example01:1.0.0/files
-  response:
-    body:
-      string: '[{"createdAt":"2023-04-25T13:12:30.160538Z","fileName":"src/template.json.j2","updatedAt":"2023-04-25T13:12:30.160538Z","uuid":"b9d59e3b-147c-44b7-a498-638c7f01ce04"}]'
-    headers:
-      Access-Control-Allow-Credential:
-      - 'true'
-      Access-Control-Allow-Headers:
-      - Origin, X-Requested-With, Content-Type, Accept, Authorization
-      Access-Control-Allow-Methods:
-      - OPTIONS, HEAD, GET, POST, PUT, DELETE
-      Access-Control-Allow-Origin:
-      - '*'
-      Content-Type:
-      - application/json
-      Date:
-      - Tue, 25 Apr 2023 13:27:26 GMT
-      Server:
-      - Warp/3.3.25
-      Transfer-Encoding:
-      - chunked
-      x-trace-uuid:
-      - 64b2d35b-7c50-4053-be0b-c281b1f1ee6a
-    status:
-      code: 200
-      message: OK
-    url: http://localhost:3000/document-template-drafts/organization:example01:1.0.0/files
-- request:
-    body: null
-    headers:
-      Authorization:
-      - Bearer dummy-token
-      User-Agent:
-      - dsw-tdk/3.22.0
-    method: GET
-    uri: http://localhost:3000/document-template-drafts/organization:example01:1.0.0/files/b9d59e3b-147c-44b7-a498-638c7f01ce04
-  response:
-    body:
-      string: '{"appUuid":"00000000-0000-0000-0000-000000000000","content":"{# example
-        template #}\n<!DOCTYPE html>\n<html>\n    <head>\n        <title>Example</title>\n    </head>\n    <body>\n        <h1>This
-        is example</h1>\n    </body>\n</html>\n","createdAt":"2023-04-25T13:12:30.160538Z","documentTemplateId":"organization:example01:1.0.0","fileName":"src/template.json.j2","updatedAt":"2023-04-25T13:12:30.160538Z","uuid":"b9d59e3b-147c-44b7-a498-638c7f01ce04"}'
-    headers:
-      Access-Control-Allow-Credential:
-      - 'true'
-      Access-Control-Allow-Headers:
-      - Origin, X-Requested-With, Content-Type, Accept, Authorization
-      Access-Control-Allow-Methods:
-      - OPTIONS, HEAD, GET, POST, PUT, DELETE
-      Access-Control-Allow-Origin:
-      - '*'
-      Content-Type:
-      - application/json
-      Date:
-      - Tue, 25 Apr 2023 13:27:26 GMT
-      Server:
-      - Warp/3.3.25
-      Transfer-Encoding:
-      - chunked
-      x-trace-uuid:
-      - 3e01ec0e-c5e5-47bb-b983-a2dcfb3c3179
-    status:
-      code: 200
-      message: OK
-    url: http://localhost:3000/document-template-drafts/organization:example01:1.0.0/files/b9d59e3b-147c-44b7-a498-638c7f01ce04
-- request:
-    body: null
-    headers:
-      Authorization:
-      - Bearer dummy-token
-      User-Agent:
-      - dsw-tdk/3.22.0
-    method: DELETE
-    uri: http://localhost:3000/document-template-drafts/organization:example01:1.0.0/files/b9d59e3b-147c-44b7-a498-638c7f01ce04
-  response:
-    body:
-      string: ''
-    headers:
-      Access-Control-Allow-Credential:
-      - 'true'
-      Access-Control-Allow-Headers:
-      - Origin, X-Requested-With, Content-Type, Accept, Authorization
-      Access-Control-Allow-Methods:
-      - OPTIONS, HEAD, GET, POST, PUT, DELETE
-      Access-Control-Allow-Origin:
-      - '*'
-      Content-Type:
-      - application/json
-      Date:
-      - Tue, 25 Apr 2023 13:27:26 GMT
-      Server:
-      - Warp/3.3.25
-      x-trace-uuid:
-      - e11a71f4-e4b8-49c4-b7d2-2806be2e1e4c
-    status:
-      code: 204
-      message: No Content
-    url: http://localhost:3000/document-template-drafts/organization:example01:1.0.0/files/b9d59e3b-147c-44b7-a498-638c7f01ce04
-- request:
-    body: null
-    headers:
-      Authorization:
-      - Bearer dummy-token
-      User-Agent:
-      - dsw-tdk/3.22.0
+      - dsw-tdk/4.27.0
     method: POST
-    uri: http://localhost:3000/document-template-drafts/organization:example01:1.0.0/files
+    uri: http://localhost:3000/wizard-api/document-template-drafts
   response:
     body:
-      string: '{"appUuid":"00000000-0000-0000-0000-000000000000","content":"{# example
-        template #}\n<!DOCTYPE html>\n<html>\n    <head>\n        <title>Example</title>\n    </head>\n    <body>\n        <h1>This
-        is example</h1>\n    </body>\n</html>\n","createdAt":"2023-04-25T13:27:26.13547847Z","documentTemplateId":"organization:example01:1.0.0","fileName":"src/template.json.j2","updatedAt":"2023-04-25T13:27:26.13547847Z","uuid":"6ede547b-e8fe-43ff-aa62-d5969f2e3e27"}'
+      string: '{"name":"Test template 01","uuid":"f61d3e30-61c8-4fdd-bf9b-b5faba84d01b"}'
     headers:
       Access-Control-Allow-Credential:
       - 'true'
@@ -351,15 +163,122 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Tue, 25 Apr 2023 13:27:26 GMT
+      - Tue, 24 Feb 2026 06:36:50 GMT
       Server:
-      - Warp/3.3.25
+      - Warp/3.3.31
       Transfer-Encoding:
       - chunked
       x-trace-uuid:
-      - f43ecc3c-a777-4d3c-ab45-4e3878a2602c
+      - 095d0cd5-1637-43fb-96dc-2d3971730e35
     status:
       code: 201
       message: Created
-    url: http://localhost:3000/document-template-drafts/organization:example01:1.0.0/files
+- request:
+    body: null
+    headers:
+      Authorization:
+      - Bearer eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE3NzE5NzQwMDAsInRlbmFudFV1aWQiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJ0b2tlblV1aWQiOiIwNzU4MzIwOS0zMWM3LTQzNDAtYTNjNS0xNjE1MjJlOTEzOTIiLCJ1c2VyVXVpZCI6ImVjNmY4ZTkwLTJhOTEtNDllYy1hYTNmLTllYWIyMjY3ZmM2NiIsInZlcnNpb24iOjR9.bw-6wNcflwtewdeueOg6gAM9O93kgb3gtXhHWNXVFnM0p_FtlRsbW-ZR_pxjh3CCtLHJ2QQmaa7fXVCC1OsVgOwgtgO5rIGhT62UU4DfL1d2oNXq5huyHCxTzgung_YEI1Eg76RulfWb5wUPhHfaBJbPYLuPh5Q56U8RD-khTQeqcLuvNLWBKYTHqe7k7X41vJw__sL1GyC60bXXYUlqLZaiPkvc5JNWxxxTL2R4lw1zlpnJxFHhLq8TWPDehtBuYADWyxDdS3s-4Vr_axSuenE7ZCHU-AFF4Vr1mS-w_Kx69s_wpsgRxtZh3s5yIAQ45tikMXR5cijEEuJYO7VorTjclQvbh-Sk29Y7r8lZ2scZp8z8Zf8kiLpPKnJpItpKZLmjLYOJZRCBX6EW3fN92sbsOq3yPxFchl6DB-cmmGs9EoLvWLimNm8rqpO5pXyGiATah6R0fFRTNtfRcfhfkAIr_X6e3PVtnpOCFtACpUzHnl0p7tYbF-OvhdgAUVZCOZjnFQ5z5EFZjEKbaImqUZJQMz5J8wwsP-N7j8GHjrR5fHgotu-5Ps8WAm2ibYrM15MReorfhWUQmeh7wvNoJ4lj9mFByb0qgTwNgnnLpfFGbglZhyB1jvTiB4TxFoCsaEuyVOBQVAKS9_ufT5wymBcL_fa3PGeDTzPGjA1pv_Q
+      User-Agent:
+      - dsw-tdk/4.27.0
+    method: GET
+    uri: http://localhost:3000/wizard-api/document-template-drafts/f61d3e30-61c8-4fdd-bf9b-b5faba84d01b
+  response:
+    body:
+      string: '{"allowedPackages":[],"createdAt":"2026-02-24T06:36:50.431876Z","description":"","formatUuid":null,"formats":[],"knowledgeModelEditor":null,"knowledgeModelEditorUuid":null,"license":"","name":"Test
+        template 01","project":null,"projectUuid":null,"readme":"","templateId":"example01","updatedAt":"2026-02-24T06:36:50.431876Z","uuid":"f61d3e30-61c8-4fdd-bf9b-b5faba84d01b","version":"1.0.0"}'
+    headers:
+      Access-Control-Allow-Credential:
+      - 'true'
+      Access-Control-Allow-Headers:
+      - Origin, X-Requested-With, Content-Type, Accept, Authorization
+      Access-Control-Allow-Methods:
+      - OPTIONS, HEAD, GET, POST, PUT, DELETE
+      Access-Control-Allow-Origin:
+      - '*'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 24 Feb 2026 06:36:50 GMT
+      Server:
+      - Warp/3.3.31
+      Transfer-Encoding:
+      - chunked
+      x-trace-uuid:
+      - cefb91ab-0cb0-4fa7-882c-819719b69f5c
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Authorization:
+      - Bearer eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE3NzE5NzQwMDAsInRlbmFudFV1aWQiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJ0b2tlblV1aWQiOiIwNzU4MzIwOS0zMWM3LTQzNDAtYTNjNS0xNjE1MjJlOTEzOTIiLCJ1c2VyVXVpZCI6ImVjNmY4ZTkwLTJhOTEtNDllYy1hYTNmLTllYWIyMjY3ZmM2NiIsInZlcnNpb24iOjR9.bw-6wNcflwtewdeueOg6gAM9O93kgb3gtXhHWNXVFnM0p_FtlRsbW-ZR_pxjh3CCtLHJ2QQmaa7fXVCC1OsVgOwgtgO5rIGhT62UU4DfL1d2oNXq5huyHCxTzgung_YEI1Eg76RulfWb5wUPhHfaBJbPYLuPh5Q56U8RD-khTQeqcLuvNLWBKYTHqe7k7X41vJw__sL1GyC60bXXYUlqLZaiPkvc5JNWxxxTL2R4lw1zlpnJxFHhLq8TWPDehtBuYADWyxDdS3s-4Vr_axSuenE7ZCHU-AFF4Vr1mS-w_Kx69s_wpsgRxtZh3s5yIAQ45tikMXR5cijEEuJYO7VorTjclQvbh-Sk29Y7r8lZ2scZp8z8Zf8kiLpPKnJpItpKZLmjLYOJZRCBX6EW3fN92sbsOq3yPxFchl6DB-cmmGs9EoLvWLimNm8rqpO5pXyGiATah6R0fFRTNtfRcfhfkAIr_X6e3PVtnpOCFtACpUzHnl0p7tYbF-OvhdgAUVZCOZjnFQ5z5EFZjEKbaImqUZJQMz5J8wwsP-N7j8GHjrR5fHgotu-5Ps8WAm2ibYrM15MReorfhWUQmeh7wvNoJ4lj9mFByb0qgTwNgnnLpfFGbglZhyB1jvTiB4TxFoCsaEuyVOBQVAKS9_ufT5wymBcL_fa3PGeDTzPGjA1pv_Q
+      User-Agent:
+      - dsw-tdk/4.27.0
+    method: PUT
+    uri: http://localhost:3000/wizard-api/document-template-drafts/f61d3e30-61c8-4fdd-bf9b-b5faba84d01b
+  response:
+    body:
+      string: '{"allowedPackages":[{"kmId":null,"maxVersion":null,"minVersion":null,"orgId":null}],"createdAt":"2026-02-24T06:36:50.442507Z","description":"Dummy
+        document template 01 for testing purposes","formatUuid":null,"formats":[{"createdAt":"2026-02-24T06:36:50.431876Z","documentTemplateUuid":"f61d3e30-61c8-4fdd-bf9b-b5faba84d01b","icon":"far
+        fa-file-code","name":"HTML Document","steps":[{"createdAt":"2026-02-24T06:36:50.431876Z","documentTemplateUuid":"f61d3e30-61c8-4fdd-bf9b-b5faba84d01b","formatUuid":"a9293d08-59a4-4e6b-ae62-7a6a570b031c","name":"jinja","options":{"content-type":"text/html","extension":"html","template":"src/template.html.j2"},"position":0,"tenantUuid":"00000000-0000-0000-0000-000000000000","updatedAt":"2026-02-24T06:36:50.442507Z"}],"tenantUuid":"00000000-0000-0000-0000-000000000000","updatedAt":"2026-02-24T06:36:50.442507Z","uuid":"a9293d08-59a4-4e6b-ae62-7a6a570b031c"},{"createdAt":"2026-02-24T06:36:50.431876Z","documentTemplateUuid":"f61d3e30-61c8-4fdd-bf9b-b5faba84d01b","icon":"far
+        fa-file","name":"JSON Data","steps":[{"createdAt":"2026-02-24T06:36:50.431876Z","documentTemplateUuid":"f61d3e30-61c8-4fdd-bf9b-b5faba84d01b","formatUuid":"d3e98eb6-344d-481f-8e37-6a67b6cd1ad2","name":"json","options":{},"position":0,"tenantUuid":"00000000-0000-0000-0000-000000000000","updatedAt":"2026-02-24T06:36:50.442507Z"}],"tenantUuid":"00000000-0000-0000-0000-000000000000","updatedAt":"2026-02-24T06:36:50.442507Z","uuid":"d3e98eb6-344d-481f-8e37-6a67b6cd1ad2"}],"knowledgeModelEditor":null,"knowledgeModelEditorUuid":null,"license":"Apache-2.0","name":"Test
+        template 01","project":null,"projectUuid":null,"readme":"# Example Template\n","templateId":"example01","updatedAt":"2026-02-24T06:36:50.442507Z","uuid":"f61d3e30-61c8-4fdd-bf9b-b5faba84d01b","version":"1.0.0"}'
+    headers:
+      Access-Control-Allow-Credential:
+      - 'true'
+      Access-Control-Allow-Headers:
+      - Origin, X-Requested-With, Content-Type, Accept, Authorization
+      Access-Control-Allow-Methods:
+      - OPTIONS, HEAD, GET, POST, PUT, DELETE
+      Access-Control-Allow-Origin:
+      - '*'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 24 Feb 2026 06:36:50 GMT
+      Server:
+      - Warp/3.3.31
+      Transfer-Encoding:
+      - chunked
+      x-trace-uuid:
+      - 002366b3-80a8-48af-bd20-f64ad1b9f0b0
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Authorization:
+      - Bearer eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE3NzE5NzQwMDAsInRlbmFudFV1aWQiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJ0b2tlblV1aWQiOiIwNzU4MzIwOS0zMWM3LTQzNDAtYTNjNS0xNjE1MjJlOTEzOTIiLCJ1c2VyVXVpZCI6ImVjNmY4ZTkwLTJhOTEtNDllYy1hYTNmLTllYWIyMjY3ZmM2NiIsInZlcnNpb24iOjR9.bw-6wNcflwtewdeueOg6gAM9O93kgb3gtXhHWNXVFnM0p_FtlRsbW-ZR_pxjh3CCtLHJ2QQmaa7fXVCC1OsVgOwgtgO5rIGhT62UU4DfL1d2oNXq5huyHCxTzgung_YEI1Eg76RulfWb5wUPhHfaBJbPYLuPh5Q56U8RD-khTQeqcLuvNLWBKYTHqe7k7X41vJw__sL1GyC60bXXYUlqLZaiPkvc5JNWxxxTL2R4lw1zlpnJxFHhLq8TWPDehtBuYADWyxDdS3s-4Vr_axSuenE7ZCHU-AFF4Vr1mS-w_Kx69s_wpsgRxtZh3s5yIAQ45tikMXR5cijEEuJYO7VorTjclQvbh-Sk29Y7r8lZ2scZp8z8Zf8kiLpPKnJpItpKZLmjLYOJZRCBX6EW3fN92sbsOq3yPxFchl6DB-cmmGs9EoLvWLimNm8rqpO5pXyGiATah6R0fFRTNtfRcfhfkAIr_X6e3PVtnpOCFtACpUzHnl0p7tYbF-OvhdgAUVZCOZjnFQ5z5EFZjEKbaImqUZJQMz5J8wwsP-N7j8GHjrR5fHgotu-5Ps8WAm2ibYrM15MReorfhWUQmeh7wvNoJ4lj9mFByb0qgTwNgnnLpfFGbglZhyB1jvTiB4TxFoCsaEuyVOBQVAKS9_ufT5wymBcL_fa3PGeDTzPGjA1pv_Q
+      User-Agent:
+      - dsw-tdk/4.27.0
+    method: POST
+    uri: http://localhost:3000/wizard-api/document-template-drafts/f61d3e30-61c8-4fdd-bf9b-b5faba84d01b/files
+  response:
+    body:
+      string: '{"content":"{# example template #}\n<!DOCTYPE html>\n<html>\n    <head>\n        <title>Example</title>\n    </head>\n    <body>\n        <h1>This
+        is example</h1>\n    </body>\n</html>\n","createdAt":"2026-02-24T06:36:50.453490387Z","documentTemplateUuid":"f61d3e30-61c8-4fdd-bf9b-b5faba84d01b","fileName":"src/template.json.j2","tenantUuid":"00000000-0000-0000-0000-000000000000","updatedAt":"2026-02-24T06:36:50.453490387Z","uuid":"dbdbbba6-19d6-41bb-b33b-148c9fa8e9d2"}'
+    headers:
+      Access-Control-Allow-Credential:
+      - 'true'
+      Access-Control-Allow-Headers:
+      - Origin, X-Requested-With, Content-Type, Accept, Authorization
+      Access-Control-Allow-Methods:
+      - OPTIONS, HEAD, GET, POST, PUT, DELETE
+      Access-Control-Allow-Origin:
+      - '*'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 24 Feb 2026 06:36:50 GMT
+      Server:
+      - Warp/3.3.31
+      Transfer-Encoding:
+      - chunked
+      x-trace-uuid:
+      - ffa2bd08-947f-447f-8ef6-9971e5ec559d
+    status:
+      code: 201
+      message: Created
 version: 1

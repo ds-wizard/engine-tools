@@ -212,9 +212,9 @@ class TemplateConfig:
 class TemplatesConfig:
     templates: list[TemplateConfig]
 
-    def get_config(self, template_id: str) -> TemplateConfig | None:
+    def get_config(self, template_coordinates: str) -> TemplateConfig | None:
         for template in self.templates:
-            if any(template_id.startswith(prefix) for prefix in template.ids):
+            if any(template_coordinates.startswith(prefix) for prefix in template.ids):
                 return template
         return None
 
