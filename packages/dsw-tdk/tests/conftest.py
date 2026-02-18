@@ -20,7 +20,7 @@ vcr.use_cassette = vcr.default_vcr.use_cassette
 
 @pytest.fixture(scope='session')
 def dsw_api_url():
-    value = os.environ.get('DSW_API_URL', 'http://localhost:3000')
+    value = os.environ.get('DSW_API_URL', 'http://localhost:3000/wizard-api')
     return value
 
 

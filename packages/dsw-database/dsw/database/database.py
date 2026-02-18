@@ -49,15 +49,15 @@ class Database:
                                 'file_name = %s, content_type = %s, worker_log = %s, '
                                 'file_size = %s WHERE uuid = %s;')
     SELECT_TEMPLATE = ('SELECT * FROM document_template '
-                       'WHERE id = %s AND tenant_uuid = %s LIMIT 1;')
+                       'WHERE uuid = %s AND tenant_uuid = %s LIMIT 1;')
     SELECT_TEMPLATE_FORMATS = ('SELECT * FROM document_template_format '
-                               'WHERE document_template_id = %s AND tenant_uuid = %s;')
+                               'WHERE document_template_uuid = %s AND tenant_uuid = %s;')
     SELECT_TEMPLATE_STEPS = ('SELECT * FROM document_template_format_step '
-                             'WHERE document_template_id = %s AND tenant_uuid = %s;')
+                             'WHERE document_template_uuid = %s AND tenant_uuid = %s;')
     SELECT_TEMPLATE_FILES = ('SELECT * FROM document_template_file '
-                             'WHERE document_template_id = %s AND tenant_uuid = %s;')
+                             'WHERE document_template_uuid = %s AND tenant_uuid = %s;')
     SELECT_TEMPLATE_ASSETS = ('SELECT * FROM document_template_asset '
-                              'WHERE document_template_id = %s AND tenant_uuid = %s;')
+                              'WHERE document_template_uuid = %s AND tenant_uuid = %s;')
     CHECK_TABLE_EXISTS = ('SELECT EXISTS(SELECT * FROM information_schema.tables'
                           '                       WHERE table_name = %(table_name)s)')
     SELECT_MAIL_CONFIG = ('SELECT * FROM instance_config_mail '
@@ -177,12 +177,12 @@ class Database:
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
     def fetch_template(
-            self, template_id: str, tenant_uuid: str,
+            self, template_uuid: str, tenant_uuid: str,
     ) -> model.DBDocumentTemplate | None:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
                 query=self.SELECT_TEMPLATE,
-                params=(template_id, tenant_uuid),
+                params=(template_uuid, tenant_uuid),
             )
             dt_result = cursor.fetchall()
             if len(dt_result) != 1:
@@ -191,7 +191,7 @@ class Database:
 
             cursor.execute(
                 query=self.SELECT_TEMPLATE_FORMATS,
-                params=(template_id, tenant_uuid),
+                params=(template_uuid, tenant_uuid),
             )
             formats_result = cursor.fetchall()
             formats = sorted([
@@ -199,7 +199,7 @@ class Database:
             ], key=lambda x: x.name)
             cursor.execute(
                 query=self.SELECT_TEMPLATE_STEPS,
-                params=(template_id, tenant_uuid),
+                params=(template_uuid, tenant_uuid),
             )
             steps_result = cursor.fetchall()
             steps = sorted([
@@ -229,12 +229,12 @@ class Database:
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
     def fetch_template_files(
-            self, template_id: str, tenant_uuid: str,
+            self, template_uuid: str, tenant_uuid: str,
     ) -> list[model.DBDocumentTemplateFile]:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
                 query=self.SELECT_TEMPLATE_FILES,
-                params=(template_id, tenant_uuid),
+                params=(template_uuid, tenant_uuid),
             )
             return [model.DBDocumentTemplateFile.from_dict_row(x) for x in cursor.fetchall()]
 
@@ -246,12 +246,12 @@ class Database:
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
     def fetch_template_assets(
-            self, template_id: str, tenant_uuid: str,
+            self, template_uuid: str, tenant_uuid: str,
     ) -> list[model.DBDocumentTemplateAsset]:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
                 query=self.SELECT_TEMPLATE_ASSETS,
-                params=(template_id, tenant_uuid),
+                params=(template_uuid, tenant_uuid),
             )
             return [model.DBDocumentTemplateAsset.from_dict_row(x) for x in cursor.fetchall()]
 

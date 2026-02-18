@@ -17,7 +17,7 @@ REGEX_TEMPLATE_ID = REGEX_WIZARD_ID
 REGEX_KM_ID = REGEX_WIZARD_ID
 REGEX_MIME_TYPE = re.compile(r'^(?![-])(?!.*[-]$)[-\w.]+/[-\w.]+$')
 
-DEFAULT_LIST_FORMAT = '{template.id:<50} {template.name:<30}'
+DEFAULT_LIST_FORMAT = '{template.id:<50} {template.name:<30} [{template.uuid}]'
 DEFAULT_ENCODING = 'utf-8'
 DEFAULT_README = pathlib.Path('README.md')
 

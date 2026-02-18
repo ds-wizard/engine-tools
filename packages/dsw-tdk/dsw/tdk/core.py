@@ -80,9 +80,16 @@ class TDKCore:
         self.loop = asyncio.get_event_loop()
         self.changes_processor = ChangesProcessor(self)
         self.remote_id = 'unknown'
+        self.remote_uuid = None
 
     async def close(self):
         await self.safe_client.close()
+
+    @property
+    def remote_editor_url(self) -> str:
+        if self.remote_uuid is None:
+            raise RuntimeError('Remote template draft is not linked (yet)')
+        return f'{self.safe_client.api_url}/document-template-editors/{self.remote_uuid}'
 
     @property
     def safe_template(self) -> Template:
@@ -120,23 +127,44 @@ class TDKCore:
         self.logger.info('Loading local template project')
         self.safe_project.load()
 
+    async def _get_template_uuid(self, template_id: str) -> str:
+        self.logger.debug('Finding template %s', template_id)
+        t_uuid = await self.safe_client.find_template_uuid_by_id(template_id=template_id)
+        if t_uuid is None:
+            raise RuntimeError(f'Template with id {template_id} not found on remote')
+        return t_uuid
+
+    async def _get_template_draft_uuid(self, template_id: str) -> str:
+        self.logger.debug('Finding template draft %s', template_id)
+        t_uuid = await self.safe_client.find_template_draft_uuid_by_id(template_id=template_id)
+        if t_uuid is None:
+            raise RuntimeError(f'Template draft with id {template_id} not found on remote')
+        return t_uuid
+
     async def load_remote(self, template_id: str):
-        self.logger.info('Retrieving template draft %s', template_id)
-        self.template = await self.safe_client.get_template_draft(remote_id=template_id)
+        template_uuid = await self._get_template_draft_uuid(template_id=template_id)
+        self.logger.info('Retrieving template draft %s (%s)',
+                         template_uuid, template_id)
+        self.template = await self.safe_client.get_template_draft(remote_uuid=template_uuid)
+        if self.template.coordinates != template_id:
+            self.logger.warning('Template coordinates %s do not match requested id %s',
+                                self.template.coordinates, template_id)
         self.logger.debug('Retrieving template draft files')
-        files = await self.safe_client.get_template_draft_files(remote_id=template_id)
+        files = await self.safe_client.get_template_draft_files(remote_uuid=template_uuid)
         self.logger.info('Retrieved %s file(s)', len(files))
         for file in files:
             self.safe_template.files[file.filename.as_posix()] = file
         self.logger.debug('Retrieving template draft assets')
-        assets = await self.safe_client.get_template_draft_assets(remote_id=template_id)
+        assets = await self.safe_client.get_template_draft_assets(remote_uuid=template_uuid)
         self.logger.info('Retrieved %s asset(s)', len(assets))
         for asset in assets:
             self.safe_template.files[asset.filename.as_posix()] = asset
 
     async def download_bundle(self, template_id: str) -> bytes:
-        self.logger.info('Retrieving template %s bundle', template_id)
-        return await self.safe_client.get_template_bundle(remote_id=template_id)
+        template_uuid = await self._get_template_uuid(template_id=template_id)
+        self.logger.info('Retrieving template %s (%s) bundle',
+                         template_uuid, template_id)
+        return await self.safe_client.get_template_bundle(remote_uuid=template_uuid)
 
     async def list_remote_templates(self) -> list[Template]:
         self.logger.info('Listing remote document templates')
@@ -174,10 +202,13 @@ class TDKCore:
                                 ' (local: %s, remote: %s)',
                                 self.safe_template.organization_id, org_id)
         self.remote_id = self.safe_template.id_with_org(org_id)
-        template_exists = await self.safe_client.check_draft_exists(remote_id=self.remote_id)
+        self.remote_uuid = await self.safe_client.find_template_draft_uuid_by_id(
+            template_id=self.remote_id,
+        )
+        template_exists = self.remote_uuid is not None
         if template_exists and force:
             self.logger.warning('Deleting existing remote document template draft (forced)')
-            result = await self.safe_client.delete_template_draft(remote_id=self.remote_id)
+            result = await self.safe_client.delete_template_draft(remote_uuid=self.remote_uuid)
             if not result:
                 self.logger.error('Could not delete document template draft')
             template_exists = not result
@@ -186,26 +217,32 @@ class TDKCore:
             self.logger.info('Updating existing remote document template draft')
             await self.safe_client.update_template_draft(
                 template=self.safe_template,
-                remote_id=self.remote_id,
+                remote_uuid=self.remote_uuid,
             )
             self.logger.debug('Retrieving remote assets')
             remote_assets = await self.safe_client.get_template_draft_assets(
-                remote_id=self.remote_id,
+                remote_uuid=self.remote_uuid,
             )
             self.logger.debug('Retrieving remote files')
             remote_files = await self.safe_client.get_template_draft_files(
-                remote_id=self.remote_id,
+                remote_uuid=self.remote_uuid,
             )
             await self.cleanup_remote_files(
                 remote_assets=remote_assets,
                 remote_files=remote_files,
             )
+            self.logger.info('Using existing editor with UUID: %s', self.remote_uuid)
         else:
             self.logger.info('Creating remote document template draft')
-            await self.safe_client.create_new_template_draft(
+            result = await self.safe_client.create_new_template_draft(
                 template=self.safe_template,
                 remote_id=self.remote_id,
             )
+            self.remote_uuid = result.uuid
+            if result is None:
+                raise RuntimeError('Failed to create document template draft')
+            self.logger.info('Using new editor with UUID: %s', self.remote_uuid)
+        self.logger.info('==> URL: %s', self.remote_editor_url)
         await self.store_remote_files()
 
     async def _update_template_file(self, remote_file: TemplateFile, local_file: TemplateFile,
@@ -217,12 +254,12 @@ class TDKCore:
             local_file.remote_id = remote_file.remote_id
             if remote_file.remote_type == TemplateFileType.ASSET:
                 result = await self.safe_client.put_template_draft_asset_content(
-                    remote_id=self.remote_id,
+                    remote_uuid=self.remote_uuid,
                     file=local_file,
                 )
             else:
                 result = await self.safe_client.put_template_draft_file_content(
-                    remote_id=self.remote_id,
+                    remote_uuid=self.remote_uuid,
                     file=local_file,
                 )
             self.logger.debug('Updating existing remote %s %s (%s) finished: %s',
@@ -247,13 +284,13 @@ class TDKCore:
                               file.remote_id)
             if file.remote_type == TemplateFileType.ASSET:
                 result = await self.safe_client.delete_template_draft_asset(
-                    remote_id=self.remote_id,
-                    asset_id=file.remote_id,
+                    remote_uuid=self.remote_uuid,
+                    asset_uuid=file.remote_id,
                 )
             else:
                 result = await self.safe_client.delete_template_draft_file(
-                    remote_id=self.remote_id,
-                    file_id=file.remote_id,
+                    remote_uuid=self.remote_uuid,
+                    file_uuid=file.remote_id,
                 )
             self.logger.debug('Deleting existing remote %s %s (%s) finished: %s',
                               file.remote_type.value,
@@ -282,12 +319,12 @@ class TDKCore:
                               file.remote_type.value, file.filename.as_posix())
             if file.remote_type == TemplateFileType.ASSET:
                 result = await self.safe_client.post_template_draft_asset(
-                    remote_id=self.remote_id,
+                    remote_uuid=self.remote_uuid,
                     file=file,
                 )
             else:
                 result = await self.safe_client.post_template_draft_file(
-                    remote_id=self.remote_id,
+                    remote_uuid=self.remote_uuid,
                     file=file,
                 )
             self.logger.debug('Storing remote %s %s finished: %s',
@@ -422,26 +459,26 @@ class TDKCore:
     async def update_descriptor(self):
         try:
             template_exists = await self.safe_client.check_draft_exists(
-                remote_id=self.remote_id,
+                remote_uuid=self.remote_uuid,
             )
             if template_exists:
                 self.logger.info('Updating existing remote document template draft %s',
-                                 self.safe_project.safe_template.id)
+                                 self.safe_project.safe_template.coordinates)
                 await self.safe_client.update_template_draft(
                     template=self.safe_project.safe_template,
-                    remote_id=self.remote_id,
+                    remote_uuid=self.remote_uuid,
                 )
             else:
                 self.logger.info('Document template draft %s does '
                                  'not exist on remote - full sync',
-                                 self.safe_project.safe_template.id)
+                                 self.safe_project.safe_template.coordinates)
                 await self.store_remote(force=False)
         except WizardCommunicationError as e:
             self.logger.error('Failed to update document template draft %s: %s',
-                              self.safe_project.safe_template.id, e.message)
+                              self.safe_project.safe_template.coordinates, e.message)
         except Exception as e:
             self.logger.error('Failed to update document template draft %s: %s',
-                              self.safe_project.safe_template.id, e)
+                              self.safe_project.safe_template.coordinates, e)
 
     async def delete_file(self, filepath: pathlib.Path):
         if not filepath.is_file():
@@ -527,10 +564,10 @@ class ChangesProcessor:
         if self.descriptor_change[0] == watchfiles.Change.deleted:
             raise RuntimeError(f'Deleted {self.tdk.safe_project.descriptor_path} ... the end')
         self.tdk.logger.debug('Reloading %s file', TemplateProject.TEMPLATE_FILE)
-        previous_id = self.tdk.safe_project.safe_template.id
+        previous_id = self.tdk.safe_project.safe_template.coordinates
         self.tdk.safe_project.load_descriptor()
         self.tdk.safe_project.load_readme()
-        new_id = self.tdk.safe_project.safe_template.id
+        new_id = self.tdk.safe_project.safe_template.coordinates
         if new_id != previous_id:
             self.tdk.logger.warning('Template ID changed from %s to %s',
                                     previous_id, new_id)

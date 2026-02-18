@@ -135,7 +135,7 @@ class JinjaPoweredStep(Step):
         self.j2_env.filters.update(filters)
         self.j2_env.tests.update(tests)
         template_cfg = Context.get().app.cfg.templates.get_config(
-            self.template.template_id,
+            self.template.coordinates,
         )
         self.j2_env.globals.update({'rdflib': rdflib, 'json': json})
         if template_cfg is not None:

@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "name": "Test template 01",
   "description": "Dummy document template 01 for testing purposes",
-  "metamodelVersion": 11,
+  "metamodelVersion": "17.1",
   "license": "Apache-2.0",
   "allowedPackages": [
     {

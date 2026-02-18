@@ -103,7 +103,8 @@ class Job:
         SentryReporter.set_tags(phase='fetch')
         SentryReporter.set_tags(
             template='?',
-            format='?',
+            template_uuid='?',
+            format_uuid='?',
         )
         if self.tenant_uuid != consts.NULL_UUID:
             LOG.info('Limiting to tenant with UUID: %s', self.tenant_uuid)
@@ -136,31 +137,36 @@ class Job:
     @handle_job_step('Failed to prepare template')
     def prepare_template(self):
         SentryReporter.set_tags(phase='prepare')
-        template_id = self.safe_doc.document_template_id
+        template_uuid = self.safe_doc.document_template_uuid
         format_uuid = self.safe_doc.format_uuid
         LOG.info('Document uses template %s with format %s',
-                 template_id, format_uuid)
+                 template_uuid, format_uuid)
         # update Sentry info
         SentryReporter.set_tags(
-            template=template_id,
-            format=format_uuid,
+            template_uuid=template_uuid,
+            format_uuid=format_uuid,
         )
         # prepare template
         template = TemplateRegistry.get().prepare_template(
             tenant_uuid=self.tenant_uuid,
-            template_id=template_id,
+            template_uuid=template_uuid,
+        )
+        SentryReporter.set_tags(
+            template=template.coordinates,
         )
         # prepare format
         if not template.prepare_format(format_uuid):
             raise create_job_error(
                 job_id=self.doc_uuid,
-                message=f'Format {format_uuid} is not found in template {template_id}',
+                message=f'Format {format_uuid} is not found in template {template_uuid}',
             )
         self.format = template.formats.get(format_uuid)
         # finalize
         self.template = template
         # fetch template config
-        self.template_config = self.ctx.app.cfg.templates.get_config(template_id)
+        self.template_config = self.ctx.app.cfg.templates.get_config(
+            template_coordinates=self.template.coordinates,
+        )
 
     def _enrich_context_config(self):
         old = self.doc_context.get('config', {})

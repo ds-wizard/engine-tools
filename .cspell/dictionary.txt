@@ -102,3 +102,21 @@ Marek
 Suchánek
 Kazuki
 Yamamoto
+
+# Things appearing in VCR cassettes
+stylesheet
+flexbox
+Vtnp
+Hgotu
+komanec
+krystof
+krystofkomanec
+DNkov
+martinkova
+jmartinkova
+odend
+heighta
+xurl
+nosniff
+
+
