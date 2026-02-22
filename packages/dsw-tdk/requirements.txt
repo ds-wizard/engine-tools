@@ -10,8 +10,8 @@ humanize==4.15.0
 idna==3.11
 Jinja2==3.1.6
 MarkupSafe==3.0.3
-multidict==6.7.0
-pathspec==1.0.3
+multidict==6.7.1
+pathspec==1.0.4
 propcache==0.4.1
 python-dotenv==1.2.1
 python-slugify==8.0.4
