@@ -3,14 +3,17 @@ interactions:
     body: null
     headers:
       Authorization:
-      - Bearer dummy-token
+      - Bearer eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE3NzE5NzQwMDAsInRlbmFudFV1aWQiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJ0b2tlblV1aWQiOiIwNzU4MzIwOS0zMWM3LTQzNDAtYTNjNS0xNjE1MjJlOTEzOTIiLCJ1c2VyVXVpZCI6ImVjNmY4ZTkwLTJhOTEtNDllYy1hYTNmLTllYWIyMjY3ZmM2NiIsInZlcnNpb24iOjR9.bw-6wNcflwtewdeueOg6gAM9O93kgb3gtXhHWNXVFnM0p_FtlRsbW-ZR_pxjh3CCtLHJ2QQmaa7fXVCC1OsVgOwgtgO5rIGhT62UU4DfL1d2oNXq5huyHCxTzgung_YEI1Eg76RulfWb5wUPhHfaBJbPYLuPh5Q56U8RD-khTQeqcLuvNLWBKYTHqe7k7X41vJw__sL1GyC60bXXYUlqLZaiPkvc5JNWxxxTL2R4lw1zlpnJxFHhLq8TWPDehtBuYADWyxDdS3s-4Vr_axSuenE7ZCHU-AFF4Vr1mS-w_Kx69s_wpsgRxtZh3s5yIAQ45tikMXR5cijEEuJYO7VorTjclQvbh-Sk29Y7r8lZ2scZp8z8Zf8kiLpPKnJpItpKZLmjLYOJZRCBX6EW3fN92sbsOq3yPxFchl6DB-cmmGs9EoLvWLimNm8rqpO5pXyGiATah6R0fFRTNtfRcfhfkAIr_X6e3PVtnpOCFtACpUzHnl0p7tYbF-OvhdgAUVZCOZjnFQ5z5EFZjEKbaImqUZJQMz5J8wwsP-N7j8GHjrR5fHgotu-5Ps8WAm2ibYrM15MReorfhWUQmeh7wvNoJ4lj9mFByb0qgTwNgnnLpfFGbglZhyB1jvTiB4TxFoCsaEuyVOBQVAKS9_ufT5wymBcL_fa3PGeDTzPGjA1pv_Q
       User-Agent:
-      - dsw-tdk/3.22.0
+      - dsw-tdk/4.27.0
     method: GET
-    uri: http://localhost:3000/
+    uri: http://localhost:3000/wizard-api/
   response:
     body:
-      string: '{"builtAt":"2023-04-21T02:27:50Z","components":[],"name":"Engine Wizard","version":"develop~13e28c13"}'
+      string: '{"builtAt":"2026-02-20T08:28:05Z","components":[{"builtAt":"2026-02-20T09:47:33Z","createdAt":"2026-02-19T12:59:11.534362Z","name":"Document
+        Worker","updatedAt":"2026-02-22T06:26:24.005577Z","version":"refactor/id-to-uuid~cfe4120"}],"metamodelVersions":[{"name":"Knowledge
+        Model","version":"19"},{"name":"Document Template","version":"17.1"}],"name":"Engine
+        Wizard","version":"feature/refactor-id-to-uuid~a92aba6c"}'
     headers:
       Access-Control-Allow-Credential:
       - 'true'
@@ -23,29 +26,28 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Tue, 25 Apr 2023 13:27:14 GMT
+      - Tue, 24 Feb 2026 06:29:48 GMT
       Server:
-      - Warp/3.3.25
+      - Warp/3.3.31
       Transfer-Encoding:
       - chunked
       x-trace-uuid:
-      - d1ff528b-cbb3-42c3-9771-1242f5e7ebba
+      - 98e69bbc-b149-45cf-8928-c4204e10886e
     status:
       code: 200
       message: OK
-    url: http://localhost:3000/
 - request:
     body: null
     headers:
       Authorization:
-      - Bearer dummy-token
+      - Bearer eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE3NzE5NzQwMDAsInRlbmFudFV1aWQiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJ0b2tlblV1aWQiOiIwNzU4MzIwOS0zMWM3LTQzNDAtYTNjNS0xNjE1MjJlOTEzOTIiLCJ1c2VyVXVpZCI6ImVjNmY4ZTkwLTJhOTEtNDllYy1hYTNmLTllYWIyMjY3ZmM2NiIsInZlcnNpb24iOjR9.bw-6wNcflwtewdeueOg6gAM9O93kgb3gtXhHWNXVFnM0p_FtlRsbW-ZR_pxjh3CCtLHJ2QQmaa7fXVCC1OsVgOwgtgO5rIGhT62UU4DfL1d2oNXq5huyHCxTzgung_YEI1Eg76RulfWb5wUPhHfaBJbPYLuPh5Q56U8RD-khTQeqcLuvNLWBKYTHqe7k7X41vJw__sL1GyC60bXXYUlqLZaiPkvc5JNWxxxTL2R4lw1zlpnJxFHhLq8TWPDehtBuYADWyxDdS3s-4Vr_axSuenE7ZCHU-AFF4Vr1mS-w_Kx69s_wpsgRxtZh3s5yIAQ45tikMXR5cijEEuJYO7VorTjclQvbh-Sk29Y7r8lZ2scZp8z8Zf8kiLpPKnJpItpKZLmjLYOJZRCBX6EW3fN92sbsOq3yPxFchl6DB-cmmGs9EoLvWLimNm8rqpO5pXyGiATah6R0fFRTNtfRcfhfkAIr_X6e3PVtnpOCFtACpUzHnl0p7tYbF-OvhdgAUVZCOZjnFQ5z5EFZjEKbaImqUZJQMz5J8wwsP-N7j8GHjrR5fHgotu-5Ps8WAm2ibYrM15MReorfhWUQmeh7wvNoJ4lj9mFByb0qgTwNgnnLpfFGbglZhyB1jvTiB4TxFoCsaEuyVOBQVAKS9_ufT5wymBcL_fa3PGeDTzPGjA1pv_Q
       User-Agent:
-      - dsw-tdk/3.22.0
+      - dsw-tdk/4.27.0
     method: GET
-    uri: http://localhost:3000/users/current
+    uri: http://localhost:3000/wizard-api/users/current
   response:
     body:
-      string: '{"active":true,"affiliation":"My University","createdAt":"2018-01-20T00:00:00Z","email":"albert.einstein@example.com","firstName":"Albert","imageUrl":null,"lastName":"Einstein","permissions":["UM_PERM","KM_PERM","KM_UPGRADE_PERM","KM_PUBLISH_PERM","PM_READ_PERM","PM_WRITE_PERM","QTN_PERM","CFG_PERM","SUBM_PERM","DOC_PERM","QTN_TML_PERM","QTN_IMPORTER_PERM","LOC_PERM","DOC_TML_WRITE_PERM","DOC_TML_READ_PERM"],"role":"admin","sources":["internal"],"submissionProps":[],"updatedAt":"2018-01-25T00:00:00Z","uuid":"ec6f8e90-2a91-49ec-aa3f-9eab2267fc66"}'
+      string: '{"active":true,"affiliation":"My University","createdAt":"2018-01-20T00:00:00Z","email":"albert.einstein@example.com","firstName":"Albert","imageUrl":null,"lastName":"Einstein","lastSeenNewsId":null,"locale":null,"permissions":["UM_PERM","KM_PERM","KM_UPGRADE_PERM","KM_PUBLISH_PERM","PM_READ_PERM","PM_WRITE_PERM","PRJ_PERM","CFG_PERM","SUBM_PERM","DOC_PERM","PRJ_TML_PERM","LOC_PERM","DOC_TML_WRITE_PERM","DOC_TML_READ_PERM","PRJ_FILE_PERM"],"role":"admin","sources":["internal"],"updatedAt":"2018-01-25T00:00:00Z","uuid":"ec6f8e90-2a91-49ec-aa3f-9eab2267fc66"}'
     headers:
       Access-Control-Allow-Credential:
       - 'true'
@@ -58,37 +60,35 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Tue, 25 Apr 2023 13:27:14 GMT
+      - Tue, 24 Feb 2026 06:29:48 GMT
       Server:
-      - Warp/3.3.25
+      - Warp/3.3.31
       Transfer-Encoding:
       - chunked
       x-trace-uuid:
-      - 3c51474d-e1b7-4d59-9177-19138c696e3c
+      - e93fd714-89e2-4011-9036-5670093c29b5
     status:
       code: 200
       message: OK
-    url: http://localhost:3000/users/current
 - request:
     body: null
     headers:
       Authorization:
-      - Bearer dummy-token
+      - Bearer eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE3NzE5NzQwMDAsInRlbmFudFV1aWQiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJ0b2tlblV1aWQiOiIwNzU4MzIwOS0zMWM3LTQzNDAtYTNjNS0xNjE1MjJlOTEzOTIiLCJ1c2VyVXVpZCI6ImVjNmY4ZTkwLTJhOTEtNDllYy1hYTNmLTllYWIyMjY3ZmM2NiIsInZlcnNpb24iOjR9.bw-6wNcflwtewdeueOg6gAM9O93kgb3gtXhHWNXVFnM0p_FtlRsbW-ZR_pxjh3CCtLHJ2QQmaa7fXVCC1OsVgOwgtgO5rIGhT62UU4DfL1d2oNXq5huyHCxTzgung_YEI1Eg76RulfWb5wUPhHfaBJbPYLuPh5Q56U8RD-khTQeqcLuvNLWBKYTHqe7k7X41vJw__sL1GyC60bXXYUlqLZaiPkvc5JNWxxxTL2R4lw1zlpnJxFHhLq8TWPDehtBuYADWyxDdS3s-4Vr_axSuenE7ZCHU-AFF4Vr1mS-w_Kx69s_wpsgRxtZh3s5yIAQ45tikMXR5cijEEuJYO7VorTjclQvbh-Sk29Y7r8lZ2scZp8z8Zf8kiLpPKnJpItpKZLmjLYOJZRCBX6EW3fN92sbsOq3yPxFchl6DB-cmmGs9EoLvWLimNm8rqpO5pXyGiATah6R0fFRTNtfRcfhfkAIr_X6e3PVtnpOCFtACpUzHnl0p7tYbF-OvhdgAUVZCOZjnFQ5z5EFZjEKbaImqUZJQMz5J8wwsP-N7j8GHjrR5fHgotu-5Ps8WAm2ibYrM15MReorfhWUQmeh7wvNoJ4lj9mFByb0qgTwNgnnLpfFGbglZhyB1jvTiB4TxFoCsaEuyVOBQVAKS9_ufT5wymBcL_fa3PGeDTzPGjA1pv_Q
       User-Agent:
-      - dsw-tdk/3.22.0
+      - dsw-tdk/4.27.0
     method: GET
-    uri: http://localhost:3000/document-templates/all
+    uri: http://localhost:3000/wizard-api/document-templates/all
   response:
     body:
-      string: '[{"description":"foo","formats":[],"id":"organization:test-template-y:0.1.0","name":"test-template-y","version":"0.1.0"},{"description":"Exported
-        questions and answers from a questionnaire","formats":[{"icon":"far fa-file","isPdf":false,"name":"JSON
-        Data","uuid":"d3e98eb6-344d-481f-8e37-6a67b6cd1ad2"},{"icon":"far fa-file-code","isPdf":false,"name":"HTML
-        Document","uuid":"a9293d08-59a4-4e6b-ae62-7a6a570b031c"},{"icon":"far fa-file-pdf","isPdf":true,"name":"PDF
-        Document","uuid":"68c26e34-5e77-4e15-9bf7-06ff92582257"},{"icon":"far fa-file-alt","isPdf":false,"name":"LaTeX
-        Document","uuid":"dbc94579-40d7-42c3-975c-71e30d07778b"},{"icon":"far fa-file-word","isPdf":false,"name":"MS
-        Word Document","uuid":"f4bd941a-dfbe-4226-a1fc-200fb5269311"},{"icon":"far
-        fa-file-alt","isPdf":false,"name":"Markdown Document","uuid":"f0533e48-f4c5-4af2-b2c1-5a47d4a247c0"}],"id":"dsw:questionnaire-report:2.8.0","name":"Questionnaire
-        Report","version":"2.8.0"}]'
+      string: '[{"description":"Exported questions and answers from a questionnaire","formats":[{"icon":"far
+        fa-file-code","name":"HTML Document","uuid":"a9293d08-59a4-4e6b-ae62-7a6a570b031c"},{"icon":"far
+        fa-file","name":"JSON Data","uuid":"d3e98eb6-344d-481f-8e37-6a67b6cd1ad2"},{"icon":"far
+        fa-file-alt","name":"LaTeX Document","uuid":"dbc94579-40d7-42c3-975c-71e30d07778b"},{"icon":"far
+        fa-file-alt","name":"Markdown Document","uuid":"f0533e48-f4c5-4af2-b2c1-5a47d4a247c0"},{"icon":"far
+        fa-file-word","name":"MS Word Document","uuid":"f4bd941a-dfbe-4226-a1fc-200fb5269311"},{"icon":"far
+        fa-file-pdf","name":"PDF Document","uuid":"68c26e34-5e77-4e15-9bf7-06ff92582257"}],"name":"Questionnaire
+        Report","organizationId":"dsw","templateId":"questionnaire-report","uuid":"9574a3dc-2338-45dd-be4d-110f1d0350ee","version":"2.16.1"}]'
     headers:
       Access-Control-Allow-Credential:
       - 'true'
@@ -101,33 +101,29 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Tue, 25 Apr 2023 13:27:14 GMT
+      - Tue, 24 Feb 2026 06:29:48 GMT
       Server:
-      - Warp/3.3.25
+      - Warp/3.3.31
       Transfer-Encoding:
       - chunked
       x-trace-uuid:
-      - 4f935cb7-7173-49f9-aa67-aac0dfdd1354
+      - 936d20c5-aa60-4be9-a368-84e5b8bb4b87
     status:
       code: 200
       message: OK
-    url: http://localhost:3000/document-templates/all
 - request:
     body: null
     headers:
       Authorization:
-      - Bearer dummy-token
+      - Bearer eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE3NzE5NzQwMDAsInRlbmFudFV1aWQiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJ0b2tlblV1aWQiOiIwNzU4MzIwOS0zMWM3LTQzNDAtYTNjNS0xNjE1MjJlOTEzOTIiLCJ1c2VyVXVpZCI6ImVjNmY4ZTkwLTJhOTEtNDllYy1hYTNmLTllYWIyMjY3ZmM2NiIsInZlcnNpb24iOjR9.bw-6wNcflwtewdeueOg6gAM9O93kgb3gtXhHWNXVFnM0p_FtlRsbW-ZR_pxjh3CCtLHJ2QQmaa7fXVCC1OsVgOwgtgO5rIGhT62UU4DfL1d2oNXq5huyHCxTzgung_YEI1Eg76RulfWb5wUPhHfaBJbPYLuPh5Q56U8RD-khTQeqcLuvNLWBKYTHqe7k7X41vJw__sL1GyC60bXXYUlqLZaiPkvc5JNWxxxTL2R4lw1zlpnJxFHhLq8TWPDehtBuYADWyxDdS3s-4Vr_axSuenE7ZCHU-AFF4Vr1mS-w_Kx69s_wpsgRxtZh3s5yIAQ45tikMXR5cijEEuJYO7VorTjclQvbh-Sk29Y7r8lZ2scZp8z8Zf8kiLpPKnJpItpKZLmjLYOJZRCBX6EW3fN92sbsOq3yPxFchl6DB-cmmGs9EoLvWLimNm8rqpO5pXyGiATah6R0fFRTNtfRcfhfkAIr_X6e3PVtnpOCFtACpUzHnl0p7tYbF-OvhdgAUVZCOZjnFQ5z5EFZjEKbaImqUZJQMz5J8wwsP-N7j8GHjrR5fHgotu-5Ps8WAm2ibYrM15MReorfhWUQmeh7wvNoJ4lj9mFByb0qgTwNgnnLpfFGbglZhyB1jvTiB4TxFoCsaEuyVOBQVAKS9_ufT5wymBcL_fa3PGeDTzPGjA1pv_Q
       User-Agent:
-      - dsw-tdk/3.22.0
+      - dsw-tdk/4.27.0
     method: GET
-    uri: http://localhost:3000/document-template-drafts?size=10000
+    uri: http://localhost:3000/wizard-api/document-template-drafts?size=10000
   response:
     body:
-      string: '{"_embedded":{"documentTemplateDrafts":[{"createdAt":"2023-04-25T13:01:54.430803Z","description":"Dummy
-        document template 01 for testing purposes","id":"organization:example01:1.0.0","name":"Test
-        template 01","organizationId":"organization","templateId":"example01","updatedAt":"2023-04-25T13:12:30.16158Z","version":"1.0.0"},{"createdAt":"2023-04-25T13:13:28.596463Z","description":"Exported
-        questions and answers from a questionnaire","id":"organization:questionnaire-report:2.9.0","name":"Questionnaire
-        Report","organizationId":"organization","templateId":"questionnaire-report","updatedAt":"2023-04-25T13:13:28.656434Z","version":"2.9.0"}]},"page":{"number":0,"size":10000,"totalElements":2,"totalPages":1}}'
+      string: '{"_embedded":{"documentTemplateDrafts":[{"createdAt":"2026-02-24T06:15:04.677049Z","description":"Exported
+        questions and answers from a questionnaire","name":"Questionnaire Report","organizationId":"organization","templateId":"questionnaire-report","updatedAt":"2026-02-24T06:15:04.734896Z","uuid":"7e4da640-82ba-40cb-a072-288112911fba","version":"2.17.0"},{"createdAt":"2026-02-24T06:27:18.088264Z","description":"","name":"test-template-x","organizationId":"organization","templateId":"test-template-x","updatedAt":"2026-02-24T06:27:18.088264Z","uuid":"c4924abd-88a1-418e-afa6-b1f26da5cb75","version":"0.1.0"}]},"page":{"number":0,"size":10000,"totalElements":2,"totalPages":1}}'
     headers:
       Access-Control-Allow-Credential:
       - 'true'
@@ -140,15 +136,14 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Tue, 25 Apr 2023 13:27:14 GMT
+      - Tue, 24 Feb 2026 06:29:48 GMT
       Server:
-      - Warp/3.3.25
+      - Warp/3.3.31
       Transfer-Encoding:
       - chunked
       x-trace-uuid:
-      - 3eec3935-8794-4d69-8a01-88d0aac5139a
+      - 34ac6dda-4a57-44f4-959d-b08ddc940065
     status:
       code: 200
       message: OK
-    url: http://localhost:3000/document-template-drafts?size=10000
 version: 1

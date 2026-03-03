@@ -9,8 +9,8 @@ def test_list_simple(dsw_env: dict):
     runner = click.testing.CliRunner()
     result = runner.invoke(main, args=['--no-config', 'list'], env=dsw_env)
     assert result.exit_code == 0
-    assert 'dsw:questionnaire-report:2.8.0' in result.output
-    assert 'organization:questionnaire-report:2.9.0' in result.output
+    assert 'dsw:questionnaire-report:2.16.1' in result.output
+    assert 'organization:questionnaire-report:2.17.0' in result.output
 
 
 @pytest.mark.vcr
@@ -18,8 +18,8 @@ def test_list_drafts_only(dsw_env: dict):
     runner = click.testing.CliRunner()
     result = runner.invoke(main, args=['--no-config', 'list', '-d'], env=dsw_env)
     assert result.exit_code == 0
-    assert 'dsw:questionnaire-report:2.8.0' not in result.output
-    assert 'organization:questionnaire-report:2.9.0' in result.output
+    assert 'dsw:questionnaire-report:2.16.1' not in result.output
+    assert 'organization:questionnaire-report:2.17.0' in result.output
 
 
 @pytest.mark.vcr
@@ -27,8 +27,8 @@ def test_list_released_only(dsw_env: dict):
     runner = click.testing.CliRunner()
     result = runner.invoke(main, args=['--no-config', 'list', '-r'], env=dsw_env)
     assert result.exit_code == 0
-    assert 'dsw:questionnaire-report:2.8.0' in result.output
-    assert 'organization:questionnaire-report:2.9.0' not in result.output
+    assert 'dsw:questionnaire-report:2.16.1' in result.output
+    assert 'organization:questionnaire-report:2.17.0' not in result.output
 
 
 @pytest.mark.vcr

@@ -1827,7 +1827,7 @@ class Document:
                  created_by: User | None, created_at: datetime.datetime):
         self.uuid = uuid
         self.name = name
-        self.document_template_id = document_template_id
+        self.document_template_uuid = document_template_id
         self.format_uuid = format_uuid
         self.created_by = created_by
         self.created_at = created_at

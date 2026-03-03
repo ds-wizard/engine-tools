@@ -5,7 +5,7 @@ import pathspec
 
 
 APP = 'dsw-tdk'
-VERSION = '4.27.0'
+VERSION = '4.28.0'
 METAMODEL_VERSION_MAJOR = 17
 METAMODEL_VERSION_MINOR = 1
 METAMODEL_VERSION = f'{METAMODEL_VERSION_MAJOR}.{METAMODEL_VERSION_MINOR}'
@@ -17,7 +17,7 @@ REGEX_TEMPLATE_ID = REGEX_WIZARD_ID
 REGEX_KM_ID = REGEX_WIZARD_ID
 REGEX_MIME_TYPE = re.compile(r'^(?![-])(?!.*[-]$)[-\w.]+/[-\w.]+$')
 
-DEFAULT_LIST_FORMAT = '{template.id:<50} {template.name:<30}'
+DEFAULT_LIST_FORMAT = '{template.id:<50} {template.name:<30} [{template.uuid}]'
 DEFAULT_ENCODING = 'utf-8'
 DEFAULT_README = pathlib.Path('README.md')
 

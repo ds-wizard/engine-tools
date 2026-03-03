@@ -24,12 +24,12 @@ LOG = logging.getLogger(__name__)
 
 class TemplateError(Exception):
 
-    def __init__(self, template_id: str, message: str):
-        self.template_id = template_id
+    def __init__(self, template_uuid: str, message: str):
+        self.template_uuid = template_uuid
         self.message = message
 
     def __str__(self):
-        return f'Error in template "{self.template_id}"\n' \
+        return f'Error in template "{self.template_uuid}"\n' \
                f'- {self.message}'
 
 
@@ -75,13 +75,14 @@ class Template:
         self.template_dir = template_dir
         self.last_used = datetime.datetime.now(tz=datetime.UTC)
         self.db_template = db_template
-        self.template_id = self.db_template.template.id
+        self.template_uuid = self.db_template.template.uuid
+        self.coordinates = self.db_template.template.coordinates
 
         self.formats: dict[str, Format] = {}
         self.project_uuid: str | None = None
 
     def raise_exc(self, message: str):
-        raise TemplateError(self.template_id, message)
+        raise TemplateError(self.template_uuid, message)
 
     def fetch_asset(self, file_name: str) -> Asset | None:
         LOG.info('Fetching asset "%s"', file_name)
@@ -157,7 +158,7 @@ class Template:
         local_path.parent.mkdir(parents=True, exist_ok=True)
         result = Context.get().app.s3.download_template_asset(
             tenant_uuid=self.tenant_uuid,
-            template_id=self.db_template.template.id,
+            template_uuid=self.db_template.template.uuid,
             file_name=asset.uuid,
             target_path=local_path,
         )
@@ -202,17 +203,17 @@ class Template:
         self._store_file(file)
 
     def prepare_all_template_files(self):
-        LOG.info('Storing all files of template %s locally', self.template_id)
+        LOG.info('Storing all files of template %s locally', self.template_uuid)
         for file in self.db_template.files.values():
             self._store_file(file)
 
     def prepare_all_template_assets(self):
-        LOG.info('Storing all assets of template %s locally', self.template_id)
+        LOG.info('Storing all assets of template %s locally', self.template_uuid)
         for asset in self.db_template.assets.values():
             self._store_asset(asset)
 
     def prepare_fs(self):
-        LOG.info('Preparing directory for template %s', self.template_id)
+        LOG.info('Preparing directory for template %s', self.template_uuid)
         if self.template_dir.exists():
             shutil.rmtree(self.template_dir)
         self.template_dir.mkdir(parents=True)
@@ -227,7 +228,7 @@ class Template:
         return to_add, to_del, to_chk
 
     def update_template_files(self, db_files: dict[str, DBDocumentTemplateFile]):
-        LOG.info('Updating files of template %s', self.template_id)
+        LOG.info('Updating files of template %s', self.template_uuid)
         to_add, to_del, to_chk = self._resolve_change(
             old_keys=frozenset(self.db_template.files.keys()),
             new_keys=frozenset(db_files.keys()),
@@ -241,7 +242,7 @@ class Template:
         self.db_template.files = db_files
 
     def update_template_assets(self, db_assets: dict[str, DBDocumentTemplateAsset]):
-        LOG.info('Updating assets of template %s', self.template_id)
+        LOG.info('Updating assets of template %s', self.template_uuid)
         to_add, to_del, to_chk = self._resolve_change(
             old_keys=frozenset(self.db_template.assets.keys()),
             new_keys=frozenset(db_assets.keys()),
@@ -309,44 +310,44 @@ class TemplateRegistry:
                     raise RuntimeError(f'Provided class "{step_class}" is not a subclass of Step')
                 register_step(name, step_class)
 
-    def has_template(self, tenant_uuid: str, template_id: str) -> bool:
+    def has_template(self, tenant_uuid: str, template_uuid: str) -> bool:
         return tenant_uuid in self._templates and \
-               template_id in self._templates[tenant_uuid]
+               template_uuid in self._templates[tenant_uuid]
 
-    def _set_template(self, tenant_uuid: str, template_id: str, template: Template):
+    def _set_template(self, tenant_uuid: str, template_uuid: str, template: Template):
         if tenant_uuid not in self._templates:
             self._templates[tenant_uuid] = {}
-        self._templates[tenant_uuid][template_id] = template
+        self._templates[tenant_uuid][template_uuid] = template
 
-    def get_template(self, tenant_uuid: str, template_id: str) -> Template:
-        return self._templates[tenant_uuid][template_id]
+    def get_template(self, tenant_uuid: str, template_uuid: str) -> Template:
+        return self._templates[tenant_uuid][template_uuid]
 
-    def _init_new_template(self, tenant_uuid: str, template_id: str,
+    def _init_new_template(self, tenant_uuid: str, template_uuid: str,
                            db_template: TemplateComposite):
         workdir = Context.get().app.workdir
-        template_dir = workdir / tenant_uuid / template_id.replace(':', '_')
+        template_dir = workdir / tenant_uuid / str(template_uuid)
         template = Template(
             tenant_uuid=tenant_uuid,
             template_dir=template_dir,
             db_template=db_template,
         )
         template.prepare_fs()
-        self._set_template(tenant_uuid, template_id, template)
+        self._set_template(tenant_uuid, template_uuid, template)
 
-    def _refresh_template(self, tenant_uuid: str, template_id: str,
+    def _refresh_template(self, tenant_uuid: str, template_uuid: str,
                           db_template: TemplateComposite):
-        template = self.get_template(tenant_uuid, template_id)
+        template = self.get_template(tenant_uuid, template_uuid)
         template.update_template(db_template)
 
-    def prepare_template(self, tenant_uuid: str, template_id: str) -> Template:
+    def prepare_template(self, tenant_uuid: str, template_uuid: str) -> Template:
         ctx = Context.get()
         query_args = {
-            'template_id': template_id,
+            'template_uuid': template_uuid,
             'tenant_uuid': tenant_uuid,
         }
         db_template = ctx.app.db.fetch_template(**query_args)
         if db_template is None:
-            raise RuntimeError(f'Template {template_id} not found in database')
+            raise RuntimeError(f'Template {template_uuid} not found in database')
         db_files = ctx.app.db.fetch_template_files(**query_args)
         db_assets = ctx.app.db.fetch_template_assets(**query_args)
         template_composite = TemplateComposite(
@@ -355,21 +356,21 @@ class TemplateRegistry:
             assets={f.uuid: f for f in db_assets},
         )
 
-        if self.has_template(tenant_uuid, template_id):
-            self._refresh_template(tenant_uuid, template_id, template_composite)
+        if self.has_template(tenant_uuid, template_uuid):
+            self._refresh_template(tenant_uuid, template_uuid, template_composite)
         else:
-            self._init_new_template(tenant_uuid, template_id, template_composite)
+            self._init_new_template(tenant_uuid, template_uuid, template_composite)
 
-        return self.get_template(tenant_uuid, template_id)
+        return self.get_template(tenant_uuid, template_uuid)
 
-    def _clear_template(self, tenant_uuid: str, template_id: str):
-        template = self._templates[tenant_uuid].pop(template_id)
+    def _clear_template(self, tenant_uuid: str, template_uuid: str):
+        template = self._templates[tenant_uuid].pop(template_uuid)
         if template.template_dir.exists():
             shutil.rmtree(template.template_dir)
 
     def cleanup(self):
         threshold = datetime.datetime.now(tz=datetime.UTC) - datetime.timedelta(days=7)
         for tenant_uuid, templates in self._templates.items():
-            for template_id, template in templates.items():
+            for template_uuid, template in templates.items():
                 if template.last_used < threshold:
-                    self._clear_template(tenant_uuid, template_id)
+                    self._clear_template(tenant_uuid, template_uuid)

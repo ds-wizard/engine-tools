@@ -6,7 +6,7 @@ minio==7.2.20
 pycparser==3.0
 pycryptodome==3.23.0
 PyYAML==6.0.3
-sentry-sdk==2.50.0
+sentry-sdk==2.53.0
 tenacity==9.1.2
 typing_extensions==4.15.0
 urllib3==2.6.3

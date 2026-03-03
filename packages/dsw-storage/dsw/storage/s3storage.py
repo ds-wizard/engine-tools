@@ -107,11 +107,11 @@ class S3Storage:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def download_template_asset(self, *, tenant_uuid: str, template_id: str,
+    def download_template_asset(self, *, tenant_uuid: str, template_uuid: str,
                                 file_name: str, target_path: pathlib.Path) -> bool:
         return self._download_file(
             tenant_uuid=tenant_uuid,
-            file_name=f'templates/{template_id}/{file_name}',
+            file_name=f'document-templates/{template_uuid}/{file_name}',
             target_path=target_path,
         )
 

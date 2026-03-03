@@ -33,7 +33,7 @@ jobs:
 
     - name: Build distribution packages
       run: |
-        uv build --package ${{ matrix.package }}
+        uv build --no-create-gitignore --package ${{ matrix.package }}
         ls -lah dist/
 
     - name: Publish to PyPI

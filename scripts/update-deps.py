@@ -25,11 +25,11 @@ def _update_root_requirements(root_dir: pathlib.Path):
         with_pip=True,
     )
     p = subprocess.Popen(
-        args=[pip, 'install', '-U', 'setuptools'],
+        args=[pip, 'install', '-U', 'setuptools<81.0', 'pip', 'wheel', 'pip-upgrader'],
     )
     p.wait()
     p = subprocess.Popen(
-        args=[pip, 'install', 'pip-upgrader'],
+        args=[pip, 'freeze'],
     )
     p.wait()
     p = subprocess.Popen(
