@@ -111,7 +111,7 @@ class S3Storage:
                                 file_name: str, target_path: pathlib.Path) -> bool:
         return self._download_file(
             tenant_uuid=tenant_uuid,
-            file_name=f'templates/{template_uuid}/{file_name}',
+            file_name=f'document-templates/{template_uuid}/{file_name}',
             target_path=target_path,
         )
 
