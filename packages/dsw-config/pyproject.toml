@@ -1,6 +1,6 @@
 [project]
 name = "dsw-config"
-version = "4.28.0"
+version = "4.28.1"
 description = "Library for DSW config manipulation"
 readme = "README.md"
 keywords = ["dsw", "config", "yaml", "parser"]
