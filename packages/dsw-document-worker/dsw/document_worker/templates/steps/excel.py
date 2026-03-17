@@ -280,12 +280,12 @@ class WorkbookBuilder:
         subtype = item.get('subtype', '')
         cell_format = self.formats.get(item.get('format', ''))
         pos_args = [item['cell']] if 'cell' in item else [item.get('row', 0), item.get('col', 0)]
-        item.pop('type')
-        item.pop('subtype')
-        item.pop('format')
-        item.pop('cell')
-        item.pop('row')
-        item.pop('col')
+        item.pop('type', None)
+        item.pop('subtype', None)
+        item.pop('format', None)
+        item.pop('cell', None)
+        item.pop('row', None)
+        item.pop('col', None)
         if subtype in _CELL_WRITERS:
             _CELL_WRITERS[subtype](worksheet, pos_args, item, cell_format)
         elif subtype == 'rich_string':
