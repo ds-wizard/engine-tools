@@ -8,6 +8,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 
+## [4.27.1]
+
+### Fixed
+
+- Fixed cell construction in `excel` step
+
 ## [4.27.0]
 
 ### Changed
@@ -568,3 +574,4 @@ Released for version consistency with other DSW tools.
 [4.26.0]: /../../tree/v4.26.0
 [4.26.1]: /../../tree/v4.26.1
 [4.27.0]: /../../tree/v4.27.0
+[4.27.1]: /../../tree/v4.27.1
