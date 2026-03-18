@@ -273,6 +273,21 @@ class Template:
             'phase': 'DraftDocumentTemplatePhase',
         }
 
+    def serialize_for_package(self) -> dict[str, typing.Any]:
+        return {
+            'id': self.coordinates,
+            'templateId': self.template_id,
+            'organizationId': self.organization_id,
+            'version': self.version,
+            'name': self.name,
+            'description': self.description,
+            'license': self.license,
+            'metamodelVersion': self.metamodel_version,
+            'readme': self.readme,
+            'allowedPackages': [ap.serialize() for ap in self.allowed_packages],
+            'formats': [f.serialize() for f in self.formats],
+        }
+
     def serialize_for_update(self) -> dict[str, typing.Any]:
         return {
             'templateId': self.template_id,
