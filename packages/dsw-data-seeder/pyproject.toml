@@ -1,6 +1,6 @@
 [project]
 name = "dsw-data-seeder"
-version = "4.28.1"
+version = "4.28.2"
 description = "Worker for seeding DSW data"
 readme = "README.md"
 keywords = ["data", "database", "seed", "storage"]
@@ -25,10 +25,10 @@ dependencies = [
     "sentry-sdk",
     "tenacity",
     # DSW
-    "dsw-command-queue==4.28.1",
-    "dsw-config==4.28.1",
-    "dsw-database==4.28.1",
-    "dsw-storage==4.28.1",
+    "dsw-command-queue==4.28.2",
+    "dsw-config==4.28.2",
+    "dsw-database==4.28.2",
+    "dsw-storage==4.28.2",
 ]
 
 [project.urls]
