@@ -1,6 +1,6 @@
 [project]
 name = "dsw-models"
-version = "4.28.1"
+version = "4.28.2"
 description = "Library with DSW models and basic IO operations"
 readme = "README.md"
 keywords = ["dsw", "config", "yaml", "parser"]

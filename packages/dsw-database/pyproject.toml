@@ -1,6 +1,6 @@
 [project]
 name = "dsw-database"
-version = "4.28.1"
+version = "4.28.2"
 description = "Library for managing DSW database"
 readme = "README.md"
 keywords = ["dsw", "database"]
@@ -22,7 +22,7 @@ dependencies = [
     "psycopg[binary]",
     "tenacity",
     # DSW
-    "dsw-config==4.28.1",
+    "dsw-config==4.28.2",
 ]
 
 [project.urls]
