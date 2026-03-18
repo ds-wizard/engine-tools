@@ -350,7 +350,7 @@ class TDKCore:
             raise RuntimeError(f'File {output} already exists (not forced)')
         self.logger.debug('Opening ZIP file for write: %s', output.as_posix())
         with zipfile.ZipFile(output, mode='w', compression=zipfile.ZIP_DEFLATED) as pkg:
-            descriptor = self.safe_project.safe_template.serialize_remote()
+            descriptor = self.safe_project.safe_template.serialize_for_package()
             files = []
             assets = []
             for file in self.safe_project.safe_template.files.values():
