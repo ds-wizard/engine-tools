@@ -266,11 +266,10 @@ class ResourcePage:
 
 class Integration(abc.ABC):
 
-    def __init__(self, *, uuid: str, name: str, variables: list[str],
+    def __init__(self, *, uuid: str, name: str,
                  integration_type: str, annotations: AnnotationsT):
         self.uuid = uuid
         self.name = name
-        self.variables = variables
         self.type = integration_type
         self.annotations = annotations
 
@@ -301,10 +300,10 @@ class ApiIntegration(Integration):
         super().__init__(
             uuid=uuid,
             name=name,
-            variables=variables,
             annotations=annotations,
             integration_type='ApiIntegration',
         )
+        self.variables = variables
         self.allow_custom_reply = allow_custom_reply
         self.request_method = request_method
         self.request_url = request_url
@@ -352,108 +351,29 @@ class ApiIntegration(Integration):
         )
 
 
-class ApiLegacyIntegration(Integration):
+class PluginIntegration(Integration):
 
-    def __init__(self, *, uuid: str, name: str, integration_id: str,
-                 item_url: str | None, logo: str | None,
-                 variables: list[str], rq_body: str, rq_method: str,
-                 rq_headers: dict[str, str], rq_url: str, rs_list_field: str | None,
-                 rs_item_id: str | None, rs_item_template: str,
+    def __init__(self, *, uuid: str, name: str,
+                 plugin_uuid: str, integration_id: str, settings: dict,
                  annotations: AnnotationsT):
         super().__init__(
             uuid=uuid,
             name=name,
-            variables=variables,
             annotations=annotations,
-            integration_type='ApiLegacyIntegration',
+            integration_type='PluginIntegration',
         )
-        self.id = integration_id
-        self.item_url = item_url
-        self.logo = logo
-        self.rq_body = rq_body
-        self.rq_method = rq_method
-        self.rq_url = rq_url
-        self.rq_headers = rq_headers
-        self.rs_list_field = rs_list_field
-        self.rs_item_id = rs_item_id
-        self.rs_item_template = rs_item_template
-
-    def item(self, item_id: str) -> str | None:
-        if self.item_url is None:
-            return None
-        return self.item_url.replace('${id}', item_id)
-
-    @staticmethod
-    def default():
-        return ApiLegacyIntegration(
-            uuid=consts.NULL_UUID,
-            name='',
-            logo='',
-            integration_id='',
-            item_url='',
-            variables=[],
-            rq_body='',
-            rq_method='GET',
-            rq_url='',
-            rq_headers={},
-            rs_list_field='',
-            rs_item_id='',
-            rs_item_template='',
-            annotations={},
-        )
+        self.plugin_uuid = plugin_uuid
+        self.integration_id = integration_id
+        self.settings = settings
 
     @staticmethod
     def load(data: dict, **options):
-        return ApiLegacyIntegration(
+        return PluginIntegration(
             uuid=data['uuid'],
             name=data['name'],
-            integration_id=data['id'],
-            item_url=data['itemUrl'],
-            logo=data['logo'],
-            variables=data['variables'],
-            rq_body=data['requestBody'],
-            rq_headers=data['requestHeaders'],
-            rq_method=data['requestMethod'],
-            rq_url=data['requestUrl'],
-            rs_list_field=data['responseListField'],
-            rs_item_id=data['responseItemId'],
-            rs_item_template=data['responseItemTemplate'],
-            annotations=_load_annotations(data['annotations']),
-        )
-
-
-class WidgetIntegration(Integration):
-
-    def __init__(self, *, uuid: str, name: str, integration_id: str,
-                 item_url: str | None, logo: str | None, variables: list[str],
-                 widget_url: str, annotations: AnnotationsT):
-        super().__init__(
-            uuid=uuid,
-            name=name,
-            variables=variables,
-            annotations=annotations,
-            integration_type='WidgetIntegration',
-        )
-        self.id = integration_id
-        self.item_url = item_url
-        self.logo = logo
-        self.widget_url = widget_url
-
-    def item(self, item_id: str) -> str | None:
-        if self.item_url is None:
-            return None
-        return self.item_url.replace('${id}', item_id)
-
-    @staticmethod
-    def load(data: dict, **options):
-        return WidgetIntegration(
-            uuid=data['uuid'],
-            name=data['name'],
-            integration_id=data['id'],
-            item_url=data['itemUrl'],
-            logo=data['logo'],
-            variables=data['variables'],
-            widget_url=data['widgetUrl'],
+            plugin_uuid=data['pluginUuid'],
+            integration_id=data['pluginIntegrationId'],
+            settings=data['pluginSettings'],
             annotations=_load_annotations(data['annotations']),
         )
 
@@ -905,21 +825,8 @@ class IntegrationReply(Reply):
         return self.value_type == 'PlainType'
 
     @property
-    def is_legacy_integration(self) -> bool:
-        return self.value_type == 'IntegrationLegacyType'
-
-    @property
     def is_integration(self) -> bool:
         return self.value_type == 'IntegrationType'
-
-    @property
-    def url(self) -> str | None:
-        if not self.is_legacy_integration or self.item_id is None:
-            return None
-        if isinstance(self.question, IntegrationQuestion) \
-                and isinstance(self.question.integration, ApiLegacyIntegration):
-            return self.question.integration.item(self.item_id)
-        return None
 
     def resolve_links(self, ctx):
         super().resolve_links_parent(ctx)
@@ -1622,8 +1529,7 @@ _REFERENCE_TYPES: dict[str, type[Reference]] = {
 
 _INTEGRATION_TYPES: dict[str, type[Integration]] = {
     'ApiIntegration': ApiIntegration,
-    'ApiLegacyIntegration': ApiLegacyIntegration,
-    'WidgetIntegration': WidgetIntegration,
+    'PluginIntegration': PluginIntegration,
 }
 
 
