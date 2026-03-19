@@ -59,37 +59,16 @@ class ApiIntegration(BaseKMFlatEntity):
     test_response: TypeHintExchange | None
 
 
-class ApiLegacyIntegration(BaseKMFlatEntity):
-    integration_type: typing.Literal['ApiLegacyIntegration'] = 'ApiLegacyIntegration'
-    id: str
-    name: str
-    variables: list[str]
-    logo: str | None
-    request_method: str
-    request_url: str
-    request_headers: THeaders
-    request_body: str | None
-    request_empty_search: bool
-    response_list_field: str | None
-    response_item_id: str | None
-    response_item_template: str | None
-    item_url: str | None
-
-
-class WidgetIntegration(BaseKMFlatEntity):
-    integration_type: typing.Literal['WidgetIntegration'] = 'WidgetIntegration'
-    id: str
-    name: str
-    variables: list[str]
-    logo: str | None
-    widget_url: str
-    item_url: str | None
+class PluginIntegration(BaseKMFlatEntity):
+    integration_type: typing.Literal['PluginIntegration'] = 'PluginIntegration'
+    plugin_uuid: UUID
+    plugin_integration_id: str
+    plugin_integration_settings: dict
 
 
 Integration = typing.Annotated[
     ApiIntegration |
-    ApiLegacyIntegration |
-    WidgetIntegration,
+    PluginIntegration,
     pydantic.Field(discriminator='integration_type'),
 ]
 
