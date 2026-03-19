@@ -1819,10 +1819,6 @@ class ProjectFile:
         self.download_url: str = ''
         self.project_uuid: str | None = None
 
-    @property
-    def questionnaire_uuid(self) -> str | None:
-        return self.project_uuid
-
     def resolve_links(self, ctx):
         self.project_uuid = ctx.project.uuid
         client_url = ctx.config.client_url
@@ -1898,7 +1894,7 @@ class Project:
         return entity
 
 
-class Package:
+class KnowledgeModelPackage:
 
     def __init__(self, *, org_id: str, km_id: str, version: str, versions: list[str],
                  name: str, description: str, created_at: datetime.datetime):
@@ -1918,7 +1914,7 @@ class Package:
 
     @staticmethod
     def load(data: dict, **options):
-        return Package(
+        return KnowledgeModelPackage(
             org_id=data['organizationId'],
             km_id=data['kmId'],
             version=data['version'],
@@ -2163,10 +2159,10 @@ class DocumentContext:
         )
         self.config = ContextConfig.load(ctx['config'], **options)
         self.km = KnowledgeModel.load(ctx['knowledgeModel'], **options)
-        self.project = Project.load(ctx['questionnaire'], **options)
+        self.project = Project.load(ctx['project'], **options)
         self.report = Report.load(ctx['report'], **options)
         self.document = Document.load(ctx['document'], **options)
-        self.package = Package.load(ctx['package'], **options)
+        self.km_package = KnowledgeModelPackage.load(ctx['knowledgeModelPackage'], **options)
         self.organization = Organization.load(ctx['organization'], **options)
         self.current_phase: Phase = PHASE_NEVER
 
@@ -2184,20 +2180,12 @@ class DocumentContext:
         return self.config
 
     @property
-    def qtn(self) -> Project:
-        return self.project
-
-    @property
-    def questionnaire(self) -> Project:
-        return self.project
-
-    @property
     def org(self) -> Organization:
         return self.organization
 
     @property
-    def pkg(self) -> Package:
-        return self.package
+    def pkg(self) -> KnowledgeModelPackage:
+        return self.km_package
 
     @property
     def doc(self) -> Document:
