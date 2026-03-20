@@ -125,18 +125,14 @@ class SimpleAuthor:
 class User:
 
     def __init__(self, *, uuid: str, first_name: str, last_name: str, email: str,
-                 role: str, created_at: datetime.datetime, updated_at: datetime.datetime,
-                 affiliation: str | None, permissions: list[str], sources: list[str],
-                 image_url: str | None):
+                 created_at: datetime.datetime, updated_at: datetime.datetime,
+                 affiliation: str | None, image_url: str | None):
         self.uuid = uuid
         self.first_name = first_name
         self.last_name = last_name
         self.email = email
-        self.role = role
         self.image_url = image_url
         self.affiliation = affiliation
-        self.permissions = permissions
-        self.sources = sources
         self.created_at = created_at
         self.updated_at = updated_at
 
@@ -149,11 +145,8 @@ class User:
             first_name=data['firstName'],
             last_name=data['lastName'],
             email=data['email'],
-            role=data['role'],
             image_url=data['imageUrl'],
             affiliation=data['affiliation'],
-            permissions=data['permissions'],
-            sources=data['sources'],
             created_at=_datetime(data['createdAt']),
             updated_at=_datetime(data['updatedAt']),
         )
