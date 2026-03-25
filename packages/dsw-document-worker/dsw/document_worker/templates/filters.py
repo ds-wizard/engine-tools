@@ -70,6 +70,7 @@ class _JinjaEnv:
             self._env = JinjaEnvironment(
                 loader=_base_jinja_loader,
                 extensions=['jinja2.ext.do'],
+                autoescape=True,
             )
             self._env.filters.update(filters)
             self._env.tests.update(tests)

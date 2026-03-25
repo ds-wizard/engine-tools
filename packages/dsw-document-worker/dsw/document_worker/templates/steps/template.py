@@ -54,6 +54,7 @@ class JinjaPoweredStep(Step):
                     'jinja2.ext.do',
                     'jinja2.ext.loopcontrols',
                 ],
+                autoescape=True,
             )
             if 'i18n' in self.jinja_ext:
                 self._add_j2_i18n(template)
