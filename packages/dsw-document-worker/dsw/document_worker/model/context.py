@@ -8,7 +8,7 @@ import dateutil.parser as dp
 
 from .. import consts
 from ..utils import check_metamodel_version
-from .utils import strip_markdown
+from .utils import render_markdown, strip_markdown
 
 
 AnnotationsT = dict[str, str | list[str]]
@@ -678,6 +678,14 @@ class StringReply(Reply):
             reply_type='StringReply',
         )
         self.value = value
+
+    @property
+    def markdown_html(self) -> str:
+        return render_markdown(self.value)
+
+    @property
+    def markdown_plain(self) -> str:
+        return strip_markdown(self.value)
 
     @property
     def as_number(self) -> float | None:
