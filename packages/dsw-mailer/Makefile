@@ -1,5 +1,5 @@
 PIP = pip
-VERSION = 4.28.2
+VERSION = 4.28.4
 
 .PHONY: verify
 verify:
