@@ -170,7 +170,6 @@ class TemplateFile:
 
 class Template:
 
-    # pylint: disable-next=too-many-arguments
     def __init__(self, *, uuid=None, template_id=None, organization_id=None,
                  version=None, name=None,
                  description=None, readme=None, template_license=None,

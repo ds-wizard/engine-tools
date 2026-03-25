@@ -32,7 +32,6 @@ def load_config_str(config_str: str) -> DocumentWorkerConfig:
     return config
 
 
-# pylint: disable-next=unused-argument
 def validate_config(ctx, param, value: typing.IO | None):
     content = ''
     if value is not None:
@@ -70,7 +69,6 @@ def run(config: DocumentWorkerConfig, workdir: str):
 
 @main.command()
 def list_plugins():
-    # pylint: disable-next=import-outside-toplevel
     from .plugins.manager import create_manager
 
     pm = create_manager()

@@ -20,7 +20,6 @@ from dsw.config.model import (
 )
 
 
-# pylint: disable-next=too-few-public-methods
 class _ExperimentalKeys(ConfigKeysContainer):
     job_timeout = ConfigKey(
         yaml_path=['experimental', 'jobTimeout'],
@@ -30,7 +29,6 @@ class _ExperimentalKeys(ConfigKeysContainer):
     )
 
 
-# pylint: disable-next=too-few-public-methods
 class DataSeederConfigKeys(ConfigKeys):
     experimental = _ExperimentalKeys
 

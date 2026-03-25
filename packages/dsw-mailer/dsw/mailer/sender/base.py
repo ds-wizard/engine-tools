@@ -70,7 +70,6 @@ class BaseMailSender(abc.ABC):
             add_header('Priority', mail.priority)
 
         if self.cfg.dkim_selector and self.cfg.dkim_privkey:
-            # pylint: disable=import-outside-toplevel
             import dkim
 
             sender_domain = mail.from_mail.split('@')[-1]

@@ -28,7 +28,6 @@ class DSWLogger(logging.Logger):
 
 
 def prepare_logging(logging_cfg):
-    # pylint: disable-next=no-member
     logger_dict = logging.root.manager.loggerDict
     if logging_cfg.dict_config is not None:
         logging.config.dictConfig(logging_cfg.dict_config)

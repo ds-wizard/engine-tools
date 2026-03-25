@@ -124,12 +124,10 @@ class JinjaPoweredStep(Step):
             )
             install_translations = getattr(self.j2_env, 'install_gettext_translations', None)
             if callable(install_translations):
-                # pylint: disable-next=not-callable
                 install_translations(translations, newstyle=True)
         else:
             install_translations = getattr(self.j2_env, 'install_null_translations', None)
             if callable(install_translations):
-                # pylint: disable-next=not-callable
                 install_translations(newstyle=True)
 
     def _add_j2_enhancements(self):

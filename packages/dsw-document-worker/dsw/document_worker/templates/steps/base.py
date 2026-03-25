@@ -24,11 +24,9 @@ class Step:
     def requires_via_extras(self, requirement: str) -> bool:
         return requirement in self.extras
 
-    # pylint: disable-next=unused-argument
     def execute_first(self, context: dict) -> DocumentFile:
         return self.raise_exc('Called execute_follow on Step class')
 
-    # pylint: disable-next=unused-argument
     def execute_follow(self, document: DocumentFile, context: dict) -> DocumentFile:
         return self.raise_exc('Called execute_follow on Step class')
 

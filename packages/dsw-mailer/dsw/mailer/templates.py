@@ -197,19 +197,16 @@ class TemplateRegistry:
     def _uninstall_translations(self):
         fn = getattr(self.j2_env, 'uninstall_gettext_translations', None)
         if callable(fn):
-            # pylint: disable-next=not-callable
             fn('default')
 
     def _install_null_translations(self):
         fn = getattr(self.j2_env, 'install_null_translations', None)
         if callable(fn):
-            # pylint: disable-next=not-callable
             fn()
 
     def _install_translations(self, translations: gettext.GNUTranslations):
         fn = getattr(self.j2_env, 'install_gettext_translations', None)
         if callable(fn):
-            # pylint: disable-next=not-callable
             fn(translations)
 
     def _load_locale(self, tenant_uuid: str, locale_uuid: str | None, app_ctx,

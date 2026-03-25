@@ -59,7 +59,6 @@ def handle_client_errors(func):
     return handled_client_call
 
 
-# pylint: disable-next=too-many-public-methods
 class WizardAPIClient:
 
     def _headers(self, extra=None):
