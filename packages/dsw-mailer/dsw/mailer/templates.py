@@ -100,7 +100,6 @@ class TemplateRegistry:
                 'jinja2.ext.do',
                 'jinja2.ext.i18n',
             ],
-            autoescape=True,
         )
         self.templates: dict[str, MailTemplate] = {}
         self._set_filters()
