@@ -17,12 +17,6 @@ class PlainIntegrationReplyType(BaseIntegrationReplyType):
     content: str
 
 
-class IntegrationLegacyReplyType(BaseIntegrationReplyType):
-    type: typing.Literal['LegacyType'] = 'LegacyType'
-    id: str | None
-    value: str
-
-
 class IntegrationReplyType(BaseModel):
     type: typing.Literal['IntegrationType'] = 'IntegrationType'
     value: str
@@ -31,7 +25,6 @@ class IntegrationReplyType(BaseModel):
 
 IntegrationReply = typing.Annotated[
     PlainIntegrationReplyType |
-    IntegrationLegacyReplyType |
     IntegrationReplyType,
     pydantic.Field(discriminator='type'),
 ]

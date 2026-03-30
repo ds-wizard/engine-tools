@@ -804,7 +804,7 @@ class IntegrationReply(Reply):
 
     def __init__(self, *, path: str, created_at: datetime.datetime,
                  created_by: SimpleAuthor | None, value: str, value_type: str,
-                 item_id: str | None, raw: typing.Any | None = None):
+                 raw: typing.Any | None = None):
         super().__init__(
             path=path,
             created_at=created_at,
@@ -812,13 +812,8 @@ class IntegrationReply(Reply):
             reply_type='IntegrationReply',
         )
         self.value_type = value_type
-        self.item_id = item_id
         self.raw = raw
         self.value = value
-
-    @property
-    def id(self) -> str | None:
-        return self.item_id
 
     @property
     def is_plain(self) -> bool:
@@ -849,7 +844,6 @@ class IntegrationReply(Reply):
             created_by=SimpleAuthor.load(data['createdBy'], **options),
             value_type=data['value']['value']['type'],
             value=data['value']['value'].get('value', ''),
-            item_id=data['value']['value'].get('id'),
             raw=data['value']['value'].get('raw'),
         )
 

@@ -135,7 +135,6 @@ class SimpleExtractor(ContextExtractor):
                 else:
                     self._objects[key][a_key] = {
                         '_value': reply.value,
-                        '_id': reply.id,
                         '_raw': reply.raw,
                         '_path': path,
                     }
