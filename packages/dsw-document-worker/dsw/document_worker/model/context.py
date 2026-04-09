@@ -1723,11 +1723,11 @@ class ContextConfig:
 
 class Document:
 
-    def __init__(self, *, uuid: str, name: str, document_template_id: str, format_uuid: str,
+    def __init__(self, *, uuid: str, name: str, document_template_uuid: str, format_uuid: str,
                  created_by: User | None, created_at: datetime.datetime):
         self.uuid = uuid
         self.name = name
-        self.document_template_uuid = document_template_id
+        self.document_template_uuid = document_template_uuid
         self.format_uuid = format_uuid
         self.created_by = created_by
         self.created_at = created_at
@@ -1737,7 +1737,7 @@ class Document:
         return Document(
             uuid=data['uuid'],
             name=data['name'],
-            document_template_id=data['documentTemplateId'],
+            document_template_uuid=data['documentTemplateUuid'],
             format_uuid=data['formatUuid'],
             created_by=User.load(data['createdBy'], **options),
             created_at=_datetime(data['createdAt']),

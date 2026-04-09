@@ -1,6 +1,6 @@
 [project]
 name = "dsw-tdk"
-version = "4.28.4"
+version = "4.29.0"
 description = "Data Stewardship Wizard Template Development Toolkit"
 readme = "README.md"
 keywords = ["documents", "dsw", "jinja2", "template", "toolkit"]
