@@ -6,7 +6,6 @@ from .cli import load_config_str
 from .mailer import Mailer, SentryReporter
 
 
-# pylint: disable-next=unused-argument
 def lambda_handler(event, context):
     config_path = pathlib.Path(os.getenv(consts.VAR_APP_CONFIG_PATH, '/var/task/application.yml'))
     workdir_path = pathlib.Path(os.getenv(consts.VAR_WORKDIR_PATH, '/var/task/templates'))

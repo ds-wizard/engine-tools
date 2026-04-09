@@ -151,12 +151,10 @@ class SeedRecipeS3:
 
 class SeedRecipe:
 
-    # pylint: disable-next=too-many-arguments
     def __init__(self, *, name: str, description: str, root: pathlib.Path,
                  db: SeedRecipeDB, s3: SeedRecipeS3,
                  uuids_count: int, uuids_placeholder: str | None,
                  init_wait: float):
-        # pylint: disable-next=too-many-instance-attributes
         self.name = name
         self.description = description
         self.root = root

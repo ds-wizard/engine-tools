@@ -1,4 +1,3 @@
-# pylint: disable=no-member
 import datetime
 import logging
 import typing
@@ -27,7 +26,6 @@ def wrap_json_data(data: dict):
     return psycopg.types.json.Json(data)
 
 
-# pylint: disable-next=too-many-public-methods
 class Database:
 
     SELECT_DOCUMENT = ('SELECT * FROM document '

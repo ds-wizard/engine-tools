@@ -1,4 +1,3 @@
-# pylint: disable=too-many-arguments, too-many-locals, too-many-lines
 import datetime
 import typing
 from uuid import UUID
@@ -348,33 +347,16 @@ class AddApiIntegrationEventContent(_AddIntegrationEventContent):
     test_response: TypeHintExchange | None
 
 
-class AddApiLegacyIntegrationEventContent(_AddIntegrationEventContent):
-    integration_type: typing.Literal['ApiLegacyIntegration'] = 'ApiLegacyIntegration'
-    id: str
-    logo: str | None
-    item_url: str | None
-    request_body: str | None
-    request_empty_search: bool
-    request_headers: THeaders
-    request_method: str
-    request_url: str
-    response_item_id: str | None
-    response_item_template: str
-    response_list_field: str | None
-
-
-class AddWidgetIntegrationEventContent(_AddIntegrationEventContent):
-    integration_type: typing.Literal['WidgetIntegration'] = 'WidgetIntegration'
-    id: str
-    logo: str | None
-    widget_url: str
-    item_url: str | None
+class AddPluginIntegrationEventContent(_AddIntegrationEventContent):
+    integration_type: typing.Literal['PluginIntegration'] = 'PluginIntegration'
+    plugin_uuid: UUID
+    plugin_integration_id: str
+    plugin_integration_settings: dict
 
 
 AddIntegrationEventContent = typing.Annotated[
     AddApiIntegrationEventContent |
-    AddApiLegacyIntegrationEventContent |
-    AddWidgetIntegrationEventContent,
+    AddPluginIntegrationEventContent,
     pydantic.Field(discriminator='integration_type'),
 ]
 
@@ -402,33 +384,16 @@ class EditApiIntegrationEventContent(_EditIntegrationEventContent):
     test_response: EditEventField[TypeHintExchange | None]
 
 
-class EditApiLegacyIntegrationEventContent(_EditIntegrationEventContent):
-    integration_type: typing.Literal['ApiLegacyIntegration'] = 'ApiLegacyIntegration'
-    id: EditEventField[str]
-    logo: EditEventField[str | None]
-    item_url: EditEventField[str | None]
-    request_body: EditEventField[str | None]
-    request_empty_search: EditEventField[bool]
-    request_headers: EditEventField[THeaders]
-    request_method: EditEventField[str]
-    request_url: EditEventField[str]
-    response_item_id: EditEventField[str]
-    response_item_template: EditEventField[str]
-    response_list_field: EditEventField[str | None]
-
-
-class EditWidgetIntegrationEventContent(_EditIntegrationEventContent):
-    integration_type: typing.Literal['WidgetIntegration'] = 'WidgetIntegration'
-    id: EditEventField[str]
-    logo: EditEventField[str | None]
-    widget_url: EditEventField[str]
-    item_url: EditEventField[str | None]
+class EditPluginIntegrationEventContent(_EditIntegrationEventContent):
+    integration_type: typing.Literal['PluginIntegration'] = 'PluginIntegration'
+    plugin_uuid: EditEventField[UUID]
+    plugin_integration_id: EditEventField[str]
+    plugin_integration_settings: EditEventField[dict]
 
 
 EditIntegrationEventContent = typing.Annotated[
     EditApiIntegrationEventContent |
-    EditApiLegacyIntegrationEventContent |
-    EditWidgetIntegrationEventContent,
+    EditPluginIntegrationEventContent,
     pydantic.Field(discriminator='integration_type'),
 ]
 

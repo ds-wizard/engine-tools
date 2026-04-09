@@ -15,7 +15,6 @@ class WeasyPrintStep(Step):
     OUTPUT_FORMAT = FileFormats.PDF
 
     def __init__(self, template, options: dict):
-        # pylint: disable-next=import-outside-toplevel
         import weasyprint
 
         super().__init__(template, options)
@@ -43,7 +42,6 @@ class WeasyPrintStep(Step):
         return self.raise_exc(f'Step "{self.NAME}" cannot be first')
 
     def execute_follow(self, document: DocumentFile, context: dict) -> DocumentFile:
-        # pylint: disable-next=import-outside-toplevel
         import weasyprint
 
         if document.file_format != FileFormats.HTML:

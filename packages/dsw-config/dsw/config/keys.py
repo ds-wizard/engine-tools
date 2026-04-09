@@ -1,4 +1,3 @@
-# pylint: disable=too-few-public-methods
 import collections
 import typing
 
@@ -70,7 +69,6 @@ class ConfigKey[T]:
 class ConfigKeysMeta(type):
 
     @classmethod
-    # pylint: disable-next=unused-argument
     def __prepare__(mcs, name: str, bases: tuple,
                     /, **kwargs) -> collections.abc.MutableMapping[str, object]:
         return collections.OrderedDict()

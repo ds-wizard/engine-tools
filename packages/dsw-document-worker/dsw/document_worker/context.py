@@ -60,7 +60,6 @@ class Context:
 
     @classmethod
     def initialize(cls, db, s3, config, workdir):
-        # pylint: disable-next=import-outside-toplevel
         from .plugins.manager import create_manager
         cls._instance = _Context(
             app=AppContext(

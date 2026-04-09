@@ -1,4 +1,3 @@
-# pylint: disable=too-many-positional-arguments
 import asyncio
 import datetime
 import logging
@@ -161,7 +160,6 @@ class ClickLogger(logging.Logger):
             click.echo(self._format_level(level, justify=self.show_timestamp) + sep, nl=False)
         click.echo(message)
 
-    # pylint: disable-next=unused-argument
     def _log(self, level, msg, args, *other, **kwargs):
         if not self.muted and isinstance(msg, str):
             self._print_message(level, msg % args)
@@ -444,7 +442,6 @@ def put_template(ctx, template_dir, api_url, api_key, force, watch):
             await tdk.safe_client.safe_close()
             sys.exit(1)
 
-    # pylint: disable-next=unused-argument
     def set_stop_event(signal_num, frame):
         signal_name = signal.Signals(signal_num).name
         ClickPrinter.warning(f'Got {signal_name}, finishing... Bye!')
@@ -568,7 +565,6 @@ def verify_template(ctx, template_dir):
 
 @main.group(help='Manage shared user configuration (~/.dsw-tdk).', name='config')
 @click.pass_context
-# pylint: disable-next=unused-argument
 def config(ctx):
     pass
 

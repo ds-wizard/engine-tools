@@ -1,14 +1,22 @@
 import pathlib
 import re
+from importlib.metadata import PackageNotFoundError, version
 
 import pathspec
 
 
 APP = 'dsw-tdk'
-VERSION = '4.28.4'
-METAMODEL_VERSION_MAJOR = 17
-METAMODEL_VERSION_MINOR = 1
+PACKAGE_NAME = 'dsw-tdk'
+
+METAMODEL_VERSION_MAJOR = 18
+METAMODEL_VERSION_MINOR = 0
 METAMODEL_VERSION = f'{METAMODEL_VERSION_MAJOR}.{METAMODEL_VERSION_MINOR}'
+
+try:
+    __version__ = version(PACKAGE_NAME)
+except PackageNotFoundError:
+    __version__ = '0.0.0'
+VERSION = __version__
 
 REGEX_SEMVER = re.compile(r'^[0-9]+\.[0-9]+\.[0-9]+$')
 REGEX_WIZARD_ID = re.compile(r'^[a-zA-Z0-9-_.]+$')

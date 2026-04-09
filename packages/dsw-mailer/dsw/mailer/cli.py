@@ -33,7 +33,6 @@ def load_config_str(config_str: str) -> MailerConfig:
     return config
 
 
-# pylint: disable-next=unused-argument
 def validate_config(ctx, param, value: typing.IO | None):
     content = ''
     if value is not None:
@@ -42,7 +41,6 @@ def validate_config(ctx, param, value: typing.IO | None):
     return load_config_str(content)
 
 
-# pylint: disable-next=unused-argument
 def extract_message_request(ctx, param, value: typing.IO):
     data = json.load(value)
     try:
@@ -97,5 +95,4 @@ def run(ctx):
 
 
 def main():
-    # pylint: disable-next=no-value-for-parameter
     cli(obj={})

@@ -22,7 +22,6 @@ from dsw.config.model import (
 from . import consts
 
 
-# pylint: disable-next=too-few-public-methods
 class _DocumentsKeys(ConfigKeysContainer):
     naming_strategy = ConfigKey(
         yaml_path=['documents', 'naming', 'strategy'],
@@ -32,7 +31,6 @@ class _DocumentsKeys(ConfigKeysContainer):
     )
 
 
-# pylint: disable-next=too-few-public-methods
 class _ExperimentalKeys(ConfigKeysContainer):
     job_timeout = ConfigKey(
         yaml_path=['experimental', 'jobTimeout'],
@@ -48,7 +46,6 @@ class _ExperimentalKeys(ConfigKeysContainer):
     )
 
 
-# pylint: disable-next=too-few-public-methods
 class _DocumentContextKeys(ConfigKeysContainer):
     service_name = ConfigKey(
         yaml_path=['documentContext', 'serviceName'],
@@ -106,7 +103,6 @@ class _DocumentContextKeys(ConfigKeysContainer):
     )
 
 
-# pylint: disable-next=too-few-public-methods
 class _CommandPandocKeys(ConfigKeysContainer):
     executable = ConfigKey(
         yaml_path=['externals', 'pandoc', 'executable'],
@@ -128,7 +124,6 @@ class _CommandPandocKeys(ConfigKeysContainer):
     )
 
 
-# pylint: disable-next=too-few-public-methods
 class DocWorkerConfigKeys(ConfigKeys):
     documents = _DocumentsKeys
     experimental = _ExperimentalKeys

@@ -27,7 +27,6 @@ from dsw.config.model import (
 from dsw.database.model import DBInstanceConfigMail
 
 
-# pylint: disable-next=too-few-public-methods
 class _ExperimentalKeys(ConfigKeysContainer):
     job_timeout = ConfigKey(
         yaml_path=['experimental', 'jobTimeout'],
@@ -42,7 +41,6 @@ class ExperimentalConfig(ConfigModel):
     job_timeout: int | None
 
 
-# pylint: disable-next=too-few-public-methods
 class _MailKeys(ConfigKeysContainer):
     enabled = ConfigKey(
         yaml_path=['mail', 'enabled'],
@@ -94,7 +92,6 @@ class _MailKeys(ConfigKeysContainer):
     )
 
 
-# pylint: disable-next=too-few-public-methods
 class _MailLegacySMTPKeys(ConfigKeysContainer):
     host = ConfigKey(
         yaml_path=['mail', 'host'],
@@ -140,7 +137,6 @@ class _MailLegacySMTPKeys(ConfigKeysContainer):
     )
 
 
-# pylint: disable-next=too-few-public-methods
 class _MailSMTPKeys(ConfigKeysContainer):
     host = ConfigKey(
         yaml_path=['mail', 'smtp', 'host'],
@@ -176,7 +172,6 @@ class _MailSMTPKeys(ConfigKeysContainer):
     )
 
 
-# pylint: disable-next=too-few-public-methods
 class _MailAmazonSESKeys(ConfigKeysContainer):
     access_key_id = ConfigKey(
         yaml_path=['mail', 'amazonSes', 'accessKeyId'],
@@ -195,7 +190,6 @@ class _MailAmazonSESKeys(ConfigKeysContainer):
     )
 
 
-# pylint: disable-next=too-few-public-methods
 class MailerConfigKeys(ConfigKeys):
     mail = _MailKeys
     mail_legacy_smtp = _MailLegacySMTPKeys
@@ -288,7 +282,6 @@ class MailAmazonSESConfig:
 
 class MailConfig(ConfigModel):
 
-    # pylint: disable-next=too-many-arguments
     def __init__(self, *, enabled: bool, name: str, email: str,
                  provider: str, smtp: MailSMTPConfig, amazon_ses: MailAmazonSESConfig,
                  rate_limit_window: int, rate_limit_count: int,

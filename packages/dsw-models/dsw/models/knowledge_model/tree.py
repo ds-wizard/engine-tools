@@ -84,24 +84,10 @@ class ApiIntegration(Integration):
     test_response: TypeHintExchange | None
 
 
-class ApiLegacyIntegration(Integration):
-    id: str
-    logo: str | None
-    request_method: str
-    request_url: str
-    request_body: str | None
-    request_empty_search: bool
-    response_list_field: str | None
-    response_item_id: str | None
-    response_item_template: str | None
-    item_url: str | None
-
-
-class WidgetIntegration(Integration):
-    id: str
-    logo: str | None
-    widget_url: str
-    item_url: str | None
+class PluginIntegration(Integration):
+    plugin_uuid: UUID
+    plugin_integration_id: str
+    plugin_integration_settings: dict
 
 
 class Reference(BaseKMTreeEntity):

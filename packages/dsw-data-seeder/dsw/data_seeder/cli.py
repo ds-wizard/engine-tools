@@ -31,7 +31,6 @@ def load_config_str(config_str: str) -> SeederConfig:
     return config
 
 
-# pylint: disable-next=unused-argument
 def validate_config(ctx, param, value: typing.IO | None):
     content = ''
     if value is not None:
@@ -106,5 +105,4 @@ def recipes_list(ctx: click.Context):
 
 
 def main():
-    # pylint: disable-next=no-value-for-parameter
     cli(obj={})

@@ -8,13 +8,29 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 
+## [4.29.0]
+
+### Added
+
+- Added StringReply helpers for markdown
+
+### Changed
+
+- Updated to KM metamodel 20 and DT metamodel 18.0
+
+### Fixed
+
+- Auto escaping HTML tags in Jinja templates
+
 ## [4.28.4]
 
 Released for version consistency with other DSW tools.
 
 ## [4.28.3]
 
-Released for version consistency with other DSW tools.
+### Fixed
+
+- Auto escaping HTML tags in Jinja templates
 
 ## [4.28.2]
 
@@ -597,3 +613,4 @@ Released for version consistency with other DSW tools.
 [4.28.2]: /../../tree/v4.28.2
 [4.28.3]: /../../tree/v4.28.3
 [4.28.4]: /../../tree/v4.28.4
+[4.29.0]: /../../tree/v4.29.0

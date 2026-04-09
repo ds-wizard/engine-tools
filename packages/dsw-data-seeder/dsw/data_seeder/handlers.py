@@ -11,7 +11,6 @@ from .seeder import DataSeeder, SentryReporter
 LOG = logging.getLogger(__name__)
 
 
-# pylint: disable-next=unused-argument
 def lambda_handler(event, context):
     config_path = pathlib.Path(os.getenv(consts.VAR_APP_CONFIG_PATH, '/var/task/application.yml'))
     workdir_path = pathlib.Path(os.getenv(consts.VAR_WORKDIR_PATH, '/var/task/data'))

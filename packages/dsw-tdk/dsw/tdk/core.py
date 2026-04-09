@@ -31,10 +31,8 @@ class TDKProcessingError(RuntimeError):
         self.hint = hint
 
 
-# pylint: disable-next=too-many-public-methods
 class TDKCore:
 
-    # pylint: disable-next=too-many-locals
     def _check_metamodel_version(self):
         hint = 'Fix your metamodelVersion in template.json and/or visit docs'
         if self.remote_metamodel_version is None:
@@ -386,7 +384,6 @@ class TDKCore:
                          data=json.dumps(descriptor, indent=4))
         self.logger.debug('ZIP packaging done')
 
-    # pylint: disable=too-many-locals
     def extract_package(self, zip_data: bytes, template_dir: pathlib.Path | None, force: bool):
         with tempfile.TemporaryDirectory() as tmp_dir:
             io_zip = io.BytesIO(zip_data)
