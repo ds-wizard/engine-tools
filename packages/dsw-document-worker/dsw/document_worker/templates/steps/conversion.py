@@ -1,3 +1,7 @@
+import logging
+
+import weasyprint
+
 from ... import consts
 from ...context import Context
 from ...conversions import Pandoc, RdfLibConvert
@@ -15,13 +19,20 @@ class WeasyPrintStep(Step):
     OUTPUT_FORMAT = FileFormats.PDF
 
     def __init__(self, template, options: dict):
-        import weasyprint
-
         super().__init__(template, options)
         # PDF options
-        self.wp_options = weasyprint.DEFAULT_OPTIONS
+        self.wp_options = weasyprint.DEFAULT_OPTIONS.copy()
         self.wp_update_options(options)
         self.wp_zoom = float(options.get('pdf.zoom', '1'))
+
+    @staticmethod
+    def initialize_step():
+        # mute weasyprint logger
+        logging.getLogger('weasyprint').setLevel(logging.WARNING)
+        # mute fontTools loggers
+        for logger_name in logging.root.manager.loggerDict:
+            if logger_name.startswith('fontTools'):
+                logging.getLogger(logger_name).setLevel(logging.WARNING)
 
     def wp_update_options(self, options: dict):
         optimize_size = tuple(options.get('render.optimize_size', 'fonts').split(','))
@@ -57,7 +68,7 @@ class WeasyPrintStep(Step):
             zoom=self.wp_zoom,
             font_config=None,  # not used now (should be in CSS)
             counter_style=None,  # not used now (should be in CSS)
-            options=self.options,
+            **self.wp_options,
         )
         return DocumentFile(
             file_format=self.OUTPUT_FORMAT,
