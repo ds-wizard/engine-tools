@@ -5,6 +5,7 @@ from dsw.config.keys import (
     ConfigKey,
     ConfigKeys,
     ConfigKeysContainer,
+    cast_dict,
     cast_int,
     cast_optional_int,
     cast_str,
@@ -20,22 +21,29 @@ from dsw.config.model import (
 )
 
 
-class _ExperimentalKeys(ConfigKeysContainer):
+class _SeedKeys(ConfigKeysContainer):
     job_timeout = ConfigKey(
-        yaml_path=['experimental', 'jobTimeout'],
-        var_names=['EXPERIMENTAL_JOB_TIMEOUT'],
+        yaml_path=['seed', 'jobTimeout'],
+        var_names=['SEED_JOB_TIMEOUT'],
         default=None,
         cast=cast_optional_int,
+    )
+    variables = ConfigKey(
+        yaml_path=['seed', 'variables'],
+        var_names=[],
+        default=None,
+        cast=cast_dict,
     )
 
 
 class DataSeederConfigKeys(ConfigKeys):
-    experimental = _ExperimentalKeys
+    seed = _SeedKeys
 
 
 @dataclasses.dataclass
-class ExperimentalConfig(ConfigModel):
+class SeedConfig(ConfigModel):
     job_timeout: int | None
+    variables: dict
 
 
 @dataclasses.dataclass
@@ -48,7 +56,7 @@ class SeederConfig:
     general: GeneralConfig
     extra_dbs: dict[str, DatabaseConfig]
     extra_s3s: dict[str, S3Config]
-    experimental: ExperimentalConfig
+    seed: SeedConfig
 
     def __str__(self):
         return f'SeederConfig\n' \
@@ -59,7 +67,7 @@ class SeederConfig:
                f'{self.log}' \
                f'{self.sentry}' \
                f'{self.cloud}' \
-               f'{self.experimental}' \
+               f'{self.seed}' \
                f'====================\n'
 
 
@@ -140,9 +148,10 @@ class SeederConfigParser(DSWConfigParser):
         return result
 
     @property
-    def experimental(self) -> ExperimentalConfig:
-        return ExperimentalConfig(
-            job_timeout=self.get(self.keys.experimental.job_timeout),
+    def seed(self) -> SeedConfig:
+        return SeedConfig(
+            job_timeout=self.get(self.keys.seed.job_timeout),
+            variables=self.get(self.keys.seed.variables),
         )
 
     @property
@@ -156,5 +165,5 @@ class SeederConfigParser(DSWConfigParser):
             general=self.general,
             extra_dbs=self.extra_dbs,
             extra_s3s=self.extra_s3s,
-            experimental=self.experimental,
+            seed=self.seed,
         )

@@ -51,6 +51,10 @@ def cast_optional_dict(value: typing.Any) -> dict | None:
     return value
 
 
+def cast_dict(value: typing.Any) -> dict:
+    return cast_optional_dict(value) or {}
+
+
 class ConfigKey[T]:
 
     def __init__(self, *, yaml_path: list[str],

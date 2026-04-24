@@ -1,4 +1,5 @@
 import collections
+import contextlib
 import dataclasses
 import json
 import logging
@@ -19,7 +20,7 @@ from dsw.storage import S3Storage
 from . import consts
 from .build_info import BUILD_INFO
 from .config import SeederConfig
-from .context import Context
+from .context import Context, ContextNotInitializedError
 
 
 LOG = logging.getLogger(__name__)
@@ -150,11 +151,13 @@ class SeedRecipeS3:
 
 
 class SeedRecipe:
+    UUID_PLACEHOLDER = '{{-UUID[n]-}}'
+    VAR_PLACEHOLDER = '{{-VAR[name]-}}'
 
     def __init__(self, *, name: str, description: str, root: pathlib.Path,
                  db: SeedRecipeDB, s3: SeedRecipeS3,
-                 uuids_count: int, uuids_placeholder: str | None,
-                 init_wait: float):
+                 uuids_count: int, uuids_placeholder: str, uuids_names: list[str],
+                 vars_placeholder: str, variables: dict, init_wait: float):
         self.name = name
         self.description = description
         self.root = root
@@ -162,14 +165,23 @@ class SeedRecipe:
         self.s3 = s3
         self.prepared = False
         self.uuids_count = uuids_count
+        self.uuids_names = uuids_names
         self.uuids_placeholder = uuids_placeholder
+        self.vars_placeholder = vars_placeholder
         self.uuids_replacement: dict[str, str] = {}
+        self.vars_replacement: dict[str, str] = {
+            self.vars_placeholder.replace('[name]', f'[{key}]'): str(value)
+            for key, value in variables.items()
+        }
         self.init_wait = init_wait
 
     def _prepare_uuids(self):
         if self.uuids_placeholder is not None:
             for i in range(self.uuids_count):
                 key = self.uuids_placeholder.replace('[n]', f'[{i}]')
+                self.uuids_replacement[key] = str(uuid.uuid4())
+            for name in self.uuids_names:
+                key = self.uuids_placeholder.replace('[n]', f'[{name}]')
                 self.uuids_replacement[key] = str(uuid.uuid4())
 
     def _prepare_s3_objects(self):
@@ -189,6 +201,8 @@ class SeedRecipe:
         result = script.replace(self.db.tenant_placeholder, tenant_uuid)
         for uuid_key, uuid_value in self.uuids_replacement.items():
             result = result.replace(uuid_key, uuid_value)
+        for var_key, var_value in self.vars_replacement.items():
+            result = result.replace(var_key, var_value)
         return result
 
     def iterate_db_scripts(self, tenant_uuid: str):
@@ -217,14 +231,18 @@ class SeedRecipe:
                f'S3 Filename Replace:\n' \
                f'{replaces}'
 
-    @staticmethod
-    def load_from_json(recipe_file: pathlib.Path) -> 'SeedRecipe':
+    @classmethod
+    def load_from_json(cls, recipe_file: pathlib.Path) -> 'SeedRecipe':
         data = json.loads(recipe_file.read_text(
             encoding=consts.DEFAULT_ENCODING,
         ))
         db: dict[str, typing.Any] = data.get('db', {})
         s3: dict[str, typing.Any] = data.get('s3', {})
         root_dir = recipe_file.parent
+        variables = {}
+        with contextlib.suppress(ContextNotInitializedError):
+            variables.update(Context.get().app.cfg.seed.variables.copy())
+        variables.update(data.get('variables', {}).get('values', {}))
         return SeedRecipe(
             name=data['name'],
             description=data.get('description', ''),
@@ -232,7 +250,10 @@ class SeedRecipe:
             db=SeedRecipeDB.from_dict(db, root_dir),
             s3=SeedRecipeS3.from_dict(s3, root_dir),
             uuids_count=data.get('uuids', {}).get('count', 0),
-            uuids_placeholder=data.get('uuids', {}).get('placeholder', None),
+            uuids_names=data.get('uuids', {}).get('names', []),
+            uuids_placeholder=data.get('uuids', {}).get('placeholder', cls.UUID_PLACEHOLDER),
+            vars_placeholder=data.get('variables', {}).get('placeholder', cls.VAR_PLACEHOLDER),
+            variables=variables,
             init_wait=data.get('initWait', 0),
         )
 
@@ -242,8 +263,8 @@ class SeedRecipe:
         recipes = (SeedRecipe.load_from_json(f) for f in recipe_files)
         return {r.name: r for r in recipes}
 
-    @staticmethod
-    def create_default():
+    @classmethod
+    def create_default(cls):
         return SeedRecipe(
             name='default',
             description='Default dummy recipe',
@@ -256,8 +277,11 @@ class SeedRecipe:
                 copy={},
                 filename_replace={},
             ),
+            uuids_names=[],
             uuids_count=0,
-            uuids_placeholder=None,
+            uuids_placeholder=cls.UUID_PLACEHOLDER,
+            vars_placeholder=cls.VAR_PLACEHOLDER,
+            variables={},
             init_wait=20,
         )
 
@@ -330,7 +354,7 @@ class DataSeeder(CommandWorker):
             channel=consts.CMD_CHANNEL,
             component=consts.CMD_COMPONENT,
             wait_timeout=Context.get().app.cfg.db.queue_timeout,
-            work_timeout=Context.get().app.cfg.experimental.job_timeout,
+            work_timeout=Context.get().app.cfg.seed.job_timeout,
         )
 
     def run(self):
