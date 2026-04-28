@@ -8,6 +8,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 
+## [4.30.0]
+
+### Added
+
+- Added `emailChange` mail template for email change verification
+
 ## [4.29.0]
 
 Released for version consistency with other DSW tools.
@@ -511,3 +517,4 @@ Released for version consistency with other DSW tools.
 [4.28.3]: /../../tree/v4.28.3
 [4.28.4]: /../../tree/v4.28.4
 [4.29.0]: /../../tree/v4.29.0
+[4.30.0]: /../../tree/v4.30.0
