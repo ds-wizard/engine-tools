@@ -21,6 +21,10 @@ class Step:
         extras_str: str = self.options.get(self.OPTION_EXTRAS, '')
         self.extras: set[str] = set(extras_str.split(','))
 
+    @staticmethod
+    def initialize_step():
+        pass
+
     def requires_via_extras(self, requirement: str) -> bool:
         return requirement in self.extras
 
@@ -38,6 +42,7 @@ STEPS: dict[str, type[Step]] = {}
 
 
 def register_step(name: str, step_class: type[Step]):
+    step_class.initialize_step()
     STEPS[name.lower()] = step_class
 
 

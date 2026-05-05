@@ -28,3 +28,8 @@ extraS3s:
     username: minio
     password: minioPassword
     bucket: engine-wizard
+
+seed:
+  jobTimeout: 300000
+  variables:
+    someVariable: someValue

@@ -33,7 +33,18 @@
   },
   "uuids": {
     "count": 3,
-    "placeholder": "{{-UUID[n]-}}"
+    "placeholder": "{{-UUID[n]-}}",
+    "names": [
+      "tenantId",
+      "userId",
+      "configId"
+    ]
+  },
+  "variables": {
+    "placeholder": "{{-VAR[name]-}}",
+    "values": {
+      "name": "value"
+    }
   },
   "initWait": 1.0
 }
