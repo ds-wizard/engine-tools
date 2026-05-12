@@ -68,6 +68,11 @@
                               <p dir="ltr" style="margin: 0; padding: 0; mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; color: #212529; font-family: Helvetica; font-size: 14px; line-height: 150%; text-align: left; font-weight: normal;">
                                   {{ item.text|no_markdown|truncate(140, False, '...') }}
                               </p>
+                              {% if item.questionTitle %}
+                              <p dir="ltr" style="margin: 0; padding: 0; mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; color: #212529; font-family: Helvetica; font-size: 14px; line-height: 150%; text-align: left; font-weight: normal;">
+                                  <i>{% trans %}Question{% endtrans %}</i>: {{ item.questionTitle }}
+                              </p>
+                              {% endif %}
                               <table width="100%" style="border-collapse: separate !important; border: 1px none; mso-table-lspace: 0pt; mso-table-rspace: 0pt; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; width: 100%">
                                   <tbody>
                                   <tr>

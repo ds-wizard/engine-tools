@@ -17,6 +17,7 @@
 {{ items[0].projectName }} ({{ projectLink(qtnUuid) }})
 {% for item in items %}
 - {{ item.text|truncate(100, False, '...') }}
+  {% trans %}Question{% endtrans %}: {% if item.questionTitle %}{{ item.questionTitle }}{% else %}{% trans %}(unknown){% endtrans %}{% endif %}
   {% trans %}Assigned by{% endtrans %}: {{ item.assignedBy.firstName }} {{ item.assignedBy.lastName }}, {% if item.resolved %}{% trans %}already resolved{% endtrans %}{% else %}{% trans %}unresolved{% endtrans %}{% endif %}{% if item.private %}, {% trans %}private editor note{% endtrans %}{% endif %})
   {{ threadLink(item.projectUuid, item.path, item.commentThreadUuid) }}
 {% endfor %}
