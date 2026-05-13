@@ -304,6 +304,7 @@ class MailConfig(ConfigModel):
         self.dkim_selector = dkim_selector
         self.dkim_privkey_file = dkim_privkey_file
         self.dkim_privkey = b''
+        self.custom_templates = False
 
     def load_dkim_privkey(self):
         if self.dkim_privkey_file is not None:

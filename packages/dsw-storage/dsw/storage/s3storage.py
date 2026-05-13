@@ -122,6 +122,20 @@ class S3Storage:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
+    def download_mail_templates(self, *, tenant_uuid: str, target_path: pathlib.Path) -> bool:
+        return self._download_file(
+            tenant_uuid=tenant_uuid,
+            file_name='mail-templates.zip',
+            target_path=target_path,
+        )
+
+    @tenacity.retry(
+        reraise=True,
+        wait=tenacity.wait_exponential(multiplier=RETRY_S3_MULTIPLIER),
+        stop=tenacity.stop_after_attempt(RETRY_S3_TRIES),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
+    )
     def download_locale(self, *, tenant_uuid: str, locale_uuid: str,
                         file_name: str, target_path: pathlib.Path) -> bool:
         return self._download_file(
