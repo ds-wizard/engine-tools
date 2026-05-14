@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import datetime
 import logging
 import typing
@@ -8,9 +10,11 @@ import psycopg.rows
 import psycopg.types.json
 import tenacity
 
-from dsw.config.model import DatabaseConfig
-
 from . import model
+
+
+if typing.TYPE_CHECKING:
+    from dsw.config.model import DatabaseConfig
 
 
 LOG = logging.getLogger(__name__)

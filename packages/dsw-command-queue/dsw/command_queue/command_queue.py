@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import abc
 import datetime
 import logging
@@ -5,15 +7,19 @@ import os
 import platform
 import select
 import signal
+import typing
 
 import func_timeout
 import psycopg.generators
 import tenacity
 
-from dsw.database import Database
 from dsw.database.model import PersistentCommand
 
 from .query import CommandQueries
+
+
+if typing.TYPE_CHECKING:
+    from dsw.database import Database
 
 
 LOG = logging.getLogger(__name__)

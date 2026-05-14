@@ -1,27 +1,35 @@
+from __future__ import annotations
+
 import datetime
 import functools
 import logging
-import pathlib
 import typing
 
 import dateutil.parser
-import sentry_sdk.types as sentry
 
 from dsw.command_queue import CommandQueue, CommandWorker
 from dsw.config.sentry import SentryReporter
 from dsw.database.database import Database
-from dsw.database.model import DBDocument, PersistentCommand
 from dsw.storage import S3Storage
 
 from . import consts
 from .build_info import BUILD_INFO
-from .config import DocumentWorkerConfig, TemplateConfig
 from .context import Context
 from .documents import DocumentFile, DocumentNameGiver
 from .exceptions import DocumentNotFoundError, JobError, create_job_error
 from .limits import LimitsEnforcer
 from .templates import Format, Template, TemplateRegistry
 from .utils import byte_size_format, check_metamodel_version
+
+
+if typing.TYPE_CHECKING:
+    from pathlib import Path
+
+    from sentry_sdk.types import Event, Hint
+
+    from dsw.database.model import DBDocument, PersistentCommand
+
+    from .config import DocumentWorkerConfig, TemplateConfig
 
 
 LOG = logging.getLogger(__name__)
@@ -369,14 +377,14 @@ class Job:
 
 class DocumentWorker(CommandWorker):
 
-    def __init__(self, config: DocumentWorkerConfig, workdir: pathlib.Path):
+    def __init__(self, config: DocumentWorkerConfig, workdir: Path):
         self.config = config
         self.current_job: Job | None = None
 
         self._init_context(workdir=workdir)
         self._init_sentry()
 
-    def _init_context(self, workdir: pathlib.Path):
+    def _init_context(self, workdir: Path):
         Context.initialize(
             config=self.config,
             workdir=workdir,
@@ -397,7 +405,7 @@ class DocumentWorker(CommandWorker):
             event_level=None,
         )
 
-        def filter_templates(event: sentry.Event, hint: sentry.Hint) -> sentry.Event | None:
+        def filter_templates(event: Event, hint: Hint) -> Event | None:
             LOG.debug('Filtering Sentry event (template, %s, %s)',
                       event.get('event_id'), hint)
 

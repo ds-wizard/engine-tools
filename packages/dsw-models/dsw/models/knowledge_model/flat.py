@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 import typing
-from uuid import UUID
 
 import pydantic
 
@@ -12,6 +13,10 @@ from .common import (
     TQuestionValueType,
     TypeHintExchange,
 )
+
+
+if typing.TYPE_CHECKING:
+    from uuid import UUID
 
 
 class BaseKMFlatEntity(BaseModel):

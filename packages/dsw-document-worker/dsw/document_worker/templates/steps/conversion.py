@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import logging
+import typing
 
 import weasyprint
 
@@ -21,7 +24,7 @@ class WeasyPrintStep(Step):
     def __init__(self, template, options: dict):
         super().__init__(template, options)
         # PDF options
-        self.wp_options = weasyprint.DEFAULT_OPTIONS.copy()
+        self.wp_options: typing.MutableMapping[str, typing.Any] = weasyprint.DEFAULT_OPTIONS.copy()
         self.wp_update_options(options)
         self.wp_zoom = float(options.get('pdf.zoom', '1'))
 

@@ -1,4 +1,5 @@
-import asyncio
+from __future__ import annotations
+
 import datetime
 import io
 import json
@@ -6,6 +7,7 @@ import logging
 import pathlib
 import shutil
 import tempfile
+import typing
 import zipfile
 
 import watchfiles
@@ -15,6 +17,10 @@ from .api_client import WizardAPIClient, WizardCommunicationError
 from .model import Template, TemplateFile, TemplateFileType, TemplateProject
 from .utils import UUIDGen
 from .validation import TemplateValidator, ValidationError
+
+
+if typing.TYPE_CHECKING:
+    from asyncio import Event
 
 
 ChangeItem = tuple[watchfiles.Change, pathlib.Path]
@@ -75,7 +81,6 @@ class TDKCore:
         self.remote_version: str = 'unknown~??????'
         self.remote_metamodel_version: str | None = 'unknown'
         self.logger = logger or logging.getLogger()
-        self.loop = asyncio.get_event_loop()
         self.changes_processor = ChangesProcessor(self)
         self.remote_id = 'unknown'
         self.remote_uuid = None
@@ -439,7 +444,7 @@ class TDKCore:
                 target_file.write_text(data=content, encoding=consts.DEFAULT_ENCODING)
         self.logger.debug('Extracting package done')
 
-    async def watch_project(self, callback, stop_event: asyncio.Event):
+    async def watch_project(self, callback, stop_event: Event):
         async for changes in watchfiles.awatch(
                 self.safe_project.template_dir,
                 stop_event=stop_event,

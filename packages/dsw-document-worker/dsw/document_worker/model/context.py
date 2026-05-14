@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 import abc
-import datetime
 import re
 import typing
 
@@ -10,12 +11,16 @@ from ..utils import check_metamodel_version
 from .utils import render_markdown, strip_markdown
 
 
+if typing.TYPE_CHECKING:
+    from datetime import datetime
+
+
 AnnotationsT = dict[str, str | list[str]]
 TODO_LABEL_UUID = '615b9028-5e3f-414f-b245-12d2ae2eeb20'
 DEFAULT_COLOR = '#0033aa'
 
 
-def _datetime(timestamp: str) -> datetime.datetime:
+def _datetime(timestamp: str) -> datetime:
     return dp.isoparse(timestamp)
 
 
@@ -39,7 +44,7 @@ def _load_annotations(annotations: list[dict[str, str]]) -> AnnotationsT:
 
 class Color:
     @staticmethod
-    def contrast_ratio(color1: 'Color', color2: 'Color') -> float:
+    def contrast_ratio(color1: Color, color2: Color) -> float:
         l1 = color1.luminance + 0.05
         l2 = color2.luminance + 0.05
         if l1 > l2:
@@ -89,7 +94,7 @@ class Color:
         return not self.is_dark
 
     @property
-    def contrast_color(self) -> 'Color':
+    def contrast_color(self) -> Color:
         if self.contrast_ratio(self, Color('#ffffff')) > 3:
             return Color('#ffffff')
         return Color('#000000')
@@ -124,7 +129,7 @@ class SimpleAuthor:
 class User:
 
     def __init__(self, *, uuid: str, first_name: str, last_name: str, email: str,
-                 created_at: datetime.datetime, updated_at: datetime.datetime,
+                 created_at: datetime, updated_at: datetime,
                  affiliation: str | None, image_url: str | None):
         self.uuid = uuid
         self.first_name = first_name
@@ -592,7 +597,7 @@ class Expert:
 
 class Reply(abc.ABC):
 
-    def __init__(self, *, path: str, created_at: datetime.datetime,
+    def __init__(self, *, path: str, created_at: datetime,
                  created_by: SimpleAuthor | None, reply_type: str):
         self.path = path
         self.created_at = created_at
@@ -630,7 +635,7 @@ class Reply(abc.ABC):
 
 class AnswerReply(Reply):
 
-    def __init__(self, *, path: str, created_at: datetime.datetime,
+    def __init__(self, *, path: str, created_at: datetime,
                  created_by: SimpleAuthor | None, answer_uuid: str):
         super().__init__(
             path=path,
@@ -668,7 +673,7 @@ class AnswerReply(Reply):
 
 class StringReply(Reply):
 
-    def __init__(self, *, path: str, created_at: datetime.datetime,
+    def __init__(self, *, path: str, created_at: datetime,
                  created_by: SimpleAuthor | None, value: str):
         super().__init__(
             path=path,
@@ -694,7 +699,7 @@ class StringReply(Reply):
             return None
 
     @property
-    def as_datetime(self) -> datetime.datetime | None:
+    def as_datetime(self) -> datetime | None:
         try:
             return dp.parse(self.value)
         except Exception:
@@ -719,7 +724,7 @@ class StringReply(Reply):
 
 class ItemListReply(Reply):
 
-    def __init__(self, *, path: str, created_at: datetime.datetime,
+    def __init__(self, *, path: str, created_at: datetime,
                  created_by: SimpleAuthor | None, items: list[str]):
         super().__init__(
             path=path,
@@ -758,7 +763,7 @@ class ItemListReply(Reply):
 
 class MultiChoiceReply(Reply):
 
-    def __init__(self, *, path: str, created_at: datetime.datetime,
+    def __init__(self, *, path: str, created_at: datetime,
                  created_by: SimpleAuthor | None, choice_uuids: list[str]):
         super().__init__(
             path=path,
@@ -802,7 +807,7 @@ class MultiChoiceReply(Reply):
 
 class IntegrationReply(Reply):
 
-    def __init__(self, *, path: str, created_at: datetime.datetime,
+    def __init__(self, *, path: str, created_at: datetime,
                  created_by: SimpleAuthor | None, value: str, value_type: str,
                  raw: typing.Any | None = None):
         super().__init__(
@@ -850,7 +855,7 @@ class IntegrationReply(Reply):
 
 class ItemSelectReply(Reply):
 
-    def __init__(self, *, path: str, created_at: datetime.datetime,
+    def __init__(self, *, path: str, created_at: datetime,
                  created_by: SimpleAuthor | None, item_uuid: str):
         super().__init__(
             path=path,
@@ -892,7 +897,7 @@ class ItemSelectReply(Reply):
 
 class FileReply(Reply):
 
-    def __init__(self, *, path: str, created_at: datetime.datetime,
+    def __init__(self, *, path: str, created_at: datetime,
                  created_by: SimpleAuthor | None, file_uuid: str):
         super().__init__(
             path=path,
@@ -1724,7 +1729,7 @@ class ContextConfig:
 class Document:
 
     def __init__(self, *, uuid: str, name: str, document_template_uuid: str, format_uuid: str,
-                 created_by: User | None, created_at: datetime.datetime):
+                 created_by: User | None, created_at: datetime):
         self.uuid = uuid
         self.name = name
         self.document_template_uuid = document_template_uuid
@@ -1747,7 +1752,7 @@ class Document:
 class ProjectVersion:
 
     def __init__(self, *, uuid: str, event_uuid: str, name: str, description: str | None,
-                 created_at: datetime.datetime, updated_at: datetime.datetime,
+                 created_at: datetime, updated_at: datetime,
                  created_by: SimpleAuthor | None):
         self.uuid = uuid
         self.event_uuid = event_uuid
@@ -1833,7 +1838,7 @@ class Project:
 
     def __init__(self, *, uuid: str, name: str, description: str | None,
                  created_by: User, phase_uuid: str | None,
-                 created_at: datetime.datetime, updated_at: datetime.datetime):
+                 created_at: datetime, updated_at: datetime):
         self.uuid = uuid
         self.name = name
         self.description = description
@@ -1891,7 +1896,7 @@ class Project:
 class KnowledgeModelPackage:
 
     def __init__(self, *, org_id: str, km_id: str, version: str, versions: list[str],
-                 name: str, description: str, created_at: datetime.datetime):
+                 name: str, description: str, created_at: datetime):
         self.organization_id = org_id
         self.km_id = km_id
         self.version = version
@@ -2004,8 +2009,8 @@ class ReportItem:
 
 class Report:
 
-    def __init__(self, *, uuid: str, created_at: datetime.datetime,
-                 updated_at: datetime.datetime, chapter_reports: list[ReportItem],
+    def __init__(self, *, uuid: str, created_at: datetime,
+                 updated_at: datetime, chapter_reports: list[ReportItem],
                  total_report: ReportItem):
         self.uuid = uuid
         self.created_at = created_at
@@ -2033,7 +2038,7 @@ class Report:
 class UserGroup:
 
     def __init__(self, *, uuid: str, name: str, description: str | None, private: bool,
-                 created_at: datetime.datetime, updated_at: datetime.datetime):
+                 created_at: datetime, updated_at: datetime):
         self.uuid = uuid
         self.name = name
         self.description = description

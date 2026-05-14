@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 import dataclasses
 import enum
 import pathlib
+import typing
 
 from dsw.config import DSWConfigParser
 from dsw.config.keys import (
@@ -24,7 +27,10 @@ from dsw.config.model import (
     S3Config,
     SentryConfig,
 )
-from dsw.database.model import DBInstanceConfigMail
+
+
+if typing.TYPE_CHECKING:
+    from dsw.database.model import DBInstanceConfigMail
 
 
 class _ExperimentalKeys(ConfigKeysContainer):

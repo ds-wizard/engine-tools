@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import base64
 import datetime
 import io
@@ -8,11 +10,14 @@ import typing
 
 import dateutil.parser
 import xlsxwriter
-from xlsxwriter.chart import Chart
-from xlsxwriter.worksheet import Worksheet
 
 from ...documents import DocumentFile, FileFormats
 from .base import FormatStepError, Step, register_step
+
+
+if typing.TYPE_CHECKING:
+    from xlsxwriter.chart import Chart
+    from xlsxwriter.worksheet import Worksheet
 
 
 if typing.TYPE_CHECKING:

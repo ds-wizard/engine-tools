@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import datetime
 import logging
 import typing
@@ -24,6 +26,20 @@ class _JinjaEnv:
         self._env: jinja2.Environment | None = None
 
     @property
+    def _j2_filters(self) -> typing.MutableMapping[str, typing.Any]:
+        return typing.cast(
+            'typing.MutableMapping[str, typing.Any]',
+            self.env.filters,
+        )
+
+    @property
+    def _j2_tests(self) -> typing.MutableMapping[str, typing.Any]:
+        return typing.cast(
+            'typing.MutableMapping[str, typing.Any]',
+            self.env.tests,
+        )
+
+    @property
     def env(self) -> jinja2.Environment:
         if self._env is None:
             self._env = JinjaEnvironment(
@@ -31,8 +47,8 @@ class _JinjaEnv:
                 extensions=['jinja2.ext.do'],
                 autoescape=True,
             )
-            self._env.filters.update(filters)
-            self._env.tests.update(tests)
+            self._j2_filters.update(filters)
+            self._j2_tests.update(tests)
         return self._env
 
     def get_template(self, template_str: str) -> jinja2.Template:

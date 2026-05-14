@@ -1,7 +1,14 @@
-import datetime
+from __future__ import annotations
+
+import typing
 
 from .common import BaseModel
-from .events import Event
+
+
+if typing.TYPE_CHECKING:
+    from datetime import datetime
+
+    from .events import Event
 
 
 class KnowledgeModelPackage(BaseModel):
@@ -14,7 +21,7 @@ class KnowledgeModelPackage(BaseModel):
     description: str
     license: str
     readme: str
-    created_at: datetime.datetime
+    created_at: datetime
     fork_of_package_id: str | None
     merge_checkpoint_package_id: str | None
     previous_package_id: str | None

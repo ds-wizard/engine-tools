@@ -1,4 +1,6 @@
-from uuid import UUID
+from __future__ import annotations
+
+import typing
 
 import pydantic
 
@@ -11,13 +13,17 @@ from .common import (
 )
 
 
+if typing.TYPE_CHECKING:
+    from uuid import UUID
+
+
 class BaseKMTreeEntity(BaseModel):
     uuid: UUID
     annotations: TAnnotations
 
 
 class MetricMeasure(BaseModel):
-    metric: 'Metric'
+    metric: Metric
     measure: float = pydantic.Field(ge=0.0, le=1.0)
     weight: float = pydantic.Field(ge=0.0, le=1.0)
 
@@ -26,7 +32,7 @@ class Answer(BaseKMTreeEntity):
     label: str
     advice: str | None
     metric_measures: list[MetricMeasure]
-    follow_ups: list['Question']
+    follow_ups: list[Question]
 
 
 class Choice(BaseKMTreeEntity):

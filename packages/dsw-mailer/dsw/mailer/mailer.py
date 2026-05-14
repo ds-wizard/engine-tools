@@ -1,9 +1,12 @@
+from __future__ import annotations
+
 import datetime
 import logging
 import math
 import pathlib
 import tempfile
 import time
+import typing
 import zipfile
 
 import dateutil.parser
@@ -11,7 +14,6 @@ import dateutil.parser
 from dsw.command_queue import CommandQueue, CommandWorker
 from dsw.config.sentry import SentryReporter
 from dsw.database.database import Database
-from dsw.database.model import PersistentCommand
 from dsw.storage import S3Storage
 
 from . import consts
@@ -21,6 +23,10 @@ from .context import Context
 from .model import MessageRecipient, MessageRequest
 from .sender import send
 from .templates import TemplateRegistry
+
+
+if typing.TYPE_CHECKING:
+    from dsw.database.model import PersistentCommand
 
 
 LOG = logging.getLogger(__name__)
@@ -276,7 +282,7 @@ class MailerCommand:
         }
 
     @staticmethod
-    def load(command: PersistentCommand) -> 'MailerCommand':
+    def load(command: PersistentCommand) -> MailerCommand:
         if command.component != consts.CMD_COMPONENT:
             raise RuntimeError('Tried to process non-mailer command')
         if command.function != consts.CMD_FUNCTION:
