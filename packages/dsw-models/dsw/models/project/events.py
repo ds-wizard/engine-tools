@@ -1,11 +1,16 @@
+from __future__ import annotations
+
 import typing
 from uuid import UUID, uuid4
 
 import pydantic
 
 from ..common import BaseModel
-from .common import UserInfo
-from .replies import ReplyValue
+
+
+if typing.TYPE_CHECKING:
+    from .common import UserInfo
+    from .replies import ReplyValue
 
 
 class BaseProjectEvent(BaseModel):

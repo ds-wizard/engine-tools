@@ -1,7 +1,13 @@
+from __future__ import annotations
+
 import re
+import typing
 
 from . import consts
-from .model import Format, PackageFilter, Step
+
+
+if typing.TYPE_CHECKING:
+    from .model import Format, PackageFilter, Step
 
 
 class ValidationError(BaseException):

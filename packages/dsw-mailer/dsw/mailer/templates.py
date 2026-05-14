@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import datetime
 import gettext
 import json
@@ -16,7 +18,6 @@ import markupsafe
 import polib
 
 from . import consts
-from .config import MailConfig, MailerConfig
 from .model import (
     MailAttachment,
     MailMessage,
@@ -24,6 +25,10 @@ from .model import (
     TemplateDescriptor,
     TemplateDescriptorPart,
 )
+
+
+if typing.TYPE_CHECKING:
+    from .config import MailConfig, MailerConfig
 
 
 LOG = logging.getLogger(__name__)

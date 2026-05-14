@@ -14,6 +14,7 @@ classifiers = [
     "Programming Language :: Python",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Database",
     "Topic :: Text Processing",
     "Topic :: Utilities",
@@ -33,7 +34,7 @@ Documentation = "https://guide.ds-wizard.org"
 Issues = "https://github.com/ds-wizard/ds-wizard/issues"
 
 [build-system]
-requires = ["uv_build>=0.9.25,<0.10.0"]
+requires = ["uv_build>=0.11.0,<0.12.0"]
 build-backend = "uv_build"
 
 [tool.uv.build-backend]

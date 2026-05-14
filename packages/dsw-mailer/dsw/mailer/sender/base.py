@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 import abc
 import datetime
 import logging
+import typing
 from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
@@ -10,8 +13,11 @@ from email.utils import format_datetime, formataddr, make_msgid
 import pathvalidate
 
 from .. import consts
-from ..config import MailConfig
-from ..model import MailAttachment, MailMessage
+
+
+if typing.TYPE_CHECKING:
+    from ..config import MailConfig
+    from ..model import MailAttachment, MailMessage
 
 
 LOG = logging.getLogger(__name__)

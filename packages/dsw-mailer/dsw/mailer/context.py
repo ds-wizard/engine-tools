@@ -1,11 +1,18 @@
+from __future__ import annotations
+
 import dataclasses
-import pathlib
+import typing
 
-from dsw.database import Database
-from dsw.storage import S3Storage
-
-from .config import MailerConfig
 from .templates import TemplateRegistry
+
+
+if typing.TYPE_CHECKING:
+    from pathlib import Path
+
+    from dsw.database import Database
+    from dsw.storage import S3Storage
+
+    from .config import MailerConfig
 
 
 class ContextNotInitializedError(RuntimeError):
@@ -19,7 +26,7 @@ class AppContext:
     db: Database
     s3: S3Storage
     cfg: MailerConfig
-    workdir: pathlib.Path
+    workdir: Path
 
 
 @dataclasses.dataclass

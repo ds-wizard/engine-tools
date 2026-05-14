@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import collections
 import contextlib
 import dataclasses
@@ -14,13 +16,17 @@ import dateutil.parser
 from dsw.command_queue import CommandQueue, CommandWorker
 from dsw.config.sentry import SentryReporter
 from dsw.database.database import Database
-from dsw.database.model import PersistentCommand
 from dsw.storage import S3Storage
 
 from . import consts
 from .build_info import BUILD_INFO
-from .config import SeederConfig
 from .context import Context, ContextNotInitializedError
+
+
+if typing.TYPE_CHECKING:
+    from dsw.database.model import PersistentCommand
+
+    from .config import SeederConfig
 
 
 LOG = logging.getLogger(__name__)
@@ -52,7 +58,7 @@ class SeedRecipeDB:
     scripts_data: dict[str, str] = dataclasses.field(default_factory=collections.OrderedDict)
 
     @staticmethod
-    def from_dict(data: dict, root_path: pathlib.Path) -> 'SeedRecipeDB':
+    def from_dict(data: dict, root_path: pathlib.Path) -> SeedRecipeDB:
         recipe_scripts: list[dict] = data.get('scripts', [])
         db_scripts: dict[str, SeedRecipeDirective] = collections.OrderedDict()
         for index, script in enumerate(recipe_scripts):
@@ -106,7 +112,7 @@ class SeedRecipeS3:
     objects: list[SeedRecipeS3Object] = dataclasses.field(default_factory=list)
 
     @staticmethod
-    def from_dict(data: dict, root_path: pathlib.Path) -> 'SeedRecipeS3':
+    def from_dict(data: dict, root_path: pathlib.Path) -> SeedRecipeS3:
         recipe_copy: list[dict] = data.get('copy', [])
         copy_instructions: dict[str, SeedRecipeDirective] = collections.OrderedDict()
         for index, instruction in enumerate(recipe_copy):
@@ -232,7 +238,7 @@ class SeedRecipe:
                f'{replaces}'
 
     @classmethod
-    def load_from_json(cls, recipe_file: pathlib.Path) -> 'SeedRecipe':
+    def load_from_json(cls, recipe_file: pathlib.Path) -> SeedRecipe:
         data = json.loads(recipe_file.read_text(
             encoding=consts.DEFAULT_ENCODING,
         ))
@@ -258,7 +264,7 @@ class SeedRecipe:
         )
 
     @staticmethod
-    def load_from_dir(recipes_dir: pathlib.Path) -> dict[str, 'SeedRecipe']:
+    def load_from_dir(recipes_dir: pathlib.Path) -> dict[str, SeedRecipe]:
         recipe_files = recipes_dir.glob('*.seed.json')
         recipes = (SeedRecipe.load_from_json(f) for f in recipe_files)
         return {r.name: r for r in recipes}

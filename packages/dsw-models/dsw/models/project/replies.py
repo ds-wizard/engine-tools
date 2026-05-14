@@ -1,11 +1,17 @@
-import datetime
+from __future__ import annotations
+
 import typing
-from uuid import UUID
 
 import pydantic
 
 from ..common import BaseModel
-from .common import UserInfo
+
+
+if typing.TYPE_CHECKING:
+    from datetime import datetime
+    from uuid import UUID
+
+    from .common import UserInfo
 
 
 class BaseIntegrationReplyType(BaseModel):
@@ -84,4 +90,4 @@ ReplyValue = typing.Annotated[
 class Reply(BaseModel):
     value: ReplyValue
     created_by: UserInfo | None
-    created_at: datetime.datetime
+    created_at: datetime

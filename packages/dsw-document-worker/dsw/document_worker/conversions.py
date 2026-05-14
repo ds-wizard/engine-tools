@@ -1,14 +1,20 @@
+from __future__ import annotations
+
 import logging
 import os
 import pathlib
 import shlex
 import subprocess
+import typing
 
 import rdflib
 
 from . import consts
-from .config import DocumentWorkerConfig
 from .documents import FileFormat, FileFormats
+
+
+if typing.TYPE_CHECKING:
+    from .config import DocumentWorkerConfig
 
 
 LOG = logging.getLogger(__name__)

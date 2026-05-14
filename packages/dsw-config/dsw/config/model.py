@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import dataclasses
 
 from .logging import LOG_FILTER, prepare_logging

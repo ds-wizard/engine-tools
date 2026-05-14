@@ -1,9 +1,14 @@
+from __future__ import annotations
+
 import typing
-from uuid import UUID
 
 import pydantic
 
 from ..common import BaseModel
+
+
+if typing.TYPE_CHECKING:
+    from uuid import UUID
 
 
 class MetricMeasure(BaseModel):

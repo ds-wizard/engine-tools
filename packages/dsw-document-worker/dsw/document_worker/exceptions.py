@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+
 class JobError(Exception):
 
     def __init__(self, job_id: str, msg: str, exc=None,

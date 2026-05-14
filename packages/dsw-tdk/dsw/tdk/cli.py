@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import asyncio
 import datetime
 import logging
@@ -5,6 +7,7 @@ import mimetypes
 import pathlib
 import signal
 import sys
+import typing
 
 import click
 import humanize
@@ -15,9 +18,12 @@ from . import consts
 from .api_client import WizardCommunicationError
 from .config import CONFIG
 from .core import TDKCore, TDKProcessingError
-from .model import Template
 from .utils import FormatSpec, TemplateBuilder, create_dot_env, safe_utf8
 from .validation import ValidationError
+
+
+if typing.TYPE_CHECKING:
+    from .model import Template
 
 
 CURRENT_DIR = pathlib.Path.cwd()
@@ -381,8 +387,7 @@ def get_template(ctx, template_id, template_dir, api_url, api_key, force):
             ClickPrinter.failure(f'{template_id} is not released nor draft of a document template')
             sys.exit(1)
 
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(main_routine())
+    asyncio.run(main_routine())
 
 
 @main.command(help='Upload template to Wizard.', name='put')
@@ -450,9 +455,7 @@ def put_template(ctx, template_dir, api_url, api_key, force, watch):
     signal.signal(signal.SIGINT, set_stop_event)
     signal.signal(signal.SIGABRT, set_stop_event)
 
-    loop = asyncio.get_event_loop()
-    main_task = asyncio.ensure_future(main_routine())
-    loop.run_until_complete(main_task)
+    asyncio.run(main_routine())
 
 
 @main.command(help='Create ZIP package for a template.', name='package')
@@ -542,8 +545,7 @@ def list_templates(ctx, api_url, api_key, output_format: str,
             await tdk.safe_client.safe_close()
             sys.exit(1)
 
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(main_routine())
+    asyncio.run(main_routine())
 
 
 @main.command(help='Verify a template project.', name='verify')
