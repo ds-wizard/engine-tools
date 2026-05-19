@@ -75,8 +75,6 @@ class Color:
 
 
 class StyleConfig:
-    _DEFAULT = None
-
     def __init__(self, logo_url: str | None, primary_color: str,
                  illustrations_color: str):
         self.logo_url = logo_url
@@ -100,13 +98,11 @@ class StyleConfig:
 
     @classmethod
     def default(cls):
-        if cls._DEFAULT is None:
-            cls._DEFAULT = StyleConfig(
-                logo_url=None,
-                primary_color=Color.DEFAULT_PRIMARY_HEX,
-                illustrations_color=Color.DEFAULT_ILLUSTRATIONS_HEX,
-            )
-        return cls._DEFAULT
+        return StyleConfig(
+            logo_url=None,
+            primary_color=Color.DEFAULT_PRIMARY_HEX,
+            illustrations_color=Color.DEFAULT_ILLUSTRATIONS_HEX,
+        )
 
 
 class TemplateDescriptorPart:
