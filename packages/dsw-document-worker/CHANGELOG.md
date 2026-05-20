@@ -8,6 +8,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 
+## [4.29.2]
+
+### Fixed
+
+- Fixed plugin integration in document context
+
 ## [4.29.1]
 
 Released for version consistency with other DSW tools.
@@ -619,3 +625,4 @@ Released for version consistency with other DSW tools.
 [4.28.4]: /../../tree/v4.28.4
 [4.29.0]: /../../tree/v4.29.0
 [4.29.1]: /../../tree/v4.29.1
+[4.29.2]: /../../tree/v4.29.2
