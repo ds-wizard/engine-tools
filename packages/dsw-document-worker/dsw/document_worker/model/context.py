@@ -365,7 +365,7 @@ class PluginIntegration(Integration):
             name=data['name'],
             plugin_uuid=data['pluginUuid'],
             integration_id=data['pluginIntegrationId'],
-            settings=data['pluginSettings'],
+            settings=data['pluginIntegrationSettings'],
             annotations=_load_annotations(data['annotations']),
         )
 
