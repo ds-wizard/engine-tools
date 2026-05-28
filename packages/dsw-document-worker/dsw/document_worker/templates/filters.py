@@ -3,6 +3,7 @@ from __future__ import annotations
 import datetime
 import logging
 import typing
+import zoneinfo
 
 import dateutil.parser as dp
 import jinja2
@@ -64,11 +65,15 @@ _romans = [(1000, 'M'), (900, 'CM'), (500, 'D'), (400, 'CD'), (100, 'C'), (90, '
            (50, 'L'), (40, 'XL'), (10, 'X'), (9, 'IX'), (5, 'V'), (4, 'IV'), (1, 'I')]
 
 
-def datetime_format(iso_timestamp: None | datetime.datetime | str, fmt: str):
+def datetime_format(iso_timestamp: None | datetime.datetime | str,
+                    fmt: str, tz: str = 'UTC') -> str:
     if iso_timestamp is None:
         return ''
     if not isinstance(iso_timestamp, datetime.datetime):
         iso_timestamp = dp.isoparse(iso_timestamp)
+    if iso_timestamp.tzinfo is None:
+        iso_timestamp = iso_timestamp.replace(tzinfo=zoneinfo.ZoneInfo('UTC'))
+    iso_timestamp = iso_timestamp.astimezone(tz=zoneinfo.ZoneInfo(tz))
     return iso_timestamp.strftime(fmt)
 
 

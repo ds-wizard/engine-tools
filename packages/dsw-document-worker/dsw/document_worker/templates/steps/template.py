@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import datetime
 import gettext
 import json
 import typing
+import zoneinfo
 
 import jinja2
 import jinja2.exceptions
@@ -159,7 +161,12 @@ class JinjaPoweredStep(Step):
         template_cfg = Context.get().app.cfg.templates.get_config(
             self.template.coordinates,
         )
-        self._j2_globals.update({'rdflib': rdflib, 'json': json})
+        self._j2_globals.update({
+            'rdflib': rdflib,
+            'json': json,
+            'datetime': datetime,
+            'zoneinfo': zoneinfo,
+        })
         if template_cfg is not None:
             global_vars: dict[str, typing.Any] = {'secrets': template_cfg.secrets}
             if template_cfg.requests.enabled:
