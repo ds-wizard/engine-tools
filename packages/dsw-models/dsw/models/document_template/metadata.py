@@ -1,8 +1,14 @@
-from uuid import UUID
+from __future__ import annotations
+
+import typing
 
 import pydantic
 
 from ..common import BaseModel
+
+
+if typing.TYPE_CHECKING:
+    from uuid import UUID
 
 
 class PackagePattern(BaseModel):

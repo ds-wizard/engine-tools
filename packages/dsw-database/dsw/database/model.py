@@ -1,7 +1,13 @@
+from __future__ import annotations
+
 import dataclasses
-import datetime
 import enum
 import json
+import typing
+
+
+if typing.TYPE_CHECKING:
+    from datetime import datetime
 
 
 NULL_UUID = '00000000-0000-0000-0000-000000000000'
@@ -24,9 +30,9 @@ class DocumentTemplatePhase(enum.Enum):
 class DBComponent:
     name: str
     version: str
-    built_at: datetime.datetime
-    created_at: datetime.datetime
-    updated_at: datetime.datetime
+    built_at: datetime
+    created_at: datetime
+    updated_at: datetime
 
     @staticmethod
     def from_dict_row(data: dict):
@@ -54,9 +60,9 @@ class DBDocument:
     content_type: str
     worker_log: str
     created_by: str
-    retrieved_at: datetime.datetime | None
-    finished_at: datetime.datetime | None
-    created_at: datetime.datetime
+    retrieved_at: datetime | None
+    finished_at: datetime | None
+    created_at: datetime
     tenant_uuid: str
     file_size: int
 
@@ -100,8 +106,8 @@ class DBDocumentTemplate:
     allowed_packages: dict
     formats: list
     phase: str
-    created_at: datetime.datetime
-    updated_at: datetime.datetime
+    created_at: datetime
+    updated_at: datetime
     tenant_uuid: str
 
     @property
@@ -121,7 +127,7 @@ class DBDocumentTemplate:
         return f'{self.organization_id}:{self.template_id}:{self.version}'
 
     @staticmethod
-    def from_dict_row(data: dict) -> 'DBDocumentTemplate':
+    def from_dict_row(data: dict) -> DBDocumentTemplate:
         return DBDocumentTemplate(
             uuid=data['uuid'],
             name=data['name'],
@@ -147,12 +153,12 @@ class DBDocumentTemplateFormat:
     uuid: str
     name: str
     icon: str
-    created_at: datetime.datetime
-    updated_at: datetime.datetime
+    created_at: datetime
+    updated_at: datetime
     tenant_uuid: str
 
     @staticmethod
-    def from_dict_row(data: dict) -> 'DBDocumentTemplateFormat':
+    def from_dict_row(data: dict) -> DBDocumentTemplateFormat:
         return DBDocumentTemplateFormat(
             document_template_uuid=data['document_template_uuid'],
             uuid=str(data['uuid']),
@@ -171,12 +177,12 @@ class DBDocumentTemplateStep:
     position: int
     name: str
     options: dict[str, str]
-    created_at: datetime.datetime
-    updated_at: datetime.datetime
+    created_at: datetime
+    updated_at: datetime
     tenant_uuid: str
 
     @staticmethod
-    def from_dict_row(data: dict) -> 'DBDocumentTemplateStep':
+    def from_dict_row(data: dict) -> DBDocumentTemplateStep:
         return DBDocumentTemplateStep(
             document_template_uuid=data['document_template_uuid'],
             format_uuid=str(data['format_uuid']),
@@ -195,12 +201,12 @@ class DBDocumentTemplateFile:
     uuid: str
     file_name: str
     content: str
-    created_at: datetime.datetime
-    updated_at: datetime.datetime
+    created_at: datetime
+    updated_at: datetime
     tenant_uuid: str
 
     @staticmethod
-    def from_dict_row(data: dict) -> 'DBDocumentTemplateFile':
+    def from_dict_row(data: dict) -> DBDocumentTemplateFile:
         return DBDocumentTemplateFile(
             document_template_uuid=data['document_template_uuid'],
             uuid=str(data['uuid']),
@@ -219,12 +225,12 @@ class DBDocumentTemplateAsset:
     file_name: str
     content_type: str
     file_size: int
-    created_at: datetime.datetime
-    updated_at: datetime.datetime
+    created_at: datetime
+    updated_at: datetime
     tenant_uuid: str
 
     @staticmethod
-    def from_dict_row(data: dict) -> 'DBDocumentTemplateAsset':
+    def from_dict_row(data: dict) -> DBDocumentTemplateAsset:
         return DBDocumentTemplateAsset(
             document_template_uuid=data['document_template_uuid'],
             uuid=str(data['uuid']),
@@ -249,8 +255,8 @@ class PersistentCommand:
     max_attempts: int
     tenant_uuid: str
     created_by: str | None
-    created_at: datetime.datetime
-    updated_at: datetime.datetime
+    created_at: datetime
+    updated_at: datetime
 
     @staticmethod
     def from_dict_row(data: dict):
@@ -294,8 +300,8 @@ class DBSubmission:
     service_id: str
     document_uuid: str
     created_by: str
-    created_at: datetime.datetime
-    updated_at: datetime.datetime
+    created_at: datetime
+    updated_at: datetime
     tenant_uuid: str
 
     @staticmethod
@@ -342,8 +348,8 @@ class DBProjectSimple:
     document_template_uuid: str
     format_uuid: str
     created_by: str
-    created_at: datetime.datetime
-    updated_at: datetime.datetime
+    created_at: datetime
+    updated_at: datetime
     description: str
     is_template: bool
     project_tags: list[str]

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pathlib
 import re
 from importlib.metadata import PackageNotFoundError, version
@@ -9,7 +11,7 @@ APP = 'dsw-tdk'
 PACKAGE_NAME = 'dsw-tdk'
 
 METAMODEL_VERSION_MAJOR = 18
-METAMODEL_VERSION_MINOR = 0
+METAMODEL_VERSION_MINOR = 1
 METAMODEL_VERSION = f'{METAMODEL_VERSION_MAJOR}.{METAMODEL_VERSION_MINOR}'
 
 try:

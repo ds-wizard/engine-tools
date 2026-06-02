@@ -1,14 +1,20 @@
+from __future__ import annotations
+
 import contextlib
 import io
 import logging
-import pathlib
 import tempfile
+import typing
 
 import minio
 import minio.error
 import tenacity
 
-from dsw.config.model import S3Config
+
+if typing.TYPE_CHECKING:
+    from pathlib import Path
+
+    from dsw.config.model import S3Config
 
 
 LOG = logging.getLogger(__name__)
@@ -93,7 +99,7 @@ class S3Storage:
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
     def download_project_file(self, *, tenant_uuid: str, project_uuid: str,
-                              file_uuid: str, target_path: pathlib.Path) -> bool:
+                              file_uuid: str, target_path: Path) -> bool:
         return self._download_file(
             tenant_uuid=tenant_uuid,
             file_name=f'project-files/{project_uuid}/{file_uuid}',
@@ -108,7 +114,7 @@ class S3Storage:
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
     def download_template_asset(self, *, tenant_uuid: str, template_uuid: str,
-                                file_name: str, target_path: pathlib.Path) -> bool:
+                                file_name: str, target_path: Path) -> bool:
         return self._download_file(
             tenant_uuid=tenant_uuid,
             file_name=f'document-templates/{template_uuid}/{file_name}',
@@ -122,8 +128,22 @@ class S3Storage:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
+    def download_mail_templates(self, *, tenant_uuid: str, target_path: Path) -> bool:
+        return self._download_file(
+            tenant_uuid=tenant_uuid,
+            file_name='mail-templates.zip',
+            target_path=target_path,
+        )
+
+    @tenacity.retry(
+        reraise=True,
+        wait=tenacity.wait_exponential(multiplier=RETRY_S3_MULTIPLIER),
+        stop=tenacity.stop_after_attempt(RETRY_S3_TRIES),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
+    )
     def download_locale(self, *, tenant_uuid: str, locale_uuid: str,
-                        file_name: str, target_path: pathlib.Path) -> bool:
+                        file_name: str, target_path: Path) -> bool:
         return self._download_file(
             tenant_uuid=tenant_uuid,
             file_name=f'locales/{locale_uuid}/{file_name}',
@@ -138,7 +158,7 @@ class S3Storage:
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
     def _download_file(self, *, tenant_uuid: str, file_name: str,
-                       target_path: pathlib.Path) -> bool:
+                       target_path: Path) -> bool:
         if self.multi_tenant:
             file_name = f'{tenant_uuid}/{file_name}'
         try:

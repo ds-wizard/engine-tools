@@ -1,6 +1,12 @@
+from __future__ import annotations
+
+import typing
+
 import requests
 
-from ..config import TemplateConfig
+
+if typing.TYPE_CHECKING:
+    from ..config import TemplateConfig
 
 
 class RequestsWrapper:

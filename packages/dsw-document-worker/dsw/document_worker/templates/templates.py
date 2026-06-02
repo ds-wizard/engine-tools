@@ -1,22 +1,29 @@
+from __future__ import annotations
+
 import base64
 import dataclasses
 import datetime
 import logging
-import pathlib
 import shutil
-
-from dsw.database.model import (
-    DBDocumentTemplate,
-    DBDocumentTemplateAsset,
-    DBDocumentTemplateFile,
-)
+import typing
 
 from .. import consts
 from ..context import Context
-from ..documents import DocumentFile
-from ..model.context import ProjectFile
 from .formats import Format
 from .steps.base import Step, register_step
+
+
+if typing.TYPE_CHECKING:
+    from pathlib import Path
+
+    from dsw.database.model import (
+        DBDocumentTemplate,
+        DBDocumentTemplateAsset,
+        DBDocumentTemplateFile,
+    )
+
+    from ..documents import DocumentFile
+    from ..model.context import ProjectFile
 
 
 LOG = logging.getLogger(__name__)
@@ -36,7 +43,7 @@ class TemplateError(Exception):
 class Asset:
 
     def __init__(self, *, uuid: str, name: str, content_type: str,
-                 data: bytes, path: pathlib.Path):
+                 data: bytes, path: Path):
         self.uuid = uuid
         self.name = name
         self.content_type = content_type
@@ -69,7 +76,7 @@ class TemplateComposite:
 
 class Template:
 
-    def __init__(self, tenant_uuid: str, template_dir: pathlib.Path,
+    def __init__(self, tenant_uuid: str, template_dir: Path,
                  db_template: TemplateComposite):
         self.tenant_uuid = tenant_uuid
         self.template_dir = template_dir
@@ -294,7 +301,7 @@ class TemplateRegistry:
     _instance = None
 
     @classmethod
-    def get(cls) -> 'TemplateRegistry':
+    def get(cls) -> TemplateRegistry:
         if cls._instance is None:
             cls._instance = TemplateRegistry()
         return cls._instance

@@ -1,3 +1,8 @@
+from __future__ import annotations
+
+import typing
+
+
 def not_empty(x):
     """Check if a collection is not empty or object is not None"""
     if hasattr(x, '__len__'):
@@ -14,7 +19,7 @@ def of_type(x, class_name: str):
         return False
 
 
-tests = {
+tests: dict[str, typing.Callable] = {
     'not_empty': not_empty,
     'of_type': of_type,
 }

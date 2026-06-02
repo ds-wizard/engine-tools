@@ -1,13 +1,19 @@
+from __future__ import annotations
+
 import logging
 import smtplib
 import ssl
+import typing
 from email.utils import formataddr
 
 import tenacity
 
-from ..config import MailConfig
-from ..model import MailMessage
 from .base import BaseMailSender
+
+
+if typing.TYPE_CHECKING:
+    from ..config import MailConfig
+    from ..model import MailMessage
 
 
 RETRY_SMTP_MULTIPLIER = 0.5

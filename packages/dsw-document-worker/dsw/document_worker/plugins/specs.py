@@ -1,9 +1,16 @@
-# pylint: disable=unused-argument
-import jinja2
+from __future__ import annotations
+
+import typing
+
 import pluggy
 
 from .. import consts
-from ..templates.steps import Step
+
+
+if typing.TYPE_CHECKING:
+    from jinja2 import Environment
+
+    from ..templates.steps import Step
 
 
 hookspec = pluggy.HookspecMarker(consts.PACKAGE_NAME)
@@ -41,7 +48,7 @@ def enrich_document_context(context: dict) -> None:
 
 
 @hookspec
-def enrich_jinja_env(jinja_env: jinja2.Environment, options: dict[str, str]) -> None:
+def enrich_jinja_env(jinja_env: Environment, options: dict[str, str]) -> None:
     """
     Enrich the Jinja environment with custom filters, tests, policies, etc.
 

@@ -1,6 +1,10 @@
+from __future__ import annotations
+
+import datetime
 import gettext
 import json
 import typing
+import zoneinfo
 
 import jinja2
 import jinja2.exceptions
@@ -130,13 +134,39 @@ class JinjaPoweredStep(Step):
             if callable(install_translations):
                 install_translations(newstyle=True)
 
+    @property
+    def _j2_filters(self) -> typing.MutableMapping[str, typing.Any]:
+        return typing.cast(
+            'typing.MutableMapping[str, typing.Any]',
+            self.j2_env.filters,
+        )
+
+    @property
+    def _j2_tests(self) -> typing.MutableMapping[str, typing.Any]:
+        return typing.cast(
+            'typing.MutableMapping[str, typing.Any]',
+            self.j2_env.tests,
+        )
+
+    @property
+    def _j2_globals(self) -> typing.MutableMapping[str, typing.Any]:
+        return typing.cast(
+            'typing.MutableMapping[str, typing.Any]',
+            self.j2_env.globals,
+        )
+
     def _add_j2_enhancements(self):
-        self.j2_env.filters.update(filters)
-        self.j2_env.tests.update(tests)
+        self._j2_filters.update(filters)
+        self._j2_tests.update(tests)
         template_cfg = Context.get().app.cfg.templates.get_config(
             self.template.coordinates,
         )
-        self.j2_env.globals.update({'rdflib': rdflib, 'json': json})
+        self._j2_globals.update({
+            'rdflib': rdflib,
+            'json': json,
+            'datetime': datetime,
+            'zoneinfo': zoneinfo,
+        })
         if template_cfg is not None:
             global_vars: dict[str, typing.Any] = {'secrets': template_cfg.secrets}
             if template_cfg.requests.enabled:

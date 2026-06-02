@@ -1,13 +1,17 @@
+from __future__ import annotations
+
 import pathlib
 import typing
 
 import pathvalidate
 import slugify
 
-from dsw.database.model import DBDocument
-
 from . import consts
 from .context import Context
+
+
+if typing.TYPE_CHECKING:
+    from dsw.database.model import DBDocument
 
 
 class FileFormat:

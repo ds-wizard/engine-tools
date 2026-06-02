@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from .context import Context
 from .exceptions import JobError
 from .utils import byte_size_format

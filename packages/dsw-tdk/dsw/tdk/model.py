@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 import collections
 import enum
 import json
-import logging
 import mimetypes
 import pathlib
 import typing
@@ -9,6 +10,10 @@ import typing
 import pathspec
 
 from . import consts
+
+
+if typing.TYPE_CHECKING:
+    from logging import Logger
 
 
 mimetypes.init()
@@ -336,7 +341,7 @@ class TemplateProject:
 
     json_decoder = json.JSONDecoder(object_pairs_hook=_to_ordered_dict)
 
-    def __init__(self, template_dir: pathlib.Path, logger: logging.Logger):
+    def __init__(self, template_dir: pathlib.Path, logger: Logger):
         self.template_dir = pathlib.Path(template_dir)
         self.descriptor_path = self.template_dir / self.TEMPLATE_FILE
         self.template: Template | None = None
@@ -344,7 +349,7 @@ class TemplateProject:
         self._logger = logger
 
     @property
-    def logger(self) -> logging.Logger:
+    def logger(self) -> Logger:
         return self._logger
 
     @property

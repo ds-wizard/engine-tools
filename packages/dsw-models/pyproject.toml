@@ -1,6 +1,6 @@
 [project]
 name = "dsw-models"
-version = "4.30.2"
+version = "4.31.0"
 description = "Library with DSW models and basic IO operations"
 readme = "README.md"
 keywords = ["dsw", "config", "yaml", "parser"]
@@ -30,7 +30,7 @@ Documentation = "https://guide.ds-wizard.org"
 Issues = "https://github.com/ds-wizard/ds-wizard/issues"
 
 [build-system]
-requires = ["uv_build>=0.9.25,<0.10.0"]
+requires = ["uv_build>=0.11.0,<0.12.0"]
 build-backend = "uv_build"
 
 [tool.uv.build-backend]

@@ -1,12 +1,18 @@
+from __future__ import annotations
+
 import dataclasses
-import pathlib
+import typing
 
-import pluggy
 
-from dsw.database import Database
-from dsw.storage import S3Storage
+if typing.TYPE_CHECKING:
+    from pathlib import Path
 
-from .config import DocumentWorkerConfig
+    from pluggy import PluginManager
+
+    from dsw.database import Database
+    from dsw.storage import S3Storage
+
+    from .config import DocumentWorkerConfig
 
 
 class ContextNotInitializedError(RuntimeError):
@@ -17,11 +23,11 @@ class ContextNotInitializedError(RuntimeError):
 
 @dataclasses.dataclass
 class AppContext:
-    pm: pluggy.PluginManager
+    pm: PluginManager
     db: Database
     s3: S3Storage
     cfg: DocumentWorkerConfig
-    workdir: pathlib.Path
+    workdir: Path
 
 
 @dataclasses.dataclass

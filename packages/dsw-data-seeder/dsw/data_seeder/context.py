@@ -1,10 +1,16 @@
+from __future__ import annotations
+
 import dataclasses
-import pathlib
+import typing
 
-from dsw.database import Database
-from dsw.storage import S3Storage
 
-from .config import SeederConfig
+if typing.TYPE_CHECKING:
+    from pathlib import Path
+
+    from dsw.database import Database
+    from dsw.storage import S3Storage
+
+    from .config import SeederConfig
 
 
 class ContextNotInitializedError(RuntimeError):
@@ -18,7 +24,7 @@ class AppContext:
     db: Database
     s3: S3Storage
     cfg: SeederConfig
-    workdir: pathlib.Path
+    workdir: Path
 
 
 @dataclasses.dataclass

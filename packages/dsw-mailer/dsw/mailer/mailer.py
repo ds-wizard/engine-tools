@@ -1,15 +1,19 @@
+from __future__ import annotations
+
 import datetime
 import logging
 import math
 import pathlib
+import tempfile
 import time
+import typing
+import zipfile
 
 import dateutil.parser
 
 from dsw.command_queue import CommandQueue, CommandWorker
 from dsw.config.sentry import SentryReporter
 from dsw.database.database import Database
-from dsw.database.model import PersistentCommand
 from dsw.storage import S3Storage
 
 from . import consts
@@ -18,6 +22,11 @@ from .config import MailConfig, MailerConfig, merge_mail_configs
 from .context import Context
 from .model import MessageRecipient, MessageRequest
 from .sender import send
+from .templates import TemplateRegistry
+
+
+if typing.TYPE_CHECKING:
+    from dsw.database.model import PersistentCommand
 
 
 LOG = logging.getLogger(__name__)
@@ -126,6 +135,7 @@ class Mailer(CommandWorker):
         app_ctx = Context.get().app
         params: dict = command.body.get('parameters', {})
         mail_config_uuid: str | None = params.get('mailConfigUuid')
+        custom_templates: bool = params.get('mailCustomTemplates', False)
         db_cfg = None
         if mail_config_uuid is not None:
             LOG.debug('Loading mail config from DB: %s', mail_config_uuid)
@@ -136,8 +146,22 @@ class Mailer(CommandWorker):
             cfg=self.cfg,
             db_cfg=db_cfg,
         )
+        mail_cfg.custom_templates = custom_templates
         LOG.debug('Mail config: %s', mail_cfg)
         return mail_cfg
+
+    def _prepare_custom_templates(self, tenant_uuid: str, destination: pathlib.Path):
+        zip_path = destination / 'mail-templates.zip'
+        # Download the zip file from S3
+        self.ctx.app.s3.download_mail_templates(
+            tenant_uuid=tenant_uuid,
+            target_path=zip_path,
+        )
+        # Extract the zip file
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            zip_ref.extractall(destination)
+        # Remove the zip file after extraction
+        zip_path.unlink()
 
     def work(self, command: PersistentCommand):
         # init Sentry info
@@ -178,7 +202,20 @@ class Mailer(CommandWorker):
         # render
         LOG.info('Rendering message: %s', rq.template_name)
         LOG.warning('Should send with locale: %s', rq.locale_uuid)
-        msg = self.ctx.templates.render(rq, cfg, Context.get().app)
+        if cfg.custom_templates:
+            with tempfile.TemporaryDirectory() as tmpdir:
+                templates_dir = pathlib.Path(tmpdir) / 'templates'
+                self._prepare_custom_templates(
+                    tenant_uuid=rq.tenant_uuid,
+                    destination=templates_dir,
+                )
+                templates = TemplateRegistry(
+                    cfg=self.ctx.app.cfg,
+                    workdir=templates_dir,
+                )
+                msg = templates.render(rq, cfg, Context.get().app)
+        else:
+            msg = self.ctx.templates.render(rq, cfg, Context.get().app)
         # send
         LOG.info('Sending message: %s', rq.template_name)
         send(msg, cfg)
@@ -245,7 +282,7 @@ class MailerCommand:
         }
 
     @staticmethod
-    def load(command: PersistentCommand) -> 'MailerCommand':
+    def load(command: PersistentCommand) -> MailerCommand:
         if command.component != consts.CMD_COMPONENT:
             raise RuntimeError('Tried to process non-mailer command')
         if command.function != consts.CMD_FUNCTION:

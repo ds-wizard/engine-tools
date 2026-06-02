@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import dataclasses
 import os
 import re
@@ -9,7 +11,7 @@ class Color:
     DEFAULT_ILLUSTRATIONS_HEX = os.getenv('DEFAULT_ILLUSTRATIONS_COLOR', '#4285f4')
 
     @staticmethod
-    def contrast_ratio(color1: 'Color', color2: 'Color') -> float:
+    def contrast_ratio(color1: Color, color2: Color) -> float:
         # https://www.w3.org/TR/WCAG20/#contrast-ratiodef
 
         l1 = color1.luminance + 0.05
@@ -63,7 +65,7 @@ class Color:
         return not self.is_dark
 
     @property
-    def contrast_color(self) -> 'Color':
+    def contrast_color(self) -> Color:
         if self.contrast_ratio(self, Color('#ffffff')) > 3:
             return Color('#ffffff')
         return Color('#000000')
@@ -140,7 +142,7 @@ class TemplateDescriptorPart:
                 setattr(self, target_field, self.DEFAULTS[''][field])
 
     @staticmethod
-    def load_from_file(data: dict) -> 'TemplateDescriptorPart':
+    def load_from_file(data: dict) -> TemplateDescriptorPart:
         part = TemplateDescriptorPart(
             part_type=data.get('type', 'unknown'),
             file=data.get('file', ''),
@@ -167,7 +169,7 @@ class TemplateDescriptor:
         self.modes = []  # type: list[str]
 
     @staticmethod
-    def load_from_file(data: dict) -> 'TemplateDescriptor':
+    def load_from_file(data: dict) -> TemplateDescriptor:
         result = TemplateDescriptor(
             message_id=data.get('id', ''),
             subject=data.get('subject', ''),
@@ -219,7 +221,7 @@ class MessageRequest:
         self.domain = urllib.parse.urlparse(self.client_url).hostname
 
     @staticmethod
-    def load_from_file(data: dict) -> 'MessageRequest':
+    def load_from_file(data: dict) -> MessageRequest:
         return MessageRequest(
             message_id=data['id'],
             template_name=data['type'],
@@ -246,8 +248,8 @@ class MailMessage:
     subject: str = ''
     plain_body: str | None = None
     html_body: str | None = None
-    html_images: list['MailAttachment'] = dataclasses.field(default_factory=list)
-    attachments: list['MailAttachment'] = dataclasses.field(default_factory=list)
+    html_images: list[MailAttachment] = dataclasses.field(default_factory=list)
+    attachments: list[MailAttachment] = dataclasses.field(default_factory=list)
     msg_id: str | None = None
     msg_domain: str | None = None
     language: str = 'en'

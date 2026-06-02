@@ -1,6 +1,6 @@
 [project]
 name = "dsw-document-worker"
-version = "4.30.2"
+version = "4.31.0"
 description = "Worker for assembling and transforming documents"
 readme = "README.md"
 keywords = ["documents", "generation", "jinja2", "pandoc", "worker"]
@@ -15,6 +15,7 @@ classifiers = [
     "Programming Language :: Python",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Text Processing",
 ]
 requires-python = ">=3.12, <4"
@@ -35,10 +36,10 @@ dependencies = [
     "weasyprint",
     "XlsxWriter",
     # DSW
-    "dsw-command-queue==4.30.2",
-    "dsw-config==4.30.2",
-    "dsw-database==4.30.2",
-    "dsw-storage==4.30.2",
+    "dsw-command-queue==4.31.0",
+    "dsw-config==4.31.0",
+    "dsw-database==4.31.0",
+    "dsw-storage==4.31.0",
 ]
 
 [project.urls]
@@ -51,7 +52,7 @@ Issues = "https://github.com/ds-wizard/ds-wizard/issues"
 dsw-document-worker = "dsw.document_worker:main"
 
 [build-system]
-requires = ["uv_build>=0.9.25,<0.10.0"]
+requires = ["uv_build>=0.11.0,<0.12.0"]
 build-backend = "uv_build"
 
 [tool.uv.build-backend]

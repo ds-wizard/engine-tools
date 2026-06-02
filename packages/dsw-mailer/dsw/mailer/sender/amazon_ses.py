@@ -1,10 +1,16 @@
+from __future__ import annotations
+
 import logging
+import typing
 
 import boto3
 
-from ..config import MailConfig
-from ..model import MailMessage
 from .base import BaseMailSender
+
+
+if typing.TYPE_CHECKING:
+    from ..config import MailConfig
+    from ..model import MailMessage
 
 
 LOG = logging.getLogger(__name__)

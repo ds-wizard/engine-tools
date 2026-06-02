@@ -1,5 +1,5 @@
 PIP = pip
-VERSION = 4.30.2
+VERSION = 4.31.0
 
 .PHONY: verify
 verify:
@@ -46,8 +46,8 @@ lambda-package:
 
 	# 2. Fix postgres library for Lambda
 	$(PIP) install --upgrade --target ./package --platform manylinux2014_x86_64 --implementation cp --only-binary=:all: "psycopg[binary]"
-	cp package/psycopg_binary/_psycopg.cpython-313-x86_64-linux-gnu.so package/psycopg/_psycopg.so
-	cp package/psycopg_binary/_psycopg.cpython-313-x86_64-linux-gnu.so package/psycopg_binary/_psycopg.so
+	cp package/psycopg_binary/_psycopg.cpython-314-x86_64-linux-gnu.so package/psycopg/_psycopg.so
+	cp package/psycopg_binary/_psycopg.cpython-314-x86_64-linux-gnu.so package/psycopg_binary/_psycopg.so
 
 	# 3. Clean up unnecessary files
 	find package -type d -name "tests" -exec rm -rf {} + || true

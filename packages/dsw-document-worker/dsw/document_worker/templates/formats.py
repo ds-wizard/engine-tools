@@ -1,8 +1,14 @@
+from __future__ import annotations
+
 import logging
+import typing
 
 from .. import consts
-from ..documents import DocumentFile
 from ..templates.steps import FormatStepError, Step, create_step
+
+
+if typing.TYPE_CHECKING:
+    from ..documents import DocumentFile
 
 
 LOG = logging.getLogger(__name__)

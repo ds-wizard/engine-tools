@@ -1,9 +1,9 @@
 [project]
 name = "engine-tools"
-version = "4.27.0"
+version = "4.30.0"
 description = "Python tools for DSW Engine"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.14"
 
 [project.urls]
 Homepage = "https://ds-wizard.org"
@@ -13,8 +13,9 @@ Issues = "https://github.com/ds-wizard/ds-wizard/issues"
 
 [dependency-groups]
 dev = [
-    "ruff==0.14.13",
-    "ty==0.0.12",
+    "ruff==0.15.12",
+    "tomlkit>=0.15.0",
+    "ty==0.0.35",
 ]
 
 [tool.uv.sources]
@@ -35,7 +36,7 @@ members = [ "packages/*" ]
 include = ["packages/*/dsw"]
 
 [tool.ruff]
-target-version = "py313"
+target-version = "py314"
 line-length = 100
 indent-width = 4
 include = ["packages/*/dsw/**/*.py"]

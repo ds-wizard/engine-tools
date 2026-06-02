@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 import datetime
 import logging
 import typing
+import zoneinfo
 
 import dateutil.parser as dp
 import jinja2
@@ -24,6 +27,20 @@ class _JinjaEnv:
         self._env: jinja2.Environment | None = None
 
     @property
+    def _j2_filters(self) -> typing.MutableMapping[str, typing.Any]:
+        return typing.cast(
+            'typing.MutableMapping[str, typing.Any]',
+            self.env.filters,
+        )
+
+    @property
+    def _j2_tests(self) -> typing.MutableMapping[str, typing.Any]:
+        return typing.cast(
+            'typing.MutableMapping[str, typing.Any]',
+            self.env.tests,
+        )
+
+    @property
     def env(self) -> jinja2.Environment:
         if self._env is None:
             self._env = JinjaEnvironment(
@@ -31,8 +48,8 @@ class _JinjaEnv:
                 extensions=['jinja2.ext.do'],
                 autoescape=True,
             )
-            self._env.filters.update(filters)
-            self._env.tests.update(tests)
+            self._j2_filters.update(filters)
+            self._j2_tests.update(tests)
         return self._env
 
     def get_template(self, template_str: str) -> jinja2.Template:
@@ -48,11 +65,15 @@ _romans = [(1000, 'M'), (900, 'CM'), (500, 'D'), (400, 'CD'), (100, 'C'), (90, '
            (50, 'L'), (40, 'XL'), (10, 'X'), (9, 'IX'), (5, 'V'), (4, 'IV'), (1, 'I')]
 
 
-def datetime_format(iso_timestamp: None | datetime.datetime | str, fmt: str):
+def datetime_format(iso_timestamp: None | datetime.datetime | str,
+                    fmt: str, tz: str = 'UTC') -> str:
     if iso_timestamp is None:
         return ''
     if not isinstance(iso_timestamp, datetime.datetime):
         iso_timestamp = dp.isoparse(iso_timestamp)
+    if iso_timestamp.tzinfo is None:
+        iso_timestamp = iso_timestamp.replace(tzinfo=zoneinfo.ZoneInfo('UTC'))
+    iso_timestamp = iso_timestamp.astimezone(tz=zoneinfo.ZoneInfo(tz))
     return iso_timestamp.strftime(fmt)
 
 

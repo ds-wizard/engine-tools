@@ -1,6 +1,6 @@
-import datetime
+from __future__ import annotations
+
 import typing
-from uuid import UUID
 
 import pydantic
 
@@ -13,6 +13,11 @@ from .common import (
     TQuestionValueType,
     TypeHintExchange,
 )
+
+
+if typing.TYPE_CHECKING:
+    from datetime import datetime
+    from uuid import UUID
 
 
 T = typing.TypeVar('T')
@@ -568,5 +573,5 @@ class Event(BaseModel):
     uuid: UUID
     entity_uuid: UUID
     parent_uuid: UUID
-    created_at: datetime.datetime
+    created_at: datetime
     content: EventContent

@@ -1,14 +1,18 @@
+from __future__ import annotations
+
 import logging
 import typing
 
 import sentry_sdk
 from sentry_sdk.integrations.logging import LoggingIntegration
-from sentry_sdk.types import Event, Hint
-
-from .model import SentryConfig
 
 
-EventProcessor = typing.Callable[[Event, Hint], Event | None]
+if typing.TYPE_CHECKING:
+    from sentry_sdk.types import Event, Hint
+
+    from .model import SentryConfig
+
+    EventProcessor = typing.Callable[[Event, Hint], Event | None]
 
 
 class SentryReporter:

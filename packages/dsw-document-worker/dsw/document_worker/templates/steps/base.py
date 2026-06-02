@@ -1,4 +1,10 @@
-from ...documents import DocumentFile
+from __future__ import annotations
+
+import typing
+
+
+if typing.TYPE_CHECKING:
+    from ...documents import DocumentFile
 
 
 class FormatStepError(Exception):
