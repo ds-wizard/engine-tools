@@ -365,7 +365,7 @@ wheels = [
 
 [[package]]
 name = "dsw-command-queue"
-version = "4.31.0rc1"
+version = "4.31.0"
 source = { editable = "packages/dsw-command-queue" }
 dependencies = [
     { name = "dsw-database" },
@@ -382,7 +382,7 @@ requires-dist = [
 
 [[package]]
 name = "dsw-config"
-version = "4.31.0rc1"
+version = "4.31.0"
 source = { editable = "packages/dsw-config" }
 dependencies = [
     { name = "pyyaml" },
@@ -397,7 +397,7 @@ requires-dist = [
 
 [[package]]
 name = "dsw-data-seeder"
-version = "4.31.0rc1"
+version = "4.31.0"
 source = { editable = "packages/dsw-data-seeder" }
 dependencies = [
     { name = "click" },
@@ -424,7 +424,7 @@ requires-dist = [
 
 [[package]]
 name = "dsw-database"
-version = "4.31.0rc1"
+version = "4.31.0"
 source = { editable = "packages/dsw-database" }
 dependencies = [
     { name = "dsw-config" },
@@ -441,7 +441,7 @@ requires-dist = [
 
 [[package]]
 name = "dsw-document-worker"
-version = "4.31.0rc1"
+version = "4.31.0"
 source = { editable = "packages/dsw-document-worker" }
 dependencies = [
     { name = "click" },
@@ -490,7 +490,7 @@ requires-dist = [
 
 [[package]]
 name = "dsw-mailer"
-version = "4.31.0rc1"
+version = "4.31.0"
 source = { editable = "packages/dsw-mailer" }
 dependencies = [
     { name = "boto3" },
@@ -529,7 +529,7 @@ requires-dist = [
 
 [[package]]
 name = "dsw-models"
-version = "4.31.0rc1"
+version = "4.31.0"
 source = { editable = "packages/dsw-models" }
 dependencies = [
     { name = "pydantic" },
@@ -540,7 +540,7 @@ requires-dist = [{ name = "pydantic" }]
 
 [[package]]
 name = "dsw-storage"
-version = "4.31.0rc1"
+version = "4.31.0"
 source = { editable = "packages/dsw-storage" }
 dependencies = [
     { name = "dsw-config" },
@@ -557,7 +557,7 @@ requires-dist = [
 
 [[package]]
 name = "dsw-tdk"
-version = "4.31.0rc1"
+version = "4.31.0"
 source = { editable = "packages/dsw-tdk" }
 dependencies = [
     { name = "aiohttp" },
@@ -601,6 +601,7 @@ source = { virtual = "." }
 [package.dev-dependencies]
 dev = [
     { name = "ruff" },
+    { name = "tomlkit" },
     { name = "ty" },
 ]
 
@@ -609,6 +610,7 @@ dev = [
 [package.metadata.requires-dev]
 dev = [
     { name = "ruff", specifier = "==0.15.12" },
+    { name = "tomlkit", specifier = ">=0.15.0" },
     { name = "ty", specifier = "==0.0.35" },
 ]
 
@@ -1324,6 +1326,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/b1/1f/cfe2f6b30557c92b3f31d41707e09cef5c1efbd87392bc6c0430c46b0e4d/tinyhtml5-2.1.0.tar.gz", hash = "sha256:60a50ec3d938a37e491efa01af895853060943dcebb5627de5b10d188b338a67", size = 179242, upload-time = "2026-03-05T17:06:30.704Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/52/48/01695a036b695f83fea7aef6955d735db0f517b1c8e25ddb399ac0bdbcbf/tinyhtml5-2.1.0-py3-none-any.whl", hash = "sha256:6e11cfff38515834268daf89d5f85bbde0b6dd02e8d9e212d1385c2289b89f0a", size = 39686, upload-time = "2026-03-05T17:06:28.498Z" },
+]
+
+[[package]]
+name = "tomlkit"
+version = "0.15.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/51/db/03eaf4331631ef6b27d6e3c9b68c54dc6f0d63d87201fed600cc409307fd/tomlkit-0.15.0.tar.gz", hash = "sha256:7d1a9ecba3086638211b13814ea79c90dd54dd11993564376f3aa92271f5c7a3", size = 161875, upload-time = "2026-05-10T07:38:22.245Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/6a/43/8bd850ee71a191bf072e31302c73a66be413fecdd98fdcd111ecbcce13ca/tomlkit-0.15.0-py3-none-any.whl", hash = "sha256:4dbc8f0fc024412b57ced8757ac7461305126a648ff8c2c807fcb8e133a78738", size = 41328, upload-time = "2026-05-10T07:38:23.517Z" },
 ]
 
 [[package]]
