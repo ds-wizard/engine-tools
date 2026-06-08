@@ -92,7 +92,7 @@ class TDKCore:
     def remote_editor_url(self) -> str:
         if self.remote_uuid is None:
             raise RuntimeError('Remote template draft is not linked (yet)')
-        return f'{self.safe_client.api_url}/document-template-editors/{self.remote_uuid}'
+        return f'{self.safe_client.client_url}/document-template-editors/{self.remote_uuid}'
 
     @property
     def safe_template(self) -> Template:

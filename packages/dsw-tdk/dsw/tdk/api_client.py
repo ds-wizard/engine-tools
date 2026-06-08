@@ -90,8 +90,8 @@ class WizardAPIClient:
             api_url (str): URL of DSW API for HTTP communication.
             session (aiohttp.ClientSession): Optional custom session for HTTP communication.
         """
-        self.api_url = api_url
-        self.client_url = api_url[:-4]
+        self.api_url = api_url.rstrip('/')
+        self.client_url = self.api_url.replace('/wizard-api', '/wizard')
         self.token = api_key
         self.session = session or aiohttp.ClientSession(
             connector=aiohttp.TCPConnector(ssl=False),
