@@ -53,7 +53,7 @@ class MailTemplate:
         msg = MailMessage()
         msg.recipients = [r.email for r in rq.recipients]
 
-        subject = self.subject_template.render()
+        subject = self.subject_template.render(ctx=ctx)
 
         if self.descriptor.use_subject_prefix:
             subject_prefix = ctx.get('appTitle', None) or mail_name
