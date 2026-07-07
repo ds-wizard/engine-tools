@@ -1,6 +1,6 @@
 [project]
 name = "dsw-mailer"
-version = "4.31.0"
+version = "4.32.0"
 description = "Worker for sending email notifications"
 readme = "README.md"
 keywords = ["email", "jinja2", "notification", "template"]
@@ -31,10 +31,10 @@ dependencies = [
     "sentry-sdk",
     "tenacity",
     # DSW
-    "dsw-command-queue==4.31.0",
-    "dsw-config==4.31.0",
-    "dsw-database==4.31.0",
-    "dsw-storage==4.31.0",
+    "dsw-command-queue==4.32.0",
+    "dsw-config==4.32.0",
+    "dsw-database==4.32.0",
+    "dsw-storage==4.32.0",
 ]
 
 [project.urls]
