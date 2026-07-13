@@ -7,6 +7,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- Replaced the `minio` client with `boto3` for S3 storage access
 
 ## [4.32.0]
 
