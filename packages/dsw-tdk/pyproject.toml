@@ -36,6 +36,8 @@ dependencies = [
 [project.optional-dependencies]
 test = [
     "pytest",
+    "pytest-recording",
+    "vcrpy",
 ]
 
 [project.urls]

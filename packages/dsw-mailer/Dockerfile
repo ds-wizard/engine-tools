@@ -2,9 +2,12 @@ FROM datastewardshipwizard/python-base:4.32.0-basic AS builder
 
 WORKDIR /app
 
+COPY --from=ghcr.io/astral-sh/uv:0.11.28 /uv /bin/uv
+
 COPY . /app
 
-RUN python -m pip wheel --no-cache-dir --wheel-dir=/app/wheels -r /app/packages/dsw-mailer/requirements.txt \
+RUN uv export --frozen --no-dev --no-emit-workspace --no-hashes --package dsw-mailer -o /app/requirements.txt \
+ && python -m pip wheel --no-cache-dir --wheel-dir=/app/wheels -r /app/requirements.txt \
  && python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/app/wheels /app/packages/dsw-config \
  && python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/app/wheels /app/packages/dsw-command-queue \
  && python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/app/wheels /app/packages/dsw-database \
