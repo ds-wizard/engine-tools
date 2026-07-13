@@ -5,6 +5,11 @@ method with the owners of this repository before making a change.
 
 ## Development and Code Style
 
+- Set up the development environment with `make install` (creates the [uv](https://docs.astral.sh/uv/) workspace
+  environment via `uv sync` and generates the build info)
+- Dependencies are managed exclusively through `uv`: declare them in the relevant `pyproject.toml` and run
+  `make lock` (or `make upgrade` to bump within constraints). `uv.lock` is the single source of truth — there are
+  no hand-maintained `requirements.txt` files
 - Use Python version conforming the specification in `pyproject.toml`
 - Use type annotations and verify it with `mypy`
 - Code should comply with `PEP8` and additional checks made by `flake8` (see CI)
@@ -24,8 +29,10 @@ A new package can be created by adding a subdirectory of `packages/`:
 * All packages should use the namespace module `dsw` (without `__init__.py` according to 
   [PEP420](https://peps.python.org/pep-0420/)).
 * Add basic files related to OSS: `CHANGELOG.md`, `LICENSE`, `README.md`
-* Add Python package files: `pyproject.toml` ([setuptools](https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html)),
-  `requirements.txt`, and `setup.py` (see existing packages for reference)
+* Add the package's `pyproject.toml` using the `uv_build` backend and declare runtime dependencies under
+  `[project.dependencies]` (see existing packages for reference); do not add `requirements.txt` or `setup.py`
+* Register the package in the root `pyproject.toml`: it is picked up by `[tool.uv.workspace]` members (`packages/*`),
+  and if other packages depend on it, add it to `[tool.uv.sources]` as `{ workspace = true }`; then run `make lock`
 * Add `Makefile` (see existing packages for reference)
 * Adjust CI workflows under `.github/` to build, test, and eventually release the package correctly
 * Add link to the root `README.md`

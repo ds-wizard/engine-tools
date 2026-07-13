@@ -24,6 +24,7 @@ dependencies = [
     "Jinja2",
     "Markdown",
     "MarkupSafe",
+    "panflute",  # required by the pandoc-docx-pagebreak addon
     "pathvalidate",
     "pluggy",
     "python-dateutil",

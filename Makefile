@@ -8,12 +8,16 @@ clean:
 
 .PHONY: install
 install:
-	./scripts/prepare-dev.sh --clean
+	uv sync --all-packages --all-extras --dev --group test --group translations
 	./scripts/build-info.sh
 
-.PHONY: dev-install
-dev-install:
-	pip install -r requirements.dev.txt
+.PHONY: lock
+lock:
+	uv lock
+
+.PHONY: upgrade
+upgrade:
+	uv lock --upgrade
 
 .PHONY: spelling
 spelling:

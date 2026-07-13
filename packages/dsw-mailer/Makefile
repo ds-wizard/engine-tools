@@ -1,18 +1,10 @@
-PIP = pip
+PIP = uv pip
 VERSION = 4.32.0
 
 .PHONY: verify
 verify:
 	@echo "Executing command: dsw-mailer --version"
 	@dsw-mailer --version
-
-.PHONY: local-deps
-local-deps:
-	@echo "Installing local dependencies"
-	$(PIP) install ../dsw-config
-	$(PIP) install ../dsw-database
-	$(PIP) install ../dsw-command-queue
-	$(PIP) install ../dsw-storage
 
 .PHONY: docker-image-name
 docker-image-name:
@@ -22,34 +14,38 @@ docker-image-name:
 test:
 	@echo "No tests for this package"
 
-.PHONY: lambda-package-requirements
-lambda-package-requirements:
-	$(PIP) install --upgrade --target ./package -r $(FILE) --no-cache-dir
+.PHONY: lambda-deps
+lambda-deps:
+	uv export --frozen --no-dev --no-emit-workspace --no-hashes \
+		--package dsw-mailer -o requirements.lambda.txt
+	$(PIP) install --upgrade --target ./package --no-cache -r requirements.lambda.txt
+	rm -f requirements.lambda.txt
 
-.PHONY: lambda-dependency
-lambda-dependency:
-	$(MAKE) lambda-package-requirements FILE=../$(PKG)/requirements.txt
+.PHONY: lambda-vendor
+lambda-vendor:
 	cp -R ../$(PKG)/dsw ./package
 
 .PHONY: lambda-package
 lambda-package:
 	$(MAKE) clean
 
-	# 1. Install and copy DSW packages
+	# 1. Install third-party dependencies (resolved from uv.lock)
 	mkdir package
-	$(MAKE) lambda-package-requirements FILE=../../requirements.txt
-	$(MAKE) lambda-dependency PKG=dsw-command-queue
-	$(MAKE) lambda-dependency PKG=dsw-config
-	$(MAKE) lambda-dependency PKG=dsw-database
-	$(MAKE) lambda-dependency PKG=dsw-storage
-	$(MAKE) lambda-dependency PKG=dsw-mailer
+	$(MAKE) lambda-deps
 
-	# 2. Fix postgres library for Lambda
-	$(PIP) install --upgrade --target ./package --platform manylinux2014_x86_64 --implementation cp --only-binary=:all: "psycopg[binary]"
+	# 2. Vendor DSW package sources
+	$(MAKE) lambda-vendor PKG=dsw-command-queue
+	$(MAKE) lambda-vendor PKG=dsw-config
+	$(MAKE) lambda-vendor PKG=dsw-database
+	$(MAKE) lambda-vendor PKG=dsw-storage
+	$(MAKE) lambda-vendor PKG=dsw-mailer
+
+	# 3. Fix postgres library for Lambda
+	$(PIP) install --upgrade --target ./package --python-platform x86_64-manylinux2014 --only-binary :all: "psycopg[binary]"
 	cp package/psycopg_binary/_psycopg.cpython-314-x86_64-linux-gnu.so package/psycopg/_psycopg.so
 	cp package/psycopg_binary/_psycopg.cpython-314-x86_64-linux-gnu.so package/psycopg_binary/_psycopg.so
 
-	# 3. Clean up unnecessary files
+	# 4. Clean up unnecessary files
 	find package -type d -name "tests" -exec rm -rf {} + || true
 	find package -type d -name "__pycache__" -exec rm -rf {} + || true
 	find package -type d -name "*.dist-info" -exec rm -rf {} + || true
@@ -58,7 +54,7 @@ lambda-package:
 	find package -type f -name "*.pyo" -delete || true
 	find package -type f -name "*.so" -exec strip --strip-debug {} + || true
 
-	# 4. Package the ZIP and clean
+	# 5. Package the ZIP and clean
 	cd package && zip -r ../mailer-lambda.zip .
 	rm -rf package
 

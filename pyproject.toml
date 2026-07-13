@@ -17,6 +17,14 @@ dev = [
     "tomlkit>=0.15.0",
     "ty==0.0.35",
 ]
+test = [
+    "pytest",
+    "pytest-recording",
+    "vcrpy",
+]
+translations = [
+    "babel==2.17.0",
+]
 
 [tool.uv.sources]
 dsw-command-queue = { workspace = true }

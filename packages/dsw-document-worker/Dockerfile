@@ -4,12 +4,15 @@ ARG TARGETARCH
 
 WORKDIR /app
 
+COPY --from=ghcr.io/astral-sh/uv:0.11.28 /uv /bin/uv
+
 COPY . /app
 
 RUN apk add -u build-base gcc font-noto-emoji \
  && clean
 
-RUN python -m pip wheel --wheel-dir=/app/wheels -r /app/packages/dsw-document-worker/requirements.txt \
+RUN uv export --frozen --no-dev --no-emit-workspace --no-hashes --package dsw-document-worker -o /app/requirements.txt \
+ && python -m pip wheel --wheel-dir=/app/wheels -r /app/requirements.txt \
  && python -m pip wheel --no-deps --wheel-dir=/app/wheels /app/packages/dsw-command-queue \
  && python -m pip wheel --no-deps --wheel-dir=/app/wheels /app/packages/dsw-config \
  && python -m pip wheel --no-deps --wheel-dir=/app/wheels /app/packages/dsw-database \
