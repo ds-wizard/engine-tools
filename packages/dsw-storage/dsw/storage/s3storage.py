@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-import contextlib
-import io
 import logging
-import tempfile
 import typing
 
-import minio
-import minio.error
+import boto3
+import botocore.client
+import botocore.exceptions
 import tenacity
 
 
@@ -24,37 +22,38 @@ DOCUMENTS_DIR = 'documents'
 RETRY_S3_MULTIPLIER = 0.5
 RETRY_S3_TRIES = 3
 
-
-@contextlib.contextmanager
-def temp_binary_file(data: bytes):
-    with tempfile.TemporaryFile() as file:
-        file.write(data)
-        file.seek(0)
-        yield file
-        file.close()
+_NOT_FOUND_CODES = frozenset({'NoSuchKey', 'NoSuchBucket', '404'})
 
 
 class S3Storage:
 
-    @staticmethod
-    def _get_endpoint(url: str):
-        parts = url.split('://', maxsplit=1)
-        return parts[0] if len(parts) == 1 else parts[1]
-
     def __init__(self, *, cfg: S3Config, multi_tenant: bool):
         self.cfg = cfg
         self.multi_tenant = multi_tenant
-        self.client = minio.Minio(
-            endpoint=self._get_endpoint(self.cfg.url),
-            access_key=self.cfg.username,
-            secret_key=self.cfg.password,
-            secure=self.cfg.url.startswith('https://'),
-            region=self.cfg.region,
+        self.client = boto3.client(
+            's3',
+            endpoint_url=self.cfg.url,
+            aws_access_key_id=self.cfg.username,
+            aws_secret_access_key=self.cfg.password,
+            region_name=self.cfg.region,
+            config=botocore.client.Config(
+                signature_version='s3v4',
+                s3={'addressing_style': 'path'},
+            ),
         )
 
     @property
     def identification(self) -> str:
         return f'{self.cfg.url}/{self.cfg.bucket}'
+
+    def _bucket_exists(self) -> bool:
+        try:
+            self.client.head_bucket(Bucket=self.cfg.bucket)
+        except botocore.exceptions.ClientError as e:
+            if e.response.get('Error', {}).get('Code') in _NOT_FOUND_CODES:
+                return False
+            raise
+        return True
 
     @tenacity.retry(
         reraise=True,
@@ -64,9 +63,18 @@ class S3Storage:
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
     def ensure_bucket(self):
-        found = self.client.bucket_exists(self.cfg.bucket)
-        if not found:
-            self.client.make_bucket(self.cfg.bucket)
+        if self._bucket_exists():
+            return
+        kwargs: dict = {'Bucket': self.cfg.bucket}
+        # AWS S3 requires an explicit LocationConstraint for any region other
+        # than us-east-1; S3-compatible servers (e.g. MinIO) are region-agnostic
+        # and can reject a constraint that doesn't match their configured region.
+        is_aws = 'amazonaws.com' in self.cfg.url
+        if is_aws and self.cfg.region and self.cfg.region != 'us-east-1':
+            kwargs['CreateBucketConfiguration'] = {
+                'LocationConstraint': self.cfg.region,
+            }
+        self.client.create_bucket(**kwargs)
 
     @tenacity.retry(
         reraise=True,
@@ -81,15 +89,12 @@ class S3Storage:
         object_name = f'{DOCUMENTS_DIR}/{file_name}'
         if self.multi_tenant:
             object_name = f'{tenant_uuid}/{object_name}'
-        with temp_binary_file(data=data) as file:
-            self.client.put_object(
-                bucket_name=self.cfg.bucket,
-                object_name=object_name,
-                data=file,
-                length=len(data),
-                content_type=content_type,
-                metadata=metadata,
-            )
+        self._put_object(
+            object_name=object_name,
+            content_type=content_type,
+            data=data,
+            metadata=metadata,
+        )
 
     @tenacity.retry(
         reraise=True,
@@ -162,15 +167,15 @@ class S3Storage:
         if self.multi_tenant:
             file_name = f'{tenant_uuid}/{file_name}'
         try:
-            self.client.fget_object(
-                bucket_name=self.cfg.bucket,
-                object_name=file_name,
-                file_path=str(target_path),
+            self.client.download_file(
+                Bucket=self.cfg.bucket,
+                Key=file_name,
+                Filename=str(target_path),
             )
-        except minio.error.S3Error as e:
-            if e.code != 'NoSuchKey':
-                raise e
-            return False
+        except botocore.exceptions.ClientError as e:
+            if e.response.get('Error', {}).get('Code') in _NOT_FOUND_CODES:
+                return False
+            raise
         return True
 
     @tenacity.retry(
@@ -185,15 +190,24 @@ class S3Storage:
                      metadata: dict | None = None):
         if self.multi_tenant:
             object_name = f'{tenant_uuid}/{object_name}'
-        with io.BytesIO(data) as file:
-            self.client.put_object(
-                bucket_name=self.cfg.bucket,
-                object_name=object_name,
-                data=file,
-                length=len(data),
-                content_type=content_type,
-                metadata=metadata,
-            )
+        self._put_object(
+            object_name=object_name,
+            content_type=content_type,
+            data=data,
+            metadata=metadata,
+        )
+
+    def _put_object(self, *, object_name: str, content_type: str,
+                    data: bytes, metadata: dict | None):
+        kwargs: dict = {
+            'Bucket': self.cfg.bucket,
+            'Key': object_name,
+            'Body': data,
+            'ContentType': content_type,
+        }
+        if metadata:
+            kwargs['Metadata'] = {str(k): str(v) for k, v in metadata.items()}
+        self.client.put_object(**kwargs)
 
     def make_path(self, fragments: list[str], tenant_uuid: str) -> str:
         lst = []

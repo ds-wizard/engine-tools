@@ -20,7 +20,7 @@ classifiers = [
 ]
 requires-python = ">=3.12, <4"
 dependencies = [
-    "minio",
+    "boto3",
     "tenacity",
     # DSW
     "dsw-config==4.32.0",
