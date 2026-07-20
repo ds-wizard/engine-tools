@@ -53,6 +53,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: [package]
 
+    permissions:
+      contents: read
+      packages: write
+
     strategy:
       fail-fast: false
       matrix:
@@ -63,6 +67,7 @@ jobs:
           - dsw-tdk
 
     env:
+      IMAGE_PREFIX: 'ghcr.io/ds-wizard'
       PUBLIC_IMAGE_PREFIX: 'datastewardshipwizard'
       DOCKER_META_CONTEXT: '.'
       DOCKER_META_FILE: './packages/${{ matrix.package }}/Dockerfile'
@@ -75,11 +80,11 @@ jobs:
           fetch-depth: 0
 
     - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
+      uses: docker/setup-qemu-action@v4
 
     - name: Set up Docker Buildx
       id: buildx
-      uses: docker/setup-buildx-action@v3
+      uses: docker/setup-buildx-action@v4
 
     - name: Get Docker image name
       id: docker-image-name
@@ -95,15 +100,15 @@ jobs:
     # TEST DOCKER IMAGE BUILD
     - name: Docker meta [test]
       id: meta-test
-      uses: docker/metadata-action@v5
+      uses: docker/metadata-action@v6
       with:
         images: |
-          ${{ env.PUBLIC_IMAGE_PREFIX }}/${{ steps.docker-image-name.outputs.NAME }}
+          ${{ env.IMAGE_PREFIX }}/${{ steps.docker-image-name.outputs.NAME }}
         tags: |
           type=sha
 
     - name: Docker build [test]
-      uses: docker/build-push-action@v6
+      uses: docker/build-push-action@v7
       with:
         context: ${{ env.DOCKER_META_CONTEXT }}
         file: ${{ env.DOCKER_META_FILE }}
@@ -113,9 +118,17 @@ jobs:
         labels: ${{ steps.meta-test.outputs.labels }}
 
     # PREPARE
+    - name: Docker login [ghcr.io]
+      if: github.event_name != 'pull_request'
+      uses: docker/login-action@v4
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
     - name: Docker login [docker.io]
       if: github.event_name != 'pull_request'
-      uses: docker/login-action@v3
+      uses: docker/login-action@v4
       with:
         username: ${{ secrets.DOCKER_HUB_USERNAME }}
         password: ${{ secrets.DOCKER_HUB_PASSWORD }}
@@ -124,15 +137,15 @@ jobs:
     - name: Docker meta [dev]
       id: meta-dev
       if: github.event_name != 'pull_request'
-      uses: docker/metadata-action@v5
+      uses: docker/metadata-action@v6
       with:
         images: |
-          ${{ secrets.DOCKER_HUB_USERNAME }}/${{ steps.docker-image-name.outputs.NAME }}
+          ${{ env.IMAGE_PREFIX }}/${{ steps.docker-image-name.outputs.NAME }}
         tags: |
           type=ref,event=branch
 
     - name: Docker build+push [dev]
-      uses: docker/build-push-action@v6
+      uses: docker/build-push-action@v7
       if: github.event_name != 'pull_request' && steps.meta-dev.outputs.tags != ''
       with:
         context: ${{ env.DOCKER_META_CONTEXT }}
@@ -146,11 +159,10 @@ jobs:
     - name: Docker meta [public]
       id: meta-public
       if: github.event_name != 'pull_request'
-      uses: docker/metadata-action@v5
+      uses: docker/metadata-action@v6
       with:
         images: |
           ${{ env.PUBLIC_IMAGE_PREFIX }}/${{ steps.docker-image-name.outputs.NAME }}
-          ${{ secrets.DOCKER_HUB_USERNAME }}/${{ steps.docker-image-name.outputs.NAME }}
         tags: |
           type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
           type=semver,pattern={{version}}
@@ -158,7 +170,7 @@ jobs:
           type=semver,pattern={{major}},enable=${{ !startsWith(github.ref, 'refs/tags/v0.') }}
 
     - name: Docker build+push [public]
-      uses: docker/build-push-action@v6
+      uses: docker/build-push-action@v7
       if: github.event_name != 'pull_request' && steps.meta-public.outputs.tags != ''
       with:
         context: ${{ env.DOCKER_META_CONTEXT }}
@@ -173,6 +185,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: [package]
 
+    permissions:
+      contents: read
+      packages: write
+
     strategy:
       fail-fast: false
       matrix:
@@ -180,6 +196,7 @@ jobs:
           - dsw-document-worker
 
     env:
+      IMAGE_PREFIX: 'ghcr.io/${{ github.repository_owner }}'
       PUBLIC_IMAGE_PREFIX: 'datastewardshipwizard'
       DOCKER_META_CONTEXT: '.'
       DOCKER_META_FILE: './packages/${{ matrix.package }}/lambda.Dockerfile'
@@ -193,11 +210,11 @@ jobs:
           fetch-depth: 0
 
     - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
+      uses: docker/setup-qemu-action@v4
 
     - name: Set up Docker Buildx
       id: buildx
-      uses: docker/setup-buildx-action@v3
+      uses: docker/setup-buildx-action@v4
 
     - name: Get Docker image name
       id: docker-image-name
@@ -213,17 +230,17 @@ jobs:
     # TEST DOCKER IMAGE BUILD
     - name: Docker meta [test]
       id: meta-test
-      uses: docker/metadata-action@v5
+      uses: docker/metadata-action@v6
       with:
         images: |
-          ${{ env.PUBLIC_IMAGE_PREFIX }}/${{ steps.docker-image-name.outputs.NAME }}
+          ${{ env.IMAGE_PREFIX }}/${{ steps.docker-image-name.outputs.NAME }}
         tags: |
           type=sha
         flavor: |
             suffix=${{ env.DOCKER_META_SUFFIX_LAMBDA }}
 
     - name: Docker build [test]
-      uses: docker/build-push-action@v6
+      uses: docker/build-push-action@v7
       with:
         context: ${{ env.DOCKER_META_CONTEXT }}
         file: ${{ env.DOCKER_META_FILE }}
@@ -233,9 +250,17 @@ jobs:
         labels: ${{ steps.meta-test.outputs.labels }}
 
     # PREPARE
+    - name: Docker login [ghcr.io]
+      if: github.event_name != 'pull_request'
+      uses: docker/login-action@v4
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
     - name: Docker login [docker.io]
       if: github.event_name != 'pull_request'
-      uses: docker/login-action@v3
+      uses: docker/login-action@v4
       with:
         username: ${{ secrets.DOCKER_HUB_USERNAME }}
         password: ${{ secrets.DOCKER_HUB_PASSWORD }}
@@ -244,17 +269,17 @@ jobs:
     - name: Docker meta [dev]
       id: meta-dev
       if: github.event_name != 'pull_request'
-      uses: docker/metadata-action@v5
+      uses: docker/metadata-action@v6
       with:
         images: |
-          ${{ secrets.DOCKER_HUB_USERNAME }}/${{ steps.docker-image-name.outputs.NAME }}
+          ${{ env.IMAGE_PREFIX }}/${{ steps.docker-image-name.outputs.NAME }}
         tags: |
           type=ref,event=branch
         flavor: |
             suffix=${{ env.DOCKER_META_SUFFIX_LAMBDA }}
 
     - name: Docker build+push [dev]
-      uses: docker/build-push-action@v6
+      uses: docker/build-push-action@v7
       if: github.event_name != 'pull_request' && steps.meta-dev.outputs.tags != ''
       with:
         context: ${{ env.DOCKER_META_CONTEXT }}
@@ -268,11 +293,10 @@ jobs:
     - name: Docker meta [public]
       id: meta-public
       if: github.event_name != 'pull_request'
-      uses: docker/metadata-action@v5
+      uses: docker/metadata-action@v6
       with:
         images: |
           ${{ env.PUBLIC_IMAGE_PREFIX }}/${{ steps.docker-image-name.outputs.NAME }}
-          ${{ secrets.DOCKER_HUB_USERNAME }}/${{ steps.docker-image-name.outputs.NAME }}
         tags: |
           type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
           type=semver,pattern={{version}}
@@ -282,7 +306,7 @@ jobs:
             suffix=${{ env.DOCKER_META_SUFFIX_LAMBDA }}
 
     - name: Docker build+push [public]
-      uses: docker/build-push-action@v6
+      uses: docker/build-push-action@v7
       if: github.event_name != 'pull_request' && steps.meta-public.outputs.tags != ''
       with:
         context: ${{ env.DOCKER_META_CONTEXT }}
