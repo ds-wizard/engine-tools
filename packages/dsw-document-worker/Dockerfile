@@ -1,4 +1,4 @@
-FROM datastewardshipwizard/python-base:4.32.0-docworker AS builder
+FROM ghcr.io/ds-wizard/python-base:4.32.0-docworker AS builder
 
 ARG TARGETARCH
 
@@ -20,7 +20,7 @@ RUN uv export --frozen --no-dev --no-emit-workspace --no-hashes --package dsw-do
  && python -m pip wheel --no-deps --wheel-dir=/app/wheels /app/packages/dsw-document-worker/addons/* \
  && python -m pip wheel --no-deps --wheel-dir=/app/wheels /app/packages/dsw-document-worker
 
-FROM datastewardshipwizard/python-base:4.32.0-docworker
+FROM ghcr.io/ds-wizard/python-base:4.32.0-docworker
 
 ENV APPLICATION_CONFIG_PATH=/app/config/application.yml \
     WORKDIR_PATH=/tmp/docworker \

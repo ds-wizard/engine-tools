@@ -1,4 +1,4 @@
-FROM datastewardshipwizard/python-base:4.32.0-basic AS builder
+FROM ghcr.io/ds-wizard/python-base:4.32.0-basic AS builder
 
 WORKDIR /app
 
@@ -14,7 +14,7 @@ RUN uv export --frozen --no-dev --no-emit-workspace --no-hashes --package dsw-ma
  && python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/app/wheels /app/packages/dsw-storage \
  && python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/app/wheels /app/packages/dsw-mailer
 
-FROM datastewardshipwizard/python-base:4.32.0-basic
+FROM ghcr.io/ds-wizard/python-base:4.32.0-basic
 
 ENV APPLICATION_CONFIG_PATH=/app/config/application.yml \
     WORKDIR_PATH=/home/user/templates \

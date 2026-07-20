@@ -1,4 +1,4 @@
-FROM datastewardshipwizard/python-base:4.29.0-basic AS builder
+FROM ghcr.io/ds-wizard/python-base:4.29.0-basic AS builder
 
 WORKDIR /app
 
@@ -11,7 +11,7 @@ RUN uv export --frozen --no-dev --no-emit-workspace --no-hashes --package dsw-td
  && python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/app/wheels /app/packages/dsw-tdk
 
 
-FROM datastewardshipwizard/python-base:4.29.0-basic
+FROM ghcr.io/ds-wizard/python-base:4.29.0-basic
 
 ENV PATH="/home/user/.local/bin:$PATH"
 
