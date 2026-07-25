@@ -1837,13 +1837,14 @@ class ProjectFile:
 class Project:
 
     def __init__(self, *, uuid: str, name: str, description: str | None,
-                 created_by: User, phase_uuid: str | None,
+                 created_by: User, phase_uuid: str | None, language: str | None,
                  created_at: datetime, updated_at: datetime):
         self.uuid = uuid
         self.name = name
         self.description = description
         self.created_by = created_by
         self.phase_uuid = phase_uuid
+        self.language: str | None = language
         self.created_at = created_at
         self.updated_at = updated_at
 
@@ -1881,6 +1882,7 @@ class Project:
             description=data['description'] or '',
             created_by=User.load(data['createdBy'], **options),
             phase_uuid=data['phaseUuid'],
+            language=data.get('language'),
             created_at=_datetime(data['createdAt']),
             updated_at=_datetime(data['updatedAt']),
         )
@@ -1896,13 +1898,14 @@ class Project:
 class KnowledgeModelPackage:
 
     def __init__(self, *, org_id: str, km_id: str, version: str, versions: list[str],
-                 name: str, description: str, created_at: datetime):
+                 name: str, description: str, language: str, created_at: datetime):
         self.organization_id = org_id
         self.km_id = km_id
         self.version = version
         self.versions = versions
         self.name = name
         self.description = description
+        self.language = language
         self.created_at = created_at
 
         self.id: str = f'{org_id}:{km_id}:{version}'
@@ -1920,6 +1923,7 @@ class KnowledgeModelPackage:
             versions=data['versions'],
             name=data['name'],
             description=data.get('description', ''),
+            language=data.get('language', 'en'),
             created_at=_datetime(data['createdAt']),
         )
 

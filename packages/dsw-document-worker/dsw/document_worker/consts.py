@@ -14,7 +14,7 @@ PLUGINS_ENTRYPOINT = 'dsw_document_worker_plugins'
 PROG_NAME = 'docworker'
 
 CURRENT_METAMODEL_MAJOR = 18
-CURRENT_METAMODEL_MINOR = 1
+CURRENT_METAMODEL_MINOR = 2
 
 try:
     __version__ = version(PACKAGE_NAME)
