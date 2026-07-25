@@ -25,7 +25,7 @@ jobs:
         uv run --no-sync make pot
 
     - name: Upload POT files
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
         name: mail-pot-files
         path: |
