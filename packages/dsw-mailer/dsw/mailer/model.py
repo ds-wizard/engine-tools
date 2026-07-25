@@ -165,8 +165,8 @@ class TemplateDescriptor:
         self.importance = importance
         self.sensitivity = sensitivity
         self.priority = priority
-        self.parts = []  # type: list[TemplateDescriptorPart]
-        self.modes = []  # type: list[str]
+        self.parts: list[TemplateDescriptorPart] = []
+        self.modes: list[str] = []
 
     @staticmethod
     def load_from_file(data: dict) -> TemplateDescriptor:
@@ -211,8 +211,8 @@ class MessageRequest:
         self.trigger = trigger
         self.ctx = ctx
         self.recipients = recipients
-        self.client_url = self.ctx.get('clientUrl', '')  # type: str
-        self.domain = None  # type: str | None
+        self.client_url: str = self.ctx.get('clientUrl', '')
+        self.domain: str | None = None
         self.style = style or StyleConfig.default()
         self.ctx['style'] = self.style
 

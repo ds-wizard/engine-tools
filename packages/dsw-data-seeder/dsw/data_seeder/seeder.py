@@ -299,10 +299,10 @@ class DataSeeder(CommandWorker):
         self.cfg = cfg
         self.workdir = workdir
         self._default_recipe_name = default_recipe_name
-        self.recipes = {}  # type: dict[str, SeedRecipe]
+        self.recipes: dict[str, SeedRecipe] = {}
         self.recipe = SeedRecipe.create_default()
-        self.dbs = {}  # type: dict[str, Database]
-        self.s3s = {}  # type: dict[str, S3Storage]
+        self.dbs: dict[str, Database] = {}
+        self.s3s: dict[str, S3Storage] = {}
 
         self._init_context(workdir=workdir)
         self._init_sentry()
@@ -376,8 +376,8 @@ class DataSeeder(CommandWorker):
     def work(self, command: PersistentCommand):
         Context.get().update_trace_id(command.uuid)
         SentryReporter.set_tags(command_uuid=command.uuid)
-        tenant_uuid = command.body['tenantUuid']  # type: str
-        recipe_name = command.body.get('recipe')  # type: str | None
+        tenant_uuid: str = command.body['tenantUuid']
+        recipe_name: str | None = command.body.get('recipe')
         LOG.debug('Processing command: %s (tenant: %s, seed: %s)',
                   command.uuid, tenant_uuid, recipe_name)
         if recipe_name is None:

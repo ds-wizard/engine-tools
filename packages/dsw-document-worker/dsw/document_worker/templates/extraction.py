@@ -76,7 +76,7 @@ class SimpleExtractor(ContextExtractor):
         self._a_key = config['annotations']['key']
         self._a_val = config['annotations']['value']
         self._include_reply = config['options']['include_reply_objects']
-        self._objects = {}  # type: dict[str, dict]
+        self._objects: dict[str, dict] = {}
 
     def _visit_chapter(self, key: str, chapter: dc.Chapter):
         a_key = _get_annotation(chapter.a, self._a_key)
