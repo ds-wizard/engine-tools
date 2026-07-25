@@ -231,7 +231,7 @@ class MailSMTPConfig:
                  username: str | None = None, password: str | None = None,
                  auth_enabled: bool | None = None, timeout: int = 10):
         self.host = host
-        self.security = SMTPSecurityMode.PLAIN  # type: SMTPSecurityMode
+        self.security: SMTPSecurityMode = SMTPSecurityMode.PLAIN
         if security is not None and SMTPSecurityMode.has(security.upper()):
             self.security = SMTPSecurityMode[security.upper()]
         elif ssl is not None:

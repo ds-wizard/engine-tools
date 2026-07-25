@@ -64,13 +64,13 @@ class ArchiveStep(Step):
             self.format = options.get(self.OPTION_FORMAT, self.FORMAT_PAX)
 
     def _get_compression_level(self):
-        level_str = self.options.get(self.OPTION_LEVEL, '9')  # type: str
+        level_str: str = self.options.get(self.OPTION_LEVEL, '9')
         if level_str.isdigit():
             return int(level_str)
         return 0
 
     def _load_type(self) -> str:
-        t = self.options.get(self.OPTION_TYPE, '')  # type: str
+        t: str = self.options.get(self.OPTION_TYPE, '')
         if t.lower().strip() == self.TYPE_TAR:
             return self.TYPE_TAR
         return self.TYPE_ZIP

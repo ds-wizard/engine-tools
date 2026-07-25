@@ -150,7 +150,7 @@ class ClickLogger(logging.Logger):
         self.muted = False
 
     def _format_level(self, level, justify=False):
-        name = logging.getLevelName(level)  # type: str
+        name: str = logging.getLevelName(level)
         if justify:
             name = name.ljust(8, ' ')
         if self.colors and level in self.LEVEL_STYLES:

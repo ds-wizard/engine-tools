@@ -63,7 +63,7 @@ class ConfigKey[T]:
                  cast: typing.Callable[[typing.Any], T],
                  var_names=None, default=None, required=False):
         self.yaml_path = yaml_path
-        self.var_names = var_names or []  # type: list[str]
+        self.var_names: list[str] = var_names or []
         self.default = default
         self.required = required
         self.cast = cast

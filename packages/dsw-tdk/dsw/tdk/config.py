@@ -37,13 +37,13 @@ class TDKConfig:
     HOME_CONFIG = pathlib.Path.home() / '.dsw-tdk' / 'config.cfg'
 
     def __init__(self):
-        self.shared_envs = {}  # type: dict[str, TDKWizardEnv]
+        self.shared_envs: dict[str, TDKWizardEnv] = {}
         self.local_env = TDKWizardEnv(
             api_url='',
             api_key='',
         )
         self.current_env_name = self.LOCAL_CONFIG
-        self.default_env_name = None  # type: str | None
+        self.default_env_name: str | None = None
 
     def load_dotenv(self, path: pathlib.Path):
         if path.exists():

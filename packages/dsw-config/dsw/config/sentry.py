@@ -17,7 +17,7 @@ if typing.TYPE_CHECKING:
 
 class SentryReporter:
     report = False
-    filters = []  # type: list[EventProcessor]
+    filters: list[EventProcessor] = []
 
     @classmethod
     def initialize(cls, *, config: SentryConfig, prog_name: str, release: str,
