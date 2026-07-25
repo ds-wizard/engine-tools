@@ -27,6 +27,7 @@ dependencies = [
     "panflute",  # required by the pandoc-docx-pagebreak addon
     "pathvalidate",
     "pluggy",
+    "pymdown-extensions",
     "python-dateutil",
     "python-slugify",
     "rdflib",
