@@ -1,6 +1,6 @@
-FROM ghcr.io/ds-wizard/python-base:4.32.0-docworker-lambda AS builder
+FROM ghcr.io/ds-wizard/python-base:4.33.0-docworker-lambda AS builder
 
-COPY --from=ghcr.io/astral-sh/uv:0.11.28 /uv /bin/uv
+COPY --from=ghcr.io/astral-sh/uv:0.11.32 /uv /bin/uv
 
 COPY . /app
 
@@ -14,7 +14,7 @@ RUN uv --directory /app export --frozen --no-dev --no-emit-workspace --no-hashes
  && python -m pip wheel --no-deps --wheel-dir=/app/wheels /app/packages/dsw-document-worker/addons/* \
  && python -m pip wheel --no-deps --wheel-dir=/app/wheels /app/packages/dsw-document-worker
 
-FROM ghcr.io/ds-wizard/python-base:4.32.0-docworker-lambda
+FROM ghcr.io/ds-wizard/python-base:4.33.0-docworker-lambda
 
 ARG LAMBDA_TASK_ROOT
 

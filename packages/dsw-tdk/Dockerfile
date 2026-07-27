@@ -1,8 +1,8 @@
-FROM ghcr.io/ds-wizard/python-base:4.29.0-basic AS builder
+FROM ghcr.io/ds-wizard/python-base:4.33.0-basic AS builder
 
 WORKDIR /app
 
-COPY --from=ghcr.io/astral-sh/uv:0.11.28 /uv /bin/uv
+COPY --from=ghcr.io/astral-sh/uv:0.11.32 /uv /bin/uv
 
 COPY . /app
 
@@ -11,7 +11,7 @@ RUN uv export --frozen --no-dev --no-emit-workspace --no-hashes --package dsw-td
  && python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/app/wheels /app/packages/dsw-tdk
 
 
-FROM ghcr.io/ds-wizard/python-base:4.29.0-basic
+FROM ghcr.io/ds-wizard/python-base:4.33.0-basic
 
 ENV PATH="/home/user/.local/bin:$PATH"
 
