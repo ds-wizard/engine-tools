@@ -168,6 +168,14 @@ class TemplateDescriptor:
         self.parts: list[TemplateDescriptorPart] = []
         self.modes: list[str] = []
 
+    @property
+    def subject_template(self) -> str:
+        # trans block limits use of Jinja, if it looks like a template, then
+        # handle trans yourselves
+        if '{{' not in self.subject and '{%' not in self.subject:
+            return '{% trans %}' + self.subject + '{% endtrans %}'
+        return self.subject
+
     @staticmethod
     def load_from_file(data: dict) -> TemplateDescriptor:
         result = TemplateDescriptor(

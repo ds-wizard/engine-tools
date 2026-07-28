@@ -157,7 +157,7 @@ class TemplateRegistry:
         html_template = None
         plain_template = None
         subject_template = self._make_str_jinja2(
-            str_template='{% trans %}' + descriptor.subject + '{% endtrans %}',
+            str_template=descriptor.subject_template,
         )
         attachments = []
         html_images = []
