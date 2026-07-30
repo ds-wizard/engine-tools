@@ -7,6 +7,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+
+## [4.33.0]
+
 ### Changed
 
 - Replaced the `minio` client with `boto3` for S3 storage access
@@ -472,3 +475,4 @@ Released for version consistency with other DSW tools.
 [4.30.2]: /../../tree/v4.30.2
 [4.31.0]: /../../tree/v4.31.0
 [4.32.0]: /../../tree/v4.32.0
+[4.33.0]: /../../tree/v4.33.0

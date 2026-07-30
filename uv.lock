@@ -358,7 +358,7 @@ wheels = [
 
 [[package]]
 name = "dsw-command-queue"
-version = "4.32.0"
+version = "4.33.0rc1"
 source = { editable = "packages/dsw-command-queue" }
 dependencies = [
     { name = "dsw-database" },
@@ -375,7 +375,7 @@ requires-dist = [
 
 [[package]]
 name = "dsw-config"
-version = "4.32.0"
+version = "4.33.0rc1"
 source = { editable = "packages/dsw-config" }
 dependencies = [
     { name = "pyyaml" },
@@ -390,7 +390,7 @@ requires-dist = [
 
 [[package]]
 name = "dsw-data-seeder"
-version = "4.32.0"
+version = "4.33.0rc1"
 source = { editable = "packages/dsw-data-seeder" }
 dependencies = [
     { name = "click" },
@@ -417,7 +417,7 @@ requires-dist = [
 
 [[package]]
 name = "dsw-database"
-version = "4.32.0"
+version = "4.33.0rc1"
 source = { editable = "packages/dsw-database" }
 dependencies = [
     { name = "dsw-config" },
@@ -434,7 +434,7 @@ requires-dist = [
 
 [[package]]
 name = "dsw-document-worker"
-version = "4.32.0"
+version = "4.33.0rc1"
 source = { editable = "packages/dsw-document-worker" }
 dependencies = [
     { name = "click" },
@@ -487,7 +487,7 @@ requires-dist = [
 
 [[package]]
 name = "dsw-mailer"
-version = "4.32.0"
+version = "4.33.0rc1"
 source = { editable = "packages/dsw-mailer" }
 dependencies = [
     { name = "boto3" },
@@ -526,7 +526,7 @@ requires-dist = [
 
 [[package]]
 name = "dsw-models"
-version = "4.32.0"
+version = "4.33.0rc1"
 source = { editable = "packages/dsw-models" }
 dependencies = [
     { name = "pydantic" },
@@ -537,7 +537,7 @@ requires-dist = [{ name = "pydantic" }]
 
 [[package]]
 name = "dsw-storage"
-version = "4.32.0"
+version = "4.33.0rc1"
 source = { editable = "packages/dsw-storage" }
 dependencies = [
     { name = "boto3" },
@@ -554,7 +554,7 @@ requires-dist = [
 
 [[package]]
 name = "dsw-tdk"
-version = "4.32.0"
+version = "4.33.0rc1"
 source = { editable = "packages/dsw-tdk" }
 dependencies = [
     { name = "aiohttp" },
