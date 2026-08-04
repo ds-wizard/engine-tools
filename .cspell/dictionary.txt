@@ -55,6 +55,8 @@ dkimpy
 checkmark
 tojson
 openxml
+vcrpy
+strikethrough
 
 # Software Engineering terms
 bytesize

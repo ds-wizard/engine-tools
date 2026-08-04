@@ -1,6 +1,6 @@
 [project]
 name = "dsw-database"
-version = "4.32.0"
+version = "4.33.0"
 description = "Library for managing DSW database"
 readme = "README.md"
 keywords = ["dsw", "database"]
@@ -23,7 +23,7 @@ dependencies = [
     "psycopg[binary]",
     "tenacity",
     # DSW
-    "dsw-config==4.32.0",
+    "dsw-config==4.33.0",
 ]
 
 [project.urls]
@@ -33,7 +33,7 @@ Documentation = "https://guide.ds-wizard.org"
 Issues = "https://github.com/ds-wizard/ds-wizard/issues"
 
 [build-system]
-requires = ["uv_build>=0.11.0,<0.12.0"]
+requires = ["uv_build>=0.11.32,<0.12.0"]
 build-backend = "uv_build"
 
 [tool.uv.build-backend]

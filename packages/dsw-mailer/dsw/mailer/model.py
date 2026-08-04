@@ -165,8 +165,16 @@ class TemplateDescriptor:
         self.importance = importance
         self.sensitivity = sensitivity
         self.priority = priority
-        self.parts = []  # type: list[TemplateDescriptorPart]
-        self.modes = []  # type: list[str]
+        self.parts: list[TemplateDescriptorPart] = []
+        self.modes: list[str] = []
+
+    @property
+    def subject_template(self) -> str:
+        # trans block limits use of Jinja, if it looks like a template, then
+        # handle trans yourselves
+        if '{{' not in self.subject and '{%' not in self.subject:
+            return '{% trans %}' + self.subject + '{% endtrans %}'
+        return self.subject
 
     @staticmethod
     def load_from_file(data: dict) -> TemplateDescriptor:
@@ -211,8 +219,8 @@ class MessageRequest:
         self.trigger = trigger
         self.ctx = ctx
         self.recipients = recipients
-        self.client_url = self.ctx.get('clientUrl', '')  # type: str
-        self.domain = None  # type: str | None
+        self.client_url: str = self.ctx.get('clientUrl', '')
+        self.domain: str | None = None
         self.style = style or StyleConfig.default()
         self.ctx['style'] = self.style
 

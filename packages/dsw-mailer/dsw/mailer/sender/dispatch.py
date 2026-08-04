@@ -16,11 +16,11 @@ if typing.TYPE_CHECKING:
 LOG = logging.getLogger(__name__)
 
 
-SENDERS = {
+SENDERS: dict[MailProvider, BaseMailSender] = {
     MailProvider.SMTP: SMTPSender(),
     MailProvider.AMAZON_SES: AmazonSESSender(),
     MailProvider.NONE: NoProviderSender(),
-}  # type: dict[MailProvider, BaseMailSender]
+}
 
 
 def get_sender(cfg: MailConfig) -> BaseMailSender:

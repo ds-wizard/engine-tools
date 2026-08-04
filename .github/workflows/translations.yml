@@ -10,38 +10,22 @@ jobs:
 
     steps:
     - name: Check out repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
 
-    - name: Set up Python
-      uses: actions/setup-python@v6
-      with:
-        python-version: 3.14
-        cache: pip
-        cache-dependency-path: |
-          **/pyproject.toml
-          **/requirements*.txt
-
-    - name: Prepare Python env
-      run: |
-        python -m pip install -U pip setuptools wheel
-
-    - name: Install Babel (2.17.0)
-      run: |
-        python -m pip install -U babel==2.17.0
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
 
     - name: Install dependencies
       run: |
-        cd packages/dsw-mailer
-        pip install -r requirements.txt
-        make local-deps
+        uv sync --all-packages --group translations
 
     - name: Generate POT files
       run: |
         cd packages/dsw-mailer
-        make pot
+        uv run --no-sync make pot
 
     - name: Upload POT files
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
         name: mail-pot-files
         path: |

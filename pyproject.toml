@@ -13,9 +13,17 @@ Issues = "https://github.com/ds-wizard/ds-wizard/issues"
 
 [dependency-groups]
 dev = [
-    "ruff==0.15.12",
+    "ruff==0.16.0",
     "tomlkit>=0.15.0",
-    "ty==0.0.35",
+    "ty==0.0.63",
+]
+test = [
+    "pytest",
+    "pytest-recording",
+    "vcrpy",
+]
+translations = [
+    "babel==2.18.0",
 ]
 
 [tool.uv.sources]

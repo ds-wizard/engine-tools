@@ -1,6 +1,6 @@
 [project]
 name = "dsw-command-queue"
-version = "4.32.0"
+version = "4.33.0"
 description = "Library for working with command queue and persistent commands"
 readme = "README.md"
 keywords = ["dsw", "subscriber", "publisher", "database", "queue", "processing"]
@@ -24,7 +24,7 @@ dependencies = [
     "func-timeout",
     "tenacity",
     # DSW
-    "dsw-database==4.32.0",
+    "dsw-database==4.33.0",
 ]
 
 [project.urls]
@@ -34,7 +34,7 @@ Documentation = "https://guide.ds-wizard.org"
 Issues = "https://github.com/ds-wizard/ds-wizard/issues"
 
 [build-system]
-requires = ["uv_build>=0.11.0,<0.12.0"]
+requires = ["uv_build>=0.11.32,<0.12.0"]
 build-backend = "uv_build"
 
 [tool.uv.build-backend]

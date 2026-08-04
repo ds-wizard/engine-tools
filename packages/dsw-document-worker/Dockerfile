@@ -1,15 +1,18 @@
-FROM ghcr.io/ds-wizard/python-base:4.32.0-docworker AS builder
+FROM ghcr.io/ds-wizard/python-base:4.33.0-docworker AS builder
 
 ARG TARGETARCH
 
 WORKDIR /app
+
+COPY --from=ghcr.io/astral-sh/uv:0.11.32 /uv /bin/uv
 
 COPY . /app
 
 RUN apk add -u build-base gcc font-noto-emoji \
  && clean
 
-RUN python -m pip wheel --wheel-dir=/app/wheels -r /app/packages/dsw-document-worker/requirements.txt \
+RUN uv export --frozen --no-dev --no-emit-workspace --no-hashes --package dsw-document-worker -o /app/requirements.txt \
+ && python -m pip wheel --wheel-dir=/app/wheels -r /app/requirements.txt \
  && python -m pip wheel --no-deps --wheel-dir=/app/wheels /app/packages/dsw-command-queue \
  && python -m pip wheel --no-deps --wheel-dir=/app/wheels /app/packages/dsw-config \
  && python -m pip wheel --no-deps --wheel-dir=/app/wheels /app/packages/dsw-database \
@@ -17,7 +20,7 @@ RUN python -m pip wheel --wheel-dir=/app/wheels -r /app/packages/dsw-document-wo
  && python -m pip wheel --no-deps --wheel-dir=/app/wheels /app/packages/dsw-document-worker/addons/* \
  && python -m pip wheel --no-deps --wheel-dir=/app/wheels /app/packages/dsw-document-worker
 
-FROM ghcr.io/ds-wizard/python-base:4.32.0-docworker
+FROM ghcr.io/ds-wizard/python-base:4.33.0-docworker
 
 ENV APPLICATION_CONFIG_PATH=/app/config/application.yml \
     WORKDIR_PATH=/tmp/docworker \

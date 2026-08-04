@@ -26,7 +26,7 @@ LOG = logging.getLogger(__name__)
 class BaseMailSender(abc.ABC):
 
     def __init__(self):
-        self._cfg = None  # type: MailConfig | None
+        self._cfg: MailConfig | None = None
 
     @property
     def cfg(self) -> MailConfig:
@@ -56,7 +56,7 @@ class BaseMailSender(abc.ABC):
             for attachment in mail.attachments:
                 msg.attach(self._convert_attachment(attachment))
 
-        headers = []  # type: list[bytes]
+        headers: list[bytes] = []
 
         def add_header(name: str, value: str):
             msg.add_header(name, value)

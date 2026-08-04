@@ -1,14 +1,17 @@
-FROM ghcr.io/ds-wizard/python-base:4.29.0-basic AS builder
+FROM ghcr.io/ds-wizard/python-base:4.33.0-basic AS builder
 
 WORKDIR /app
 
+COPY --from=ghcr.io/astral-sh/uv:0.11.32 /uv /bin/uv
+
 COPY . /app
 
-RUN python -m pip wheel --no-cache-dir --wheel-dir=/app/wheels -r /app/packages/dsw-tdk/requirements.txt \
+RUN uv export --frozen --no-dev --no-emit-workspace --no-hashes --package dsw-tdk -o /app/requirements.txt \
+ && python -m pip wheel --no-cache-dir --wheel-dir=/app/wheels -r /app/requirements.txt \
  && python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/app/wheels /app/packages/dsw-tdk
 
 
-FROM ghcr.io/ds-wizard/python-base:4.29.0-basic
+FROM ghcr.io/ds-wizard/python-base:4.33.0-basic
 
 ENV PATH="/home/user/.local/bin:$PATH"
 

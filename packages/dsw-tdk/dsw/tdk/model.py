@@ -209,7 +209,7 @@ class Template:
     @classmethod
     def _common_load(cls, data):
         if 'id' in data:
-            composite_id = data['id']  # type: str
+            composite_id: str = data['id']
             if composite_id.count(':') != 2:
                 raise RuntimeError(f'Invalid template ID: {composite_id}')
             _, tmp_id, version = composite_id.split(':')

@@ -1,6 +1,6 @@
 [project]
 name = "dsw-data-seeder"
-version = "4.32.0"
+version = "4.33.0"
 description = "Worker for seeding DSW data"
 readme = "README.md"
 keywords = ["data", "database", "seed", "storage"]
@@ -26,10 +26,10 @@ dependencies = [
     "sentry-sdk",
     "tenacity",
     # DSW
-    "dsw-command-queue==4.32.0",
-    "dsw-config==4.32.0",
-    "dsw-database==4.32.0",
-    "dsw-storage==4.32.0",
+    "dsw-command-queue==4.33.0",
+    "dsw-config==4.33.0",
+    "dsw-database==4.33.0",
+    "dsw-storage==4.33.0",
 ]
 
 [project.urls]
@@ -42,7 +42,7 @@ Issues = "https://github.com/ds-wizard/ds-wizard/issues"
 dsw-data-seeder = "dsw.data_seeder:main"
 
 [build-system]
-requires = ["uv_build>=0.11.0,<0.12.0"]
+requires = ["uv_build>=0.11.32,<0.12.0"]
 build-backend = "uv_build"
 
 [tool.uv.build-backend]
