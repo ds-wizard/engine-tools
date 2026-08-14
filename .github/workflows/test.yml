@@ -59,7 +59,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        uv sync --all-packages --all-extras --dev
+        uv sync --locked --all-packages --all-extras --dev
 
     # Each package runs with continue-on-error so one failure does not hide the
     # others. The result is taken from the runner-recorded step outcome, not
