@@ -3,6 +3,9 @@ name: Translations
 on:
   push:
 
+permissions:
+  contents: read
+
 jobs:
   mail-templates:
     name: Mail Templates

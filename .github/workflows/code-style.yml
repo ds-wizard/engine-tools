@@ -3,6 +3,9 @@ name: Code Style
 on:
   push:
 
+permissions:
+  contents: read
+
 jobs:
   # CSpell
   cspell:
