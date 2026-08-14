@@ -3,6 +3,9 @@ name: Lambda
 on:
   push:
 
+permissions:
+  contents: read
+
 jobs:
   package:
     name: Lambda ZIP Package
