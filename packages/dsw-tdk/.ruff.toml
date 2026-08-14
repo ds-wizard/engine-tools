@@ -1,0 +1,4 @@
+# dsw-tdk supports Python 3.12+ (see requires-python), unlike the rest of the
+# workspace which targets 3.14. Inherit the root lint config, lower the target.
+extend = "../../pyproject.toml"
+target-version = "py312"
