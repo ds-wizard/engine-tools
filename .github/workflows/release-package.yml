@@ -8,9 +8,77 @@ permissions:
   contents: read
 
 jobs:
+  # Gate: publishing to PyPI is irreversible, so refuse to start unless the tag
+  # agrees with the package versions and CI was green for this exact commit.
+  check:
+    name: "Release Checks"
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      actions: read  # read Test/Build run conclusions
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v7
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+
+    - name: Verify tag matches package versions
+      run: |
+        uv run --no-project --with packaging \
+          python scripts/check-release.py "${{ github.event.release.tag_name }}"
+
+    - name: Test and Build
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SHA: ${{ github.sha }}
+        # Releases are usually cut from an already-tested tag, so this normally
+        # returns within seconds. The wait only matters when the release is
+        # created while CI for the tag is still running.
+        TIMEOUT_MINUTES: '30'
+      run: |
+        set -euo pipefail
+        deadline=$(( $(date +%s) + TIMEOUT_MINUTES * 60 ))
+
+        for wf in test.yml build.yml; do
+          echo "::group::$wf"
+          while true; do
+            run=$(gh run list --workflow "$wf" --commit "$SHA" --limit 1 \
+                    --json status,conclusion,url)
+            status=$(echo "$run" | jq -r '.[0].status // "not-found"')
+            conclusion=$(echo "$run" | jq -r '.[0].conclusion // ""')
+            url=$(echo "$run" | jq -r '.[0].url // ""')
+
+            if [ "$status" = "completed" ]; then
+              if [ "$conclusion" = "success" ]; then
+                echo "$wf: success - $url"
+                break
+              fi
+              echo "::endgroup::"
+              echo "::error::$wf concluded '$conclusion' for $SHA - $url"
+              exit 1
+            fi
+
+            if [ "$(date +%s)" -ge "$deadline" ]; then
+              echo "::endgroup::"
+              echo "::error::Timed out after ${TIMEOUT_MINUTES}m waiting for $wf on $SHA (status: $status)"
+              exit 1
+            fi
+
+            echo "$wf: $status - waiting..."
+            sleep 20
+          done
+          echo "::endgroup::"
+        done
+
+        echo "Test and Build are green for $SHA"
+
   pypi-release:
     name: "Python Package Release"
     runs-on: ubuntu-latest
+    needs: [check]
 
     permissions:
       contents: write  # upload release assets
@@ -60,6 +128,7 @@ jobs:
   mail-translations:
     name: "Mail Template Translations"
     runs-on: ubuntu-latest
+    needs: [check]
 
     permissions:
       contents: write  # upload release assets
