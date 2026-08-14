@@ -61,75 +61,104 @@ jobs:
       run: |
         uv sync --all-packages --all-extras --dev
 
-    - name: Prepare envvars
-      shell: bash
-      run: |
-          echo "VERIFY_FAILS=_" >> $GITHUB_ENV
-          echo "TEST_FAILS=_" >> $GITHUB_ENV
-
+    # Each package runs with continue-on-error so one failure does not hide the
+    # others. The result is taken from the runner-recorded step outcome, not
+    # from anything the step itself writes, so a step that fails to launch at
+    # all is still counted as a failure by "Evaluate tests" below.
     - name: "Test: command-queue"
+      id: test-command-queue
       continue-on-error: true
       run: |
         uv run --no-sync bash .github/test.sh dsw-command-queue
 
     - name: "Test: config"
+      id: test-config
       continue-on-error: true
       run: |
         uv run --no-sync bash .github/test.sh dsw-config
 
     - name: "Test: data-seeder"
+      id: test-data-seeder
       continue-on-error: true
       run: |
         uv run --no-sync bash .github/test.sh dsw-data-seeder
 
     - name: "Test: database"
+      id: test-database
       continue-on-error: true
       run: |
         uv run --no-sync bash .github/test.sh dsw-database
 
     - name: "Test: document-worker"
+      id: test-document-worker
       continue-on-error: true
       run: |
         uv run --no-sync bash .github/test.sh dsw-document-worker
 
     - name: "Test: mailer"
+      id: test-mailer
       continue-on-error: true
       run: |
         uv run --no-sync bash .github/test.sh dsw-mailer
 
     - name: "Test: models"
+      id: test-models
       continue-on-error: true
       run: |
         uv run --no-sync bash .github/test.sh dsw-models
 
     - name: "Test: storage"
+      id: test-storage
       continue-on-error: true
       run: |
         uv run --no-sync bash .github/test.sh dsw-storage
 
     - name: "Test: TDK"
+      id: test-tdk
       continue-on-error: true
       run: |
         uv run --no-sync bash .github/test.sh dsw-tdk
 
     - name: "Evaluate tests"
+      if: always()
       shell: bash
+      env:
+        # An empty value means the step never ran (e.g. setup failed earlier),
+        # which must be treated as a failure rather than silently passing.
+        OUTCOMES: |
+          dsw-command-queue=${{ steps.test-command-queue.outcome }}
+          dsw-config=${{ steps.test-config.outcome }}
+          dsw-data-seeder=${{ steps.test-data-seeder.outcome }}
+          dsw-database=${{ steps.test-database.outcome }}
+          dsw-document-worker=${{ steps.test-document-worker.outcome }}
+          dsw-mailer=${{ steps.test-mailer.outcome }}
+          dsw-models=${{ steps.test-models.outcome }}
+          dsw-storage=${{ steps.test-storage.outcome }}
+          dsw-tdk=${{ steps.test-tdk.outcome }}
       run: |
-        cd packages/${{ matrix.package }}
-        RET=0
-        if [ $VERIFY_FAILS == "_" ]; then
-          echo "## Verify: passed"
-        else
-          echo "## Verify: failed for packages: $VERIFY_FAILS"
-          RET=1
+        EXPECTED=9
+        SEEN=0
+        FAILED=""
+        while IFS='=' read -r pkg outcome; do
+          [ -n "$pkg" ] || continue
+          SEEN=$((SEEN + 1))
+          if [ "$outcome" = "success" ]; then
+            echo "## $pkg: passed"
+          else
+            echo "## $pkg: FAILED (outcome: ${outcome:-did not run})"
+            FAILED="$FAILED $pkg"
+          fi
+        done <<< "$OUTCOMES"
+
+        if [ "$SEEN" -ne "$EXPECTED" ]; then
+          echo "## Expected $EXPECTED packages, evaluated $SEEN"
+          exit 1
         fi
-        if [ $TEST_FAILS == "_" ]; then
-          echo "## Test: passed"
-        else
-          echo "## Test: failed for packages: $TEST_FAILS"
-          RET=1
+        if [ -n "$FAILED" ]; then
+          echo "## Failed packages:$FAILED"
+          exit 1
         fi
-        exit $RET
+        echo "## All $EXPECTED packages passed"
 
   # dsw-tdk declares requires-python >=3.12 (unlike the rest of the workspace,
   # which is >=3.14) because it is a CLI that end users pip install. It has no
