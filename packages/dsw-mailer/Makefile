@@ -16,7 +16,7 @@ test:
 
 .PHONY: lambda-deps
 lambda-deps:
-	uv export --frozen --no-dev --no-emit-workspace --no-hashes \
+	uv export --locked --no-dev --no-emit-workspace --no-hashes \
 		--package dsw-mailer -o requirements.lambda.txt
 	$(PIP) install --upgrade --target ./package --no-cache -r requirements.lambda.txt
 	rm -f requirements.lambda.txt

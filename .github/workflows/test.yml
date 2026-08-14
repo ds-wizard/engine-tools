@@ -2,13 +2,28 @@ name: Test
 
 on:
   push:
+  pull_request:
 
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # Cancel superseded runs on feature branches and PRs. Never on develop/main
+  # or tags: the release gate in release-package.yml requires a completed
+  # Test/Build run for the release commit.
+  cancel-in-progress: >-
+    ${{ github.ref != 'refs/heads/develop'
+        && github.ref != 'refs/heads/main'
+        && !startsWith(github.ref, 'refs/tags/') }}
+
 jobs:
   test-worker:
     name: Test
+    # Avoid double runs: in-repo branches are covered by the push event.
+    # Fork PRs produce no push event, so they are covered here instead.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
+    timeout-minutes: 45
 
     strategy:
       fail-fast: false
@@ -32,6 +47,7 @@ jobs:
     - name: Install uv
       uses: astral-sh/setup-uv@v7
       with:
+        enable-cache: true
         python-version: ${{ matrix.python-version }}
 
     - name: Install Ghostscript (Ubuntu)
@@ -167,6 +183,10 @@ jobs:
   # covered across all three OSes by the test-worker job above.
   test-tdk-oldest:
     name: Test TDK
+    # Avoid double runs: in-repo branches are covered by the push event.
+    # Fork PRs produce no push event, so they are covered here instead.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
+    timeout-minutes: 20
 
     strategy:
       fail-fast: false
@@ -183,6 +203,8 @@ jobs:
 
     - name: Install uv
       uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
 
     - name: Create build info
       run: |
