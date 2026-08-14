@@ -40,7 +40,7 @@ jobs:
 
     - name: Install package with dependencies
       run: |
-        uv sync --frozen --package ${{ matrix.package }}
+        uv sync --locked --package ${{ matrix.package }}
 
     - name: Verify installation
       run: |
