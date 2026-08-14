@@ -130,3 +130,49 @@ jobs:
           RET=1
         fi
         exit $RET
+
+  # dsw-tdk declares requires-python >=3.12 (unlike the rest of the workspace,
+  # which is >=3.14) because it is a CLI that end users pip install. It has no
+  # workspace dependencies, so it is installed standalone here rather than via
+  # `uv sync`, which is bound to the root >=3.14 floor. Python 3.14 is already
+  # covered across all three OSes by the test-worker job above.
+  test-tdk-oldest:
+    name: Test TDK
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+        - '3.12'
+        - '3.13'
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v7
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+
+    - name: Create build info
+      run: |
+        bash scripts/build-info.sh
+
+    - name: Create environment
+      run: |
+        uv venv --no-project --python ${{ matrix.python-version }}
+
+    - name: Install dsw-tdk with test dependencies
+      run: |
+        uv pip install './packages/dsw-tdk[test]'
+        .venv/bin/python --version
+
+    - name: "Verify: TDK"
+      run: |
+        .venv/bin/dsw-tdk --version
+
+    - name: "Test: TDK"
+      working-directory: packages/dsw-tdk
+      run: |
+        ../../.venv/bin/pytest -s tests
