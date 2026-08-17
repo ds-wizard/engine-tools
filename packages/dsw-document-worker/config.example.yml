@@ -25,6 +25,13 @@ templates:
     secrets:
       API_TOKEN:
 
+#security:
+#  allowExternalResources: true # allow fetching http(s) resources when rendering
+#  allowPrivateNetwork: false # allow requests to private/loopback/link-local addresses
+#  allowedHosts: [] # hosts exempted from the private address check
+#  allowedPaths: [] # extra directories readable when rendering (e.g. shared fonts)
+#  maxRedirects: 3
+
 #context:
 #  serviceName: Data Stewardship Wizard
 #  serviceNameShort: DSW

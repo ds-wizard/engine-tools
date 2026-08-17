@@ -8,6 +8,8 @@ import markdown
 import markdown.preprocessors
 import markupsafe
 
+from ..sanitizer import sanitize_html
+
 
 def unmark_element(element, stream=None):
     if stream is None:
@@ -100,10 +102,17 @@ class DSWMarkdownProcessor(markdown.preprocessors.Preprocessor):
         return new_lines
 
 
-def render_markdown(md_text: str):
+def render_markdown(md_text: str, sanitize: bool = True):
+    """Render Markdown to HTML.
+
+    The result is sanitized by default as it may contain raw HTML coming from
+    end users (e.g. project replies) that would otherwise be passed through
+    verbatim. Use ``sanitize=False`` only for content fully controlled by the
+    document template itself.
+    """
     if md_text is None:
         return ''
-    return markupsafe.Markup(markdown.markdown(
+    html = markdown.markdown(
         text=md_text,
         extensions=[
             DSWMarkdownExt(),
@@ -114,4 +123,8 @@ def render_markdown(md_text: str):
             # only enable ~~strikethrough~~, keep single ~tilde~ literal
             'pymdownx.tilde': {'subscript': False},
         },
-    ))
+    )
+    if not sanitize:
+        # explicitly requested raw HTML pass-through (template-controlled content)
+        return markupsafe.Markup(html)  # noqa: S704
+    return markupsafe.Markup(sanitize_html(html))

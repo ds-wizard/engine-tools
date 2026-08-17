@@ -26,6 +26,17 @@ Always results in a PDF file (`application/pdf`) with file extension `.pdf`.
 ## Notes
 
 * Check the official [WeasyPrint](https://weasyprint.org/) documentation and examples for more information.
+* Resources referenced from the rendered HTML (images, stylesheets, fonts) are
+  fetched through a restricted URL fetcher:
+  * `file:` URLs are allowed only within the template directory (and the
+    directories listed in `security.allowedPaths`),
+  * `http(s)` URLs are allowed only if external resources are enabled
+    (`security.allowExternalResources`) and the host does not resolve to a
+    private, loopback, or link-local address (unless it is listed in
+    `security.allowedHosts` or `security.allowPrivateNetwork` is enabled),
+  * `data:` URLs are always allowed, other schemes are rejected.
+* Blocked resources are logged as a warning and simply not included in the
+  resulting PDF (as with any other resource that cannot be retrieved).
 
 ## Example
 
