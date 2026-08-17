@@ -15,6 +15,7 @@ from ...context import Context
 from ...documents import DocumentFile, FileFormat, FileFormats
 from ...model.context import ProjectFile
 from ...model.http import RequestsWrapper
+from ...urls import UrlPolicy
 from ...utils import JinjaEnvironment
 from ..filters import filters
 from ..tests import tests
@@ -158,7 +159,8 @@ class JinjaPoweredStep(Step):
     def _add_j2_enhancements(self):
         self._j2_filters.update(filters)
         self._j2_tests.update(tests)
-        template_cfg = Context.get().app.cfg.templates.get_config(
+        app_cfg = Context.get().app.cfg
+        template_cfg = app_cfg.templates.get_config(
             self.template.coordinates,
         )
         self._j2_globals.update({
@@ -172,6 +174,7 @@ class JinjaPoweredStep(Step):
             if template_cfg.requests.enabled:
                 global_vars['requests'] = RequestsWrapper(
                     template_cfg=template_cfg,
+                    policy=UrlPolicy(app_cfg.security),
                 )
             self.j2_env.globals.update(global_vars)
 

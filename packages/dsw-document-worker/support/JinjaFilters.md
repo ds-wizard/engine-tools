@@ -52,8 +52,23 @@ Example: `x|roman`
 Arguments:
 
 * `md_text` - string containing Markdown syntax
+* (optional) `sanitize` - whether the resulting HTML is sanitized (default: `True`)
 
-Example: `x|roman`
+Example: `x|markdown`
+
+:warning: The result is sanitized using an allow-list by default because Markdown
+may contain raw HTML. This is essential for content coming from end users (e.g.
+replies in a project): without it, an answer can inject `<script>` into HTML
+documents or make the PDF renderer fetch local files and internal URLs (e.g.
+`<img src="file:///etc/passwd">`). Sanitization removes scripting (such as
+`<script>` and `on*` attributes), embedded content (such as `<iframe>`,
+`<object>`, or `<svg>`), stylesheets, and URLs with unexpected schemes (such as
+`file:`, `javascript:`, or `data:text/html`); plain Markdown output and common
+inline HTML formatting are preserved.
+
+Use `x|markdown(sanitize=false)` to get the previous (unrestricted) behaviour,
+but only for content that is fully controlled by the document template itself
+and never for end-user input.
 
 ### dot
 

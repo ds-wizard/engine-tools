@@ -7,6 +7,19 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- New `security` configuration section for restricting resources and requests during document rendering
+
+### Changed
+
+- The `markdown` filter sanitizes the resulting HTML by default (use `|markdown(sanitize=false)` for template-controlled content)
+
+### Fixed
+
+- Restricted resources fetched by WeasyPrint (no `file:` outside of the template directory, no private/loopback/link-local hosts)
+- Restricted HTTP requests made from templates (scheme, target address, redirects, and TLS verification)
+
 
 ## [4.33.0]
 

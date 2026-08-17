@@ -22,6 +22,7 @@ dependencies = [
     "Jinja2",
     "Markdown",
     "MarkupSafe",
+    "nh3",
     "panflute",  # required by the pandoc-docx-pagebreak addon
     "pathvalidate",
     "pluggy",
@@ -40,6 +41,11 @@ dependencies = [
     "dsw-config==4.33.0",
     "dsw-database==4.33.0",
     "dsw-storage==4.33.0",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest",
 ]
 
 [project.urls]

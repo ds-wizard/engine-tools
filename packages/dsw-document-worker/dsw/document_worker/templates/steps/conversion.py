@@ -4,16 +4,48 @@ import logging
 import typing
 
 import weasyprint
+import weasyprint.urls
 
 from ... import consts
 from ...context import Context
 from ...conversions import Pandoc, RdfLibConvert
 from ...documents import DocumentFile, FileFormats
+from ...urls import UrlNotAllowedError, UrlPolicy
 from .base import Step, register_step
+
+
+if typing.TYPE_CHECKING:
+    import pathlib
+
+
+LOG = logging.getLogger(__name__)
 
 
 def _is_true(value: str) -> bool:
     return value.lower() == 'true'
+
+
+class RestrictedURLFetcher(weasyprint.urls.URLFetcher):
+    """URL fetcher that only retrieves resources allowed by the policy.
+
+    Without it, WeasyPrint resolves any reference in the rendered HTML,
+    including ``file://`` URLs (local file disclosure) and internal http(s)
+    addresses such as cloud metadata endpoints (SSRF). Note that redirects
+    are checked as well, since they are dispatched back through ``fetch``.
+    """
+
+    def __init__(self, *, policy: UrlPolicy, base_dir: pathlib.Path, **kwargs):
+        super().__init__(allow_redirects=policy.max_redirects > 0, **kwargs)
+        self.policy = policy
+        self.base_dir = base_dir.expanduser().resolve()
+
+    def fetch(self, url, headers=None):
+        try:
+            self.policy.check_resource_url(url, base_dir=self.base_dir)
+        except UrlNotAllowedError as e:
+            LOG.warning('Blocked resource while rendering document: %s', e)
+            raise
+        return super().fetch(url, headers)
 
 
 class WeasyPrintStep(Step):
@@ -56,8 +88,6 @@ class WeasyPrintStep(Step):
         return self.raise_exc(f'Step "{self.NAME}" cannot be first')
 
     def execute_follow(self, document: DocumentFile, context: dict) -> DocumentFile:
-        import weasyprint
-
         if document.file_format != FileFormats.HTML:
             self.raise_exc(f'WeasyPrint does not support {document.file_format.name}'
                            f' format as input')
@@ -66,6 +96,10 @@ class WeasyPrintStep(Step):
             string=document.content.decode(consts.DEFAULT_ENCODING),
             media_type='print',
             base_url=file_uri.as_uri(),
+            url_fetcher=RestrictedURLFetcher(
+                policy=UrlPolicy(Context.get().app.cfg.security),
+                base_dir=self.template.template_dir,
+            ),
         )
         data = wp_html.write_pdf(
             zoom=self.wp_zoom,
