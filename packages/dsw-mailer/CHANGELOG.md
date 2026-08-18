@@ -7,6 +7,13 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- Fail the command if the requested mail config cannot be loaded
+- Fixed SMTP authentication being disabled for tenant-provided mail configs
+- Reject unknown SMTP security mode instead of falling back to plaintext (with `starttls` and `none` accepted as aliases)
+- Fixed downloading and extracting custom mail templates
+- Fall back to built-in mail template if not present in custom templates
 
 ## [4.33.0]
 
