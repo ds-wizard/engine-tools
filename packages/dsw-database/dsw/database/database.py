@@ -632,6 +632,20 @@ class PostgresConnection:
         self.close()
         self.connect()
 
+    def discard(self) -> int | None:
+        # Forget the connection without closing it: closing waits for the
+        # connection lock, which is not an option when another (abandoned)
+        # thread may be holding it. The connection is left to the process exit.
+        # Returns the PID of the backend behind the discarded connection.
+        backend_pid = None
+        if self._connection is not None:
+            backend_pid = self._connection.pgconn.backend_pid
+            LOG.warning('Discarding connection to PostgreSQL database "%s" (backend: %s)',
+                        self.name, backend_pid)
+        self._connection = None
+        self.listening = False
+        return backend_pid
+
     def close(self):
         if self._connection:
             LOG.info('Closing connection to PostgreSQL database "%s"', self.name)

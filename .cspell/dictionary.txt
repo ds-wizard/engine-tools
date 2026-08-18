@@ -63,6 +63,7 @@ strikethrough
 
 # Software Engineering terms
 bytesize
+timestamptz
 metamodel
 amazonses
 dockerized

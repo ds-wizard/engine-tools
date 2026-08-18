@@ -7,6 +7,28 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- Compute the retry backoff from `updated_at` instead of `created_at` (an aged command used to burn all its attempts in a tight loop)
+- Compare `updated_at` as `timestamptz` (command eligibility no longer depends on the server timezone)
+- Hold the row lock for the whole processing, so a command cannot be processed by two workers concurrently
+- Close the cursor and end the transaction on every path of `fetch_and_process` (an idle worker used to stay idle in transaction)
+- Roll back changes of a failed job instead of committing them together with its error record
+- Terminate the process when a job exceeds the time limit, as its thread cannot be stopped and shares the DB connection
+- Replace the connection of a timed-out job instead of using it (psycopg serializes access to a connection, so the handler could wait for the stuck job forever)
+- Do not delay the processing when a command is skipped because someone else holds its lock
+- Fix the platform check that disabled the signal wakeup pipe, so `SIGINT`/`SIGTERM`/`SIGABRT` interrupt waiting for notifications immediately
+- Handle `SIGTERM` for graceful shutdown
+- Re-check the connection and re-issue `LISTEN` in every cycle (a reconnect used to leave the queue with a stale socket)
+- Detect a connection closed by the server while waiting for notifications (a readable socket is not necessarily a notification)
+- Read notifications using `Connection.notifies` instead of iterating the low-level generator, which yielded wait instructions rather than the notifications
+- Retry the queue per iteration, not per process (the retry budget is no longer spent over the lifetime of a worker)
+- Process the oldest commands first (`ORDER BY attempts ASC, created_at ASC`)
+
+### Changed
+
+- `CommandJobError` is derived from `Exception` instead of `BaseException`
+- Replaced the unmaintained `func-timeout` dependency with own handling of the job timeout
 
 ## [4.33.0]
 

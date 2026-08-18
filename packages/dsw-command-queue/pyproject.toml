@@ -19,7 +19,7 @@ classifiers = [
 ]
 requires-python = ">=3.14, <4"
 dependencies = [
-    "func-timeout",
+    "psycopg[binary]>=3.2",  # Connection.notifies(timeout=...)
     "tenacity",
     # DSW
     "dsw-database==4.33.0",

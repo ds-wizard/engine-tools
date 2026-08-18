@@ -362,14 +362,14 @@ version = "4.33.0"
 source = { editable = "packages/dsw-command-queue" }
 dependencies = [
     { name = "dsw-database" },
-    { name = "func-timeout" },
+    { name = "psycopg", extra = ["binary"] },
     { name = "tenacity" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "dsw-database", editable = "packages/dsw-database" },
-    { name = "func-timeout" },
+    { name = "psycopg", extras = ["binary"], specifier = ">=3.2" },
     { name = "tenacity" },
 ]
 
@@ -710,12 +710,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/e0/a3/5982da14e113d07b325230f95060e2169f5311b1017ea8af2a29b374c289/frozenlist-1.8.0-cp314-cp314t-win_arm64.whl", hash = "sha256:102e6314ca4da683dca92e3b1355490fed5f313b768500084fbe6371fddfdb79", size = 42507, upload-time = "2025-10-06T05:37:54.513Z" },
     { url = "https://files.pythonhosted.org/packages/9a/9a/e35b4a917281c0b8419d4207f4334c8e8c5dbf4f3f5f9ada73958d937dcc/frozenlist-1.8.0-py3-none-any.whl", hash = "sha256:0c18a16eab41e82c295618a77502e17b195883241c563b00f0aa5106fc4eaa0d", size = 13409, upload-time = "2025-10-06T05:38:16.721Z" },
 ]
-
-[[package]]
-name = "func-timeout"
-version = "4.3.5"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/b3/0d/bf0567477f7281d9a3926c582bfef21bff7498fc0ffd3e9de21811896a0b/func_timeout-4.3.5.tar.gz", hash = "sha256:74cd3c428ec94f4edfba81f9b2f14904846d5ffccc27c92433b8b5939b5575dd", size = 44264, upload-time = "2019-08-19T21:32:07.43Z" }
 
 [[package]]
 name = "humanize"
