@@ -10,6 +10,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Fixed
 
 - Stopped swallowing errors when retrieving mail config
+- Keep `created_by` of a persistent command `None` instead of turning it into the string `'None'`
+
+### Added
+
+- `PostgresConnection.discard` to give up a connection that may still be in use by an abandoned thread
 
 ## [4.33.0]
 

@@ -1,4 +1,11 @@
-from .command_queue import CommandJobError, CommandQueue, CommandWorker
+from .command_queue import (
+    CommandJobError,
+    CommandJobTimeoutError,
+    CommandQueue,
+    CommandWorker,
+    FatalCommandQueueError,
+)
 
 
-__all__ = ['CommandJobError', 'CommandQueue', 'CommandWorker']
+__all__ = ['CommandJobError', 'CommandJobTimeoutError', 'CommandQueue',
+           'CommandWorker', 'FatalCommandQueueError']
