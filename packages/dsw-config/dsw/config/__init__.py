@@ -1,4 +1,12 @@
-from .parser import DSWConfigParser, MissingConfigurationError
+from .parser import (
+    DSWConfigParser,
+    InvalidConfigurationError,
+    MissingConfigurationError,
+)
 
 
-__all__ = ['DSWConfigParser', 'MissingConfigurationError']
+__all__ = [
+    'DSWConfigParser',
+    'InvalidConfigurationError',
+    'MissingConfigurationError',
+]

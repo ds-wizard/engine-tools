@@ -6,15 +6,24 @@ import typing
 
 T = typing.TypeVar('T')
 
+TRUE_VALUES = frozenset({'true', 'yes', 'on', '1'})
+
+
+def _is_blank(value: typing.Any) -> bool:
+    return value is None or (isinstance(value, str) and value.strip() == '')
+
 
 def cast_bool(value: typing.Any) -> bool:
+    # environment variables are always strings, e.g. 'false' is truthy for bool()
+    if isinstance(value, str):
+        return value.strip().lower() in TRUE_VALUES
     return bool(value)
 
 
 def cast_optional_bool(value: typing.Any) -> bool | None:
     if value is None:
         return None
-    return bool(value)
+    return cast_bool(value)
 
 
 def cast_int(value: typing.Any) -> int:
@@ -22,7 +31,7 @@ def cast_int(value: typing.Any) -> int:
 
 
 def cast_optional_int(value: typing.Any) -> int | None:
-    if value is None:
+    if _is_blank(value):
         return None
     return int(value)
 
@@ -32,19 +41,24 @@ def cast_float(value: typing.Any) -> float:
 
 
 def cast_optional_float(value: typing.Any) -> float | None:
-    if value is None:
+    if _is_blank(value):
         return None
     return float(value)
 
 
 def cast_str(value: typing.Any) -> str:
+    if value is None:
+        return ''
+    if isinstance(value, bool):
+        # avoid Python-style 'True'/'False' for YAML booleans
+        return 'true' if value else 'false'
     return str(value)
 
 
 def cast_optional_str(value: typing.Any) -> str | None:
     if value is None:
         return None
-    return str(value)
+    return cast_str(value)
 
 
 def cast_optional_dict(value: typing.Any) -> dict | None:
@@ -81,6 +95,9 @@ class ConfigKeysMeta(type):
 
     def __init__(cls, name, bases, namespace):
         cls._config_keys = []
+        for base in bases:
+            # keys of parent containers, e.g. ConfigKeys for tool-specific keys
+            cls._config_keys.extend(getattr(base, '_config_keys', []))
         for attr in namespace:
             if attr.startswith('_'):
                 continue
@@ -124,13 +141,13 @@ class _GeneralKeys(ConfigKeysContainer):
 class _LoggingKeys(ConfigKeysContainer):
     level = ConfigKey(
         yaml_path=['logging', 'level'],
-        var_names=['LOGGING_ENVIRONMENT'],
+        var_names=['LOGGING_LEVEL'],
         default='INFO',
         cast=cast_str,
     )
     global_level = ConfigKey(
         yaml_path=['logging', 'globalLevel'],
-        var_names=['LOGGING_CLIENT_URL'],
+        var_names=['LOGGING_GLOBAL_LEVEL'],
         default='WARNING',
         cast=cast_str,
     )
@@ -167,20 +184,20 @@ class _SentryKeys(ConfigKeysContainer):
     worker_dsn = ConfigKey(
         yaml_path=['sentry', 'workersDsn'],
         var_names=['SENTRY_WORKER_DSN', 'SENTRY_DSN'],
-        default='',
-        cast=cast_str,
+        default=None,
+        cast=cast_optional_str,
     )
     traces_sample_rate = ConfigKey(
         yaml_path=['sentry', 'tracesSampleRate'],
         var_names=['SENTRY_TRACES_SAMPLE_RATE'],
-        default='',
-        cast=cast_str,
+        default=None,
+        cast=cast_optional_float,
     )
     max_breadcrumbs = ConfigKey(
         yaml_path=['sentry', 'maxBreadcrumbs'],
         var_names=['SENTRY_MAX_BREADCRUMBS'],
-        default='',
-        cast=cast_str,
+        default=None,
+        cast=cast_optional_int,
     )
     environment = ConfigKey(
         yaml_path=['sentry', 'environment'],
@@ -196,6 +213,7 @@ class _DatabaseKeys(ConfigKeysContainer):
         var_names=['DATABASE_CONNECTION_STRING'],
         default='postgresql://postgres:postgres@postgres:5432/engine-wizard',
         cast=cast_str,
+        required=True,
     )
     connection_timeout = ConfigKey(
         yaml_path=['database', 'connectionTimeout'],

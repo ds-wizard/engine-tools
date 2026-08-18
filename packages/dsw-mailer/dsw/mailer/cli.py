@@ -7,7 +7,7 @@ import typing
 
 import click
 
-from dsw.config.parser import MissingConfigurationError
+from dsw.config.parser import InvalidConfigurationError, MissingConfigurationError
 
 from . import consts
 from .config import MailerConfig, MailerConfigParser
@@ -17,13 +17,14 @@ from .model import MessageRequest
 
 def load_config_str(config_str: str) -> MailerConfig:
     parser = MailerConfigParser()
-    if not parser.can_read(config_str):
-        click.echo('Error: Cannot parse config file', err=True)
-        sys.exit(1)
 
     try:
         parser.read_string(config_str)
         parser.validate()
+    except InvalidConfigurationError as e:
+        click.echo('Error: Cannot parse config file', err=True)
+        click.echo(f' - {e.message}', err=True)
+        sys.exit(1)
     except MissingConfigurationError as e:
         click.echo('Error: Missing configuration', err=True)
         for missing_item in e.missing:

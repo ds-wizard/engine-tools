@@ -7,6 +7,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- Report an error for invalid or incomplete configuration instead of silently using defaults
 
 ## [4.33.0]
 
