@@ -24,7 +24,7 @@ mail:
     host:
     # port: default (empty) = based on security 25/465/587
     port:
-    # security: plain | ssl | starttls | tls
+    # security: none | plain | ssl | starttls | tls (unknown values are rejected)
     security: starttls
     username: ''
     password: ''

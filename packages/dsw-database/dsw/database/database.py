@@ -406,22 +406,19 @@ class Database:
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
     def get_mail_config(self, mail_config_uuid: str) -> model.DBInstanceConfigMail | None:
+        # Note: mail configs are instance-wide and may be shared across tenants,
+        #       so there is intentionally no tenant_uuid predicate here.
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             if not self._check_table_exists(table_name='instance_config_mail'):
                 return None
-            try:
-                cursor.execute(
-                    query=self.SELECT_MAIL_CONFIG,
-                    params={'mail_config_uuid': mail_config_uuid},
-                )
-                result = cursor.fetchone()
-                if result is None:
-                    return None
-                return model.DBInstanceConfigMail.from_dict_row(data=result)
-            except Exception as e:
-                LOG.warning('Could not retrieve instance_config_mail "%s": %s',
-                            mail_config_uuid, str(e))
+            cursor.execute(
+                query=self.SELECT_MAIL_CONFIG,
+                params={'mail_config_uuid': mail_config_uuid},
+            )
+            result = cursor.fetchone()
+            if result is None:
                 return None
+            return model.DBInstanceConfigMail.from_dict_row(data=result)
 
     @tenacity.retry(
         reraise=True,

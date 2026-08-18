@@ -20,7 +20,7 @@ from . import consts
 from .build_info import BUILD_INFO
 from .config import MailConfig, MailerConfig, merge_mail_configs
 from .context import Context
-from .model import MessageRecipient, MessageRequest
+from .model import MailMessage, MessageRecipient, MessageRequest
 from .sender import send
 from .templates import TemplateRegistry
 
@@ -142,6 +142,8 @@ class Mailer(CommandWorker):
             db_cfg = app_ctx.db.get_mail_config(
                 mail_config_uuid=mail_config_uuid,
             )
+            if db_cfg is None:
+                raise RuntimeError(f'Cannot find mail config: {mail_config_uuid}')
         mail_cfg = merge_mail_configs(
             cfg=self.cfg,
             db_cfg=db_cfg,
@@ -151,12 +153,15 @@ class Mailer(CommandWorker):
         return mail_cfg
 
     def _prepare_custom_templates(self, tenant_uuid: str, destination: pathlib.Path):
+        destination.mkdir(parents=True, exist_ok=True)
         zip_path = destination / 'mail-templates.zip'
         # Download the zip file from S3
-        self.ctx.app.s3.download_mail_templates(
+        downloaded = self.ctx.app.s3.download_mail_templates(
             tenant_uuid=tenant_uuid,
             target_path=zip_path,
         )
+        if not downloaded:
+            raise RuntimeError(f'Cannot download custom mail templates for tenant {tenant_uuid}')
         # Extract the zip file
         with zipfile.ZipFile(zip_path, 'r') as zip_ref:
             zip_ref.extractall(destination)
@@ -194,11 +199,13 @@ class Mailer(CommandWorker):
         LOG.info('Failed with unexpected error', exc_info=e)
         SentryReporter.capture_exception(e)
 
-    def send(self, rq: MessageRequest, cfg: MailConfig):
-        LOG.info('Sending request: %s (%s)', rq.template_name, rq.id)
-        # get template
+    def _render_builtin(self, rq: MessageRequest, cfg: MailConfig) -> MailMessage:
         if not self.ctx.templates.has_template_for(rq):
             raise RuntimeError(f'Template not found: {rq.template_name}')
+        return self.ctx.templates.render(rq, cfg, Context.get().app)
+
+    def send(self, rq: MessageRequest, cfg: MailConfig):
+        LOG.info('Sending request: %s (%s)', rq.template_name, rq.id)
         # render
         LOG.info('Rendering message: %s', rq.template_name)
         LOG.warning('Should send with locale: %s', rq.locale_uuid)
@@ -213,9 +220,14 @@ class Mailer(CommandWorker):
                     cfg=self.ctx.app.cfg,
                     workdir=templates_dir,
                 )
-                msg = templates.render(rq, cfg, Context.get().app)
+                if templates.has_template_for(rq):
+                    msg = templates.render(rq, cfg, Context.get().app)
+                else:
+                    LOG.info('Template "%s" not customized - using the built-in one',
+                             rq.template_name)
+                    msg = self._render_builtin(rq, cfg)
         else:
-            msg = self.ctx.templates.render(rq, cfg, Context.get().app)
+            msg = self._render_builtin(rq, cfg)
         # send
         LOG.info('Sending message: %s', rq.template_name)
         send(msg, cfg)
