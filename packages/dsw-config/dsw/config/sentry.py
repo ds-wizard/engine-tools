@@ -15,6 +15,9 @@ if typing.TYPE_CHECKING:
     EventProcessor = typing.Callable[[Event, Hint], Event | None]
 
 
+LOG = logging.getLogger(__name__)
+
+
 class SentryReporter:
     report = False
     filters: list[EventProcessor] = []
@@ -23,7 +26,10 @@ class SentryReporter:
     def initialize(cls, *, config: SentryConfig, prog_name: str, release: str,
                    breadcrumb_level: int | None = logging.INFO,
                    event_level: int | None = logging.ERROR):
-        cls.report = config.enabled and config.workers_dsn is not None
+        if config.enabled and not config.workers_dsn:
+            LOG.warning('Sentry is enabled but no DSN is configured, '
+                        'no events will be reported')
+        cls.report = config.enabled and bool(config.workers_dsn)
         if cls.report:
             def before_send(event, hint):
                 for f in cls.filters:

@@ -9,6 +9,7 @@ from dsw.config.keys import (
     ConfigKey,
     ConfigKeys,
     ConfigKeysContainer,
+    cast_bool,
     cast_int,
     cast_optional_int,
     cast_str,
@@ -24,12 +25,6 @@ from dsw.config.model import (
 )
 
 from . import consts
-
-
-def cast_flag(value: typing.Any) -> bool:
-    if isinstance(value, str):
-        return value.strip().lower() in ('true', 'yes', 'on', '1')
-    return bool(value)
 
 
 def cast_str_list(value: typing.Any) -> list[str]:
@@ -71,13 +66,13 @@ class _SecurityKeys(ConfigKeysContainer):
         yaml_path=['security', 'allowExternalResources'],
         var_names=['SECURITY_ALLOW_EXTERNAL_RESOURCES'],
         default=True,
-        cast=cast_flag,
+        cast=cast_bool,
     )
     allow_private_network = ConfigKey(
         yaml_path=['security', 'allowPrivateNetwork'],
         var_names=['SECURITY_ALLOW_PRIVATE_NETWORK'],
         default=False,
-        cast=cast_flag,
+        cast=cast_bool,
     )
     allowed_hosts = ConfigKey(
         yaml_path=['security', 'allowedHosts'],

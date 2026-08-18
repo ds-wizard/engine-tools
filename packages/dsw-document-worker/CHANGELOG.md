@@ -19,6 +19,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - Restricted resources fetched by WeasyPrint (no `file:` outside of the template directory, no private/loopback/link-local hosts)
 - Restricted HTTP requests made from templates (scheme, target address, redirects, and TLS verification)
+- Report an error for invalid or incomplete configuration instead of silently using defaults
 
 
 ## [4.33.0]

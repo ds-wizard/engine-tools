@@ -108,12 +108,12 @@ class _MailLegacySMTPKeys(ConfigKeysContainer):
     port = ConfigKey(
         yaml_path=['mail', 'port'],
         var_names=['MAIL_PORT'],
-        cast=cast_str,
+        cast=cast_optional_int,
     )
     ssl = ConfigKey(
         yaml_path=['mail', 'ssl'],
         var_names=[],
-        cast=cast_optional_str,
+        cast=cast_optional_bool,
     )
     security = ConfigKey(
         yaml_path=['mail', 'security'],
