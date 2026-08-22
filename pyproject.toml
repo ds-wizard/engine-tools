@@ -15,7 +15,7 @@ Issues = "https://github.com/ds-wizard/ds-wizard/issues"
 dev = [
     "ruff==0.16.2",
     "tomlkit>=0.15.0",
-    "ty==0.0.70",
+    "ty==0.0.73",
 ]
 test = [
     "pytest",
