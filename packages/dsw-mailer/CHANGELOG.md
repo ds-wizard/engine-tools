@@ -7,6 +7,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+
+## [4.34.0]
+
 ### Fixed
 
 - Fail the command if the requested mail config cannot be loaded
@@ -561,3 +564,4 @@ Released for version consistency with other DSW tools.
 [4.31.0]: /../../tree/v4.31.0
 [4.32.0]: /../../tree/v4.32.0
 [4.33.0]: /../../tree/v4.33.0
+[4.34.0]: /../../tree/v4.34.0
