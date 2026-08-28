@@ -1,8 +1,8 @@
-FROM ghcr.io/ds-wizard/python-base:4.33.0-basic AS builder
+FROM ghcr.io/ds-wizard/python-base:4.34.0-basic AS builder
 
 WORKDIR /app
 
-COPY --from=ghcr.io/astral-sh/uv:0.11.32 /uv /bin/uv
+COPY --from=ghcr.io/astral-sh/uv:0.12.7 /uv /bin/uv
 
 RUN apk add -u build-base gcc \
  && clean
@@ -35,7 +35,7 @@ RUN python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/app/wheels /app/pa
  && python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/app/wheels /app/packages/dsw-data-seeder
 
 
-FROM ghcr.io/ds-wizard/python-base:4.33.0-basic
+FROM ghcr.io/ds-wizard/python-base:4.34.0-basic
 
 ENV APPLICATION_CONFIG_PATH=/app/config/application.yml \
     WORKDIR_PATH=/home/user/data \

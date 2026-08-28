@@ -1,8 +1,8 @@
-FROM ghcr.io/ds-wizard/python-base:4.33.0-basic AS builder
+FROM ghcr.io/ds-wizard/python-base:4.34.0-basic AS builder
 
 WORKDIR /app
 
-COPY --from=ghcr.io/astral-sh/uv:0.11.32 /uv /bin/uv
+COPY --from=ghcr.io/astral-sh/uv:0.12.7 /uv /bin/uv
 
 # Dependency manifests only. This layer is invalidated only when dependencies
 # change, so the expensive third-party wheel build below is reused across
@@ -28,7 +28,7 @@ COPY . /app
 RUN python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/app/wheels /app/packages/dsw-tdk
 
 
-FROM ghcr.io/ds-wizard/python-base:4.33.0-basic
+FROM ghcr.io/ds-wizard/python-base:4.34.0-basic
 
 ENV PATH="/home/user/.local/bin:$PATH"
 

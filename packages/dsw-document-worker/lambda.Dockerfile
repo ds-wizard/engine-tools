@@ -1,6 +1,6 @@
-FROM ghcr.io/ds-wizard/python-base:4.33.0-docworker-lambda AS builder
+FROM ghcr.io/ds-wizard/python-base:4.34.0-docworker-lambda AS builder
 
-COPY --from=ghcr.io/astral-sh/uv:0.11.32 /uv /bin/uv
+COPY --from=ghcr.io/astral-sh/uv:0.12.7 /uv /bin/uv
 
 # Dependency manifests only. This layer is invalidated only when dependencies
 # change, so the expensive third-party wheel build below is reused across
@@ -31,7 +31,7 @@ RUN python -m pip wheel --no-deps --wheel-dir=/app/wheels /app/packages/dsw-comm
  && python -m pip wheel --no-deps --wheel-dir=/app/wheels /app/packages/dsw-document-worker/addons/* \
  && python -m pip wheel --no-deps --wheel-dir=/app/wheels /app/packages/dsw-document-worker
 
-FROM ghcr.io/ds-wizard/python-base:4.33.0-docworker-lambda
+FROM ghcr.io/ds-wizard/python-base:4.34.0-docworker-lambda
 
 ARG LAMBDA_TASK_ROOT
 
