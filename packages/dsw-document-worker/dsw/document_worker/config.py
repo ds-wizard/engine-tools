@@ -2,12 +2,15 @@ from __future__ import annotations
 
 import dataclasses
 import shlex
+import typing
 
 from dsw.config import DSWConfigParser
 from dsw.config.keys import (
     ConfigKey,
     ConfigKeys,
     ConfigKeysContainer,
+    cast_bool,
+    cast_int,
     cast_optional_int,
     cast_str,
 )
@@ -22,6 +25,16 @@ from dsw.config.model import (
 )
 
 from . import consts
+
+
+def cast_str_list(value: typing.Any) -> list[str]:
+    if value is None:
+        return []
+    if isinstance(value, str):
+        value = value.split(',')
+    if not isinstance(value, list):
+        return []
+    return [str(item).strip() for item in value if str(item).strip()]
 
 
 class _DocumentsKeys(ConfigKeysContainer):
@@ -45,6 +58,39 @@ class _ExperimentalKeys(ConfigKeysContainer):
         var_names=['EXPERIMENTAL_MAX_DOCUMENT_SIZE'],
         default=None,
         cast=cast_optional_int,
+    )
+
+
+class _SecurityKeys(ConfigKeysContainer):
+    allow_external_resources = ConfigKey(
+        yaml_path=['security', 'allowExternalResources'],
+        var_names=['SECURITY_ALLOW_EXTERNAL_RESOURCES'],
+        default=True,
+        cast=cast_bool,
+    )
+    allow_private_network = ConfigKey(
+        yaml_path=['security', 'allowPrivateNetwork'],
+        var_names=['SECURITY_ALLOW_PRIVATE_NETWORK'],
+        default=False,
+        cast=cast_bool,
+    )
+    allowed_hosts = ConfigKey(
+        yaml_path=['security', 'allowedHosts'],
+        var_names=['SECURITY_ALLOWED_HOSTS'],
+        default=None,
+        cast=cast_str_list,
+    )
+    allowed_paths = ConfigKey(
+        yaml_path=['security', 'allowedPaths'],
+        var_names=['SECURITY_ALLOWED_PATHS'],
+        default=None,
+        cast=cast_str_list,
+    )
+    max_redirects = ConfigKey(
+        yaml_path=['security', 'maxRedirects'],
+        var_names=['SECURITY_MAX_REDIRECTS'],
+        default=3,
+        cast=cast_int,
     )
 
 
@@ -131,6 +177,7 @@ class DocWorkerConfigKeys(ConfigKeys):
     experimental = _ExperimentalKeys
     cmd_pandoc = _CommandPandocKeys
     context = _DocumentContextKeys
+    security = _SecurityKeys
 
 
 @dataclasses.dataclass
@@ -145,6 +192,15 @@ class DocumentsConfig(ConfigModel):
 class ExperimentalConfig(ConfigModel):
     job_timeout: int | None
     max_doc_size: int | None
+
+
+@dataclasses.dataclass
+class SecurityConfig(ConfigModel):
+    allow_external_resources: bool
+    allow_private_network: bool
+    allowed_hosts: list[str]
+    allowed_paths: list[str]
+    max_redirects: int
 
 
 @dataclasses.dataclass
@@ -229,6 +285,7 @@ class DocumentWorkerConfig:
     sentry: SentryConfig
     general: GeneralConfig
     context: DocumentContextConfig
+    security: SecurityConfig
 
     def __str__(self):
         return f'DocumentWorkerConfig\n' \
@@ -242,6 +299,7 @@ class DocumentWorkerConfig:
                f'{self.sentry}' \
                f'{self.general}' \
                f'{self.context}' \
+               f'{self.security}' \
                f'Pandoc: {self.pandoc}' \
                f'====================\n'
 
@@ -298,6 +356,16 @@ class DocumentWorkerConfigParser(DSWConfigParser):
         )
 
     @property
+    def security(self) -> SecurityConfig:
+        return SecurityConfig(
+            allow_external_resources=self.get(self.keys.security.allow_external_resources),
+            allow_private_network=self.get(self.keys.security.allow_private_network),
+            allowed_hosts=self.get(self.keys.security.allowed_hosts),
+            allowed_paths=self.get(self.keys.security.allowed_paths),
+            max_redirects=self.get(self.keys.security.max_redirects),
+        )
+
+    @property
     def config(self) -> DocumentWorkerConfig:
         return DocumentWorkerConfig(
             db=self.db,
@@ -311,4 +379,5 @@ class DocumentWorkerConfigParser(DSWConfigParser):
             sentry=self.sentry,
             general=self.general,
             context=self.context,
+            security=self.security,
         )

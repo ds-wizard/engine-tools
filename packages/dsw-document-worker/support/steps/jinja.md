@@ -25,6 +25,11 @@ Results to a file of specified type (via `content-type` option) and file extensi
 * The [`do` Jinja2 extension](https://jinja.palletsprojects.com/en/3.0.x/extensions/#expression-statement) is enabled.
 * Using file extension `.j2` or `.jinja2` for templates is just a convention.
 * The document context is provided in `ctx` variable, other variables, filters, and tests are documented in other documents.
+* If enabled via `templates.<id>.requests.enabled` in the worker configuration, a `requests` object is available for making HTTP requests from the template. Enabling it means that the template can reach any host the worker can reach, and the response can be embedded in the document. Therefore:
+  * only `http` and `https` URLs are allowed,
+  * hosts resolving to private, loopback, or link-local addresses (e.g. cloud metadata endpoints) are rejected unless allowed via the `security` configuration,
+  * TLS verification cannot be disabled and the timeout cannot be extended from the template (`verify`, `timeout`, `proxies`, and `hooks` arguments are rejected),
+  * redirects are followed up to `security.maxRedirects` hops, each of them checked again, and credentials (`auth`, `cookies`, `Authorization` header) are dropped when a redirect points to another host.
 
 ## Example
 

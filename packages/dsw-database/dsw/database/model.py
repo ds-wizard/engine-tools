@@ -269,7 +269,7 @@ class PersistentCommand:
             last_error_message=data['last_error_message'],
             attempts=data['attempts'],
             max_attempts=data['max_attempts'],
-            created_by=str(data['created_by']),
+            created_by=str(data['created_by']) if data['created_by'] is not None else None,
             created_at=data['created_at'],
             updated_at=data['updated_at'],
             tenant_uuid=str(data.get('tenant_uuid', NULL_UUID)),

@@ -2,11 +2,33 @@ name: Translations
 
 on:
   push:
+  pull_request:
+  # Called by release-package.yml, which publishes the resulting artifact as a
+  # release asset in a separate job. The upload deliberately lives in the
+  # caller: a called workflow's permissions can only be reduced, never
+  # elevated, so contents: write could not be granted from here.
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # Cancel superseded runs on feature branches and PRs. Never on develop/main
+  # or tags: the release gate needs a completed Test/Build run per commit.
+  cancel-in-progress: >-
+    ${{ github.ref != 'refs/heads/develop'
+        && github.ref != 'refs/heads/main'
+        && !startsWith(github.ref, 'refs/tags/') }}
 
 jobs:
   mail-templates:
     name: Mail Templates
+    # Avoid double runs: in-repo branches are covered by the push event above.
+    # Fork PRs have no push event, so they are covered here instead.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
     - name: Check out repository
@@ -14,10 +36,12 @@ jobs:
 
     - name: Install uv
       uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
 
     - name: Install dependencies
       run: |
-        uv sync --all-packages --group translations
+        uv sync --locked --all-packages --group translations
 
     - name: Generate POT files
       run: |

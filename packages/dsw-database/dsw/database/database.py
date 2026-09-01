@@ -406,22 +406,19 @@ class Database:
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
     def get_mail_config(self, mail_config_uuid: str) -> model.DBInstanceConfigMail | None:
+        # Note: mail configs are instance-wide and may be shared across tenants,
+        #       so there is intentionally no tenant_uuid predicate here.
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             if not self._check_table_exists(table_name='instance_config_mail'):
                 return None
-            try:
-                cursor.execute(
-                    query=self.SELECT_MAIL_CONFIG,
-                    params={'mail_config_uuid': mail_config_uuid},
-                )
-                result = cursor.fetchone()
-                if result is None:
-                    return None
-                return model.DBInstanceConfigMail.from_dict_row(data=result)
-            except Exception as e:
-                LOG.warning('Could not retrieve instance_config_mail "%s": %s',
-                            mail_config_uuid, str(e))
+            cursor.execute(
+                query=self.SELECT_MAIL_CONFIG,
+                params={'mail_config_uuid': mail_config_uuid},
+            )
+            result = cursor.fetchone()
+            if result is None:
                 return None
+            return model.DBInstanceConfigMail.from_dict_row(data=result)
 
     @tenacity.retry(
         reraise=True,
@@ -634,6 +631,20 @@ class PostgresConnection:
     def reset(self):
         self.close()
         self.connect()
+
+    def discard(self) -> int | None:
+        # Forget the connection without closing it: closing waits for the
+        # connection lock, which is not an option when another (abandoned)
+        # thread may be holding it. The connection is left to the process exit.
+        # Returns the PID of the backend behind the discarded connection.
+        backend_pid = None
+        if self._connection is not None:
+            backend_pid = self._connection.pgconn.backend_pid
+            LOG.warning('Discarding connection to PostgreSQL database "%s" (backend: %s)',
+                        self.name, backend_pid)
+        self._connection = None
+        self.listening = False
+        return backend_pid
 
     def close(self):
         if self._connection:

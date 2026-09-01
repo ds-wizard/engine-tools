@@ -108,12 +108,12 @@ class _MailLegacySMTPKeys(ConfigKeysContainer):
     port = ConfigKey(
         yaml_path=['mail', 'port'],
         var_names=['MAIL_PORT'],
-        cast=cast_str,
+        cast=cast_optional_int,
     )
     ssl = ConfigKey(
         yaml_path=['mail', 'ssl'],
         var_names=[],
-        cast=cast_optional_str,
+        cast=cast_optional_bool,
     )
     security = ConfigKey(
         yaml_path=['mail', 'security'],
@@ -204,6 +204,12 @@ class MailerConfigKeys(ConfigKeys):
     experimental = _ExperimentalKeys
 
 
+SMTP_SECURITY_ALIASES = {
+    'NONE': 'PLAIN',
+    'STARTTLS': 'TLS',
+}
+
+
 class SMTPSecurityMode(enum.Enum):
     PLAIN = enum.auto()
     SSL = enum.auto()
@@ -212,6 +218,14 @@ class SMTPSecurityMode(enum.Enum):
     @classmethod
     def has(cls, name):
         return name in cls.__members__
+
+    @classmethod
+    def parse(cls, name: str) -> SMTPSecurityMode:
+        value = name.strip().upper()
+        value = SMTP_SECURITY_ALIASES.get(value, value)
+        if not cls.has(value):
+            raise ValueError(f'Unknown SMTP security mode: {name}')
+        return cls[value]
 
 
 class MailProvider(enum.Enum):
@@ -232,17 +246,21 @@ class MailSMTPConfig:
                  auth_enabled: bool | None = None, timeout: int = 10):
         self.host = host
         self.security: SMTPSecurityMode = SMTPSecurityMode.PLAIN
-        if security is not None and SMTPSecurityMode.has(security.upper()):
-            self.security = SMTPSecurityMode[security.upper()]
+        if security:
+            self.security = SMTPSecurityMode.parse(security)
         elif ssl is not None:
             self.security = SMTPSecurityMode.SSL if ssl else SMTPSecurityMode.PLAIN
         self.port = port or self.default_port
-        self.auth = auth_enabled
-        if self.auth is None:
-            self.auth = username is not None and password is not None
+        self.auth_enabled = auth_enabled
         self.username = username
         self.password = password
         self.timeout = timeout
+
+    @property
+    def auth(self) -> bool:
+        if self.auth_enabled is not None:
+            return self.auth_enabled
+        return self.has_credentials()
 
     @property
     def login_user(self) -> str:
@@ -456,14 +474,13 @@ def merge_mail_configs(cfg: MailerConfig, db_cfg: DBInstanceConfigMail | None) -
             smtp.security = cfg.mail.smtp.security
             smtp.username = cfg.mail.smtp.username
             smtp.password = cfg.mail.smtp.password
+            smtp.auth_enabled = cfg.mail.smtp.auth_enabled
             smtp.timeout = cfg.mail.smtp.timeout
         else:
-            if db_cfg.smtp_security is None:
-                smtp.security = cfg.mail.smtp.security
-            elif SMTPSecurityMode.has(db_cfg.smtp_security.upper()):
-                smtp.security = SMTPSecurityMode[db_cfg.smtp_security.upper()]
+            if db_cfg.smtp_security:
+                smtp.security = SMTPSecurityMode.parse(db_cfg.smtp_security)
             else:
-                smtp.security = SMTPSecurityMode.PLAIN
+                smtp.security = cfg.mail.smtp.security
             smtp.host = db_cfg.smtp_host
             smtp.port = db_cfg.smtp_port or smtp.default_port
             smtp.username = db_cfg.smtp_username

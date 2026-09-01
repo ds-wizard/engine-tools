@@ -15,25 +15,46 @@ class MissingConfigurationError(Exception):
         self.missing = missing
 
 
+class InvalidConfigurationError(Exception):
+
+    def __init__(self, message: str):
+        super().__init__(message)
+        self.message = message
+
+
 class DSWConfigParser:
 
     def __init__(self, keys=ConfigKeys):
-        self.cfg = {}
+        self.cfg: dict = {}
         self.keys = keys
 
     @staticmethod
-    def can_read(content: str):
+    def _load_yaml(source: str | typing.IO) -> dict:
         try:
-            yaml.safe_load(content)
+            data = yaml.safe_load(source)
+        except yaml.YAMLError as e:
+            raise InvalidConfigurationError(f'Cannot parse YAML: {e}') from e
+        if data is None:
+            return {}
+        if not isinstance(data, dict):
+            raise InvalidConfigurationError(
+                f'Configuration must be a YAML mapping, got {type(data).__name__}',
+            )
+        return data
+
+    @classmethod
+    def can_read(cls, content: str):
+        try:
+            cls._load_yaml(content)
             return True
-        except Exception:
+        except InvalidConfigurationError:
             return False
 
     def read_file(self, fp: typing.IO):
-        self.cfg = yaml.safe_load(fp) or self.cfg
+        self.cfg = self._load_yaml(fp)
 
     def read_string(self, content: str):
-        self.cfg = yaml.safe_load(content) or self.cfg
+        self.cfg = self._load_yaml(content)
 
     def has_value_for_path(self, yaml_path: list[str]):
         x = self.cfg
@@ -47,13 +68,16 @@ class DSWConfigParser:
     def _prefix_var(var_name: str) -> str:
         return f'DSW_{var_name}'
 
+    def _env_var_names(self, key: ConfigKey) -> typing.Iterable[str]:
+        # DSW-prefixed variables have precedence over the generic ones which
+        # may be present in the environment for unrelated reasons
+        yield from (self._prefix_var(var_name) for var_name in key.var_names)
+        yield from key.var_names
+
     def has_value_for_key(self, key: ConfigKey):
         if self.has_value_for_path(key.yaml_path):
             return True
-        for var_name in key.var_names:
-            if var_name in os.environ or self._prefix_var(var_name) in os.environ:
-                return True
-        return False
+        return any(var_name in os.environ for var_name in self._env_var_names(key))
 
     def get_or_default(self, key: ConfigKey):
         x: typing.Any = self.cfg
@@ -64,11 +88,9 @@ class DSWConfigParser:
         return x
 
     def get(self, key: ConfigKey):
-        for var_name in key.var_names:
+        for var_name in self._env_var_names(key):
             if var_name in os.environ:
                 return key.cast(os.environ[var_name])
-            if self._prefix_var(var_name) in os.environ:
-                return key.cast(os.environ[self._prefix_var(var_name)])
         return key.cast(self.get_or_default(key))
 
     def validate(self):

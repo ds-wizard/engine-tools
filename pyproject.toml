@@ -1,6 +1,6 @@
 [project]
 name = "engine-tools"
-version = "4.30.0"
+version = "4.34.0"
 description = "Python tools for DSW Engine"
 readme = "README.md"
 requires-python = ">=3.14"
@@ -13,9 +13,9 @@ Issues = "https://github.com/ds-wizard/ds-wizard/issues"
 
 [dependency-groups]
 dev = [
-    "ruff==0.16.0",
+    "ruff==0.16.3",
     "tomlkit>=0.15.0",
-    "ty==0.0.63",
+    "ty==0.0.73",
 ]
 test = [
     "pytest",
@@ -128,7 +128,11 @@ section-order = [
 "monorepo" = ["dsw"]
 
 [tool.ruff.lint.flake8-bandit]
-allowed-markup-calls = ["markdown.markdown"]
+allowed-markup-calls = [
+    "markdown.markdown",
+    "document_worker.sanitizer.sanitize_html",
+    "dsw.document_worker.sanitizer.sanitize_html",
+]
 
 [tool.ruff.lint.flake8-quotes]
 inline-quotes = "single"

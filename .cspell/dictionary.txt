@@ -1,4 +1,7 @@
 # Python and libraries specific terms
+autouse
+caplog
+delenv
 SIGABRT
 pgconn
 dateutil
@@ -60,6 +63,7 @@ strikethrough
 
 # Software Engineering terms
 bytesize
+timestamptz
 metamodel
 amazonses
 dockerized
@@ -121,3 +125,4 @@ odend
 heighta
 xurl
 nosniff
+IPPROTO

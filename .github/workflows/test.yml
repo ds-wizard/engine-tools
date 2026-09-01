@@ -2,10 +2,28 @@ name: Test
 
 on:
   push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # Cancel superseded runs on feature branches and PRs. Never on develop/main
+  # or tags: the release gate in release-package.yml requires a completed
+  # Test/Build run for the release commit.
+  cancel-in-progress: >-
+    ${{ github.ref != 'refs/heads/develop'
+        && github.ref != 'refs/heads/main'
+        && !startsWith(github.ref, 'refs/tags/') }}
 
 jobs:
   test-worker:
     name: Test
+    # Avoid double runs: in-repo branches are covered by the push event.
+    # Fork PRs produce no push event, so they are covered here instead.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
+    timeout-minutes: 45
 
     strategy:
       fail-fast: false
@@ -29,6 +47,7 @@ jobs:
     - name: Install uv
       uses: astral-sh/setup-uv@v7
       with:
+        enable-cache: true
         python-version: ${{ matrix.python-version }}
 
     - name: Install Ghostscript (Ubuntu)
@@ -56,74 +75,155 @@ jobs:
 
     - name: Install dependencies
       run: |
-        uv sync --all-packages --all-extras --dev
+        uv sync --locked --all-packages --all-extras --dev
 
-    - name: Prepare envvars
-      shell: bash
-      run: |
-          echo "VERIFY_FAILS=_" >> $GITHUB_ENV
-          echo "TEST_FAILS=_" >> $GITHUB_ENV
-
+    # Each package runs with continue-on-error so one failure does not hide the
+    # others. The result is taken from the runner-recorded step outcome, not
+    # from anything the step itself writes, so a step that fails to launch at
+    # all is still counted as a failure by "Evaluate tests" below.
     - name: "Test: command-queue"
+      id: test-command-queue
       continue-on-error: true
       run: |
         uv run --no-sync bash .github/test.sh dsw-command-queue
 
     - name: "Test: config"
+      id: test-config
       continue-on-error: true
       run: |
         uv run --no-sync bash .github/test.sh dsw-config
 
     - name: "Test: data-seeder"
+      id: test-data-seeder
       continue-on-error: true
       run: |
         uv run --no-sync bash .github/test.sh dsw-data-seeder
 
     - name: "Test: database"
+      id: test-database
       continue-on-error: true
       run: |
         uv run --no-sync bash .github/test.sh dsw-database
 
     - name: "Test: document-worker"
+      id: test-document-worker
       continue-on-error: true
       run: |
         uv run --no-sync bash .github/test.sh dsw-document-worker
 
     - name: "Test: mailer"
+      id: test-mailer
       continue-on-error: true
       run: |
         uv run --no-sync bash .github/test.sh dsw-mailer
 
     - name: "Test: models"
+      id: test-models
       continue-on-error: true
       run: |
         uv run --no-sync bash .github/test.sh dsw-models
 
     - name: "Test: storage"
+      id: test-storage
       continue-on-error: true
       run: |
         uv run --no-sync bash .github/test.sh dsw-storage
 
     - name: "Test: TDK"
+      id: test-tdk
       continue-on-error: true
       run: |
         uv run --no-sync bash .github/test.sh dsw-tdk
 
     - name: "Evaluate tests"
+      if: always()
       shell: bash
+      env:
+        # An empty value means the step never ran (e.g. setup failed earlier),
+        # which must be treated as a failure rather than silently passing.
+        OUTCOMES: |
+          dsw-command-queue=${{ steps.test-command-queue.outcome }}
+          dsw-config=${{ steps.test-config.outcome }}
+          dsw-data-seeder=${{ steps.test-data-seeder.outcome }}
+          dsw-database=${{ steps.test-database.outcome }}
+          dsw-document-worker=${{ steps.test-document-worker.outcome }}
+          dsw-mailer=${{ steps.test-mailer.outcome }}
+          dsw-models=${{ steps.test-models.outcome }}
+          dsw-storage=${{ steps.test-storage.outcome }}
+          dsw-tdk=${{ steps.test-tdk.outcome }}
       run: |
-        cd packages/${{ matrix.package }}
-        RET=0
-        if [ $VERIFY_FAILS == "_" ]; then
-          echo "## Verify: passed"
-        else
-          echo "## Verify: failed for packages: $VERIFY_FAILS"
-          RET=1
+        EXPECTED=9
+        SEEN=0
+        FAILED=""
+        while IFS='=' read -r pkg outcome; do
+          [ -n "$pkg" ] || continue
+          SEEN=$((SEEN + 1))
+          if [ "$outcome" = "success" ]; then
+            echo "## $pkg: passed"
+          else
+            echo "## $pkg: FAILED (outcome: ${outcome:-did not run})"
+            FAILED="$FAILED $pkg"
+          fi
+        done <<< "$OUTCOMES"
+
+        if [ "$SEEN" -ne "$EXPECTED" ]; then
+          echo "## Expected $EXPECTED packages, evaluated $SEEN"
+          exit 1
         fi
-        if [ $TEST_FAILS == "_" ]; then
-          echo "## Test: passed"
-        else
-          echo "## Test: failed for packages: $TEST_FAILS"
-          RET=1
+        if [ -n "$FAILED" ]; then
+          echo "## Failed packages:$FAILED"
+          exit 1
         fi
-        exit $RET
+        echo "## All $EXPECTED packages passed"
+
+  # dsw-tdk declares requires-python >=3.12 (unlike the rest of the workspace,
+  # which is >=3.14) because it is a CLI that end users pip install. It has no
+  # workspace dependencies, so it is installed standalone here rather than via
+  # `uv sync`, which is bound to the root >=3.14 floor. Python 3.14 is already
+  # covered across all three OSes by the test-worker job above.
+  test-tdk-oldest:
+    name: Test TDK
+    # Avoid double runs: in-repo branches are covered by the push event.
+    # Fork PRs produce no push event, so they are covered here instead.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
+    timeout-minutes: 20
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+        - '3.12'
+        - '3.13'
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v7
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+
+    - name: Create build info
+      run: |
+        bash scripts/build-info.sh
+
+    - name: Create environment
+      run: |
+        uv venv --no-project --python ${{ matrix.python-version }}
+
+    - name: Install dsw-tdk with test dependencies
+      run: |
+        uv pip install './packages/dsw-tdk[test]'
+        .venv/bin/python --version
+
+    - name: "Verify: TDK"
+      run: |
+        .venv/bin/dsw-tdk --version
+
+    - name: "Test: TDK"
+      working-directory: packages/dsw-tdk
+      run: |
+        ../../.venv/bin/pytest -s tests

@@ -1,6 +1,6 @@
 [project]
 name = "dsw-config"
-version = "4.33.0"
+version = "4.34.0"
 description = "Library for DSW config manipulation"
 readme = "README.md"
 keywords = ["dsw", "config", "yaml", "parser"]
@@ -12,13 +12,11 @@ classifiers = [
     "Development Status :: 5 - Production/Stable",
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
     "Topic :: Text Processing",
     "Topic :: Utilities",
 ]
-requires-python = ">=3.12, <4"
+requires-python = ">=3.14, <4"
 dependencies = [
     "PyYAML",
     "sentry-sdk",
@@ -31,7 +29,7 @@ Documentation = "https://guide.ds-wizard.org"
 Issues = "https://github.com/ds-wizard/ds-wizard/issues"
 
 [build-system]
-requires = ["uv_build>=0.11.32,<0.12.0"]
+requires = ["uv_build>=0.12.3,<0.13.0"]
 build-backend = "uv_build"
 
 [tool.uv.build-backend]

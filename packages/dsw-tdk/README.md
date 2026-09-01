@@ -6,7 +6,7 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/datastewardshipwizard/dsw-tdk)](https://hub.docker.com/r/datastewardshipwizard/dsw-tdk)
 [![LICENSE](https://img.shields.io/github/license/ds-wizard/engine-tools)](LICENSE)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/4975/badge)](https://bestpractices.coreinfrastructure.org/projects/4975)
-[![Python Version](https://img.shields.io/badge/Python-%E2%89%A5%203.7-blue)](https://python.org)
+[![Python Version](https://img.shields.io/badge/Python-%E2%89%A5%203.12-blue)](https://python.org)
 
 *Template Development Kit for [Data Stewardship Wizard](https://ds-wizard.org)*
 
@@ -98,7 +98,7 @@ $ dsw-tdk --debug list
 
 ## Requirements
 
--  [Python 3.8+](https://www.python.org/downloads/)
+-  [Python 3.12+](https://www.python.org/downloads/)
 -  DSW instance with matching version (e.g. a local one using [Docker](https://github.com/ds-wizard/dsw-deployment-example))
 -  Admin credentials (email+password) to the DSW instance
 
