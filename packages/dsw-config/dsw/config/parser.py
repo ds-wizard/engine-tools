@@ -107,6 +107,7 @@ class DSWConfigParser:
             connection_string=self.get(self.keys.database.connection_string),
             connection_timeout=self.get(self.keys.database.connection_timeout),
             queue_timeout=self.get(self.keys.database.queue_timeout),
+            table_prefix=self.get(self.keys.database.table_prefix),
         )
 
     @property

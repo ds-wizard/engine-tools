@@ -31,61 +31,65 @@ def wrap_json_data(data: dict):
 
 
 class Database:
-
-    SELECT_DOCUMENT = ('SELECT * FROM document '
+    # The queries are templates: "{p}" stands for the configured table prefix
+    # and is resolved by _q() (table names cannot be passed as query parameters).
+    SELECT_DOCUMENT = ('SELECT * FROM {p}document '
                        'WHERE uuid = %s AND tenant_uuid = %s LIMIT 1;')
-    SELECT_DOCUMENTS = ('SELECT * FROM document '
+    SELECT_DOCUMENTS = ('SELECT * FROM {p}document '
                         'WHERE project_uuid = %s AND tenant_uuid = %s;')
-    SELECT_DOCUMENT_SUBMISSIONS = ('SELECT * FROM submission '
+    SELECT_DOCUMENT_SUBMISSIONS = ('SELECT * FROM {p}submission '
                                    'WHERE document_uuid = %s AND tenant_uuid = %s;')
     SELECT_PROJECT_SUBMISSIONS = ('SELECT s.* '
-                                  'FROM document d JOIN submission s ON d.uuid = s.document_uuid '
+                                  'FROM {p}document d '
+                                  'JOIN {p}submission s ON d.uuid = s.document_uuid '
                                   'WHERE d.project_uuid = %s AND d.tenant_uuid = %s;')
-    SELECT_PROJECT_SIMPLE = ('SELECT p.* FROM project p '
+    SELECT_PROJECT_SIMPLE = ('SELECT p.* FROM {p}project p '
                              'WHERE p.uuid = %s AND p.tenant_uuid = %s;')
-    SELECT_TENANT_LIMIT = ('SELECT uuid, storage FROM tenant_limit_bundle '
+    SELECT_TENANT_LIMIT = ('SELECT uuid, storage FROM {p}tenant_limit_bundle '
                            'WHERE uuid = %(tenant_uuid)s LIMIT 1;')
-    UPDATE_DOCUMENT_STATE = 'UPDATE document SET state = %s, worker_log = %s WHERE uuid = %s;'
-    UPDATE_DOCUMENT_RETRIEVED = 'UPDATE document SET retrieved_at = %s, state = %s WHERE uuid = %s;'
-    UPDATE_DOCUMENT_FINISHED = ('UPDATE document SET finished_at = %s, state = %s, '
+    UPDATE_DOCUMENT_STATE = ('UPDATE {p}document SET state = %s, worker_log = %s '
+                             'WHERE uuid = %s;')
+    UPDATE_DOCUMENT_RETRIEVED = ('UPDATE {p}document SET retrieved_at = %s, state = %s '
+                                 'WHERE uuid = %s;')
+    UPDATE_DOCUMENT_FINISHED = ('UPDATE {p}document SET finished_at = %s, state = %s, '
                                 'file_name = %s, content_type = %s, worker_log = %s, '
                                 'file_size = %s WHERE uuid = %s;')
-    SELECT_TEMPLATE = ('SELECT * FROM document_template '
+    SELECT_TEMPLATE = ('SELECT * FROM {p}document_template '
                        'WHERE uuid = %s AND tenant_uuid = %s LIMIT 1;')
-    SELECT_TEMPLATE_FORMATS = ('SELECT * FROM document_template_format '
+    SELECT_TEMPLATE_FORMATS = ('SELECT * FROM {p}document_template_format '
                                'WHERE document_template_uuid = %s AND tenant_uuid = %s;')
-    SELECT_TEMPLATE_STEPS = ('SELECT * FROM document_template_format_step '
+    SELECT_TEMPLATE_STEPS = ('SELECT * FROM {p}document_template_format_step '
                              'WHERE document_template_uuid = %s AND tenant_uuid = %s;')
-    SELECT_TEMPLATE_FILES = ('SELECT * FROM document_template_file '
+    SELECT_TEMPLATE_FILES = ('SELECT * FROM {p}document_template_file '
                              'WHERE document_template_uuid = %s AND tenant_uuid = %s;')
-    SELECT_TEMPLATE_ASSETS = ('SELECT * FROM document_template_asset '
+    SELECT_TEMPLATE_ASSETS = ('SELECT * FROM {p}document_template_asset '
                               'WHERE document_template_uuid = %s AND tenant_uuid = %s;')
     CHECK_TABLE_EXISTS = ('SELECT EXISTS(SELECT * FROM information_schema.tables'
                           '                       WHERE table_name = %(table_name)s)')
-    SELECT_MAIL_CONFIG = ('SELECT * FROM instance_config_mail '
+    SELECT_MAIL_CONFIG = ('SELECT * FROM {p}instance_config_mail '
                           'WHERE uuid = %(mail_config_uuid)s;')
-    UPDATE_COMPONENT_INFO = ('INSERT INTO component '
+    UPDATE_COMPONENT_INFO = ('INSERT INTO {p}component '
                              '(name, version, built_at, created_at, updated_at) '
                              'VALUES (%(name)s, %(version)s, %(built_at)s, '
                              '%(created_at)s, %(updated_at)s)'
                              'ON CONFLICT (name) DO '
                              'UPDATE SET version = %(version)s, built_at = %(built_at)s, '
                              'updated_at = %(updated_at)s;')
-    SELECT_COMPONENT_INFO = 'SELECT * FROM component WHERE name = %(name)s;'
+    SELECT_COMPONENT_INFO = 'SELECT * FROM {p}component WHERE name = %(name)s;'
     SUM_FILE_SIZES = ('SELECT (SELECT COALESCE(SUM(file_size)::bigint, 0) '
-                      'FROM document WHERE tenant_uuid = %(tenant_uuid)s) '
+                      'FROM {p}document WHERE tenant_uuid = %(tenant_uuid)s) '
                       '+ (SELECT COALESCE(SUM(file_size)::bigint, 0) '
-                      'FROM document_template_asset WHERE tenant_uuid = %(tenant_uuid)s) '
+                      'FROM {p}document_template_asset WHERE tenant_uuid = %(tenant_uuid)s) '
                       '+ (SELECT COALESCE(SUM(file_size)::bigint, 0) '
-                      'FROM project_file WHERE tenant_uuid = %(tenant_uuid)s) '
+                      'FROM {p}project_file WHERE tenant_uuid = %(tenant_uuid)s) '
                       'AS result;')
-    SELECT_USER = ('SELECT * FROM user_entity '
+    SELECT_USER = ('SELECT * FROM {p}user_entity '
                    'WHERE uuid = %(user_uuid)s AND tenant_uuid = %(tenant_uuid)s;')
-    SELECT_DEFAULT_LOCALE = ('SELECT * FROM locale '
+    SELECT_DEFAULT_LOCALE = ('SELECT * FROM {p}locale '
                              'WHERE default_locale IS TRUE AND '
                              '  enabled is TRUE AND '
                              '  tenant_uuid = %(tenant_uuid)s;')
-    SELECT_LOCALE = ('SELECT * FROM locale '
+    SELECT_LOCALE = ('SELECT * FROM {p}locale '
                      'WHERE uuid = %(locale_uuid)s AND tenant_uuid = %(tenant_uuid)s;')
 
     def __init__(self, cfg: DatabaseConfig, connect: bool = True,
@@ -117,6 +121,9 @@ class Database:
         if self.with_queue:
             self.conn_queue.connect()
 
+    def _q(self, query: str) -> str:
+        return self.cfg.prepare_query(query)
+
     @tenacity.retry(
         reraise=True,
         wait=tenacity.wait_exponential(multiplier=RETRY_QUERY_MULTIPLIER),
@@ -129,7 +136,7 @@ class Database:
             try:
                 cursor.execute(
                     query=self.CHECK_TABLE_EXISTS,
-                    params={'table_name': table_name},
+                    params={'table_name': self.cfg.table_name(table_name)},
                 )
                 return cursor.fetchone()[0]
             except Exception:
@@ -145,7 +152,7 @@ class Database:
     def fetch_document(self, document_uuid: str, tenant_uuid: str) -> model.DBDocument | None:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
-                query=self.SELECT_DOCUMENT,
+                query=self._q(self.SELECT_DOCUMENT),
                 params=(document_uuid, tenant_uuid),
             )
             result = cursor.fetchall()
@@ -163,7 +170,7 @@ class Database:
     def fetch_tenant_limits(self, tenant_uuid: str) -> model.DBTenantLimits | None:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
-                query=self.SELECT_TENANT_LIMIT,
+                query=self._q(self.SELECT_TENANT_LIMIT),
                 params={'tenant_uuid': tenant_uuid},
             )
             result = cursor.fetchall()
@@ -183,7 +190,7 @@ class Database:
     ) -> model.DBDocumentTemplate | None:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
-                query=self.SELECT_TEMPLATE,
+                query=self._q(self.SELECT_TEMPLATE),
                 params=(template_uuid, tenant_uuid),
             )
             dt_result = cursor.fetchall()
@@ -192,7 +199,7 @@ class Database:
             template = model.DBDocumentTemplate.from_dict_row(dt_result[0])
 
             cursor.execute(
-                query=self.SELECT_TEMPLATE_FORMATS,
+                query=self._q(self.SELECT_TEMPLATE_FORMATS),
                 params=(template_uuid, tenant_uuid),
             )
             formats_result = cursor.fetchall()
@@ -200,7 +207,7 @@ class Database:
                 model.DBDocumentTemplateFormat.from_dict_row(x) for x in formats_result
             ], key=lambda x: x.name)
             cursor.execute(
-                query=self.SELECT_TEMPLATE_STEPS,
+                query=self._q(self.SELECT_TEMPLATE_STEPS),
                 params=(template_uuid, tenant_uuid),
             )
             steps_result = cursor.fetchall()
@@ -235,7 +242,7 @@ class Database:
     ) -> list[model.DBDocumentTemplateFile]:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
-                query=self.SELECT_TEMPLATE_FILES,
+                query=self._q(self.SELECT_TEMPLATE_FILES),
                 params=(template_uuid, tenant_uuid),
             )
             return [model.DBDocumentTemplateFile.from_dict_row(x) for x in cursor.fetchall()]
@@ -252,7 +259,7 @@ class Database:
     ) -> list[model.DBDocumentTemplateAsset]:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
-                query=self.SELECT_TEMPLATE_ASSETS,
+                query=self._q(self.SELECT_TEMPLATE_ASSETS),
                 params=(template_uuid, tenant_uuid),
             )
             return [model.DBDocumentTemplateAsset.from_dict_row(x) for x in cursor.fetchall()]
@@ -268,7 +275,7 @@ class Database:
                                 tenant_uuid: str) -> list[model.DBDocument]:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
-                query=self.SELECT_DOCUMENTS,
+                query=self._q(self.SELECT_DOCUMENTS),
                 params=(project_uuid, tenant_uuid),
             )
             return [model.DBDocument.from_dict_row(x) for x in cursor.fetchall()]
@@ -284,7 +291,7 @@ class Database:
                                    tenant_uuid: str) -> list[model.DBSubmission]:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
-                query=self.SELECT_DOCUMENT_SUBMISSIONS,
+                query=self._q(self.SELECT_DOCUMENT_SUBMISSIONS),
                 params=(document_uuid, tenant_uuid),
             )
             return [model.DBSubmission.from_dict_row(x) for x in cursor.fetchall()]
@@ -300,7 +307,7 @@ class Database:
                                   tenant_uuid: str) -> list[model.DBSubmission]:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
-                query=self.SELECT_PROJECT_SUBMISSIONS,
+                query=self._q(self.SELECT_PROJECT_SUBMISSIONS),
                 params=(project_uuid, tenant_uuid),
             )
             return [model.DBSubmission.from_dict_row(x) for x in cursor.fetchall()]
@@ -316,7 +323,7 @@ class Database:
                              tenant_uuid: str) -> model.DBProjectSimple:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
-                query=self.SELECT_PROJECT_SIMPLE,
+                query=self._q(self.SELECT_PROJECT_SIMPLE),
                 params=(project_uuid, tenant_uuid),
             )
             return model.DBProjectSimple.from_dict_row(cursor.fetchone())
@@ -331,7 +338,7 @@ class Database:
     def update_document_state(self, document_uuid: str, worker_log: str, state: str) -> bool:
         with self.conn_query.new_cursor() as cursor:
             cursor.execute(
-                query=self.UPDATE_DOCUMENT_STATE,
+                query=self._q(self.UPDATE_DOCUMENT_STATE),
                 params=(state, worker_log, document_uuid),
             )
             return cursor.rowcount == 1
@@ -347,7 +354,7 @@ class Database:
                                   document_uuid: str) -> bool:
         with self.conn_query.new_cursor() as cursor:
             cursor.execute(
-                query=self.UPDATE_DOCUMENT_RETRIEVED,
+                query=self._q(self.UPDATE_DOCUMENT_RETRIEVED),
                 params=(
                     retrieved_at,
                     model.DocumentState.PROCESSING.value,
@@ -369,7 +376,7 @@ class Database:
     ) -> bool:
         with self.conn_query.new_cursor() as cursor:
             cursor.execute(
-                query=self.UPDATE_DOCUMENT_FINISHED,
+                query=self._q(self.UPDATE_DOCUMENT_FINISHED),
                 params=(
                     finished_at,
                     model.DocumentState.FINISHED.value,
@@ -392,7 +399,7 @@ class Database:
     def get_currently_used_size(self, tenant_uuid: str):
         with self.conn_query.new_cursor() as cursor:
             cursor.execute(
-                query=self.SUM_FILE_SIZES,
+                query=self._q(self.SUM_FILE_SIZES),
                 params={'tenant_uuid': tenant_uuid},
             )
             row = cursor.fetchone()
@@ -412,7 +419,7 @@ class Database:
             if not self._check_table_exists(table_name='instance_config_mail'):
                 return None
             cursor.execute(
-                query=self.SELECT_MAIL_CONFIG,
+                query=self._q(self.SELECT_MAIL_CONFIG),
                 params={'mail_config_uuid': mail_config_uuid},
             )
             result = cursor.fetchone()
@@ -433,7 +440,7 @@ class Database:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             try:
                 cursor.execute(
-                    query=self.SELECT_USER,
+                    query=self._q(self.SELECT_USER),
                     params={'user_uuid': user_uuid, 'tenant_uuid': tenant_uuid},
                 )
                 result = cursor.fetchone()
@@ -458,7 +465,7 @@ class Database:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             try:
                 cursor.execute(
-                    query=self.SELECT_DEFAULT_LOCALE,
+                    query=self._q(self.SELECT_DEFAULT_LOCALE),
                     params={'tenant_uuid': tenant_uuid},
                 )
                 result = cursor.fetchone()
@@ -483,7 +490,7 @@ class Database:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             try:
                 cursor.execute(
-                    query=self.SELECT_LOCALE,
+                    query=self._q(self.SELECT_LOCALE),
                     params={'locale_uuid': locale_uuid, 'tenant_uuid': tenant_uuid},
                 )
                 result = cursor.fetchone()
@@ -509,7 +516,7 @@ class Database:
             ts_now = datetime.datetime.now(tz=datetime.UTC)
             try:
                 cursor.execute(
-                    query=self.UPDATE_COMPONENT_INFO,
+                    query=self._q(self.UPDATE_COMPONENT_INFO),
                     params={
                         'name': name,
                         'version': version,
@@ -535,7 +542,7 @@ class Database:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             try:
                 cursor.execute(
-                    query=self.SELECT_COMPONENT_INFO,
+                    query=self._q(self.SELECT_COMPONENT_INFO),
                     params={'name': name},
                 )
                 result = cursor.fetchone()

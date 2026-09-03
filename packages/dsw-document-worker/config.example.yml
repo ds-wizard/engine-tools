@@ -4,6 +4,7 @@ database:
   connectionTimeout: 30000
   maxConnections: 10 # used by SE only
   queueTimeout: 500 # used by DW only
+  tablePrefix: w_
 
 s3:
   url: http://minio:9000

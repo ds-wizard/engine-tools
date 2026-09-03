@@ -1,12 +1,16 @@
 from __future__ import annotations
 
 import collections
+import re
 import typing
 
 
 T = typing.TypeVar('T')
 
 TRUE_VALUES = frozenset({'true', 'yes', 'on', '1'})
+
+DEFAULT_TABLE_PREFIX = 'w_'
+TABLE_PREFIX_PATTERN = re.compile(r'^[a-zA-Z_][a-zA-Z0-9_]*$')
 
 
 def _is_blank(value: typing.Any) -> bool:
@@ -59,6 +63,18 @@ def cast_optional_str(value: typing.Any) -> str | None:
     if value is None:
         return None
     return cast_str(value)
+
+
+def cast_table_prefix(value: typing.Any) -> str:
+    # the prefix is interpolated into SQL queries (it cannot be a query
+    # parameter), so only a safe identifier prefix may pass through here
+    prefix = cast_str(value).strip()
+    if prefix != '' and not TABLE_PREFIX_PATTERN.match(prefix):
+        raise ValueError(
+            f'Invalid database table prefix "{prefix}": it must start with a letter '
+            f'or underscore and contain only letters, digits, and underscores',
+        )
+    return prefix
 
 
 def cast_optional_dict(value: typing.Any) -> dict | None:
@@ -226,6 +242,12 @@ class _DatabaseKeys(ConfigKeysContainer):
         var_names=['DATABASE_QUEUE_TIMEOUT'],
         default=180,
         cast=cast_int,
+    )
+    table_prefix = ConfigKey(
+        yaml_path=['database', 'tablePrefix'],
+        var_names=['DATABASE_TABLE_PREFIX'],
+        default=DEFAULT_TABLE_PREFIX,
+        cast=cast_table_prefix,
     )
 
 
