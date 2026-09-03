@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- New `database.tablePrefix` option (`DSW_DATABASE_TABLE_PREFIX`) with default value `w_`, used to prefix DSW database table names
+
 
 ## [4.34.0]
 

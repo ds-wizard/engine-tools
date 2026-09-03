@@ -3,6 +3,7 @@ from __future__ import annotations
 import dataclasses
 import typing
 
+from .keys import DEFAULT_TABLE_PREFIX
 from .logging import LOG_FILTER, prepare_logging
 
 
@@ -54,8 +55,17 @@ class DatabaseConfig(ConfigModel):
     connection_string: str
     connection_timeout: int
     queue_timeout: int
+    table_prefix: str = DEFAULT_TABLE_PREFIX
 
     _secret_fields = ('connection_string',)
+
+    def table_name(self, name: str) -> str:
+        """Physical name of a DSW table (with the configured prefix)."""
+        return f'{self.table_prefix}{name}'
+
+    def prepare_query(self, query: str) -> str:
+        """Resolve the "{p}" table prefix placeholder in a SQL query template."""
+        return query.format(p=self.table_prefix)
 
 
 @dataclasses.dataclass

@@ -91,3 +91,28 @@ def test_sentry_defaults():
     assert sentry.workers_dsn is None
     assert sentry.max_breadcrumbs is None
     assert sentry.traces_sample_rate is None
+
+
+def test_table_prefix_default():
+    assert make_parser().db.table_prefix == 'w_'
+
+
+def test_table_prefix_from_config():
+    parser = make_parser(MINIMAL_CONFIG + '  tablePrefix: dsw_\n')
+    assert parser.db.table_prefix == 'dsw_'
+
+
+def test_table_prefix_can_be_disabled():
+    parser = make_parser(MINIMAL_CONFIG + "  tablePrefix: ''\n")
+    assert parser.db.table_prefix == ''
+
+
+def test_table_prefix_from_env(monkeypatch):
+    monkeypatch.setenv('DSW_DATABASE_TABLE_PREFIX', 'other_')
+    assert make_parser().db.table_prefix == 'other_'
+
+
+def test_table_prefix_invalid_is_rejected():
+    parser = make_parser(MINIMAL_CONFIG + '  tablePrefix: "w_; DROP TABLE x"\n')
+    with pytest.raises(ValueError, match='Invalid database table prefix'):
+        _ = parser.db

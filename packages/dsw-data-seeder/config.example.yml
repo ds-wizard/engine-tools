@@ -2,6 +2,7 @@ database:
   connectionString: postgresql://postgres:postgres@postgres:5432/engine-wizard
   connectionTimeout: 30000
   queueTimeout: 300
+  tablePrefix: w_
 
 s3:
   url: http://minio:9000
