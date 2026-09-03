@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- Database table names are prefixed using the new `database.tablePrefix` option (default `w_`)
+
 
 ## [4.34.0]
 

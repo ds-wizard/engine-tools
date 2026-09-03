@@ -4,6 +4,7 @@ import dataclasses
 
 from dsw.config import DSWConfigParser
 from dsw.config.keys import (
+    DEFAULT_TABLE_PREFIX,
     ConfigKey,
     ConfigKeys,
     ConfigKeysContainer,
@@ -11,6 +12,7 @@ from dsw.config.keys import (
     cast_int,
     cast_optional_int,
     cast_str,
+    cast_table_prefix,
 )
 from dsw.config.model import (
     CloudConfig,
@@ -101,6 +103,14 @@ class SeederConfigParser(DSWConfigParser):
                     ),
                 ),
                 queue_timeout=0,
+                table_prefix=self.get(
+                    key=ConfigKey(
+                        yaml_path=['extraDatabases', db_id, 'tablePrefix'],
+                        var_names=[],
+                        default=DEFAULT_TABLE_PREFIX,
+                        cast=cast_table_prefix,
+                    ),
+                ),
             )
 
         return result

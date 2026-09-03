@@ -66,3 +66,36 @@ def test_unset_secret_is_not_masked():
     result = str(cfg)
     assert MASKED_VALUE not in result
     assert '- access_key_id = None [NoneType]' in result
+
+
+def make_db_config(table_prefix: str = 'w_') -> DatabaseConfig:
+    return DatabaseConfig(
+        connection_string='postgresql://user:pass@db:5432/dsw',
+        connection_timeout=30000,
+        queue_timeout=180,
+        table_prefix=table_prefix,
+    )
+
+
+def test_database_config_table_prefix_default():
+    cfg = DatabaseConfig(
+        connection_string='postgresql://user:pass@db:5432/dsw',
+        connection_timeout=30000,
+        queue_timeout=180,
+    )
+    assert cfg.table_prefix == 'w_'
+
+
+def test_database_config_table_name():
+    assert make_db_config().table_name('document') == 'w_document'
+    assert make_db_config(table_prefix='').table_name('document') == 'document'
+
+
+def test_database_config_prepare_query():
+    query = 'SELECT * FROM {p}document WHERE uuid = %(uuid)s;'
+    assert make_db_config().prepare_query(query) == (
+        'SELECT * FROM w_document WHERE uuid = %(uuid)s;'
+    )
+    assert make_db_config(table_prefix='').prepare_query(query) == (
+        'SELECT * FROM document WHERE uuid = %(uuid)s;'
+    )

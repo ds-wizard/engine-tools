@@ -160,6 +160,7 @@ class CommandQueue:
         self.db = db
         self.queries = CommandQueries(
             channel=channel,
+            table_prefix=db.cfg.table_prefix,
         )
         self.component = component
         self.wait_timeout = wait_timeout
