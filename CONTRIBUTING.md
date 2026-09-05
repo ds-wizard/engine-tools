@@ -45,27 +45,26 @@ A new package can be created by adding a subdirectory of `packages/`:
 3. Be ready to communicate about the Pull Request and make changes if required by reviewers.
 4. The Pull Request may be merged once it passes the review and automatic checks.
 
-## Gitflow Workflow
+## Git Workflow
 
-We use the standard [Gitflow Workflow](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow):
+`main` is the only long-lived branch. There is no `develop`, and there are no `release/*` or `hotfix/*` branches:
+a release is a Git-tag on a commit of `main`, and a hotfix is an ordinary change on `main` that gets tagged.
 
-* __main__ branch is used only for releases (and eventually hotfixes), this branch is also protected on GitHub (pull
-  requests with review and all checks must pass)
-* __develop__ branch is used for development and as a base for following development branches of features, support
-  stuff, and as a base for releases
-* __feature/*__ (base develop, rebase-merged back to develop when done)
-* __chore/*__ (like the feature but semantically different, not the feature but some chore, e.g., cleanup or update of
-  Dockerfile)
-* __fix/*__ (like the feature but semantically different, not something new but fix of a non-critical bug)
-* __release/*__ (base develop, merged to main and develop when ready for release+tag)
-* __hotfix/*__ (base main, merged to main and develop)
+* __main__ is the single line of development and the base of every branch. It is protected on GitHub — it cannot be
+  force-pushed, and all checks must pass before a change lands.
+* Every change is developed on a short-lived branch off `main`, named for what it does (`feature/*`, `fix/*`,
+  `chore/*`). Maintainers typically use a [git worktree](https://git-scm.com/docs/git-worktree) per branch so several
+  can be in flight at once.
+* Before merging, rebase the branch onto the current `main` and merge it with `git merge --ff-only`, so the history
+  stays linear and every commit on `main` is a commit CI has seen in its final form.
+* Delete the branch once it has landed.
 
 Please note, that for tasks from [our Jira](https://ds-wizard.atlassian.net/projects/DSW/issues), we use such
 as `[DSW-XXX]` identifying the project and task number.
 
 ## Release Management
 
-For the release management we use (aside from the [Gitflow Workflow](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow)):
+For the release management we use:
 
 * [Semantic versioning](https://semver.org)
 * Release Candidates - X.Y.Z-rc.N should be created if don’t expect any problems (in that case use alpha or beta), and
@@ -78,17 +77,20 @@ The changes must be captured in our [User Guide](https://guide.ds-wizard.org).
 
 ### Release Steps
 
-* Update `CHANGELOG.md` files for the release.
-* In the release/hotfix branch, commit a version bump to semver `X.Y.Zrc1` and Git-tag it with `vX.Y.Z-rc.1`.
+Releases are cut directly on `main` — there is no release branch to merge back.
+
+* Update `CHANGELOG.md` files for the release. Their `[Unreleased]` link compares the previous release tag against
+  `main` (`/../../compare/vX.Y.Z...main`), so bump it to the tag being released.
+* Commit a version bump to semver `X.Y.Zrc1` (`python scripts/version.py X.Y.Zrc1`) and Git-tag that commit with
+  `vX.Y.Z-rc.1`.
 * Test the RC version (it will not be published via PyPI unless GitHub pre-release is published).
 * If needed, add fix and create a new RC revision.
-* When ready, commit a version bump to semver `X.Y.Z`, merge it to `main` and `develop`, create `vX.Y.Z` Git-tag,
-  and publish GitHub release (to publish via PyPI).
+* When ready, commit a version bump to semver `X.Y.Z`, wait for the `Pipeline` workflow to be green for that commit,
+  create the `vX.Y.Z` Git-tag on it, and publish the GitHub release (that is what publishes to PyPI).
 
 ### Post-Release Steps
 
-* After merging the release branch to develop, add a commit that bumps the version to the next one with the 
-  dev-suffix: `X.Y.Z.dev1`.
+* After the release, add a commit on `main` that bumps the version to the next one with the dev-suffix: `X.Y.Z.dev1`.
 * When needed, the number after `dev` can be increased during the development cycle.
 
 ### Version Number in Files
