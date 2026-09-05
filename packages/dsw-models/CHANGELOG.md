@@ -333,7 +333,7 @@ Released for version consistency with other DSW tools.
 - Initial version of `dsw-models` package
 
 
-[Unreleased]: /../../compare/main...develop
+[Unreleased]: /../../compare/v4.34.0...main
 [3.20.0]: /../../tree/v3.20.0
 [3.20.1]: /../../tree/v3.20.1
 [3.20.2]: /../../tree/v3.20.2

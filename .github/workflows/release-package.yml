@@ -23,7 +23,7 @@ jobs:
 
     permissions:
       contents: read
-      actions: read  # read Test/Build run conclusions
+      actions: read  # read Pipeline run conclusions
 
     steps:
     - name: Check out repository
@@ -39,7 +39,7 @@ jobs:
         uv run --no-project --with packaging \
           python scripts/check-release.py "${{ github.event.release.tag_name }}"
 
-    - name: Test and Build
+    - name: Pipeline
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SHA: ${{ github.sha }}
@@ -51,7 +51,7 @@ jobs:
         set -euo pipefail
         deadline=$(( $(date +%s) + TIMEOUT_MINUTES * 60 ))
 
-        for wf in test.yml build.yml; do
+        for wf in pipeline.yml; do
           echo "::group::$wf"
           while true; do
             run=$(gh run list --workflow "$wf" --commit "$SHA" --limit 1 \
@@ -82,7 +82,7 @@ jobs:
           echo "::endgroup::"
         done
 
-        echo "Test and Build are green for $SHA"
+        echo "Pipeline is green for $SHA"
 
   pypi-release:
     name: "Python Package Release"

@@ -476,7 +476,7 @@ Released for version consistency with other DSW tools.
 - Moved from [ds-wizard/mailer](https://github.com/ds-wizard/mailer) to the monorepo
 
 
-[Unreleased]: /../../compare/main...develop
+[Unreleased]: /../../compare/v4.34.0...main
 [3.14.0]: /../../tree/v3.14.0
 [3.14.1]: /../../tree/v3.14.1
 [3.15.0]: /../../tree/v3.15.0

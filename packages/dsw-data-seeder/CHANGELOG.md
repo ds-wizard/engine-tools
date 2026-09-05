@@ -472,7 +472,7 @@ Released for version consistency with other DSW tools.
 - Initiated DSW Data Seeder project
 
 
-[Unreleased]: /../../compare/main...develop
+[Unreleased]: /../../compare/v4.34.0...main
 [3.10.0]: https://github.com/ds-wizard/data-seeder/tree/v3.10.0
 [3.11.0]: https://github.com/ds-wizard/data-seeder/tree/v3.11.0
 [3.12.0]: https://github.com/ds-wizard/data-seeder/tree/v3.12.0
