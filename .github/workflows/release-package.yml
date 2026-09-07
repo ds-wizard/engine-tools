@@ -28,6 +28,10 @@ jobs:
     steps:
     - name: Check out repository
       uses: actions/checkout@v7
+      with:
+        # Full history: the version comes from the git tag, and a shallow
+        # checkout silently builds 0.0.0.post*.dev* instead of failing.
+        fetch-depth: 0
 
     - name: Install uv
       uses: astral-sh/setup-uv@v7
@@ -108,6 +112,10 @@ jobs:
     steps:
     - name: Check out repository
       uses: actions/checkout@v7
+      with:
+        # Full history: the version comes from the git tag, and a shallow
+        # checkout silently builds 0.0.0.post*.dev* instead of failing.
+        fetch-depth: 0
 
     - name: Install uv
       uses: astral-sh/setup-uv@v7

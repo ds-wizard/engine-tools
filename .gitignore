@@ -132,6 +132,19 @@ dmypy.json
 .idea/
 .vscode/
 
+# AI-assistant and agent configuration is not tracked in this repository.
+# Ignoring it keeps a contributor's local agent setup out of commits.
+.claude/
+.mcp.json
+CLAUDE.md
+AGENTS.md
+GEMINI.md
+.cursor/
+.cursorrules
+.aider*
+.windsurf/
+.continue/
+
 # Setuptools SCM
 _version.py
 build_info.py

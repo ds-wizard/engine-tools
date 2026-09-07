@@ -1,6 +1,5 @@
 [project]
 name = "dsw-mailer"
-version = "4.34.0"
 description = "Worker for sending email notifications"
 readme = "README.md"
 keywords = ["email", "jinja2", "notification", "template"]
@@ -17,23 +16,7 @@ classifiers = [
     "Topic :: Text Processing",
 ]
 requires-python = ">=3.14, <4"
-dependencies = [
-    "boto3",
-    "click",
-    "dkimpy",
-    "Jinja2",
-    "Markdown",
-    "pathvalidate",
-    "polib",
-    "python-dateutil",
-    "sentry-sdk",
-    "tenacity",
-    # DSW
-    "dsw-command-queue==4.34.0",
-    "dsw-config==4.34.0",
-    "dsw-database==4.34.0",
-    "dsw-storage==4.34.0",
-]
+dynamic = ["version", "dependencies"]
 
 [project.urls]
 Homepage = "https://ds-wizard.org"
@@ -45,10 +28,23 @@ Issues = "https://github.com/ds-wizard/ds-wizard/issues"
 dsw-mailer = "dsw.mailer:main"
 
 [build-system]
-requires = ["uv_build>=0.12.3,<0.13.0"]
-build-backend = "uv_build"
+requires = ["hatchling==1.32.0", "uv-dynamic-versioning==0.14.1"]
+build-backend = "hatchling.build"
 
-[tool.uv.build-backend]
-module-name = "dsw.mailer"
-module-root = ""
 
+[tool.hatch.version]
+source = "uv-dynamic-versioning"
+
+[tool.hatch.build.targets.wheel]
+packages = ["dsw"]
+artifacts = ["dsw/*/build_info.py"]
+
+[tool.hatch.build.targets.sdist]
+artifacts = ["dsw/*/build_info.py"]
+
+[tool.hatch.metadata.hooks.uv-dynamic-versioning]
+dependencies = ["boto3", "click", "dkimpy", "Jinja2", "Markdown", "pathvalidate", "polib", "python-dateutil", "sentry-sdk", "tenacity", "dsw-command-queue=={{ version }}", "dsw-config=={{ version }}", "dsw-database=={{ version }}", "dsw-storage=={{ version }}"]
+
+[tool.uv-dynamic-versioning]
+vcs = "git"
+style = "pep440"

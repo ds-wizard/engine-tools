@@ -13,8 +13,20 @@ members = [
     "dsw-models",
     "dsw-storage",
     "dsw-tdk",
-    "engine-tools",
 ]
+
+[manifest.dependency-groups]
+dev = [
+    { name = "ruff", specifier = "==0.16.5" },
+    { name = "tomlkit", specifier = ">=0.15.0" },
+    { name = "ty", specifier = "==0.0.77" },
+]
+test = [
+    { name = "pytest" },
+    { name = "pytest-recording" },
+    { name = "vcrpy" },
+]
+translations = [{ name = "babel", specifier = "==2.18.0" }]
 
 [[package]]
 name = "aiohappyeyeballs"
@@ -414,7 +426,6 @@ wheels = [
 
 [[package]]
 name = "dsw-command-queue"
-version = "4.34.0"
 source = { editable = "packages/dsw-command-queue" }
 dependencies = [
     { name = "dsw-database" },
@@ -431,7 +442,6 @@ requires-dist = [
 
 [[package]]
 name = "dsw-config"
-version = "4.34.0"
 source = { editable = "packages/dsw-config" }
 dependencies = [
     { name = "pyyaml" },
@@ -446,7 +456,6 @@ requires-dist = [
 
 [[package]]
 name = "dsw-data-seeder"
-version = "4.34.0"
 source = { editable = "packages/dsw-data-seeder" }
 dependencies = [
     { name = "click" },
@@ -473,7 +482,6 @@ requires-dist = [
 
 [[package]]
 name = "dsw-database"
-version = "4.34.0"
 source = { editable = "packages/dsw-database" }
 dependencies = [
     { name = "dsw-config" },
@@ -490,7 +498,6 @@ requires-dist = [
 
 [[package]]
 name = "dsw-document-worker"
-version = "4.34.0"
 source = { editable = "packages/dsw-document-worker" }
 dependencies = [
     { name = "click" },
@@ -552,7 +559,6 @@ provides-extras = ["test"]
 
 [[package]]
 name = "dsw-mailer"
-version = "4.34.0"
 source = { editable = "packages/dsw-mailer" }
 dependencies = [
     { name = "boto3" },
@@ -591,7 +597,6 @@ requires-dist = [
 
 [[package]]
 name = "dsw-models"
-version = "4.34.0"
 source = { editable = "packages/dsw-models" }
 dependencies = [
     { name = "pydantic" },
@@ -602,7 +607,6 @@ requires-dist = [{ name = "pydantic" }]
 
 [[package]]
 name = "dsw-storage"
-version = "4.34.0"
 source = { editable = "packages/dsw-storage" }
 dependencies = [
     { name = "boto3" },
@@ -619,7 +623,6 @@ requires-dist = [
 
 [[package]]
 name = "dsw-tdk"
-version = "4.34.0"
 source = { editable = "packages/dsw-tdk" }
 dependencies = [
     { name = "aiohttp" },
@@ -658,41 +661,6 @@ requires-dist = [
     { name = "watchfiles" },
 ]
 provides-extras = ["test"]
-
-[[package]]
-name = "engine-tools"
-version = "4.34.0"
-source = { virtual = "." }
-
-[package.dev-dependencies]
-dev = [
-    { name = "ruff" },
-    { name = "tomlkit" },
-    { name = "ty" },
-]
-test = [
-    { name = "pytest" },
-    { name = "pytest-recording" },
-    { name = "vcrpy" },
-]
-translations = [
-    { name = "babel" },
-]
-
-[package.metadata]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "ruff", specifier = "==0.16.5" },
-    { name = "tomlkit", specifier = ">=0.15.0" },
-    { name = "ty", specifier = "==0.0.77" },
-]
-test = [
-    { name = "pytest" },
-    { name = "pytest-recording" },
-    { name = "vcrpy" },
-]
-translations = [{ name = "babel", specifier = "==2.18.0" }]
 
 [[package]]
 name = "fonttools"

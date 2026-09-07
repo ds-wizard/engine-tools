@@ -1,5 +1,6 @@
 PIP = uv pip
-VERSION = 4.33.0
+# Derived from the git tag - there is no version number stored in the repo.
+VERSION = $(shell git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//')
 
 .PHONY: verify
 verify:

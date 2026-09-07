@@ -1,6 +1,5 @@
 [project]
 name = "dsw-command-queue"
-version = "4.34.0"
 description = "Library for working with command queue and persistent commands"
 readme = "README.md"
 keywords = ["dsw", "subscriber", "publisher", "database", "queue", "processing"]
@@ -18,12 +17,7 @@ classifiers = [
     "Topic :: Utilities",
 ]
 requires-python = ">=3.14, <4"
-dependencies = [
-    "psycopg[binary]>=3.2",  # Connection.notifies(timeout=...)
-    "tenacity",
-    # DSW
-    "dsw-database==4.34.0",
-]
+dynamic = ["version", "dependencies"]
 
 [project.urls]
 Homepage = "https://ds-wizard.org"
@@ -32,9 +26,23 @@ Documentation = "https://guide.ds-wizard.org"
 Issues = "https://github.com/ds-wizard/ds-wizard/issues"
 
 [build-system]
-requires = ["uv_build>=0.12.3,<0.13.0"]
-build-backend = "uv_build"
+requires = ["hatchling==1.32.0", "uv-dynamic-versioning==0.14.1"]
+build-backend = "hatchling.build"
 
-[tool.uv.build-backend]
-module-name = "dsw.command_queue"
-module-root = ""
+
+[tool.hatch.version]
+source = "uv-dynamic-versioning"
+
+[tool.hatch.build.targets.wheel]
+packages = ["dsw"]
+artifacts = ["dsw/*/build_info.py"]
+
+[tool.hatch.build.targets.sdist]
+artifacts = ["dsw/*/build_info.py"]
+
+[tool.hatch.metadata.hooks.uv-dynamic-versioning]
+dependencies = ["psycopg[binary]>=3.2", "tenacity", "dsw-database=={{ version }}"]
+
+[tool.uv-dynamic-versioning]
+vcs = "git"
+style = "pep440"

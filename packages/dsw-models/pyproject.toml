@@ -1,6 +1,5 @@
 [project]
 name = "dsw-models"
-version = "4.34.0"
 description = "Library with DSW models and basic IO operations"
 readme = "README.md"
 keywords = ["dsw", "config", "yaml", "parser"]
@@ -20,6 +19,7 @@ requires-python = ">=3.14, <4"
 dependencies = [
     "pydantic",
 ]
+dynamic = ["version"]
 
 [project.urls]
 Homepage = "https://ds-wizard.org"
@@ -28,9 +28,20 @@ Documentation = "https://guide.ds-wizard.org"
 Issues = "https://github.com/ds-wizard/ds-wizard/issues"
 
 [build-system]
-requires = ["uv_build>=0.12.3,<0.13.0"]
-build-backend = "uv_build"
+requires = ["hatchling==1.32.0", "uv-dynamic-versioning==0.14.1"]
+build-backend = "hatchling.build"
 
-[tool.uv.build-backend]
-module-name = "dsw.models"
-module-root = ""
+
+[tool.hatch.version]
+source = "uv-dynamic-versioning"
+
+[tool.hatch.build.targets.wheel]
+packages = ["dsw"]
+artifacts = ["dsw/*/build_info.py"]
+
+[tool.hatch.build.targets.sdist]
+artifacts = ["dsw/*/build_info.py"]
+
+[tool.uv-dynamic-versioning]
+vcs = "git"
+style = "pep440"

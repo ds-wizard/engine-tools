@@ -11,8 +11,9 @@ method with the owners of this repository before making a change.
   `make lock` (or `make upgrade` to bump within constraints). `uv.lock` is the single source of truth — there are
   no hand-maintained `requirements.txt` files
 - Use Python version conforming the specification in `pyproject.toml`
-- Use type annotations and verify it with `mypy`
-- Code should comply with `PEP8` and additional checks made by `flake8` (see CI)
+- Use type annotations and verify them with `ty`
+- Code is linted with `ruff`; run `make check` before opening a pull request — it
+  runs what CI runs (`ruff`, `ty`, `cspell`)
 
 ### Monorepo Structure
 
@@ -29,12 +30,20 @@ A new package can be created by adding a subdirectory of `packages/`:
 * All packages should use the namespace module `dsw` (without `__init__.py` according to 
   [PEP420](https://peps.python.org/pep-0420/)).
 * Add basic files related to OSS: `CHANGELOG.md`, `LICENSE`, `README.md`
-* Add the package's `pyproject.toml` using the `uv_build` backend and declare runtime dependencies under
-  `[project.dependencies]` (see existing packages for reference); do not add `requirements.txt` or `setup.py`
+* Add the package's `pyproject.toml` using the `hatchling` backend with `uv-dynamic-versioning` (see existing
+  packages for reference); do not add `requirements.txt`, `setup.py` or `MANIFEST.in`. It must declare
+  `dynamic = ["version"]`, `[tool.hatch.version] source = "uv-dynamic-versioning"`, and
+  `[tool.hatch.build.targets.wheel] packages = ["dsw"]` with `artifacts = ["dsw/*/build_info.py"]`.
+  Declare third-party runtime dependencies under `[project.dependencies]` — but if the package depends on another
+  `dsw-*` package, add `"dependencies"` to `dynamic` and move the whole list into
+  `[tool.hatch.metadata.hooks.uv-dynamic-versioning]`, writing the sibling as `dsw-other=={{ version }}` so it
+  stays in lockstep
 * Register the package in the root `pyproject.toml`: it is picked up by `[tool.uv.workspace]` members (`packages/*`),
   and if other packages depend on it, add it to `[tool.uv.sources]` as `{ workspace = true }`; then run `make lock`
 * Add `Makefile` (see existing packages for reference)
 * Adjust CI workflows under `.github/` to build, test, and eventually release the package correctly
+* If the package ships a Docker image, add its `README.md` to the dependency-manifest layer of **every** Dockerfile
+  (`uv export` builds each member's metadata, and hatchling validates `project.readme` while doing so)
 * Add link to the root `README.md`
 
 ## Pull Request Process
@@ -81,23 +90,33 @@ Releases are cut directly on `main` — there is no release branch to merge back
 
 * Update `CHANGELOG.md` files for the release. Their `[Unreleased]` link compares the previous release tag against
   `main` (`/../../compare/vX.Y.Z...main`), so bump it to the tag being released.
-* Commit a version bump to semver `X.Y.Zrc1` (`python scripts/version.py X.Y.Zrc1`) and Git-tag that commit with
-  `vX.Y.Z-rc.1`.
+* Git-tag the commit you are releasing with `vX.Y.Z-rc.1`. There is no version bump to commit — the version is
+  derived from the tag.
 * Test the RC version (it will not be published via PyPI unless GitHub pre-release is published).
 * If needed, add fix and create a new RC revision.
-* When ready, commit a version bump to semver `X.Y.Z`, wait for the `Pipeline` workflow to be green for that commit,
-  create the `vX.Y.Z` Git-tag on it, and publish the GitHub release (that is what publishes to PyPI).
+* When ready, wait for the `Pipeline` workflow to be green for the commit, create the `vX.Y.Z` Git-tag **on that
+  exact commit**, and publish the GitHub release (that is what publishes to PyPI).
 
 ### Post-Release Steps
 
-* After the release, add a commit on `main` that bumps the version to the next one with the dev-suffix: `X.Y.Z.dev1`.
-* When needed, the number after `dev` can be increased during the development cycle.
+None. Commits after the tag automatically build as `X.Y.Z.post<N>.dev0+<sha>`, so there is no dev-suffix bump to
+make and nothing to keep in sync.
 
 ### Version Number in Files
 
-Version numbers (according to [PEP440](https://peps.python.org/pep-0440/)) are present in all packages inside
-`pyproject.toml` files. Eventually, packages may contain `consts.py` module with a constant with the version.
-The local dependencies must use the same package version.
+**There is no version number stored anywhere in this repository.** Every version (according to
+[PEP440](https://peps.python.org/pep-0440/)) is derived from the git tag at build time by
+[uv-dynamic-versioning](https://github.com/ninoseki/uv-dynamic-versioning): the packages declare
+`dynamic = ["version"]`, and the lockstep `dsw-*` dependencies between them are rendered as `=={{ version }}` by the
+hatch metadata hook, so they can never drift apart.
+
+Two consequences worth knowing:
+
+* Anything that builds a distribution needs the tag to be reachable — CI jobs must check out with `fetch-depth: 0`.
+  A shallow checkout does not fail; it quietly builds `0.0.0.post<N>.dev0+<sha>`. `scripts/check-release.py`
+  guards the release path against exactly this.
+* Docker builds cannot see the tag, because `.dockerignore` excludes `.git`. The version is passed in as the
+  `PACKAGE_VERSION` build argument instead.
 
 The Git-tag version is automatically generated in `build_info.py` module of each package via the script from 
 `scripts/build-info.sh`. The version of Git-tag should match the version of packages. All packages must keep 

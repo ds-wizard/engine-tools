@@ -8,7 +8,7 @@ INFO = 'Released for version consistency with other DSW tools.'
 
 if __name__ == '__main__':
     if len(sys.argv) != 3:
-        print('Usage: version.py <prev-version> <next-version>')
+        print('Usage: changelog.py <prev-version> <next-version>')
         sys.exit(1)
     prev_version = sys.argv[1]
     next_version = sys.argv[2]

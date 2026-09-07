@@ -1,4 +1,14 @@
-FROM ghcr.io/ds-wizard/python-base:4.34.0-docworker-lambda AS builder
+# Base image version, un-pinned so a release does not need a Dockerfile edit.
+# The default keeps a plain `docker build` working outside CI.
+ARG PYTHON_BASE_VERSION=4.34.0
+
+FROM ghcr.io/ds-wizard/python-base:${PYTHON_BASE_VERSION}-docworker-lambda AS builder
+
+# .dockerignore excludes .git, so the build context carries no repository and
+# uv-dynamic-versioning cannot derive the version from a tag. CI passes the
+# version in; without it the build fails loudly rather than shipping 0.0.0.
+ARG PACKAGE_VERSION
+ENV UV_DYNAMIC_VERSIONING_BYPASS=${PACKAGE_VERSION}
 
 COPY --from=ghcr.io/astral-sh/uv:0.12.7 /uv /bin/uv
 
@@ -17,6 +27,19 @@ COPY packages/dsw-models/pyproject.toml /app/packages/dsw-models/
 COPY packages/dsw-storage/pyproject.toml /app/packages/dsw-storage/
 COPY packages/dsw-tdk/pyproject.toml /app/packages/dsw-tdk/
 
+# project.dependencies is dynamic, so `uv export` must build each member's
+# metadata rather than read it, and hatchling validates project.readme while
+# doing so. READMEs change rarely, so this layer still caches well.
+COPY packages/dsw-command-queue/README.md /app/packages/dsw-command-queue/
+COPY packages/dsw-config/README.md /app/packages/dsw-config/
+COPY packages/dsw-data-seeder/README.md /app/packages/dsw-data-seeder/
+COPY packages/dsw-database/README.md /app/packages/dsw-database/
+COPY packages/dsw-document-worker/README.md /app/packages/dsw-document-worker/
+COPY packages/dsw-mailer/README.md /app/packages/dsw-mailer/
+COPY packages/dsw-models/README.md /app/packages/dsw-models/
+COPY packages/dsw-storage/README.md /app/packages/dsw-storage/
+COPY packages/dsw-tdk/README.md /app/packages/dsw-tdk/
+
 # Install Python dependencies (resolved from uv.lock)
 RUN uv --directory /app export --locked --no-dev --no-emit-workspace --no-hashes --package dsw-document-worker -o /app/requirements.txt \
  && python -m pip wheel --wheel-dir=/app/wheels -r /app/requirements.txt
@@ -31,7 +54,7 @@ RUN python -m pip wheel --no-deps --wheel-dir=/app/wheels /app/packages/dsw-comm
  && python -m pip wheel --no-deps --wheel-dir=/app/wheels /app/packages/dsw-document-worker/addons/* \
  && python -m pip wheel --no-deps --wheel-dir=/app/wheels /app/packages/dsw-document-worker
 
-FROM ghcr.io/ds-wizard/python-base:4.34.0-docworker-lambda
+FROM ghcr.io/ds-wizard/python-base:${PYTHON_BASE_VERSION}-docworker-lambda
 
 ARG LAMBDA_TASK_ROOT
 

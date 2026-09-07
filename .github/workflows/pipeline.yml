@@ -254,6 +254,10 @@ jobs:
     steps:
     - name: Check out repository
       uses: actions/checkout@v7
+      with:
+        # Full history: the version comes from the git tag, and a shallow
+        # checkout silently builds 0.0.0.post*.dev* instead of failing.
+        fetch-depth: 0
 
     - name: Install uv
       uses: astral-sh/setup-uv@v7
@@ -315,6 +319,11 @@ jobs:
       with:
           fetch-depth: 0
 
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v4
 
@@ -333,6 +342,13 @@ jobs:
       run: |
         bash scripts/build-info.sh
 
+    # The image build cannot derive the version itself: .dockerignore excludes
+    # .git to keep the build context cache-stable, so it is passed in instead.
+    - name: Resolve package version
+      id: version
+      run: |
+        echo "VERSION=$(uvx --from uv-dynamic-versioning uv-dynamic-versioning)" >> "$GITHUB_OUTPUT"
+
     # TEST DOCKER IMAGE BUILD
     - name: Docker meta [test]
       id: meta-test
@@ -348,6 +364,8 @@ jobs:
       with:
         context: ${{ env.DOCKER_META_CONTEXT }}
         file: ${{ env.DOCKER_META_FILE }}
+        build-args: |
+          PACKAGE_VERSION=${{ steps.version.outputs.VERSION }}
         platforms: ${{ env.DOCKER_META_PLATFORMS }}
         push: false
         tags: ${{ steps.meta-test.outputs.tags }}
@@ -391,6 +409,8 @@ jobs:
       with:
         context: ${{ env.DOCKER_META_CONTEXT }}
         file: ${{ env.DOCKER_META_FILE }}
+        build-args: |
+          PACKAGE_VERSION=${{ steps.version.outputs.VERSION }}
         platforms: ${{ env.DOCKER_META_PLATFORMS }}
         push: true
         tags: ${{ steps.meta-dev.outputs.tags }}
@@ -405,8 +425,17 @@ jobs:
       with:
         images: |
           ${{ env.PUBLIC_IMAGE_PREFIX }}/${{ steps.docker-image-name.outputs.NAME }}
+        # `latest` follows releases, not the branch. It used to be pinned to
+        # main, which meant "the newest release" only while main moved at
+        # release time; main now advances with ordinary development, so that
+        # rule would publish unreleased builds as latest. latest=auto applies it
+        # to a semver tag that is not a prerelease.
+        #
+        # A hotfix tag on an older line also moves `latest`, because latest=auto
+        # does not compare versions - repoint it by hand after one.
+        flavor: |
+          latest=auto
         tags: |
-          type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
           type=semver,pattern={{version}}
           type=semver,pattern={{major}}.{{minor}}
           type=semver,pattern={{major}},enable=${{ !startsWith(github.ref, 'refs/tags/v0.') }}
@@ -417,6 +446,8 @@ jobs:
       with:
         context: ${{ env.DOCKER_META_CONTEXT }}
         file: ${{ env.DOCKER_META_FILE }}
+        build-args: |
+          PACKAGE_VERSION=${{ steps.version.outputs.VERSION }}
         platforms: ${{ env.DOCKER_META_PLATFORMS }}
         push: true
         tags: ${{ steps.meta-public.outputs.tags }}
@@ -459,6 +490,11 @@ jobs:
       with:
           fetch-depth: 0
 
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v4
 
@@ -477,6 +513,13 @@ jobs:
       run: |
         bash scripts/build-info.sh
 
+    # The image build cannot derive the version itself: .dockerignore excludes
+    # .git to keep the build context cache-stable, so it is passed in instead.
+    - name: Resolve package version
+      id: version
+      run: |
+        echo "VERSION=$(uvx --from uv-dynamic-versioning uv-dynamic-versioning)" >> "$GITHUB_OUTPUT"
+
     # TEST DOCKER IMAGE BUILD
     - name: Docker meta [test]
       id: meta-test
@@ -494,6 +537,8 @@ jobs:
       with:
         context: ${{ env.DOCKER_META_CONTEXT }}
         file: ${{ env.DOCKER_META_FILE }}
+        build-args: |
+          PACKAGE_VERSION=${{ steps.version.outputs.VERSION }}
         platforms: ${{ env.DOCKER_META_PLATFORMS }}
         push: false
         tags: ${{ steps.meta-test.outputs.tags }}
@@ -539,6 +584,8 @@ jobs:
       with:
         context: ${{ env.DOCKER_META_CONTEXT }}
         file: ${{ env.DOCKER_META_FILE }}
+        build-args: |
+          PACKAGE_VERSION=${{ steps.version.outputs.VERSION }}
         platforms: ${{ env.DOCKER_META_PLATFORMS }}
         push: true
         tags: ${{ steps.meta-dev.outputs.tags }}
@@ -554,11 +601,12 @@ jobs:
         images: |
           ${{ env.PUBLIC_IMAGE_PREFIX }}/${{ steps.docker-image-name.outputs.NAME }}
         tags: |
-          type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
           type=semver,pattern={{version}}
           type=semver,pattern={{major}}.{{minor}}
           type=semver,pattern={{major}},enable=${{ !startsWith(github.ref, 'refs/tags/v0.') }}
+        # See the note on the non-lambda images: `latest` tracks releases.
         flavor: |
+            latest=auto
             suffix=${{ env.DOCKER_META_SUFFIX_LAMBDA }}
 
     - name: Docker build+push [public]
@@ -567,6 +615,8 @@ jobs:
       with:
         context: ${{ env.DOCKER_META_CONTEXT }}
         file: ${{ env.DOCKER_META_FILE }}
+        build-args: |
+          PACKAGE_VERSION=${{ steps.version.outputs.VERSION }}
         platforms: ${{ env.DOCKER_META_PLATFORMS }}
         push: true
         tags: ${{ steps.meta-public.outputs.tags }}

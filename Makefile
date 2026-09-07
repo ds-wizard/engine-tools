@@ -39,3 +39,7 @@ lint:
 .PHONY: type-check
 type-check:
 	uv run ty check
+
+# Everything the CI checks run. Use this before opening a pull request.
+.PHONY: check
+check: lint type-check spelling
