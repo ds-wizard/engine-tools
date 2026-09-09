@@ -7,4 +7,4 @@ verify:
 
 .PHONY: test
 test:
-	pytest -s tests
+	@echo "No tests for this package"

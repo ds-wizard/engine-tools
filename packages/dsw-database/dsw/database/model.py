@@ -344,7 +344,7 @@ class DBProjectSimple:
     name: str
     visibility: str
     sharing: str
-    knowledge_package_uuid: str
+    knowledge_model_package_uuid: str
     document_template_uuid: str
     format_uuid: str
     created_by: str
@@ -362,7 +362,7 @@ class DBProjectSimple:
             name=data['name'],
             visibility=data['visibility'],
             sharing=data['sharing'],
-            knowledge_package_uuid=data['knowledge_package_uuid'],
+            knowledge_model_package_uuid=data['knowledge_model_package_uuid'],
             document_template_uuid=data['document_template_uuid'],
             format_uuid=str(data['format_uuid']),
             created_by=str(data['created_by']),
@@ -380,7 +380,7 @@ class DBProjectSimple:
             'name': self.name,
             'visibility': self.visibility,
             'sharing': self.sharing,
-            'knowledge_package_uuid': self.knowledge_package_uuid,
+            'knowledge_model_package_uuid': self.knowledge_model_package_uuid,
             'document_template_uuid': self.document_template_uuid,
             'format_uuid': self.format_uuid,
             'created_by': self.created_by,

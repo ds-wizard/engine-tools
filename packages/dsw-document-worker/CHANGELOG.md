@@ -9,7 +9,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
-- Database table names are prefixed using the new `database.tablePrefix` option (default `w_`)
+- `extras.project` (and the deprecated `extras.questionnaire`) provide `knowledge_model_package_uuid` instead of `knowledge_package_uuid`
 
 
 ## [4.34.0]
