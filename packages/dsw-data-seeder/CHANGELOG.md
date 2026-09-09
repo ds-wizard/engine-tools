@@ -7,10 +7,6 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-### Added
-
-- New `tablePrefix` option for entries in `extraDatabases` (default `w_`)
-
 
 ## [4.34.0]
 

@@ -9,7 +9,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
-- Prefix table names in all queries with the configured `database.tablePrefix` (default `w_`)
+- Read the `project` table column `knowledge_model_package_uuid` (renamed in the backend)
 
 
 ## [4.34.0]
