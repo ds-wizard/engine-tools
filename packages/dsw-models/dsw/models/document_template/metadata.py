@@ -44,6 +44,7 @@ class DocumentTemplateMetadata(BaseModel):
     name: str
     description: str
     metamodel_version: str
+    language: str = 'en'
     license: str
     readme: str
     allowed_packages: list[PackagePattern]

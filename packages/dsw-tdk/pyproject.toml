@@ -21,6 +21,7 @@ classifiers = [
 requires-python = ">=3.12, <4"
 dependencies = [
     "aiohttp",
+    "Babel",
     "click",
     "colorama",
     "humanize",

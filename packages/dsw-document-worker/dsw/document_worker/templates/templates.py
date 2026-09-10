@@ -10,6 +10,7 @@ import typing
 from .. import consts
 from ..context import Context
 from .formats import Format
+from .locales import LocaleLoader, RenderContext, TemplateLocale
 from .steps.base import Step, register_step
 
 
@@ -87,6 +88,11 @@ class Template:
 
         self.formats: dict[str, Format] = {}
         self.project_uuid: str | None = None
+        self.render_ctx = RenderContext.null()
+        self._locale_loader = LocaleLoader(
+            cache_dir=template_dir / consts.LOCALES_CACHE_DIR,
+            tenant_uuid=tenant_uuid,
+        )
 
     def raise_exc(self, message: str):
         raise TemplateError(self.template_uuid, message)
@@ -268,6 +274,19 @@ class Template:
             self.template_dir.mkdir()
         self.update_template_files(db_template.files)
         self.update_template_assets(db_template.assets)
+
+    def prepare_locale(self, *, language: str | None, locale: TemplateLocale | None):
+        if locale is None:
+            LOG.info('No locale for template %s - using null translations', self.template_uuid)
+            self.render_ctx = RenderContext.null(language=language)
+            return
+        LOG.info('Loading locale %s (%s) for template %s',
+                 locale.uuid, locale.code, self.template_uuid)
+        self.render_ctx = RenderContext(
+            translations=self._locale_loader.load(locale),
+            language=language,
+            locale=locale,
+        )
 
     def prepare_format(self, format_uuid: str):
         for format_meta in self.db_template.template.formats:

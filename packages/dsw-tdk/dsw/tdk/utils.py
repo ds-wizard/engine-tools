@@ -159,6 +159,15 @@ class TemplateBuilder:
         self.template.license = value
         self._validate_field('license')
 
+    @property
+    def language(self):
+        return self.template.language
+
+    @language.setter
+    def language(self, value: str):
+        self.template.language = value
+        self._validate_field('language')
+
     def build(self) -> Template:
         readme = j2_env.get_template('README.md.j2').render(template=self.template)
         self.template.readme = readme

@@ -28,6 +28,12 @@ def provide_steps() -> dict[str, type[Step]]:
     `Step` class in the current implementation (use correct dsw-document-worker as
     a dependency).
 
+    Before the format pipeline runs, every step gets `before_render(render_ctx)` called
+    with the `RenderContext` of the document. The base implementation stores it, so a
+    step that does not override it still has `self.translations`, `self.language` and
+    the `self.gettext` / `self.ngettext` / `self.pgettext` helpers available. A step
+    that overrides `before_render` must call `super().before_render(render_ctx)`.
+
     :return: a dictionary of steps that the plugin can execute
     """
     return {}
@@ -59,6 +65,12 @@ def enrich_jinja_env(jinja_env: Environment, options: dict[str, str]) -> None:
     all steps that are subclass of the `JinjaPoweredStep` (mainly the `jinja` step
     implemented in class `Jinja2Step`).
 
+    The `jinja2.ext.i18n` extension is always enabled and its `gettext`, `ngettext`,
+    `pgettext` and `npgettext` globals are re-installed before every rendering. The
+    plugin must not provide globals with these names; to work with translations, it
+    should override `Step.before_render` instead.
+
     :param jinja_env: the Jinja environment to enrich
     :param options: the options provided to the step
     """
+

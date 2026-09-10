@@ -48,7 +48,7 @@ artifacts = ["dsw/*/build_info.py"]
 artifacts = ["dsw/*/build_info.py"]
 
 [tool.hatch.metadata.hooks.uv-dynamic-versioning]
-dependencies = ["click", "Jinja2", "Markdown", "MarkupSafe", "nh3", "panflute", "pathvalidate", "pluggy", "pymdown-extensions", "python-dateutil", "python-slugify", "rdflib", "rdflib-jsonld", "requests", "sentry-sdk", "tenacity", "weasyprint", "XlsxWriter", "dsw-command-queue=={{ version }}", "dsw-config=={{ version }}", "dsw-database=={{ version }}", "dsw-storage=={{ version }}"]
+dependencies = ["Babel", "click", "Jinja2", "Markdown", "MarkupSafe", "nh3", "panflute", "pathvalidate", "pluggy", "polib", "pymdown-extensions", "python-dateutil", "python-slugify", "rdflib", "rdflib-jsonld", "requests", "sentry-sdk", "tenacity", "weasyprint", "XlsxWriter", "dsw-command-queue=={{ version }}", "dsw-config=={{ version }}", "dsw-database=={{ version }}", "dsw-storage=={{ version }}"]
 
 [tool.uv-dynamic-versioning]
 vcs = "git"

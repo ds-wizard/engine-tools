@@ -243,6 +243,8 @@ def interact_builder(builder: TemplateBuilder):
                 default='My custom template')
     prompt_fill('License', obj=builder, attr='license',
                 default='CC0')
+    prompt_fill('Language', obj=builder, attr='language',
+                default=consts.DEFAULT_LANGUAGE)
     click.echo('=' * 60)
     formats = interact_formats()
     for format_spec in formats.values():
@@ -563,6 +565,25 @@ def verify_template(ctx, template_dir):
         click.echo('Found violations:')
         for err in errors:
             click.echo(f' - {err.field_name}: {err.message}')
+
+
+@main.command(help='Create POT file with translatable strings of a template.', name='pot')
+@click.argument('TEMPLATE-DIR', type=DIR_TYPE, default=CURRENT_DIR, required=False)
+@click.option('-o', '--output', default=consts.POT_FILE_DEFAULT, type=click.Path(writable=True),
+              show_default=True, help='Target POT file.')
+@click.option('-f', '--force', is_flag=True, help='Overwrite POT file if already exists.')
+@click.pass_context
+def create_pot_file(ctx, template_dir, output, force: bool):
+    tdk = TDKCore(logger=ctx.obj.logger)
+    load_local(tdk, template_dir)
+    try:
+        tdk.create_pot_file(output=pathlib.Path(output), force=force)
+    except Exception as e:
+        ClickPrinter.failure('Failed to create the POT file')
+        ClickPrinter.error(f'> {e}')
+        sys.exit(1)
+    filename = click.style(output, bold=True)
+    ClickPrinter.success(f'POT file {filename} created')
 
 
 @main.group(help='Manage shared user configuration (~/.dsw-tdk).', name='config')

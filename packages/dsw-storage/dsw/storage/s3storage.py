@@ -18,6 +18,10 @@ if typing.TYPE_CHECKING:
 LOG = logging.getLogger(__name__)
 
 DOCUMENTS_DIR = 'documents'
+DOCUMENT_TEMPLATES_DIR = 'document-templates'
+DOCUMENT_TEMPLATE_LOCALES_DIR = 'document-template-locales'
+
+POT_CONTENT_TYPE = 'text/x-gettext-translation'
 
 RETRY_S3_MULTIPLIER = 0.5
 RETRY_S3_TRIES = 3
@@ -122,7 +126,7 @@ class S3Storage:
                                 file_name: str, target_path: Path) -> bool:
         return self._download_file(
             tenant_uuid=tenant_uuid,
-            file_name=f'document-templates/{template_uuid}/{file_name}',
+            file_name=f'{DOCUMENT_TEMPLATES_DIR}/{template_uuid}/{file_name}',
             target_path=target_path,
         )
 
@@ -153,6 +157,59 @@ class S3Storage:
             tenant_uuid=tenant_uuid,
             file_name=f'locales/{locale_uuid}/{file_name}',
             target_path=target_path,
+        )
+
+    @tenacity.retry(
+        reraise=True,
+        wait=tenacity.wait_exponential(multiplier=RETRY_S3_MULTIPLIER),
+        stop=tenacity.stop_after_attempt(RETRY_S3_TRIES),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
+    )
+    def download_document_template_locale(self, *, tenant_uuid: str, locale_uuid: str,
+                                          file_name: str, target_path: Path) -> bool:
+        return self._download_file(
+            tenant_uuid=tenant_uuid,
+            file_name=f'{DOCUMENT_TEMPLATE_LOCALES_DIR}/{locale_uuid}/{file_name}',
+            target_path=target_path,
+        )
+
+    @tenacity.retry(
+        reraise=True,
+        wait=tenacity.wait_exponential(multiplier=RETRY_S3_MULTIPLIER),
+        stop=tenacity.stop_after_attempt(RETRY_S3_TRIES),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
+    )
+    def store_document_template_locale(self, *, tenant_uuid: str, locale_uuid: str,
+                                       file_name: str, content_type: str, data: bytes):
+        object_name = f'{DOCUMENT_TEMPLATE_LOCALES_DIR}/{locale_uuid}/{file_name}'
+        if self.multi_tenant:
+            object_name = f'{tenant_uuid}/{object_name}'
+        self._put_object(
+            object_name=object_name,
+            content_type=content_type,
+            data=data,
+            metadata=None,
+        )
+
+    @tenacity.retry(
+        reraise=True,
+        wait=tenacity.wait_exponential(multiplier=RETRY_S3_MULTIPLIER),
+        stop=tenacity.stop_after_attempt(RETRY_S3_TRIES),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
+    )
+    def store_document_template_pot(self, *, tenant_uuid: str, template_uuid: str,
+                                    file_name: str, data: bytes):
+        object_name = f'{DOCUMENT_TEMPLATES_DIR}/{template_uuid}/{file_name}'
+        if self.multi_tenant:
+            object_name = f'{tenant_uuid}/{object_name}'
+        self._put_object(
+            object_name=object_name,
+            content_type=POT_CONTENT_TYPE,
+            data=data,
+            metadata=None,
         )
 
     @tenacity.retry(

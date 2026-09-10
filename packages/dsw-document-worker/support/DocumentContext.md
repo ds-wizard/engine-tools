@@ -48,6 +48,19 @@ Aliases:
 ### Document
 
 * `uuid` (`str`)
+* `name` (`str`)
+* `document_template_uuid` (`str`)
+* `format_uuid` (`str`)
+* `language` (`Optional[str]`) - language requested for the document, `None` when none was selected
+* `locale` (`Optional[`[`DocumentTemplateLocale`](#documenttemplatelocale)`]`) - locale used for the translations, see [Translations](./Translations.md)
+* `created_by` (`Optional[`[`User`](#user)`]`)
+* `created_at` (`datetime`)
+
+### DocumentTemplateLocale
+
+* `uuid` (`str`)
+* `name` (`str`)
+* `code` (`str`) - language code from the `Language` header of the locale PO file
 * `created_at` (`datetime`)
 * `updated_at` (`datetime`)
 

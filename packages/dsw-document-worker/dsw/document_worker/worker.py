@@ -18,7 +18,9 @@ from .context import Context
 from .documents import DocumentFile, DocumentNameGiver
 from .exceptions import DocumentNotFoundError, JobError, create_job_error
 from .limits import LimitsEnforcer
+from .pot import PotFileJob
 from .templates import Format, Template, TemplateRegistry
+from .templates.locales import TemplateLocale
 from .utils import byte_size_format, check_metamodel_version
 
 
@@ -243,6 +245,15 @@ class Job:
             metamodel_version=str(self.doc_context.get('metamodelVersion', '0')),
         )
 
+    @handle_job_step('Failed to prepare document locale')
+    def prepare_locale(self):
+        SentryReporter.set_tags(phase='locale')
+        doc_data = self.doc_context.get('document') or {}
+        self.safe_template.prepare_locale(
+            language=doc_data.get('language'),
+            locale=TemplateLocale.load(doc_data.get('locale')),
+        )
+
     @handle_job_step('Failed to build final document')
     def build_document(self):
         LOG.info('Building document by rendering template with context')
@@ -335,6 +346,7 @@ class Job:
         self.get_document()
 
         self.prepare_template()
+        self.prepare_locale()
         self.build_document()
         self.store_document()
 
@@ -470,6 +482,29 @@ class DocumentWorker(CommandWorker):
         queue.run_once()
 
     def work(self, command: PersistentCommand):
+        if command.function == consts.CMD_FUNCTION_GENERATE_POT_FILE:
+            self._work_pot_file(command)
+            return
+        self._work_document(command)
+
+    @staticmethod
+    def _work_pot_file(command: PersistentCommand):
+        Context.get().update_trace_id(command.uuid)
+        SentryReporter.set_tags(
+            command_uuid=command.uuid,
+            tenant_uuid=command.tenant_uuid,
+            phase='pot',
+        )
+        LOG.info('Running POT file job #%s', command.uuid)
+        PotFileJob(command=command).run()
+        SentryReporter.set_tags(
+            command_uuid='-',
+            tenant_uuid='-',
+            phase='done',
+        )
+        Context.get().reset_ids()
+
+    def _work_document(self, command: PersistentCommand):
         document_uuid = command.body['document']['uuid']
         Context.get().update_trace_id(command.uuid)
         Context.get().update_document_id(document_uuid)
@@ -489,8 +524,7 @@ class DocumentWorker(CommandWorker):
             document_uuid='-',
             phase='done',
         )
-        Context.get().update_trace_id('-')
-        Context.get().update_document_id('-')
+        Context.get().reset_ids()
 
     def process_exception(self, e: BaseException):
         LOG.info('Failed with exception')

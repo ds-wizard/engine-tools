@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- New `pot` command creating a POT file with translatable strings of the template project
+- `language` field in `template.json` (prompted by `dsw-tdk new`, defaults to `en`)
+
+### Changed
+
+- Update to DT metamodel 18.3
+
 
 ## [4.34.0]
 

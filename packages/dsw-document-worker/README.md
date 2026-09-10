@@ -26,6 +26,7 @@ DSW Document Worker technical documentation for template development:
 * [Document Context](./support/DocumentContext.md)
 * [Jinja Filters](./support/JinjaFilters.md)
 * [Jinja Tests](./support/JinjaTests.md)
+* [Translations](./support/Translations.md)
 
 ## Docker
 

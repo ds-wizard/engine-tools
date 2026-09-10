@@ -1,3 +1,4 @@
+import json
 import pathlib
 
 import click.testing
@@ -7,7 +8,7 @@ from dsw.tdk import main
 
 def test_new_no_dir(tmp_path: pathlib.Path):
     runner = click.testing.CliRunner()
-    inputs = ['Test template', 'dsw', 'test-template', '0.1.0', 'some description', 'CC0',
+    inputs = ['Test template', 'dsw', 'test-template', '0.1.0', 'some description', 'CC0', 'en',
               'y', 'HTML', 'html', 'text/html', 'src/template.html.j2', 'n']
     with runner.isolated_filesystem(temp_dir=tmp_path) as isolated_dir:
         result = runner.invoke(main, args=['new'], input='\n'.join(inputs))
@@ -24,7 +25,7 @@ def test_new_no_dir(tmp_path: pathlib.Path):
 
 def test_new_dir(tmp_path: pathlib.Path):
     runner = click.testing.CliRunner()
-    inputs = ['Test template', 'dsw', 'test-template', '0.1.0', 'some description', 'CC0',
+    inputs = ['Test template', 'dsw', 'test-template', '0.1.0', 'some description', 'CC0', 'cs',
               'y', 'HTML', 'html', 'text/html', 'src/template.html.j2', 'n']
     with runner.isolated_filesystem(temp_dir=tmp_path) as isolated_dir:
         result = runner.invoke(main, args=['new', 'my-template'], input='\n'.join(inputs))
@@ -36,10 +37,15 @@ def test_new_dir(tmp_path: pathlib.Path):
         assert 'my-template/src' in paths
         assert 'my-template/src/template.html.j2' in paths
 
+        descriptor = json.loads(
+            (pathlib.Path(isolated_dir) / 'my-template' / 'template.json').read_text('utf-8'),
+        )
+        assert descriptor['language'] == 'cs'
+
 
 def test_new_without_force(tmp_path: pathlib.Path):
     runner = click.testing.CliRunner()
-    inputs = ['Test template', 'dsw', 'test-template', '0.1.0', 'some description', 'CC0',
+    inputs = ['Test template', 'dsw', 'test-template', '0.1.0', 'some description', 'CC0', 'en',
               'y', 'HTML', 'html', 'text/html', 'src/template.html.j2', 'n']
     with runner.isolated_filesystem(temp_dir=tmp_path) as isolated_dir:
         root_dir = pathlib.Path(isolated_dir)
@@ -59,7 +65,7 @@ def test_new_without_force(tmp_path: pathlib.Path):
 
 def test_new_with_force(tmp_path: pathlib.Path):
     runner = click.testing.CliRunner()
-    inputs = ['Test template', 'dsw', 'test-template', '0.1.0', 'some description', 'CC0',
+    inputs = ['Test template', 'dsw', 'test-template', '0.1.0', 'some description', 'CC0', 'en',
               'y', 'HTML', 'html', 'text/html', 'src/template.html.j2', 'n']
     with runner.isolated_filesystem(temp_dir=tmp_path) as isolated_dir:
         root_dir = pathlib.Path(isolated_dir)

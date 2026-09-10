@@ -178,7 +178,7 @@ class Template:
     def __init__(self, *, uuid=None, template_id=None, organization_id=None,
                  version=None, name=None,
                  description=None, readme=None, template_license=None,
-                 metamodel_version=None, tdk_config=None, loaded_json=None):
+                 metamodel_version=None, language=None, tdk_config=None, loaded_json=None):
         self.uuid: str | None = uuid
         self.template_id: str | None = template_id
         self.organization_id: str | None = organization_id
@@ -188,6 +188,7 @@ class Template:
         self.readme: str | None = readme
         self.license: str | None = template_license
         self.metamodel_version: str = metamodel_version or consts.METAMODEL_VERSION
+        self.language: str = consts.DEFAULT_LANGUAGE if language is None else language
         self.allowed_packages: list[PackageFilter] = []
         self.formats: list[Format] = []
         self.files: dict[str, TemplateFile] = {}
@@ -228,6 +229,7 @@ class Template:
             description=data.get('description', ''),
             template_license=data.get('license', 'no-license'),
             metamodel_version=data.get('metamodelVersion', consts.METAMODEL_VERSION),
+            language=data.get('language', consts.DEFAULT_LANGUAGE),
             readme=data.get('readme', ''),
         )
         for ap_data in data.get('allowedPackages', []):
@@ -256,6 +258,7 @@ class Template:
         self.loaded_json['description'] = self.description
         self.loaded_json['license'] = self.license
         self.loaded_json['metamodelVersion'] = self.metamodel_version
+        self.loaded_json['language'] = self.language
         self.loaded_json['allowedPackages'] = [ap.serialize() for ap in self.allowed_packages]
         self.loaded_json['formats'] = [f.serialize() for f in self.formats]
         self.loaded_json['_tdk'] = self.tdk_config.serialize()
@@ -271,6 +274,7 @@ class Template:
             'description': self.description,
             'license': self.license,
             'metamodelVersion': self.metamodel_version,
+            'language': self.language,
             'readme': self.readme,
             'allowedPackages': [ap.serialize() for ap in self.allowed_packages],
             'formats': [f.serialize() for f in self.formats],
@@ -287,6 +291,7 @@ class Template:
             'description': self.description,
             'license': self.license,
             'metamodelVersion': self.metamodel_version,
+            'language': self.language,
             'readme': self.readme,
             'allowedPackages': [ap.serialize() for ap in self.allowed_packages],
             'formats': [f.serialize() for f in self.formats],
@@ -300,6 +305,7 @@ class Template:
             'description': self.description,
             'license': self.license,
             'metamodelVersion': self.metamodel_version,
+            'language': self.language,
             'readme': self.readme,
             'allowedPackages': [ap.serialize() for ap in self.allowed_packages],
             'formats': [f.serialize() for f in self.formats],
@@ -323,6 +329,7 @@ class Template:
             'description': self.description,
             'license': self.license,
             'metamodelVersion': self.metamodel_version,
+            'language': self.language,
             'allowedPackages': [ap.serialize() for ap in self.allowed_packages],
             'formats': [f.serialize() for f in self.formats],
             '_tdk': self.tdk_config.serialize(),
