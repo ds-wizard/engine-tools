@@ -7,9 +7,27 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Document template locales: a `.po` file attached to a document template version is applied at render time, so language is a parameter of document generation instead of a property of the format
+- Generation of the POT file with translatable strings (new `generatePotFile` command function), stored in S3 and flagged by `document_template.pot_file_ready`
+- `document.language` and `document.locale` in the document context
+- Translations are available to all steps via `Step.before_render` and the `gettext` / `ngettext` / `pgettext` helpers (see [Translations](./support/Translations.md))
+
 ### Changed
 
+- Update to DT metamodel 18.3
+- The `jinja2.ext.i18n` extension is always enabled for Jinja-powered steps
 - `extras.project` (and the deprecated `extras.questionnaire`) provide `knowledge_model_package_uuid` instead of `knowledge_package_uuid`
+
+### Fixed
+
+- The `policy.urlize.extra_schemes` step option is applied to the `urlize.extra_schemes` Jinja policy instead of overwriting `truncate.leeway`
+
+### Removed
+
+- The `policy.ext.i18n.trimmed` step option; `{% trans %}` blocks are now always trimmed, since the trimming decides the `msgid` and the POT file is per document template while the option was per format. Use `{% trans notrimmed %}` where the whitespace matters.
+- The experimental `i18n-dir`, `i18n-domain` and `i18n-lang` step options; they are now ignored and a template still using them renders untranslated. Use document template locales instead.
 
 
 ## [4.34.0]

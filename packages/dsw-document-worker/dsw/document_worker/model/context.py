@@ -1726,19 +1726,44 @@ class ContextConfig:
         )
 
 
+class DocumentTemplateLocale:
+
+    def __init__(self, *, uuid: str, name: str, code: str,
+                 created_at: datetime, updated_at: datetime):
+        self.uuid = uuid
+        self.name = name
+        self.code = code
+        self.created_at = created_at
+        self.updated_at = updated_at
+
+    @staticmethod
+    def load(data: dict, **options):
+        return DocumentTemplateLocale(
+            uuid=data['uuid'],
+            name=data['name'],
+            code=data['code'],
+            created_at=_datetime(data['createdAt']),
+            updated_at=_datetime(data['updatedAt']),
+        )
+
+
 class Document:
 
     def __init__(self, *, uuid: str, name: str, document_template_uuid: str, format_uuid: str,
-                 created_by: User | None, created_at: datetime):
+                 created_by: User | None, created_at: datetime, language: str | None,
+                 locale: DocumentTemplateLocale | None):
         self.uuid = uuid
         self.name = name
         self.document_template_uuid = document_template_uuid
         self.format_uuid = format_uuid
         self.created_by = created_by
         self.created_at = created_at
+        self.language = language
+        self.locale = locale
 
     @staticmethod
     def load(data: dict, **options):
+        locale_data = data.get('locale')
         return Document(
             uuid=data['uuid'],
             name=data['name'],
@@ -1746,6 +1771,9 @@ class Document:
             format_uuid=data['formatUuid'],
             created_by=User.load(data['createdBy'], **options),
             created_at=_datetime(data['createdAt']),
+            language=data.get('language'),
+            locale=(DocumentTemplateLocale.load(locale_data, **options)
+                    if locale_data is not None else None),
         )
 
 

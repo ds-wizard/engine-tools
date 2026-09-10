@@ -59,6 +59,7 @@ For further information, visit our [documentation](https://docs.ds-wizard.org).
 -  `put` = upload a template to DSW instance (create or update)
 -  `verify` = check the metadata of local template project
 -  `package` = create a distribution ZIP package that is importable to DSW via web interface
+-  `pot` = create a POT file with translatable strings of the local template project
 
 ### Environment variables
 

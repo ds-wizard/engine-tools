@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import datetime
-import gettext
 import json
 import typing
 import zoneinfo
@@ -10,7 +9,7 @@ import jinja2
 import jinja2.exceptions
 import rdflib
 
-from ...consts import DEFAULT_ENCODING
+from ...consts import DEFAULT_ENCODING, JINJA_EXTENSIONS, JINJA_I18N_TRIMMED
 from ...context import Context
 from ...documents import DocumentFile, FileFormat, FileFormats
 from ...model.context import ProjectFile
@@ -20,6 +19,12 @@ from ...utils import JinjaEnvironment
 from ..filters import filters
 from ..tests import tests
 from .base import Step, register_step
+
+
+if typing.TYPE_CHECKING:
+    from gettext import NullTranslations
+
+    from ..locales import RenderContext
 
 
 class JSONStep(Step):
@@ -39,34 +44,27 @@ class JSONStep(Step):
 
 class JinjaPoweredStep(Step):
     OPTION_JINJA_EXT = 'jinja-ext'
-    OPTION_I18N_DIR = 'i18n-dir'
-    OPTION_I18N_DOMAIN = 'i18n-domain'
-    OPTION_I18N_LANG = 'i18n-lang'
 
     def __init__(self, template, options):
         super().__init__(template, options)
         self.jinja_ext = frozenset(
             opt.strip() for opt in self.options.get(self.OPTION_JINJA_EXT, '').split(',')
         )
-        self.i18n_dir = self.options.get(self.OPTION_I18N_DIR, None)
-        self.i18n_domain = self.options.get(self.OPTION_I18N_DOMAIN, 'default')
-        self.i18n_lang = self.options.get(self.OPTION_I18N_LANG, None)
 
         try:
             self.j2_env = JinjaEnvironment(
                 loader=jinja2.FileSystemLoader(searchpath=template.template_dir),
                 extensions=[
-                    'jinja2.ext.do',
-                    'jinja2.ext.loopcontrols',
+                    *JINJA_EXTENSIONS,
+                    'jinja2.ext.i18n',
                 ],
                 autoescape=True,
             )
-            if 'i18n' in self.jinja_ext:
-                self._add_j2_i18n(template)
             if 'debug' in self.jinja_ext:
                 self.j2_env.add_extension('jinja2.ext.debug')
             self._apply_policies(options)
             self._add_j2_enhancements()
+            self._install_translations(None)
 
             Context.get().app.pm.hook.enrich_jinja_env(
                 jinja_env=self.j2_env,
@@ -90,6 +88,7 @@ class JinjaPoweredStep(Step):
         # https://jinja.palletsprojects.com/en/3.0.x/api/#policies
         policies: dict[str, typing.Any] = {
             'policy.urlize.target': '_blank',
+            'ext.i18n.trimmed': JINJA_I18N_TRIMMED,
             'json.dumps_kwargs': {
                 'allow_nan': False,
                 'ensure_ascii': False,
@@ -102,11 +101,7 @@ class JinjaPoweredStep(Step):
         if 'policy.urlize.target' in options:
             policies['urlize.target'] = options['policy.urlize.target']
         if 'policy.urlize.extra_schemes' in options:
-            values = options['policy.urlize.extra_schemes'].split(',')
-            policies['truncate.leeway'] = values
-        if 'policy.ext.i18n.trimmed' in options:
-            value = options['policy.ext.i18n.trimmed'].lower() == 'true'
-            policies['ext.i18n.trimmed'] = value
+            policies['urlize.extra_schemes'] = options['policy.urlize.extra_schemes'].split(',')
         for key in options:
             if not key.startswith('policy.json.dumps_kwargs.'):
                 continue
@@ -117,23 +112,20 @@ class JinjaPoweredStep(Step):
                 policies['json.dumps_kwargs'][name] = options[key]
         self.j2_env.policies.update(policies)
 
-    def _add_j2_i18n(self, template):
+    def before_render(self, render_ctx: RenderContext) -> None:
+        super().before_render(render_ctx)
+        self._install_translations(render_ctx.translations)
+
+    def _install_translations(self, translations: NullTranslations | None):
         # https://jinja.palletsprojects.com/en/3.1.x/extensions/#i18n-extension
-        self.j2_env.add_extension('jinja2.ext.i18n')
-        if self.i18n_dir is not None and self.i18n_lang is not None:
-            locale_path = template.template_dir / self.i18n_dir
-            translations = gettext.translation(
-                domain=self.i18n_domain,
-                localedir=locale_path,
-                languages=(lang.strip() for lang in self.i18n_lang.split(',')),
-            )
-            install_translations = getattr(self.j2_env, 'install_gettext_translations', None)
-            if callable(install_translations):
-                install_translations(translations, newstyle=True)
-        else:
-            install_translations = getattr(self.j2_env, 'install_null_translations', None)
-            if callable(install_translations):
-                install_translations(newstyle=True)
+        if translations is None:
+            install_null = getattr(self.j2_env, 'install_null_translations', None)
+            if callable(install_null):
+                install_null(newstyle=True)
+            return
+        install = getattr(self.j2_env, 'install_gettext_translations', None)
+        if callable(install):
+            install(translations, newstyle=True)
 
     @property
     def _j2_filters(self) -> typing.MutableMapping[str, typing.Any]:

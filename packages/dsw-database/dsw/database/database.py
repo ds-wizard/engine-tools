@@ -50,6 +50,8 @@ class Database:
     UPDATE_DOCUMENT_FINISHED = ('UPDATE document SET finished_at = %s, state = %s, '
                                 'file_name = %s, content_type = %s, worker_log = %s, '
                                 'file_size = %s WHERE uuid = %s;')
+    UPDATE_DOCUMENT_TEMPLATE_POT_READY = ('UPDATE document_template SET pot_file_ready = %s '
+                                          'WHERE uuid = %s AND tenant_uuid = %s;')
     SELECT_TEMPLATE = ('SELECT * FROM document_template '
                        'WHERE uuid = %s AND tenant_uuid = %s LIMIT 1;')
     SELECT_TEMPLATE_FORMATS = ('SELECT * FROM document_template_format '
@@ -379,6 +381,22 @@ class Database:
                     file_size,
                     document_uuid,
                 ),
+            )
+            return cursor.rowcount == 1
+
+    @tenacity.retry(
+        reraise=True,
+        wait=tenacity.wait_exponential(multiplier=RETRY_QUERY_MULTIPLIER),
+        stop=tenacity.stop_after_attempt(RETRY_QUERY_TRIES),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
+    )
+    def update_document_template_pot_file_ready(self, *, template_uuid: str,
+                                                tenant_uuid: str, ready: bool) -> bool:
+        with self.conn_query.new_cursor() as cursor:
+            cursor.execute(
+                query=self.UPDATE_DOCUMENT_TEMPLATE_POT_READY,
+                params=(ready, template_uuid, tenant_uuid),
             )
             return cursor.rowcount == 1
 

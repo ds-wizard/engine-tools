@@ -33,6 +33,25 @@ gridline
 gridlines
 pofile
 mofile
+polib
+pybabel
+gettext
+ngettext
+pgettext
+npgettext
+msgid
+msgids
+msgstr
+msgctxt
+notrimmed
+reindenting
+reindented
+urlize
+unparseable
+msginit
+localedir
+nplurals
+pluralize
 awatch
 naturalsize
 ustar
@@ -126,3 +145,8 @@ heighta
 xurl
 nosniff
 IPPROTO
+
+# Czech strings used in translation tests
+Ahoj
+Nazdar
+Svete

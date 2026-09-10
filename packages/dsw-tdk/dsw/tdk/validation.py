@@ -291,6 +291,7 @@ TemplateValidator = GenericValidator({
     'readme': [_validate_required, _validate_non_empty],
     'license': [_validate_required, _validate_non_empty],
     'metamodel_version': [_validate_metamodel_version, _validate_required],
+    'language': [_validate_required, _validate_non_empty],
     'allowed_packages': [_validate_package_filters],
     'formats': [_validate_required, _validate_formats],
 })

@@ -109,6 +109,8 @@ class DBDocumentTemplate:
     created_at: datetime
     updated_at: datetime
     tenant_uuid: str
+    language: str = 'en'
+    pot_file_ready: bool = False
 
     @property
     def is_draft(self):
@@ -144,6 +146,8 @@ class DBDocumentTemplate:
             created_at=data['created_at'],
             updated_at=data['updated_at'],
             tenant_uuid=str(data.get('tenant_uuid', NULL_UUID)),
+            language=data.get('language', 'en'),
+            pot_file_ready=data.get('pot_file_ready', False),
         )
 
 

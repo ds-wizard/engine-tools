@@ -15,6 +15,7 @@ import watchfiles
 from . import consts
 from .api_client import WizardAPIClient, WizardCommunicationError
 from .model import Template, TemplateFile, TemplateFileType, TemplateProject
+from .pot import PotFile, create_pot_file
 from .utils import UUIDGen
 from .validation import TemplateValidator, ValidationError
 
@@ -347,6 +348,18 @@ class TDKCore:
             file.remote_id = None
             file.remote_type = TemplateFileType.FILE if file.is_text else TemplateFileType.ASSET
             await self._create_template_file(file=file, project_update=True)
+
+    def create_pot_file(self, output: pathlib.Path, force: bool) -> PotFile:
+        if output.exists() and not force:
+            raise RuntimeError(f'File {output} already exists (not forced)')
+        template = self.safe_project.safe_template
+        self.logger.info('Extracting messages from template files of %s', template.coordinates)
+        pot_file = create_pot_file(template)
+        for filename in pot_file.failed_files:
+            self.logger.warning('Skipped file %s that could not be parsed', filename)
+        self.logger.debug('Writing POT file: %s', output.as_posix())
+        output.write_bytes(pot_file.data)
+        return pot_file
 
     def create_package(self, output: pathlib.Path, force: bool):
         if output.exists() and not force:

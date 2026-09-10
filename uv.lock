@@ -500,6 +500,7 @@ requires-dist = [
 name = "dsw-document-worker"
 source = { editable = "packages/dsw-document-worker" }
 dependencies = [
+    { name = "babel" },
     { name = "click" },
     { name = "dsw-command-queue" },
     { name = "dsw-config" },
@@ -512,6 +513,7 @@ dependencies = [
     { name = "panflute" },
     { name = "pathvalidate" },
     { name = "pluggy" },
+    { name = "polib" },
     { name = "pymdown-extensions" },
     { name = "python-dateutil" },
     { name = "python-slugify" },
@@ -531,6 +533,7 @@ test = [
 
 [package.metadata]
 requires-dist = [
+    { name = "babel" },
     { name = "click" },
     { name = "dsw-command-queue", editable = "packages/dsw-command-queue" },
     { name = "dsw-config", editable = "packages/dsw-config" },
@@ -543,6 +546,7 @@ requires-dist = [
     { name = "panflute" },
     { name = "pathvalidate" },
     { name = "pluggy" },
+    { name = "polib" },
     { name = "pymdown-extensions" },
     { name = "pytest", marker = "extra == 'test'" },
     { name = "python-dateutil" },
@@ -626,6 +630,7 @@ name = "dsw-tdk"
 source = { editable = "packages/dsw-tdk" }
 dependencies = [
     { name = "aiohttp" },
+    { name = "babel" },
     { name = "click" },
     { name = "colorama" },
     { name = "humanize" },
@@ -647,6 +652,7 @@ test = [
 [package.metadata]
 requires-dist = [
     { name = "aiohttp" },
+    { name = "babel" },
     { name = "click" },
     { name = "colorama" },
     { name = "humanize" },

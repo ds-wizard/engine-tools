@@ -2,8 +2,12 @@ from __future__ import annotations
 
 import typing
 
+from ..locales import RenderContext
+
 
 if typing.TYPE_CHECKING:
+    from gettext import NullTranslations
+
     from ...documents import DocumentFile
 
 
@@ -26,6 +30,7 @@ class Step:
 
         extras_str: str = self.options.get(self.OPTION_EXTRAS, '')
         self.extras: set[str] = set(extras_str.split(','))
+        self.render_ctx = RenderContext.null()
 
     @staticmethod
     def initialize_step():
@@ -33,6 +38,26 @@ class Step:
 
     def requires_via_extras(self, requirement: str) -> bool:
         return requirement in self.extras
+
+    def before_render(self, render_ctx: RenderContext) -> None:
+        self.render_ctx = render_ctx
+
+    @property
+    def translations(self) -> NullTranslations:
+        return self.render_ctx.translations
+
+    @property
+    def language(self) -> str | None:
+        return self.render_ctx.language
+
+    def gettext(self, message: str) -> str:
+        return self.translations.gettext(message)
+
+    def ngettext(self, singular: str, plural: str, n: int) -> str:
+        return self.translations.ngettext(singular, plural, n)
+
+    def pgettext(self, context: str, message: str) -> str:
+        return self.translations.pgettext(context, message)
 
     def execute_first(self, context: dict) -> DocumentFile:
         return self.raise_exc('Called execute_follow on Step class')

@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- `language` and `pot_file_ready` fields of `document_template` and a method to update the POT file flag
+
 ### Changed
 
 - Read the `project` table column `knowledge_model_package_uuid` (renamed in the backend)

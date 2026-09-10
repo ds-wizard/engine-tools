@@ -67,6 +67,8 @@ class Format:
                    for step in self.steps)
 
     def execute(self, context: dict) -> DocumentFile:
+        for step in self.steps:
+            step.before_render(self.template.render_ctx)
         result = self.steps[0].execute_first(context)
         for step in self.steps[1:]:
             if result is not None:

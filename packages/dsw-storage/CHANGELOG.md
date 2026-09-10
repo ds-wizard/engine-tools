@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Methods for downloading and storing document template locales and for storing the document template POT file
+
 
 ## [4.34.0]
 
