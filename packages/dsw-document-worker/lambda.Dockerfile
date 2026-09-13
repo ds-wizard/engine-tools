@@ -1,6 +1,6 @@
 # Base image version, un-pinned so a release does not need a Dockerfile edit.
 # The default keeps a plain `docker build` working outside CI.
-ARG PYTHON_BASE_VERSION=4.34.0
+ARG PYTHON_BASE_VERSION=4.35.0
 
 FROM ghcr.io/ds-wizard/python-base:${PYTHON_BASE_VERSION}-docworker-lambda AS builder
 
