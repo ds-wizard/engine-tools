@@ -1,4 +1,4 @@
-FROM ghcr.io/ds-wizard/python-base:4.34.0-basic AS builder
+FROM ghcr.io/ds-wizard/python-base:4.34.1-basic AS builder
 
 WORKDIR /app
 
@@ -35,7 +35,7 @@ RUN python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/app/wheels /app/pa
  && python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/app/wheels /app/packages/dsw-data-seeder
 
 
-FROM ghcr.io/ds-wizard/python-base:4.34.0-basic
+FROM ghcr.io/ds-wizard/python-base:4.34.1-basic
 
 ENV APPLICATION_CONFIG_PATH=/app/config/application.yml \
     WORKDIR_PATH=/home/user/data \

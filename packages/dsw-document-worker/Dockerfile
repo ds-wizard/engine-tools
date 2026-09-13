@@ -1,4 +1,4 @@
-FROM ghcr.io/ds-wizard/python-base:4.34.0-docworker AS builder
+FROM ghcr.io/ds-wizard/python-base:4.34.1-docworker AS builder
 
 ARG TARGETARCH
 
@@ -37,7 +37,7 @@ RUN python -m pip wheel --no-deps --wheel-dir=/app/wheels /app/packages/dsw-comm
  && python -m pip wheel --no-deps --wheel-dir=/app/wheels /app/packages/dsw-document-worker/addons/* \
  && python -m pip wheel --no-deps --wheel-dir=/app/wheels /app/packages/dsw-document-worker
 
-FROM ghcr.io/ds-wizard/python-base:4.34.0-docworker
+FROM ghcr.io/ds-wizard/python-base:4.34.1-docworker
 
 ENV APPLICATION_CONFIG_PATH=/app/config/application.yml \
     WORKDIR_PATH=/tmp/docworker \

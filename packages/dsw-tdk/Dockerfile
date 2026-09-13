@@ -1,4 +1,4 @@
-FROM ghcr.io/ds-wizard/python-base:4.34.0-basic AS builder
+FROM ghcr.io/ds-wizard/python-base:4.34.1-basic AS builder
 
 WORKDIR /app
 
@@ -28,7 +28,7 @@ COPY . /app
 RUN python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/app/wheels /app/packages/dsw-tdk
 
 
-FROM ghcr.io/ds-wizard/python-base:4.34.0-basic
+FROM ghcr.io/ds-wizard/python-base:4.34.1-basic
 
 ENV PATH="/home/user/.local/bin:$PATH"
 

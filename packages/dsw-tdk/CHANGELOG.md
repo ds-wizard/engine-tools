@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
+## [4.34.1]
+
+### Security
+
+- Updated base Docker image to 4.34.1 with fixed dependencies (CVE-2026-63073, CVE-2026-75803)
+
 ## [4.34.0]
 
 Released for version consistency with other DSW tools.
@@ -746,3 +752,4 @@ Initial DSW Template Development Kit (versioned as part of the [DSW platform](ht
 [4.32.0]: /../../tree/v4.32.0
 [4.33.0]: /../../tree/v4.33.0
 [4.34.0]: /../../tree/v4.34.0
+[4.34.1]: /../../tree/v4.34.1
