@@ -56,8 +56,9 @@ A new package can be created by adding a subdirectory of `packages/`:
 
 ## Git Workflow
 
-`main` is the only long-lived branch. There is no `develop`, and there are no `release/*` or `hotfix/*` branches:
-a release is a Git-tag on a commit of `main`, and a hotfix is an ordinary change on `main` that gets tagged.
+`main` is the primary development branch and there is no `develop` or `release/*` branch: a release is a Git-tag
+on a commit of `main`. The only other long-lived branches are the maintenance branches `hotfix/X.Y`, one per
+supported minor line, described under [Hotfixes](#hotfixes) below.
 
 * __main__ is the single line of development and the base of every branch. It is protected on GitHub — it cannot be
   force-pushed, and all checks must pass before a change lands.
@@ -99,8 +100,28 @@ Releases are cut directly on `main` — there is no release branch to merge back
 
 ### Post-Release Steps
 
-None. Commits after the tag automatically build as `X.Y.Z.post<N>.dev0+<sha>`, so there is no dev-suffix bump to
-make and nothing to keep in sync.
+No version bump. Commits after the tag automatically build as `X.Y.Z.post<N>.dev0+<sha>`, so there is no dev-suffix
+to make and nothing to keep in sync.
+
+For a new minor line, create its maintenance branch from the released commit: `git branch hotfix/X.Y vX.Y.0`.
+
+### Hotfixes
+
+Each supported minor release has one maintenance branch `hotfix/X.Y`, created from its `vX.Y.0` tag and holding a
+cumulative sequence of fixes for that line. Several may coexist — `hotfix/1.3` and `hotfix/1.4` each take only the
+fixes relevant to them and carry their own patch tags.
+
+* Commit the fix on `hotfix/X.Y`, then tag that commit with the next patch version — `vX.Y.1`, `vX.Y.2`, and so on.
+* Apply the same logical fix at the current tip of `main` through a reviewed Pull Request, normally a cherry-pick.
+  The two commits are the same fix and need not share a hash.
+* **Do not rebase `hotfix/X.Y` and do not merge it into `main`.** It stays a simple history of the released line,
+  with the patch tags identifying exactly what was deployed.
+
+If a maintenance branch is deleted, recreate it from its highest `vX.Y.Z` patch tag, or from `vX.Y.0` if no patch
+has been released yet.
+
+Note that `latest` on Docker Hub follows `latest=auto`, which does not compare versions — a patch tag on an older
+line moves it, and it must be repointed by hand afterwards.
 
 ### Version Number in Files
 
