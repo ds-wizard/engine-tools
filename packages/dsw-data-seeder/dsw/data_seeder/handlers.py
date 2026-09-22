@@ -5,6 +5,8 @@ import os
 import pathlib
 import sys
 
+from dsw.config import read_config
+
 from . import consts
 from .cli import load_config_str
 from .seeder import DataSeeder, SentryReporter
@@ -22,7 +24,7 @@ def lambda_handler(event, context):
         LOG.error('Error: Missing recipe name (environment variable %s)', consts.VAR_SEEDER_RECIPE)
         sys.exit(1)
 
-    config = load_config_str(config_path.read_text(encoding=consts.DEFAULT_ENCODING))
+    config = load_config_str(read_config(config_path, encoding=consts.DEFAULT_ENCODING))
     try:
         seeder = DataSeeder(
             cfg=config,

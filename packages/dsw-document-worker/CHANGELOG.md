@@ -13,6 +13,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Generation of the POT file with translatable strings (new `generatePotFile` command function), stored in S3 and flagged by `document_template.pot_file_ready`
 - `document.language` and `document.locale` in the document context
 - Translations are available to all steps via `Step.before_render` and the `gettext` / `ngettext` / `pgettext` helpers (see [Translations](./support/Translations.md))
+- Lambda handler reads its configuration from AWS AppConfig when `AWS_APP_CONFIG` is set (see `dsw-config`)
+- `docx-landscape.lua` Pandoc filter (a `landscape` div, or `\landscape` / `\portrait` paragraphs, switch DOCX page orientation)
 
 ### Changed
 

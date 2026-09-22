@@ -1,3 +1,4 @@
+from .appconfig import read_config
 from .parser import (
     DSWConfigParser,
     InvalidConfigurationError,
@@ -9,4 +10,5 @@ __all__ = [
     'DSWConfigParser',
     'InvalidConfigurationError',
     'MissingConfigurationError',
+    'read_config',
 ]

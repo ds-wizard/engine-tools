@@ -444,12 +444,14 @@ requires-dist = [
 name = "dsw-config"
 source = { editable = "packages/dsw-config" }
 dependencies = [
+    { name = "boto3" },
     { name = "pyyaml" },
     { name = "sentry-sdk" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "boto3" },
     { name = "pyyaml" },
     { name = "sentry-sdk" },
 ]
