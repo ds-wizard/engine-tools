@@ -7,6 +7,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- `read_config` loads the configuration YAML from AWS AppConfig when `AWS_APP_CONFIG` is set (environment `Default`, profile derived from the file name, overridable by `AWS_APP_CONFIG_ENVIRONMENT` / `AWS_APP_CONFIG_PROFILE`), and from the local file otherwise; a warm Lambda reuses its session and re-polls only after the poll interval
 
 ## [4.34.0]
 

@@ -4,6 +4,8 @@ import os
 import pathlib
 import tempfile
 
+from dsw.config import read_config
+
 from . import consts
 from .cli import load_config_str
 from .worker import DocumentWorker, SentryReporter
@@ -19,7 +21,7 @@ def lambda_handler(event, context):
         os.environ['XDG_CACHE_HOME'] = cache_dir.as_posix()
         fontconfig_tmp.mkdir(parents=True, exist_ok=True)
 
-        config = load_config_str(config_path.read_text(encoding=consts.DEFAULT_ENCODING))
+        config = load_config_str(read_config(config_path, encoding=consts.DEFAULT_ENCODING))
         try:
             doc_worker = DocumentWorker(config, workdir_path)
             doc_worker.run_once()

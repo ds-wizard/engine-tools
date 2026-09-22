@@ -1,6 +1,8 @@
 # Python and libraries specific terms
 Aeson
 popleft
+appconfigdata
+Stubber
 autouse
 caplog
 delenv
