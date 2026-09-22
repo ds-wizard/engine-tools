@@ -22,6 +22,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- Documents no longer fail when a report metric has no measure (`measure` is `null` when nothing answered contributes to the metric); `ReportMetric.measure` is `None` then
 - The `policy.urlize.extra_schemes` step option is applied to the `urlize.extra_schemes` Jinja policy instead of overwriting `truncate.leeway`
 
 ### Removed

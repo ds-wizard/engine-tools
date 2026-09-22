@@ -1,0 +1,121 @@
+[
+  {
+    "uuid": "10000000-0000-0000-0000-000000000001",
+    "parentUuid": "00000000-0000-0000-0000-000000000101",
+    "entityUuid": "00000000-0000-0000-0000-000000000202",
+    "createdAt": "2026-09-14T10:00:00.5Z",
+    "content": {
+      "eventType": "AddQuestionEvent",
+      "questionType": "MultiChoiceQuestion",
+      "title": "Multi-choice",
+      "text": null,
+      "requiredPhaseUuid": null,
+      "annotations": [],
+      "tagUuids": []
+    }
+  },
+  {
+    "uuid": "10000000-0000-0000-0000-000000000002",
+    "parentUuid": "00000000-0000-0000-0000-000000000101",
+    "entityUuid": "00000000-0000-0000-0000-000000000206",
+    "createdAt": "2026-09-14T10:00:01Z",
+    "content": {
+      "eventType": "AddQuestionEvent",
+      "questionType": "ItemSelectQuestion",
+      "title": "Item select",
+      "text": null,
+      "requiredPhaseUuid": null,
+      "annotations": [],
+      "tagUuids": [],
+      "listQuestionUuid": null
+    }
+  },
+  {
+    "uuid": "10000000-0000-0000-0000-000000000003",
+    "parentUuid": "00000000-0000-0000-0000-000000000101",
+    "entityUuid": "00000000-0000-0000-0000-000000000207",
+    "createdAt": "2026-09-14T10:00:02Z",
+    "content": {
+      "eventType": "AddQuestionEvent",
+      "questionType": "FileQuestion",
+      "title": "File",
+      "text": null,
+      "requiredPhaseUuid": null,
+      "annotations": [],
+      "tagUuids": [],
+      "maxSize": null,
+      "fileTypes": null
+    }
+  },
+  {
+    "uuid": "10000000-0000-0000-0000-000000000004",
+    "parentUuid": "00000000-0000-0000-0000-000000000001",
+    "entityUuid": "00000000-0000-0000-0000-000000000702",
+    "createdAt": "2026-09-14T10:00:03Z",
+    "content": {
+      "eventType": "AddIntegrationEvent",
+      "integrationType": "PluginIntegration",
+      "name": "Plugin",
+      "pluginUuid": "00000000-0000-0000-0000-000000000d01",
+      "pluginIntegrationId": "ror",
+      "pluginIntegrationSettings": [1, "two", {"three": 3}],
+      "annotations": []
+    }
+  },
+  {
+    "uuid": "10000000-0000-0000-0000-000000000005",
+    "parentUuid": "00000000-0000-0000-0000-000000000001",
+    "entityUuid": "00000000-0000-0000-0000-000000000702",
+    "createdAt": "2026-09-14T10:00:04Z",
+    "content": {
+      "eventType": "EditIntegrationEvent",
+      "integrationType": "PluginIntegration",
+      "name": {"changed": false},
+      "pluginUuid": {"changed": false},
+      "pluginIntegrationId": {"changed": true, "value": "orcid"},
+      "pluginIntegrationSettings": {"changed": true, "value": null},
+      "annotations": {"changed": false}
+    }
+  },
+  {
+    "uuid": "10000000-0000-0000-0000-000000000006",
+    "parentUuid": "00000000-0000-0000-0000-000000000201",
+    "entityUuid": "00000000-0000-0000-0000-000000000401",
+    "createdAt": "2026-09-14T10:00:05Z",
+    "content": {
+      "eventType": "MoveExpertEvent",
+      "targetUuid": "00000000-0000-0000-0000-000000000202"
+    }
+  },
+  {
+    "uuid": "10000000-0000-0000-0000-000000000007",
+    "parentUuid": "00000000-0000-0000-0000-000000000001",
+    "entityUuid": "00000000-0000-0000-0000-000000000701",
+    "createdAt": "2026-09-14T10:00:06Z",
+    "content": {
+      "eventType": "EditIntegrationEvent",
+      "integrationType": "ApiIntegration",
+      "name": {"changed": false},
+      "variables": {"changed": true, "value": ["domain", "language"]},
+      "allowCustomReply": {"changed": true, "value": false},
+      "requestMethod": {"changed": false},
+      "requestUrl": {"changed": false},
+      "requestHeaders": {"changed": false},
+      "requestBody": {"changed": true, "value": null},
+      "requestAllowEmptySearch": {"changed": false},
+      "responseListField": {"changed": false},
+      "responseItemTemplate": {"changed": false},
+      "responseItemTemplateForSelection": {"changed": false},
+      "testQ": {"changed": false},
+      "testVariables": {"changed": false},
+      "testResponse": {
+        "changed": true,
+        "value": {
+          "request": {"method": "POST", "url": "https://api.example.org", "headers": [], "body": "{}"},
+          "response": {"responseType": "RequestFailedTypeHintResponse", "message": "timeout"}
+        }
+      },
+      "annotations": {"changed": false}
+    }
+  }
+]

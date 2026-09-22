@@ -1,384 +1,404 @@
+"""Knowledge model events as stored in packages and exchanged with the backend."""
 from __future__ import annotations
 
 import typing
+from uuid import UUID
 
 import pydantic
 
-from .common import (
-    BaseModel,
-    MetricMeasure,
-    QuestionValidation,
-    TAnnotations,
-    THeaders,
-    TQuestionValueType,
-    TypeHintExchange,
-)
-
-
-if typing.TYPE_CHECKING:
-    from datetime import datetime
-    from uuid import UUID
-
-
-T = typing.TypeVar('T')
+from ..common import Annotations, BaseModel, JsonValue, KeyValue, Timestamp
+from .common import MetricMeasure, QuestionValidation, QuestionValueType, TypeHintExchange
 
 
 class EditEventField[T](BaseModel):
+    """Backend ``EventField``: ``{"changed": false}`` or ``{"changed": true, "value": ...}``."""
+
     changed: bool
-    value: T | None
+    value: T | None = None
+
+    @pydantic.model_validator(mode='after')
+    def _check_value(self) -> typing.Self:
+        if self.changed and 'value' not in self.model_fields_set:
+            raise ValueError('Changed event field requires a value')
+        return self
 
     @pydantic.model_serializer(mode='wrap')
-    def _serialize(self, handler):
+    def _serialize(self, handler: pydantic.SerializerFunctionWrapHandler) -> dict[str, typing.Any]:
         if not self.changed:
             return {'changed': False}
-        # default serialization includes both fields; we only keep what we want
-        data = handler(self)
-        return {'changed': True, 'value': data.get('value')}
+        return {'changed': True, 'value': handler(self)['value']}
+
+    @classmethod
+    def __get_pydantic_json_schema__(
+        cls, core_schema: typing.Any, handler: pydantic.GetJsonSchemaHandler,
+    ) -> dict[str, typing.Any]:
+        """``{"changed": false}`` or ``{"changed": true, "value": ...}``, in either mode."""
+        value = dict(handler(_model_field_schema(core_schema, 'value')['schema']))
+        value.pop('default', None)
+        return {
+            'oneOf': [
+                {'type': 'object', 'properties': {'changed': {'const': False}},
+                 'required': ['changed'], 'additionalProperties': False},
+                {'type': 'object', 'properties': {'changed': {'const': True}, 'value': value},
+                 'required': ['changed', 'value'], 'additionalProperties': False},
+            ],
+        }
 
     @classmethod
     def no_change(cls) -> typing.Self:
-        return cls(changed=False, value=None)
+        return cls(changed=False)
 
     @classmethod
     def change(cls, value: T) -> typing.Self:
         return cls(changed=True, value=value)
 
 
-class BaseEventContent(BaseModel):
+def _model_field_schema(core_schema: typing.Any, name: str) -> typing.Any:
+    """Find the core schema of field ``name`` in a (possibly wrapped) model core schema."""
+    stack = [core_schema]
+    while stack:
+        node = stack.pop()
+        if isinstance(node, dict):
+            if node.get('type') == 'model-fields':
+                return node['fields'][name]
+            stack.extend(node.values())
+        elif isinstance(node, list):
+            stack.extend(node)
+    raise KeyError(name)
+
+
+class EventContent(BaseModel):
     event_type: str
 
 
-class BaseAddEventContent(BaseEventContent):
-    annotations: TAnnotations
-
-
-class BaseEditEventContent(BaseEventContent):
-    annotations: EditEventField[TAnnotations]
-
-
-# Knowledge Model
-class AddKnowledgeModelEventContent(BaseAddEventContent):
+# Knowledge model
+class AddKnowledgeModelEventContent(EventContent):
     event_type: typing.Literal['AddKnowledgeModelEvent'] = 'AddKnowledgeModelEvent'
+    annotations: Annotations
 
 
-class EditKnowledgeModelEventContent(BaseEditEventContent):
+class EditKnowledgeModelEventContent(EventContent):
     event_type: typing.Literal['EditKnowledgeModelEvent'] = 'EditKnowledgeModelEvent'
+    annotations: EditEventField[Annotations]
     chapter_uuids: EditEventField[list[UUID]]
+    tag_uuids: EditEventField[list[UUID]]
     integration_uuids: EditEventField[list[UUID]]
     metric_uuids: EditEventField[list[UUID]]
     phase_uuids: EditEventField[list[UUID]]
     resource_collection_uuids: EditEventField[list[UUID]]
-    tag_uuids: EditEventField[list[UUID]]
 
 
 # Chapter
-class AddChapterEventContent(BaseAddEventContent):
+class AddChapterEventContent(EventContent):
     event_type: typing.Literal['AddChapterEvent'] = 'AddChapterEvent'
     title: str
-    text: str | None
+    text: str | None = None
+    annotations: Annotations
 
 
-class EditChapterEventContent(BaseEditEventContent):
+class EditChapterEventContent(EventContent):
     event_type: typing.Literal['EditChapterEvent'] = 'EditChapterEvent'
     title: EditEventField[str]
     text: EditEventField[str | None]
+    annotations: EditEventField[Annotations]
     question_uuids: EditEventField[list[UUID]]
 
 
-class DeleteChapterEventContent(BaseEventContent):
+class DeleteChapterEventContent(EventContent):
     event_type: typing.Literal['DeleteChapterEvent'] = 'DeleteChapterEvent'
 
 
 # Question
-class _AddQuestionEventContent(BaseAddEventContent):
+class AddQuestionEventContentBase(EventContent):
     event_type: typing.Literal['AddQuestionEvent'] = 'AddQuestionEvent'
-    question_type: str
     title: str
-    text: str | None
-    required_phase_uuid: UUID | None
+    text: str | None = None
+    required_phase_uuid: UUID | None = None
+    annotations: Annotations
     tag_uuids: list[UUID]
 
 
-class AddOptionsQuestionEventContent(_AddQuestionEventContent):
+class AddOptionsQuestionEventContent(AddQuestionEventContentBase):
     question_type: typing.Literal['OptionsQuestion'] = 'OptionsQuestion'
 
 
-class AddMultiChoiceQuestionEventContent(_AddQuestionEventContent):
+class AddMultiChoiceQuestionEventContent(AddQuestionEventContentBase):
     question_type: typing.Literal['MultiChoiceQuestion'] = 'MultiChoiceQuestion'
 
 
-class AddListQuestionEventContent(_AddQuestionEventContent):
+class AddListQuestionEventContent(AddQuestionEventContentBase):
     question_type: typing.Literal['ListQuestion'] = 'ListQuestion'
 
 
-class AddValueQuestionEventContent(_AddQuestionEventContent):
+class AddValueQuestionEventContent(AddQuestionEventContentBase):
     question_type: typing.Literal['ValueQuestion'] = 'ValueQuestion'
-    value_type: TQuestionValueType
+    value_type: QuestionValueType
     validations: list[QuestionValidation]
 
 
-class AddIntegrationQuestionEventContent(_AddQuestionEventContent):
+class AddIntegrationQuestionEventContent(AddQuestionEventContentBase):
     question_type: typing.Literal['IntegrationQuestion'] = 'IntegrationQuestion'
     integration_uuid: UUID
     variables: dict[str, str]
 
 
-class AddItemSelectQuestionEventContent(_AddQuestionEventContent):
+class AddItemSelectQuestionEventContent(AddQuestionEventContentBase):
     question_type: typing.Literal['ItemSelectQuestion'] = 'ItemSelectQuestion'
-    list_question_uuid: UUID
+    list_question_uuid: UUID | None = None
 
 
-class AddFileQuestionEventContent(_AddQuestionEventContent):
+class AddFileQuestionEventContent(AddQuestionEventContentBase):
     question_type: typing.Literal['FileQuestion'] = 'FileQuestion'
-    max_size: int | None
-    file_types: str | None
+    max_size: int | None = None
+    file_types: str | None = None
 
 
 AddQuestionEventContent = typing.Annotated[
-    AddOptionsQuestionEventContent |
-    AddMultiChoiceQuestionEventContent |
-    AddListQuestionEventContent |
-    AddValueQuestionEventContent |
-    AddIntegrationQuestionEventContent |
-    AddItemSelectQuestionEventContent |
-    AddFileQuestionEventContent,
+    AddOptionsQuestionEventContent
+    | AddMultiChoiceQuestionEventContent
+    | AddListQuestionEventContent
+    | AddValueQuestionEventContent
+    | AddIntegrationQuestionEventContent
+    | AddItemSelectQuestionEventContent
+    | AddFileQuestionEventContent,
     pydantic.Field(discriminator='question_type'),
 ]
 
 
-class _EditQuestionEventContent(BaseEditEventContent):
+class EditQuestionEventContentBase(EventContent):
     event_type: typing.Literal['EditQuestionEvent'] = 'EditQuestionEvent'
-    question_type: str
     title: EditEventField[str]
     text: EditEventField[str | None]
     required_phase_uuid: EditEventField[UUID | None]
+    annotations: EditEventField[Annotations]
     tag_uuids: EditEventField[list[UUID]]
     expert_uuids: EditEventField[list[UUID]]
     reference_uuids: EditEventField[list[UUID]]
 
 
-class EditOptionsQuestionEventContent(_EditQuestionEventContent):
+class EditOptionsQuestionEventContent(EditQuestionEventContentBase):
     question_type: typing.Literal['OptionsQuestion'] = 'OptionsQuestion'
     answer_uuids: EditEventField[list[UUID]]
 
 
-class EditMultiChoiceQuestionEventContent(_EditQuestionEventContent):
+class EditMultiChoiceQuestionEventContent(EditQuestionEventContentBase):
     question_type: typing.Literal['MultiChoiceQuestion'] = 'MultiChoiceQuestion'
     choice_uuids: EditEventField[list[UUID]]
 
 
-class EditListQuestionEventContent(_EditQuestionEventContent):
+class EditListQuestionEventContent(EditQuestionEventContentBase):
     question_type: typing.Literal['ListQuestion'] = 'ListQuestion'
     item_template_question_uuids: EditEventField[list[UUID]]
 
 
-class EditValueQuestionEventContent(_EditQuestionEventContent):
+class EditValueQuestionEventContent(EditQuestionEventContentBase):
     question_type: typing.Literal['ValueQuestion'] = 'ValueQuestion'
-    value_type: EditEventField[TQuestionValueType]
+    value_type: EditEventField[QuestionValueType]
     validations: EditEventField[list[QuestionValidation]]
 
 
-class EditIntegrationQuestionEventContent(_EditQuestionEventContent):
+class EditIntegrationQuestionEventContent(EditQuestionEventContentBase):
     question_type: typing.Literal['IntegrationQuestion'] = 'IntegrationQuestion'
     integration_uuid: EditEventField[UUID]
     variables: EditEventField[dict[str, str]]
 
 
-class EditItemSelectQuestionEventContent(_EditQuestionEventContent):
+class EditItemSelectQuestionEventContent(EditQuestionEventContentBase):
     question_type: typing.Literal['ItemSelectQuestion'] = 'ItemSelectQuestion'
-    list_question_uuid: EditEventField[UUID]
+    list_question_uuid: EditEventField[UUID | None]
 
 
-class EditFileQuestionEventContent(_EditQuestionEventContent):
+class EditFileQuestionEventContent(EditQuestionEventContentBase):
     question_type: typing.Literal['FileQuestion'] = 'FileQuestion'
     max_size: EditEventField[int | None]
     file_types: EditEventField[str | None]
 
 
 EditQuestionEventContent = typing.Annotated[
-    EditOptionsQuestionEventContent |
-    EditMultiChoiceQuestionEventContent |
-    EditListQuestionEventContent |
-    EditValueQuestionEventContent |
-    EditIntegrationQuestionEventContent |
-    EditItemSelectQuestionEventContent |
-    EditFileQuestionEventContent,
+    EditOptionsQuestionEventContent
+    | EditMultiChoiceQuestionEventContent
+    | EditListQuestionEventContent
+    | EditValueQuestionEventContent
+    | EditIntegrationQuestionEventContent
+    | EditItemSelectQuestionEventContent
+    | EditFileQuestionEventContent,
     pydantic.Field(discriminator='question_type'),
 ]
 
 
-class DeleteQuestionEventContent(BaseEventContent):
+class DeleteQuestionEventContent(EventContent):
     event_type: typing.Literal['DeleteQuestionEvent'] = 'DeleteQuestionEvent'
 
 
 # Answer
-class AddAnswerEventContent(BaseAddEventContent):
+class AddAnswerEventContent(EventContent):
     event_type: typing.Literal['AddAnswerEvent'] = 'AddAnswerEvent'
     label: str
-    advice: str | None
+    advice: str | None = None
+    annotations: Annotations
     metric_measures: list[MetricMeasure]
 
 
-class EditAnswerEventContent(BaseEditEventContent):
+class EditAnswerEventContent(EventContent):
     event_type: typing.Literal['EditAnswerEvent'] = 'EditAnswerEvent'
     label: EditEventField[str]
     advice: EditEventField[str | None]
-    metric_measures: EditEventField[list[MetricMeasure]]
+    annotations: EditEventField[Annotations]
     follow_up_uuids: EditEventField[list[UUID]]
+    metric_measures: EditEventField[list[MetricMeasure]]
 
 
-class DeleteAnswerEventContent(BaseEventContent):
+class DeleteAnswerEventContent(EventContent):
     event_type: typing.Literal['DeleteAnswerEvent'] = 'DeleteAnswerEvent'
 
 
 # Choice
-class AddChoiceEventContent(BaseAddEventContent):
+class AddChoiceEventContent(EventContent):
     event_type: typing.Literal['AddChoiceEvent'] = 'AddChoiceEvent'
     label: str
+    annotations: Annotations
 
 
-class EditChoiceEventContent(BaseEditEventContent):
+class EditChoiceEventContent(EventContent):
     event_type: typing.Literal['EditChoiceEvent'] = 'EditChoiceEvent'
     label: EditEventField[str]
+    annotations: EditEventField[Annotations]
 
 
-class DeleteChoiceEventContent(BaseEventContent):
+class DeleteChoiceEventContent(EventContent):
     event_type: typing.Literal['DeleteChoiceEvent'] = 'DeleteChoiceEvent'
 
 
+# Expert
+class AddExpertEventContent(EventContent):
+    event_type: typing.Literal['AddExpertEvent'] = 'AddExpertEvent'
+    name: str
+    email: str
+    annotations: Annotations
+
+
+class EditExpertEventContent(EventContent):
+    event_type: typing.Literal['EditExpertEvent'] = 'EditExpertEvent'
+    name: EditEventField[str]
+    email: EditEventField[str]
+    annotations: EditEventField[Annotations]
+
+
+class DeleteExpertEventContent(EventContent):
+    event_type: typing.Literal['DeleteExpertEvent'] = 'DeleteExpertEvent'
+
+
 # Reference
-class _AddReferenceEventContent(BaseAddEventContent):
+class AddReferenceEventContentBase(EventContent):
     event_type: typing.Literal['AddReferenceEvent'] = 'AddReferenceEvent'
-    reference_type: str
+    annotations: Annotations
 
 
-class AddResourcePageReferenceEventContent(_AddReferenceEventContent):
+class AddResourcePageReferenceEventContent(AddReferenceEventContentBase):
     reference_type: typing.Literal['ResourcePageReference'] = 'ResourcePageReference'
-    resource_page_uuid: UUID | None
+    resource_page_uuid: UUID | None = None
 
 
-class AddURLReferenceEventContent(_AddReferenceEventContent):
+class AddURLReferenceEventContent(AddReferenceEventContentBase):
     reference_type: typing.Literal['URLReference'] = 'URLReference'
     url: str
     label: str
 
 
-class AddCrossReferenceEventContent(_AddReferenceEventContent):
+class AddCrossReferenceEventContent(AddReferenceEventContentBase):
     reference_type: typing.Literal['CrossReference'] = 'CrossReference'
-    target_uuid: UUID | None
+    target_uuid: UUID
     description: str
 
 
 AddReferenceEventContent = typing.Annotated[
-    AddResourcePageReferenceEventContent |
-    AddURLReferenceEventContent |
-    AddCrossReferenceEventContent,
+    AddResourcePageReferenceEventContent
+    | AddURLReferenceEventContent
+    | AddCrossReferenceEventContent,
     pydantic.Field(discriminator='reference_type'),
 ]
 
 
-class _EditReferenceEventContent(BaseEditEventContent):
+class EditReferenceEventContentBase(EventContent):
     event_type: typing.Literal['EditReferenceEvent'] = 'EditReferenceEvent'
-    reference_type: str
+    annotations: EditEventField[Annotations]
 
 
-class EditResourcePageReferenceEventContent(_EditReferenceEventContent):
+class EditResourcePageReferenceEventContent(EditReferenceEventContentBase):
     reference_type: typing.Literal['ResourcePageReference'] = 'ResourcePageReference'
-    resource_page_uuid: EditEventField[UUID]
+    resource_page_uuid: EditEventField[UUID | None]
 
 
-class EditURLReferenceEventContent(_EditReferenceEventContent):
+class EditURLReferenceEventContent(EditReferenceEventContentBase):
     reference_type: typing.Literal['URLReference'] = 'URLReference'
     url: EditEventField[str]
     label: EditEventField[str]
 
 
-class EditCrossReferenceEventContent(_EditReferenceEventContent):
+class EditCrossReferenceEventContent(EditReferenceEventContentBase):
     reference_type: typing.Literal['CrossReference'] = 'CrossReference'
     target_uuid: EditEventField[UUID]
     description: EditEventField[str]
 
 
 EditReferenceEventContent = typing.Annotated[
-    EditResourcePageReferenceEventContent |
-    EditURLReferenceEventContent |
-    EditCrossReferenceEventContent,
+    EditResourcePageReferenceEventContent
+    | EditURLReferenceEventContent
+    | EditCrossReferenceEventContent,
     pydantic.Field(discriminator='reference_type'),
 ]
 
 
-class DeleteReferenceEventContent(BaseEventContent):
+class DeleteReferenceEventContent(EventContent):
     event_type: typing.Literal['DeleteReferenceEvent'] = 'DeleteReferenceEvent'
 
 
-# Expert
-class AddExpertEventContent(BaseAddEventContent):
-    event_type: typing.Literal['AddExpertEvent'] = 'AddExpertEvent'
-    name: str
-    email: str
-
-
-class EditExpertEventContent(BaseEditEventContent):
-    event_type: typing.Literal['EditExpertEvent'] = 'EditExpertEvent'
-    name: EditEventField[str]
-    email: EditEventField[str]
-
-
-class DeleteExpertEventContent(BaseEventContent):
-    event_type: typing.Literal['DeleteExpertEvent'] = 'DeleteExpertEvent'
-
-
 # Integration
-class _AddIntegrationEventContent(BaseAddEventContent):
+class AddApiIntegrationEventContent(EventContent):
     event_type: typing.Literal['AddIntegrationEvent'] = 'AddIntegrationEvent'
-    integration_type: str
+    integration_type: typing.Literal['ApiIntegration'] = 'ApiIntegration'
     name: str
     variables: list[str]
-
-
-class AddApiIntegrationEventContent(_AddIntegrationEventContent):
-    integration_type: typing.Literal['ApiIntegration'] = 'ApiIntegration'
     allow_custom_reply: bool
     request_method: str
     request_url: str
-    request_headers: THeaders
-    request_body: str | None
+    request_headers: list[KeyValue]
+    request_body: str | None = None
     request_allow_empty_search: bool
-    response_list_field: str | None
+    response_list_field: str | None = None
     response_item_template: str
-    response_item_template_for_selection: str | None
+    response_item_template_for_selection: str | None = None
     test_q: str
     test_variables: dict[str, str]
-    test_response: TypeHintExchange | None
+    test_response: TypeHintExchange | None = None
+    annotations: Annotations
 
 
-class AddPluginIntegrationEventContent(_AddIntegrationEventContent):
+class AddPluginIntegrationEventContent(EventContent):
+    event_type: typing.Literal['AddIntegrationEvent'] = 'AddIntegrationEvent'
     integration_type: typing.Literal['PluginIntegration'] = 'PluginIntegration'
+    name: str
     plugin_uuid: UUID
     plugin_integration_id: str
-    plugin_integration_settings: dict
+    plugin_integration_settings: JsonValue
+    annotations: Annotations
 
 
 AddIntegrationEventContent = typing.Annotated[
-    AddApiIntegrationEventContent |
-    AddPluginIntegrationEventContent,
+    AddApiIntegrationEventContent | AddPluginIntegrationEventContent,
     pydantic.Field(discriminator='integration_type'),
 ]
 
 
-class _EditIntegrationEventContent(BaseEditEventContent):
+class EditApiIntegrationEventContent(EventContent):
     event_type: typing.Literal['EditIntegrationEvent'] = 'EditIntegrationEvent'
-    integration_type: str
+    integration_type: typing.Literal['ApiIntegration'] = 'ApiIntegration'
     name: EditEventField[str]
     variables: EditEventField[list[str]]
-
-
-class EditApiIntegrationEventContent(_EditIntegrationEventContent):
-    integration_type: typing.Literal['ApiIntegration'] = 'ApiIntegration'
     allow_custom_reply: EditEventField[bool]
     request_method: EditEventField[str]
     request_url: EditEventField[str]
-    request_headers: EditEventField[THeaders]
+    request_headers: EditEventField[list[KeyValue]]
     request_body: EditEventField[str | None]
     request_allow_empty_search: EditEventField[bool]
     response_list_field: EditEventField[str | None]
@@ -387,191 +407,203 @@ class EditApiIntegrationEventContent(_EditIntegrationEventContent):
     test_q: EditEventField[str]
     test_variables: EditEventField[dict[str, str]]
     test_response: EditEventField[TypeHintExchange | None]
+    annotations: EditEventField[Annotations]
 
 
-class EditPluginIntegrationEventContent(_EditIntegrationEventContent):
+class EditPluginIntegrationEventContent(EventContent):
+    event_type: typing.Literal['EditIntegrationEvent'] = 'EditIntegrationEvent'
     integration_type: typing.Literal['PluginIntegration'] = 'PluginIntegration'
+    name: EditEventField[str]
     plugin_uuid: EditEventField[UUID]
     plugin_integration_id: EditEventField[str]
-    plugin_integration_settings: EditEventField[dict]
+    plugin_integration_settings: EditEventField[JsonValue]
+    annotations: EditEventField[Annotations]
 
 
 EditIntegrationEventContent = typing.Annotated[
-    EditApiIntegrationEventContent |
-    EditPluginIntegrationEventContent,
+    EditApiIntegrationEventContent | EditPluginIntegrationEventContent,
     pydantic.Field(discriminator='integration_type'),
 ]
 
 
-class DeleteIntegrationEventContent(BaseEventContent):
+class DeleteIntegrationEventContent(EventContent):
     event_type: typing.Literal['DeleteIntegrationEvent'] = 'DeleteIntegrationEvent'
 
 
 # Tag
-class AddTagEventContent(BaseAddEventContent):
+class AddTagEventContent(EventContent):
     event_type: typing.Literal['AddTagEvent'] = 'AddTagEvent'
     name: str
-    description: str | None
+    description: str | None = None
     color: str
+    annotations: Annotations
 
 
-class EditTagEventContent(BaseEditEventContent):
+class EditTagEventContent(EventContent):
     event_type: typing.Literal['EditTagEvent'] = 'EditTagEvent'
     name: EditEventField[str]
     description: EditEventField[str | None]
     color: EditEventField[str]
+    annotations: EditEventField[Annotations]
 
 
-class DeleteTagEventContent(BaseEventContent):
+class DeleteTagEventContent(EventContent):
     event_type: typing.Literal['DeleteTagEvent'] = 'DeleteTagEvent'
 
 
 # Metric
-class AddMetricEventContent(BaseAddEventContent):
+class AddMetricEventContent(EventContent):
     event_type: typing.Literal['AddMetricEvent'] = 'AddMetricEvent'
     title: str
-    abbreviation: str | None
-    description: str | None
+    abbreviation: str | None = None
+    description: str | None = None
+    annotations: Annotations
 
 
-class EditMetricEventContent(BaseEditEventContent):
+class EditMetricEventContent(EventContent):
     event_type: typing.Literal['EditMetricEvent'] = 'EditMetricEvent'
     title: EditEventField[str]
     abbreviation: EditEventField[str | None]
     description: EditEventField[str | None]
+    annotations: EditEventField[Annotations]
 
 
-class DeleteMetricEventContent(BaseEventContent):
+class DeleteMetricEventContent(EventContent):
     event_type: typing.Literal['DeleteMetricEvent'] = 'DeleteMetricEvent'
 
 
 # Phase
-class AddPhaseEventContent(BaseAddEventContent):
+class AddPhaseEventContent(EventContent):
     event_type: typing.Literal['AddPhaseEvent'] = 'AddPhaseEvent'
     title: str
-    description: str | None
+    description: str | None = None
+    annotations: Annotations
 
 
-class EditPhaseEventContent(BaseEditEventContent):
+class EditPhaseEventContent(EventContent):
     event_type: typing.Literal['EditPhaseEvent'] = 'EditPhaseEvent'
     title: EditEventField[str]
     description: EditEventField[str | None]
+    annotations: EditEventField[Annotations]
 
 
-class DeletePhaseEventContent(BaseEventContent):
+class DeletePhaseEventContent(EventContent):
     event_type: typing.Literal['DeletePhaseEvent'] = 'DeletePhaseEvent'
 
 
-# Resource Collection
-class AddResourceCollectionEventContent(BaseAddEventContent):
+# Resource collection
+class AddResourceCollectionEventContent(EventContent):
     event_type: typing.Literal['AddResourceCollectionEvent'] = 'AddResourceCollectionEvent'
     title: str
+    annotations: Annotations
 
 
-class EditResourceCollectionEventContent(BaseEditEventContent):
+class EditResourceCollectionEventContent(EventContent):
     event_type: typing.Literal['EditResourceCollectionEvent'] = 'EditResourceCollectionEvent'
     title: EditEventField[str]
     resource_page_uuids: EditEventField[list[UUID]]
+    annotations: EditEventField[Annotations]
 
 
-class DeleteResourceCollectionEventContent(BaseEventContent):
+class DeleteResourceCollectionEventContent(EventContent):
     event_type: typing.Literal['DeleteResourceCollectionEvent'] = 'DeleteResourceCollectionEvent'
 
 
-# Resource Page
-class AddResourcePageEventContent(BaseAddEventContent):
+# Resource page
+class AddResourcePageEventContent(EventContent):
     event_type: typing.Literal['AddResourcePageEvent'] = 'AddResourcePageEvent'
     title: str
     content: str
+    annotations: Annotations
 
 
-class EditResourcePageEventContent(BaseEditEventContent):
+class EditResourcePageEventContent(EventContent):
     event_type: typing.Literal['EditResourcePageEvent'] = 'EditResourcePageEvent'
     title: EditEventField[str]
     content: EditEventField[str]
+    annotations: EditEventField[Annotations]
 
 
-class DeleteResourcePageEventContent(BaseEventContent):
+class DeleteResourcePageEventContent(EventContent):
     event_type: typing.Literal['DeleteResourcePageEvent'] = 'DeleteResourcePageEvent'
 
 
-# Move events
-class _MoveQuestionEventContent(BaseEventContent):
+# Move
+class MoveEventContent(EventContent):
     target_uuid: UUID
 
 
-class MoveQuestionEventContent(_MoveQuestionEventContent):
+class MoveQuestionEventContent(MoveEventContent):
     event_type: typing.Literal['MoveQuestionEvent'] = 'MoveQuestionEvent'
 
 
-class MoveAnswerEventContent(_MoveQuestionEventContent):
+class MoveAnswerEventContent(MoveEventContent):
     event_type: typing.Literal['MoveAnswerEvent'] = 'MoveAnswerEvent'
 
 
-class MoveChoiceEventContent(_MoveQuestionEventContent):
+class MoveChoiceEventContent(MoveEventContent):
     event_type: typing.Literal['MoveChoiceEvent'] = 'MoveChoiceEvent'
 
 
-class MoveReferenceEventContent(_MoveQuestionEventContent):
-    event_type: typing.Literal['MoveReferenceEvent'] = 'MoveReferenceEvent'
-
-
-class MoveExpertEventContent(_MoveQuestionEventContent):
+class MoveExpertEventContent(MoveEventContent):
     event_type: typing.Literal['MoveExpertEvent'] = 'MoveExpertEvent'
 
 
-# Event
-EventContent = typing.Annotated[
-    AddKnowledgeModelEventContent |
-    EditKnowledgeModelEventContent |
-    AddChapterEventContent |
-    EditChapterEventContent |
-    DeleteChapterEventContent |
-    AddQuestionEventContent |
-    EditQuestionEventContent |
-    DeleteQuestionEventContent |
-    AddAnswerEventContent |
-    EditAnswerEventContent |
-    DeleteAnswerEventContent |
-    AddChoiceEventContent |
-    EditChoiceEventContent |
-    DeleteChoiceEventContent |
-    AddReferenceEventContent |
-    EditReferenceEventContent |
-    DeleteReferenceEventContent |
-    AddExpertEventContent |
-    EditExpertEventContent |
-    DeleteExpertEventContent |
-    AddIntegrationEventContent |
-    EditIntegrationEventContent |
-    DeleteIntegrationEventContent |
-    AddTagEventContent |
-    EditTagEventContent |
-    DeleteTagEventContent |
-    AddMetricEventContent |
-    EditMetricEventContent |
-    DeleteMetricEventContent |
-    AddPhaseEventContent |
-    EditPhaseEventContent |
-    DeletePhaseEventContent |
-    AddResourceCollectionEventContent |
-    EditResourceCollectionEventContent |
-    DeleteResourceCollectionEventContent |
-    AddResourcePageEventContent |
-    EditResourcePageEventContent |
-    DeleteResourcePageEventContent |
-    MoveQuestionEventContent |
-    MoveAnswerEventContent |
-    MoveChoiceEventContent |
-    MoveReferenceEventContent |
-    MoveExpertEventContent,
+class MoveReferenceEventContent(MoveEventContent):
+    event_type: typing.Literal['MoveReferenceEvent'] = 'MoveReferenceEvent'
+
+
+AnyEventContent = typing.Annotated[
+    AddKnowledgeModelEventContent
+    | EditKnowledgeModelEventContent
+    | AddChapterEventContent
+    | EditChapterEventContent
+    | DeleteChapterEventContent
+    | AddQuestionEventContent
+    | EditQuestionEventContent
+    | DeleteQuestionEventContent
+    | AddAnswerEventContent
+    | EditAnswerEventContent
+    | DeleteAnswerEventContent
+    | AddChoiceEventContent
+    | EditChoiceEventContent
+    | DeleteChoiceEventContent
+    | AddExpertEventContent
+    | EditExpertEventContent
+    | DeleteExpertEventContent
+    | AddReferenceEventContent
+    | EditReferenceEventContent
+    | DeleteReferenceEventContent
+    | AddIntegrationEventContent
+    | EditIntegrationEventContent
+    | DeleteIntegrationEventContent
+    | AddTagEventContent
+    | EditTagEventContent
+    | DeleteTagEventContent
+    | AddMetricEventContent
+    | EditMetricEventContent
+    | DeleteMetricEventContent
+    | AddPhaseEventContent
+    | EditPhaseEventContent
+    | DeletePhaseEventContent
+    | AddResourceCollectionEventContent
+    | EditResourceCollectionEventContent
+    | DeleteResourceCollectionEventContent
+    | AddResourcePageEventContent
+    | EditResourcePageEventContent
+    | DeleteResourcePageEventContent
+    | MoveQuestionEventContent
+    | MoveAnswerEventContent
+    | MoveChoiceEventContent
+    | MoveExpertEventContent
+    | MoveReferenceEventContent,
     pydantic.Field(discriminator='event_type'),
 ]
 
 
 class Event(BaseModel):
     uuid: UUID
-    entity_uuid: UUID
     parent_uuid: UUID
-    created_at: datetime
-    content: EventContent
+    entity_uuid: UUID
+    content: AnyEventContent
+    created_at: Timestamp

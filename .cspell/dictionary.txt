@@ -1,4 +1,6 @@
 # Python and libraries specific terms
+Aeson
+popleft
 autouse
 caplog
 delenv
@@ -121,6 +123,8 @@ orcid
 noto
 symbola
 datastewardshipwizard
+eosc
+madmp
 SUBM
 
 # Contributor names

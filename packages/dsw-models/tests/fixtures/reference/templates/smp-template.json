@@ -1,0 +1,101 @@
+{
+    "templateId": "smp",
+    "organizationId": "dsw",
+    "version": "1.2.0",
+    "name": "Software Management Plan",
+    "description": "Human-readable and machine-actionable SMP",
+    "license": "Apache-2.0",
+    "metamodelVersion": "18.0",
+    "allowedPackages": [
+        {
+            "orgId": "dsw",
+            "kmId": "smp",
+            "minVersion": "1.2.4",
+            "maxVersion": null
+        }
+    ],
+    "formats": [
+        {
+            "uuid": "5276e716-395a-4b77-b362-5168e3131410",
+            "name": "HTML",
+            "icon": "fas fa-file-alt",
+            "steps": [
+                {
+                    "name": "jinja",
+                    "options": {
+                        "template": "src/index.html.j2",
+                        "content-type": "text/html",
+                        "extension": "html"
+                    }
+                }
+            ]
+        },
+        {
+            "uuid": "68c26e34-5e77-4e15-9bf7-06ff92582257",
+            "name": "PDF",
+            "icon": "fas fa-file-pdf",
+            "steps": [
+                {
+                    "name": "jinja",
+                    "options": {
+                        "template": "src/index.html.j2",
+                        "content-type": "text/html",
+                        "extension": "html"
+                    }
+                },
+                {
+                    "name": "weasyprint",
+                    "options": {}
+                }
+            ]
+        },
+        {
+            "uuid": "f4bd941a-dfbe-4226-a1fc-200fb5269311",
+            "name": "MS Word",
+            "icon": "fas fa-file-word",
+            "steps": [
+                {
+                    "name": "jinja",
+                    "options": {
+                        "template": "src/word/index.html.j2",
+                        "content-type": "text/html",
+                        "extension": "html"
+                    }
+                },
+                {
+                    "name": "pandoc",
+                    "options": {
+                        "from": "html",
+                        "to": "docx",
+                        "args": "--filter=pandoc-docx-pagebreakpy --reference-doc=src/word/reference.docx"
+                    }
+                }
+            ]
+        },
+        {
+            "uuid": "8e691f6b-b29d-43d0-b83a-13817fddebcd",
+            "name": "JSON",
+            "icon": "fas fa-file-code",
+            "steps": [
+                {
+                    "name": "jinja",
+                    "options": {
+                        "template": "src/index.json.j2",
+                        "content-type": "application/json",
+                        "extension": "json"
+                    }
+                }
+            ]
+        }
+    ],
+    "_tdk": {
+        "version": "4.14.0",
+        "readmeFile": "README.md",
+        "files": [
+            "src/**/*.j2",
+            "src/style.css",
+            "src/word/reference.docx",
+            "LICENSE"
+        ]
+    }
+}

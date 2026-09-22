@@ -48,7 +48,8 @@ RUN uv export --locked --no-dev --no-emit-workspace --no-hashes --package dsw-td
 # Sources: changes on every commit, so everything below rebuilds each time.
 COPY . /app
 
-RUN python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/app/wheels /app/packages/dsw-tdk
+RUN python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/app/wheels /app/packages/dsw-models \
+ && python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/app/wheels /app/packages/dsw-tdk
 
 
 FROM ghcr.io/ds-wizard/python-base:${PYTHON_BASE_VERSION}-basic

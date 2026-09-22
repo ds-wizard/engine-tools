@@ -1992,7 +1992,7 @@ class ReportIndication:
 
 class ReportMetric:
 
-    def __init__(self, *, measure: float, metric_uuid: str):
+    def __init__(self, *, measure: float | None, metric_uuid: str):
         self.measure = measure
         self.metric_uuid = metric_uuid
 
@@ -2004,8 +2004,10 @@ class ReportMetric:
 
     @staticmethod
     def load(data: dict, **options):
+        measure = data['measure']
         return ReportMetric(
-            measure=float(data['measure']),
+            # null when nothing answered in the chapter contributes to the metric
+            measure=None if measure is None else float(measure),
             metric_uuid=data['metricUuid'],
         )
 

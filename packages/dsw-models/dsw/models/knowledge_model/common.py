@@ -1,30 +1,21 @@
+"""Types shared by the flat knowledge model and its events."""
 from __future__ import annotations
 
 import typing
+from uuid import UUID
 
 import pydantic
 
-from ..common import BaseModel
-
-
-if typing.TYPE_CHECKING:
-    from uuid import UUID
+from ..common import BaseModel, KeyValue
 
 
 class MetricMeasure(BaseModel):
     metric_uuid: UUID
-    measure: float = pydantic.Field(ge=0.0, le=1.0)
-    weight: float = pydantic.Field(ge=0.0, le=1.0)
+    measure: float
+    weight: float
 
 
-class KeyValue(BaseModel):
-    key: str
-    value: str
-
-
-TAnnotations = list[KeyValue]
-THeaders = list[KeyValue]
-TQuestionValueType = typing.Literal[
+QuestionValueType = typing.Literal[
     'StringQuestionValueType',
     'NumberQuestionValueType',
     'DateQuestionValueType',
@@ -36,90 +27,95 @@ TQuestionValueType = typing.Literal[
     'ColorQuestionValueType',
 ]
 
+PackagePhase = typing.Literal[
+    'ReleasedKnowledgeModelPackagePhase',
+    'DeprecatedKnowledgeModelPackagePhase',
+]
 
-class MinLengthQuestionValidation(pydantic.BaseModel):
+
+class MinLengthQuestionValidation(BaseModel):
     type: typing.Literal['MinLengthQuestionValidation'] = 'MinLengthQuestionValidation'
     value: int
 
 
-class MaxLengthQuestionValidation(pydantic.BaseModel):
+class MaxLengthQuestionValidation(BaseModel):
     type: typing.Literal['MaxLengthQuestionValidation'] = 'MaxLengthQuestionValidation'
     value: int
 
 
-class RegexQuestionValidation(pydantic.BaseModel):
+class RegexQuestionValidation(BaseModel):
     type: typing.Literal['RegexQuestionValidation'] = 'RegexQuestionValidation'
     value: str
 
 
-class OrcidQuestionValidation(pydantic.BaseModel):
+class OrcidQuestionValidation(BaseModel):
     type: typing.Literal['OrcidQuestionValidation'] = 'OrcidQuestionValidation'
 
 
-class DoiQuestionValidation(pydantic.BaseModel):
+class DoiQuestionValidation(BaseModel):
     type: typing.Literal['DoiQuestionValidation'] = 'DoiQuestionValidation'
 
 
-class MinNumberQuestionValidation(pydantic.BaseModel):
+class MinNumberQuestionValidation(BaseModel):
     type: typing.Literal['MinNumberQuestionValidation'] = 'MinNumberQuestionValidation'
     value: float
 
 
-class MaxNumberQuestionValidation(pydantic.BaseModel):
+class MaxNumberQuestionValidation(BaseModel):
     type: typing.Literal['MaxNumberQuestionValidation'] = 'MaxNumberQuestionValidation'
     value: float
 
 
-class FromDateQuestionValidation(pydantic.BaseModel):
+class FromDateQuestionValidation(BaseModel):
     type: typing.Literal['FromDateQuestionValidation'] = 'FromDateQuestionValidation'
-    value: str  # ISO 8601 date string, e.g., '2023-10-01'
+    value: str
 
 
-class ToDateQuestionValidation(pydantic.BaseModel):
+class ToDateQuestionValidation(BaseModel):
     type: typing.Literal['ToDateQuestionValidation'] = 'ToDateQuestionValidation'
-    value: str  # ISO 8601 date string, e.g., '2023-10-31'
+    value: str
 
 
-class FromDateTimeQuestionValidation(pydantic.BaseModel):
+class FromDateTimeQuestionValidation(BaseModel):
     type: typing.Literal['FromDateTimeQuestionValidation'] = 'FromDateTimeQuestionValidation'
-    value: str  # ISO 8601 datetime string, e.g., '2023-10-01T12:00:00Z'
+    value: str
 
 
-class ToDateTimeQuestionValidation(pydantic.BaseModel):
+class ToDateTimeQuestionValidation(BaseModel):
     type: typing.Literal['ToDateTimeQuestionValidation'] = 'ToDateTimeQuestionValidation'
-    value: str  # ISO 8601 datetime string, e.g., '2023
+    value: str
 
 
-class FromTimeQuestionValidation(pydantic.BaseModel):
+class FromTimeQuestionValidation(BaseModel):
     type: typing.Literal['FromTimeQuestionValidation'] = 'FromTimeQuestionValidation'
-    value: str  # ISO 8601 time string, e.g., '12:00:00'
+    value: str
 
 
-class ToTimeQuestionValidation(pydantic.BaseModel):
+class ToTimeQuestionValidation(BaseModel):
     type: typing.Literal['ToTimeQuestionValidation'] = 'ToTimeQuestionValidation'
-    value: str  # ISO 8601 time string, e.g., '13:00:00'
+    value: str
 
 
-class DomainQuestionValidation(pydantic.BaseModel):
+class DomainQuestionValidation(BaseModel):
     type: typing.Literal['DomainQuestionValidation'] = 'DomainQuestionValidation'
-    value: str  # Domain name, e.g., 'example.com'
+    value: str
 
 
 QuestionValidation = typing.Annotated[
-    MinLengthQuestionValidation |
-    MaxLengthQuestionValidation |
-    RegexQuestionValidation |
-    OrcidQuestionValidation |
-    DoiQuestionValidation |
-    MinNumberQuestionValidation |
-    MaxNumberQuestionValidation |
-    FromDateQuestionValidation |
-    ToDateQuestionValidation |
-    FromDateTimeQuestionValidation |
-    ToDateTimeQuestionValidation |
-    FromTimeQuestionValidation |
-    ToTimeQuestionValidation |
-    DomainQuestionValidation,
+    MinLengthQuestionValidation
+    | MaxLengthQuestionValidation
+    | RegexQuestionValidation
+    | OrcidQuestionValidation
+    | DoiQuestionValidation
+    | MinNumberQuestionValidation
+    | MaxNumberQuestionValidation
+    | FromDateQuestionValidation
+    | ToDateQuestionValidation
+    | FromDateTimeQuestionValidation
+    | ToDateTimeQuestionValidation
+    | FromTimeQuestionValidation
+    | ToTimeQuestionValidation
+    | DomainQuestionValidation,
     pydantic.Field(discriminator='type'),
 ]
 
@@ -127,37 +123,33 @@ QuestionValidation = typing.Annotated[
 class TypeHintRequest(BaseModel):
     method: str
     url: str
-    headers: THeaders
-    body: str | None
+    headers: list[KeyValue]
+    body: str | None = None
 
 
-class BaseTypeHintResponse(BaseModel):
-    response_type: str
-
-
-class SuccessTypeHintResponse(BaseTypeHintResponse):
+class SuccessTypeHintResponse(BaseModel):
     response_type: typing.Literal['SuccessTypeHintResponse'] = 'SuccessTypeHintResponse'
     status: int
-    content_type: str | None
+    content_type: str | None = None
     body: str
 
 
-class RemoteErrorTypeHintResponse(BaseTypeHintResponse):
+class RemoteErrorTypeHintResponse(BaseModel):
     response_type: typing.Literal['RemoteErrorTypeHintResponse'] = 'RemoteErrorTypeHintResponse'
     status: int
-    content_type: str | None
+    content_type: str | None = None
     body: str
 
 
-class RequestFailedTypeHintResponse(BaseTypeHintResponse):
-    response_type: typing.Literal['RequestFailedTypeHintResponse'] = 'RequestFailedTypeHintResponse'
+class RequestFailedTypeHintResponse(BaseModel):
+    response_type: typing.Literal['RequestFailedTypeHintResponse'] = (
+        'RequestFailedTypeHintResponse'
+    )
     message: str
 
 
 TypeHintResponse = typing.Annotated[
-    SuccessTypeHintResponse |
-    RemoteErrorTypeHintResponse |
-    RequestFailedTypeHintResponse,
+    SuccessTypeHintResponse | RemoteErrorTypeHintResponse | RequestFailedTypeHintResponse,
     pydantic.Field(discriminator='response_type'),
 ]
 

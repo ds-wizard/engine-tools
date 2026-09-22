@@ -19,20 +19,7 @@ classifiers = [
     "Topic :: Utilities",
 ]
 requires-python = ">=3.12, <4"
-dependencies = [
-    "aiohttp",
-    "Babel",
-    "click",
-    "colorama",
-    "humanize",
-    "Jinja2",
-    "multidict",
-    "pathspec",
-    "python-dotenv",
-    "python-slugify",
-    "watchfiles",
-]
-dynamic = ["version"]
+dynamic = ["version", "dependencies"]
 
 [project.optional-dependencies]
 test = [
@@ -57,6 +44,9 @@ build-backend = "hatchling.build"
 
 [tool.hatch.version]
 source = "uv-dynamic-versioning"
+
+[tool.hatch.metadata.hooks.uv-dynamic-versioning]
+dependencies = ["aiohttp", "Babel", "click", "colorama", "humanize", "Jinja2", "multidict", "pathspec", "python-dotenv", "python-slugify", "watchfiles", "dsw-models=={{ version }}"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["dsw"]

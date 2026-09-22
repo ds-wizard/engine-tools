@@ -104,6 +104,8 @@ def _validate_natural(field_name: str, value) -> list[ValidationError]:
 def _validate_metamodel_version(field_name: str, value) -> list[ValidationError]:
     if isinstance(value, int) and value > 0:
         return []
+    if isinstance(value, str) and value.isdigit() and int(value) > 0:
+        return []  # "18" is read as 18.0, like the backend does
     if isinstance(value, str) and '.' in value:
         parts = value.split('.')
         if len(parts) != 2:
