@@ -1,0 +1,32 @@
+{
+  "id": "example:my-template:1.0.0",
+  "name": "My Template",
+  "organizationId": "example",
+  "templateId": "my-template",
+  "version": "1.0.0",
+  "metamodelVersion": "18.3",
+  "description": "Synthetic template",
+  "readme": "# My Template",
+  "license": "Apache-2.0",
+  "allowedPackages": [
+    {"orgId": "dsw", "kmId": "root", "minVersion": "2.0.0", "maxVersion": null},
+    {"orgId": null, "kmId": null, "minVersion": null, "maxVersion": null}
+  ],
+  "language": "cs",
+  "formats": [
+    {
+      "uuid": "20000000-0000-0000-0000-000000000001",
+      "name": "HTML",
+      "icon": "fas fa-file",
+      "steps": [{"name": "jinja", "options": {"template": "src/index.html.j2", "content-type": "text/html", "extension": "html"}}]
+    }
+  ],
+  "files": [
+    {"uuid": "20000000-0000-0000-0000-000000000002", "fileName": "src/index.html.j2", "content": "{{ ctx.project.name }}"}
+  ],
+  "assets": [
+    {"uuid": "20000000-0000-0000-0000-000000000003", "fileName": "src/logo.png", "contentType": "image/png"}
+  ],
+  "createdAt": "2026-09-14T10:00:00.123Z",
+  "updatedAt": "2026-09-14T10:00:00.123Z"
+}

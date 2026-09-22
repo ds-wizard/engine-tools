@@ -1,8 +1,8 @@
 [project]
 name = "dsw-models"
-description = "Library with DSW models and basic IO operations"
+description = "Data Stewardship Wizard models, transformations and tooling"
 readme = "README.md"
-keywords = ["dsw", "config", "yaml", "parser"]
+keywords = ["dsw", "models", "knowledge-model", "pydantic", "json-schema"]
 license = { text = "Apache License 2.0" }
 authors = [
     { name = "Marek Suchánek", email = "marek.suchanek@ds-wizard.org" }
@@ -11,15 +11,31 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
     "Topic :: Text Processing",
     "Topic :: Utilities",
 ]
-requires-python = ">=3.14, <4"
+requires-python = ">=3.12, <4"
 dependencies = [
-    "pydantic",
+    "pydantic>=2.12",
+    "python-dateutil",
 ]
 dynamic = ["version"]
+
+[project.optional-dependencies]
+rendering = [
+    "Markdown",
+    "MarkupSafe",
+    "nh3",
+    "pymdown-extensions",
+]
+test = [
+    "hypothesis",
+    "jsonschema",
+    "pytest",
+]
 
 [project.urls]
 Homepage = "https://ds-wizard.org"

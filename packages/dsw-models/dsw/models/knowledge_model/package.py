@@ -1,40 +1,40 @@
+"""Knowledge model bundle (``.km`` file) and its packages."""
 from __future__ import annotations
 
-import typing
+from datetime import UTC, datetime
 
-from .common import BaseModel
+import pydantic
 
-
-if typing.TYPE_CHECKING:
-    from datetime import datetime
-
-    from .events import Event
+from ..common import BaseModel, Timestamp
+from .common import PackagePhase
+from .events import Event
 
 
-class KnowledgeModelPackage(BaseModel):
+class KnowledgeModelBundlePackage(BaseModel):
     id: str
-    km_id: str
-    organization_id: str
-    version: str
     name: str
+    organization_id: str
+    km_id: str
+    version: str
+    phase: PackagePhase = 'ReleasedKnowledgeModelPackagePhase'
     metamodel_version: int
     description: str
-    license: str
-    readme: str
-    created_at: datetime
-    fork_of_package_id: str | None
-    merge_checkpoint_package_id: str | None
-    previous_package_id: str | None
+    readme: str = ''
+    license: str = ''
+    language: str = 'en'
+    previous_package_id: str | None = None
+    fork_of_package_id: str | None = None
+    merge_checkpoint_package_id: str | None = None
     events: list[Event]
     non_editable: bool = False
-    phase: str
+    created_at: Timestamp = datetime(1970, 1, 1, tzinfo=UTC)
 
 
-class KnowledgeModelPackageBundle(BaseModel):
+class KnowledgeModelBundle(BaseModel):
     id: str
-    km_id: str
+    name: str
     organization_id: str
+    km_id: str
     version: str
     metamodel_version: int
-    name: str
-    packages: list[KnowledgeModelPackage]
+    packages: list[KnowledgeModelBundlePackage] = pydantic.Field(default_factory=list)

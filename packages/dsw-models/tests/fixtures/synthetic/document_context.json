@@ -1,0 +1,724 @@
+{
+  "config": {
+    "clientUrl": "https://fair-wizard.example.org",
+    "appTitle": null,
+    "appTitleShort": null,
+    "illustrationsColor": "#e95e2a",
+    "primaryColor": null,
+    "logoUrl": null
+  },
+  "document": {
+    "uuid": "80000000-0000-0000-0000-000000000001",
+    "name": "My DMP",
+    "documentTemplateUuid": "80000000-0000-0000-0000-000000000002",
+    "formatUuid": "20000000-0000-0000-0000-000000000001",
+    "language": "cs",
+    "locale": {
+      "uuid": "80000000-0000-0000-0000-000000000003",
+      "name": "Czech",
+      "code": "cs",
+      "createdAt": "2026-05-01T00:00:00Z",
+      "updatedAt": "2026-05-01T00:00:00Z"
+    },
+    "createdBy": {
+      "uuid": "40000000-0000-0000-0000-000000000001",
+      "firstName": "Jane",
+      "lastName": "Doe",
+      "email": "jane@example.org",
+      "affiliation": "Example University",
+      "active": true,
+      "imageUrl": null,
+      "createdAt": "2026-01-01T00:00:00Z",
+      "updatedAt": "2026-01-02T00:00:00Z"
+    },
+    "createdAt": "2026-09-14T11:00:00.25Z"
+  },
+  "project": {
+    "uuid": "80000000-0000-0000-0000-000000000004",
+    "name": "My Project",
+    "description": null,
+    "replies": {
+      "00000000-0000-0000-0000-000000000101.00000000-0000-0000-0000-000000000201": {
+        "value": {
+          "type": "AnswerReply",
+          "value": "00000000-0000-0000-0000-000000000301"
+        },
+        "createdBy": {
+          "uuid": "40000000-0000-0000-0000-000000000001",
+          "firstName": "Jane",
+          "lastName": "Doe",
+          "gravatarHash": "abc",
+          "imageUrl": null,
+          "affiliation": "Example University"
+        },
+        "createdAt": "2026-09-14T10:00:00Z"
+      },
+      "00000000-0000-0000-0000-000000000101.00000000-0000-0000-0000-000000000201.00000000-0000-0000-0000-000000000301.00000000-0000-0000-0000-000000000208": {
+        "value": {
+          "type": "StringReply",
+          "value": "42"
+        },
+        "createdBy": null,
+        "createdAt": "2026-09-14T10:00:01Z"
+      },
+      "00000000-0000-0000-0000-000000000101.00000000-0000-0000-0000-000000000203": {
+        "value": {
+          "type": "ItemListReply",
+          "value": [
+            "50000000-0000-0000-0000-000000000001",
+            "50000000-0000-0000-0000-000000000002"
+          ]
+        },
+        "createdBy": null,
+        "createdAt": "2026-09-14T10:00:03Z"
+      },
+      "00000000-0000-0000-0000-000000000101.00000000-0000-0000-0000-000000000205": {
+        "value": {
+          "type": "IntegrationReply",
+          "value": {
+            "type": "PlainType",
+            "value": "Custom"
+          }
+        },
+        "createdBy": null,
+        "createdAt": "2026-09-14T10:00:05Z"
+      },
+      "00000000-0000-0000-0000-000000000101.00000000-0000-0000-0000-000000000206": {
+        "value": {
+          "type": "ItemSelectReply",
+          "value": "50000000-0000-0000-0000-000000000001"
+        },
+        "createdBy": null,
+        "createdAt": "2026-09-14T10:00:06Z"
+      },
+      "00000000-0000-0000-0000-000000000101.00000000-0000-0000-0000-000000000207": {
+        "value": {
+          "type": "FileReply",
+          "value": "60000000-0000-0000-0000-000000000001"
+        },
+        "createdBy": null,
+        "createdAt": "2026-09-14T10:00:07Z"
+      },
+      "00000000-0000-0000-0000-000000000101.00000000-0000-0000-0000-000000000203.50000000-0000-0000-0000-000000000001.00000000-0000-0000-0000-000000000204": {
+        "value": {
+          "type": "StringReply",
+          "value": "first item"
+        },
+        "createdBy": null,
+        "createdAt": "2026-09-14T10:01:00Z"
+      },
+      "00000000-0000-0000-0000-000000000101.00000000-0000-0000-0000-000000000203.50000000-0000-0000-0000-000000000002.00000000-0000-0000-0000-000000000204": {
+        "value": {
+          "type": "StringReply",
+          "value": "second item"
+        },
+        "createdBy": null,
+        "createdAt": "2026-09-14T10:01:01Z"
+      }
+    },
+    "phaseUuid": "00000000-0000-0000-0000-000000000a01",
+    "labels": {
+      "00000000-0000-0000-0000-000000000101.00000000-0000-0000-0000-000000000201": [
+        "615b9028-5e3f-414f-b245-12d2ae2eeb20"
+      ]
+    },
+    "versionUuid": "80000000-0000-0000-0000-000000000005",
+    "versions": [
+      {
+        "uuid": "80000000-0000-0000-0000-000000000005",
+        "name": "1.0",
+        "description": null,
+        "eventUuid": "30000000-0000-0000-0000-000000000012",
+        "createdBy": {
+          "uuid": "40000000-0000-0000-0000-000000000001",
+          "firstName": "Jane",
+          "lastName": "Doe",
+          "gravatarHash": "abc",
+          "imageUrl": null,
+          "affiliation": null
+        },
+        "createdAt": "2026-09-14T10:30:00Z",
+        "updatedAt": "2026-09-14T10:30:00Z"
+      }
+    ],
+    "projectTags": [
+      "dmp",
+      "synthetic"
+    ],
+    "files": [
+      {
+        "uuid": "60000000-0000-0000-0000-000000000001",
+        "fileName": "agreement.pdf",
+        "contentType": "application/pdf",
+        "fileSize": 1234
+      }
+    ],
+    "language": "cs",
+    "createdBy": {
+      "uuid": "40000000-0000-0000-0000-000000000001",
+      "firstName": "Jane",
+      "lastName": "Doe",
+      "email": "jane@example.org",
+      "affiliation": "Example University",
+      "active": true,
+      "imageUrl": null,
+      "createdAt": "2026-01-01T00:00:00Z",
+      "updatedAt": "2026-01-02T00:00:00Z"
+    },
+    "createdAt": "2026-09-01T00:00:00Z",
+    "updatedAt": "2026-09-14T10:30:00Z"
+  },
+  "knowledgeModel": {
+    "uuid": "00000000-0000-0000-0000-000000000001",
+    "annotations": [
+      {
+        "key": "km",
+        "value": "synthetic"
+      }
+    ],
+    "chapterUuids": [
+      "00000000-0000-0000-0000-000000000101"
+    ],
+    "tagUuids": [
+      "00000000-0000-0000-0000-000000000801"
+    ],
+    "integrationUuids": [
+      "00000000-0000-0000-0000-000000000701",
+      "00000000-0000-0000-0000-000000000702"
+    ],
+    "metricUuids": [
+      "00000000-0000-0000-0000-000000000901"
+    ],
+    "phaseUuids": [
+      "00000000-0000-0000-0000-000000000a01",
+      "00000000-0000-0000-0000-000000000a02"
+    ],
+    "resourceCollectionUuids": [
+      "00000000-0000-0000-0000-000000000b01"
+    ],
+    "entities": {
+      "chapters": {
+        "00000000-0000-0000-0000-000000000101": {
+          "uuid": "00000000-0000-0000-0000-000000000101",
+          "title": "Chapter",
+          "text": null,
+          "annotations": [],
+          "questionUuids": [
+            "00000000-0000-0000-0000-000000000201",
+            "00000000-0000-0000-0000-000000000202",
+            "00000000-0000-0000-0000-000000000203",
+            "00000000-0000-0000-0000-000000000205",
+            "00000000-0000-0000-0000-000000000206",
+            "00000000-0000-0000-0000-000000000207"
+          ]
+        }
+      },
+      "questions": {
+        "00000000-0000-0000-0000-000000000201": {
+          "questionType": "OptionsQuestion",
+          "uuid": "00000000-0000-0000-0000-000000000201",
+          "title": "Options",
+          "text": "Pick *one*",
+          "requiredPhaseUuid": "00000000-0000-0000-0000-000000000a01",
+          "annotations": [
+            {
+              "key": "a",
+              "value": "1"
+            },
+            {
+              "key": "a",
+              "value": "2"
+            }
+          ],
+          "tagUuids": [
+            "00000000-0000-0000-0000-000000000801"
+          ],
+          "expertUuids": [
+            "00000000-0000-0000-0000-000000000401"
+          ],
+          "referenceUuids": [
+            "00000000-0000-0000-0000-000000000501",
+            "00000000-0000-0000-0000-000000000502",
+            "00000000-0000-0000-0000-000000000503"
+          ],
+          "answerUuids": [
+            "00000000-0000-0000-0000-000000000301",
+            "00000000-0000-0000-0000-000000000302"
+          ]
+        },
+        "00000000-0000-0000-0000-000000000202": {
+          "questionType": "MultiChoiceQuestion",
+          "uuid": "00000000-0000-0000-0000-000000000202",
+          "title": "Multi-choice",
+          "text": null,
+          "requiredPhaseUuid": null,
+          "annotations": [],
+          "tagUuids": [],
+          "expertUuids": [],
+          "referenceUuids": [],
+          "choiceUuids": [
+            "00000000-0000-0000-0000-000000000601"
+          ]
+        },
+        "00000000-0000-0000-0000-000000000203": {
+          "questionType": "ListQuestion",
+          "uuid": "00000000-0000-0000-0000-000000000203",
+          "title": "List",
+          "text": null,
+          "requiredPhaseUuid": null,
+          "annotations": [],
+          "tagUuids": [],
+          "expertUuids": [],
+          "referenceUuids": [],
+          "itemTemplateQuestionUuids": [
+            "00000000-0000-0000-0000-000000000204"
+          ]
+        },
+        "00000000-0000-0000-0000-000000000204": {
+          "questionType": "ValueQuestion",
+          "uuid": "00000000-0000-0000-0000-000000000204",
+          "title": "Value",
+          "text": null,
+          "requiredPhaseUuid": null,
+          "annotations": [],
+          "tagUuids": [],
+          "expertUuids": [],
+          "referenceUuids": [],
+          "valueType": "StringQuestionValueType",
+          "validations": [
+            {
+              "type": "MinLengthQuestionValidation",
+              "value": 1
+            },
+            {
+              "type": "MaxLengthQuestionValidation",
+              "value": 100
+            },
+            {
+              "type": "RegexQuestionValidation",
+              "value": "^[a-z]+$"
+            },
+            {
+              "type": "OrcidQuestionValidation"
+            },
+            {
+              "type": "DoiQuestionValidation"
+            },
+            {
+              "type": "MinNumberQuestionValidation",
+              "value": 0.5
+            },
+            {
+              "type": "MaxNumberQuestionValidation",
+              "value": 10
+            },
+            {
+              "type": "FromDateQuestionValidation",
+              "value": "2026-01-01"
+            },
+            {
+              "type": "ToDateQuestionValidation",
+              "value": "2026-12-31"
+            },
+            {
+              "type": "FromDateTimeQuestionValidation",
+              "value": "2026-01-01T00:00:00Z"
+            },
+            {
+              "type": "ToDateTimeQuestionValidation",
+              "value": "2026-12-31T23:59:59Z"
+            },
+            {
+              "type": "FromTimeQuestionValidation",
+              "value": "08:00"
+            },
+            {
+              "type": "ToTimeQuestionValidation",
+              "value": "17:00"
+            },
+            {
+              "type": "DomainQuestionValidation",
+              "value": "example.org"
+            }
+          ]
+        },
+        "00000000-0000-0000-0000-000000000205": {
+          "questionType": "IntegrationQuestion",
+          "uuid": "00000000-0000-0000-0000-000000000205",
+          "title": "Integration",
+          "text": null,
+          "requiredPhaseUuid": null,
+          "annotations": [],
+          "tagUuids": [],
+          "expertUuids": [],
+          "referenceUuids": [],
+          "integrationUuid": "00000000-0000-0000-0000-000000000701",
+          "variables": {
+            "domain": "biology"
+          }
+        },
+        "00000000-0000-0000-0000-000000000206": {
+          "questionType": "ItemSelectQuestion",
+          "uuid": "00000000-0000-0000-0000-000000000206",
+          "title": "Item select",
+          "text": null,
+          "requiredPhaseUuid": null,
+          "annotations": [],
+          "tagUuids": [],
+          "expertUuids": [],
+          "referenceUuids": [],
+          "listQuestionUuid": "00000000-0000-0000-0000-000000000203"
+        },
+        "00000000-0000-0000-0000-000000000207": {
+          "questionType": "FileQuestion",
+          "uuid": "00000000-0000-0000-0000-000000000207",
+          "title": "File",
+          "text": null,
+          "requiredPhaseUuid": "00000000-0000-0000-0000-000000000a02",
+          "annotations": [],
+          "tagUuids": [],
+          "expertUuids": [],
+          "referenceUuids": [],
+          "maxSize": 1048576,
+          "fileTypes": "application/pdf"
+        },
+        "00000000-0000-0000-0000-000000000208": {
+          "questionType": "ValueQuestion",
+          "uuid": "00000000-0000-0000-0000-000000000208",
+          "title": "Follow-up",
+          "text": null,
+          "requiredPhaseUuid": null,
+          "annotations": [],
+          "tagUuids": [],
+          "expertUuids": [],
+          "referenceUuids": [],
+          "valueType": "NumberQuestionValueType",
+          "validations": []
+        }
+      },
+      "answers": {
+        "00000000-0000-0000-0000-000000000301": {
+          "uuid": "00000000-0000-0000-0000-000000000301",
+          "label": "Yes",
+          "advice": "Good choice",
+          "annotations": [],
+          "followUpUuids": [
+            "00000000-0000-0000-0000-000000000208"
+          ],
+          "metricMeasures": [
+            {
+              "metricUuid": "00000000-0000-0000-0000-000000000901",
+              "measure": 1.0,
+              "weight": 0.5
+            }
+          ]
+        },
+        "00000000-0000-0000-0000-000000000302": {
+          "uuid": "00000000-0000-0000-0000-000000000302",
+          "label": "No",
+          "advice": null,
+          "annotations": [],
+          "followUpUuids": [],
+          "metricMeasures": []
+        }
+      },
+      "choices": {
+        "00000000-0000-0000-0000-000000000601": {
+          "uuid": "00000000-0000-0000-0000-000000000601",
+          "label": "Choice",
+          "annotations": []
+        }
+      },
+      "experts": {
+        "00000000-0000-0000-0000-000000000401": {
+          "uuid": "00000000-0000-0000-0000-000000000401",
+          "name": "Expert",
+          "email": "expert@example.org",
+          "annotations": []
+        }
+      },
+      "references": {
+        "00000000-0000-0000-0000-000000000501": {
+          "referenceType": "ResourcePageReference",
+          "uuid": "00000000-0000-0000-0000-000000000501",
+          "resourcePageUuid": "00000000-0000-0000-0000-000000000c01",
+          "annotations": []
+        },
+        "00000000-0000-0000-0000-000000000502": {
+          "referenceType": "URLReference",
+          "uuid": "00000000-0000-0000-0000-000000000502",
+          "url": "https://example.org",
+          "label": "Example",
+          "annotations": []
+        },
+        "00000000-0000-0000-0000-000000000503": {
+          "referenceType": "CrossReference",
+          "uuid": "00000000-0000-0000-0000-000000000503",
+          "targetUuid": "00000000-0000-0000-0000-000000000202",
+          "description": "See also",
+          "annotations": []
+        }
+      },
+      "integrations": {
+        "00000000-0000-0000-0000-000000000701": {
+          "integrationType": "ApiIntegration",
+          "uuid": "00000000-0000-0000-0000-000000000701",
+          "name": "API",
+          "variables": [
+            "domain"
+          ],
+          "allowCustomReply": true,
+          "requestMethod": "GET",
+          "requestUrl": "https://api.example.org/search?q={{ q }}",
+          "requestHeaders": [
+            {
+              "key": "Authorization",
+              "value": "{{ secrets.apiKey }}"
+            }
+          ],
+          "requestBody": null,
+          "requestAllowEmptySearch": false,
+          "responseListField": "items",
+          "responseItemTemplate": "{{ item.name }}",
+          "responseItemTemplateForSelection": null,
+          "testQ": "data",
+          "testVariables": {
+            "domain": "biology"
+          },
+          "testResponse": {
+            "request": {
+              "method": "GET",
+              "url": "https://api.example.org/search?q=data",
+              "headers": [],
+              "body": null
+            },
+            "response": {
+              "responseType": "SuccessTypeHintResponse",
+              "status": 200,
+              "contentType": "application/json",
+              "body": "{}"
+            }
+          },
+          "annotations": []
+        },
+        "00000000-0000-0000-0000-000000000702": {
+          "integrationType": "PluginIntegration",
+          "uuid": "00000000-0000-0000-0000-000000000702",
+          "name": "Plugin",
+          "pluginUuid": "00000000-0000-0000-0000-000000000d01",
+          "pluginIntegrationId": "ror",
+          "pluginIntegrationSettings": {
+            "limit": 10,
+            "nested": [
+              true,
+              null,
+              "x"
+            ]
+          },
+          "annotations": []
+        }
+      },
+      "tags": {
+        "00000000-0000-0000-0000-000000000801": {
+          "uuid": "00000000-0000-0000-0000-000000000801",
+          "name": "Tag",
+          "description": null,
+          "color": "#0033aa",
+          "annotations": []
+        }
+      },
+      "metrics": {
+        "00000000-0000-0000-0000-000000000901": {
+          "uuid": "00000000-0000-0000-0000-000000000901",
+          "title": "Findability",
+          "abbreviation": "F",
+          "description": null,
+          "annotations": []
+        }
+      },
+      "phases": {
+        "00000000-0000-0000-0000-000000000a01": {
+          "uuid": "00000000-0000-0000-0000-000000000a01",
+          "title": "Before submitting",
+          "description": null,
+          "annotations": []
+        },
+        "00000000-0000-0000-0000-000000000a02": {
+          "uuid": "00000000-0000-0000-0000-000000000a02",
+          "title": "Before finishing",
+          "description": "Last phase",
+          "annotations": []
+        }
+      },
+      "resourceCollections": {
+        "00000000-0000-0000-0000-000000000b01": {
+          "uuid": "00000000-0000-0000-0000-000000000b01",
+          "title": "Resources",
+          "resourcePageUuids": [
+            "00000000-0000-0000-0000-000000000c01"
+          ],
+          "annotations": []
+        }
+      },
+      "resourcePages": {
+        "00000000-0000-0000-0000-000000000c01": {
+          "uuid": "00000000-0000-0000-0000-000000000c01",
+          "title": "Page",
+          "content": "# Page",
+          "annotations": []
+        }
+      }
+    }
+  },
+  "report": {
+    "uuid": "80000000-0000-0000-0000-000000000006",
+    "totalReport": {
+      "indications": [
+        {
+          "indicationType": "PhasesAnsweredIndication",
+          "answeredQuestions": 1,
+          "unansweredQuestions": 0
+        },
+        {
+          "indicationType": "AnsweredIndication",
+          "answeredQuestions": 8,
+          "unansweredQuestions": 1
+        }
+      ],
+      "metrics": [
+        {
+          "metricUuid": "00000000-0000-0000-0000-000000000901",
+          "measure": 1.0
+        }
+      ]
+    },
+    "chapterReports": [
+      {
+        "chapterUuid": "00000000-0000-0000-0000-000000000101",
+        "indications": [
+          {
+            "indicationType": "PhasesAnsweredIndication",
+            "answeredQuestions": 1,
+            "unansweredQuestions": 0
+          },
+          {
+            "indicationType": "AnsweredIndication",
+            "answeredQuestions": 8,
+            "unansweredQuestions": 1
+          }
+        ],
+        "metrics": [
+          {
+            "metricUuid": "00000000-0000-0000-0000-000000000901",
+            "measure": 1.0
+          }
+        ]
+      }
+    ],
+    "chapters": [
+      {
+        "uuid": "00000000-0000-0000-0000-000000000101",
+        "annotations": [],
+        "title": "Chapter",
+        "text": null,
+        "questionUuids": [
+          "00000000-0000-0000-0000-000000000201",
+          "00000000-0000-0000-0000-000000000202",
+          "00000000-0000-0000-0000-000000000203",
+          "00000000-0000-0000-0000-000000000205",
+          "00000000-0000-0000-0000-000000000206",
+          "00000000-0000-0000-0000-000000000207"
+        ]
+      }
+    ],
+    "metrics": [
+      {
+        "uuid": "00000000-0000-0000-0000-000000000901",
+        "annotations": [],
+        "title": "Findability",
+        "abbreviation": "F",
+        "description": null
+      }
+    ],
+    "createdAt": "2026-09-14T11:00:00Z",
+    "updatedAt": "2026-09-14T11:00:00Z"
+  },
+  "knowledgeModelPackage": {
+    "uuid": "80000000-0000-0000-0000-000000000007",
+    "name": "Synthetic KM",
+    "organizationId": "example",
+    "kmId": "synthetic",
+    "version": "1.0.0",
+    "versions": [],
+    "remoteLatestVersion": null,
+    "description": "Synthetic knowledge model",
+    "organization": {
+      "organizationId": "example",
+      "name": "My Organization",
+      "logo": null,
+      "createdAt": "2026-01-01T00:00:00Z"
+    },
+    "language": "en",
+    "createdAt": "2026-01-01T00:00:00Z"
+  },
+  "organization": {
+    "tenantUuid": "80000000-0000-0000-0000-000000000008",
+    "name": "My Organization",
+    "description": "Synthetic",
+    "organizationId": "example",
+    "affiliations": [
+      "Example University"
+    ],
+    "createdAt": "2026-01-01T00:00:00Z",
+    "updatedAt": "2026-01-01T00:00:00Z"
+  },
+  "metamodelVersion": "18.3",
+  "users": [
+    {
+      "user": {
+        "uuid": "40000000-0000-0000-0000-000000000001",
+        "firstName": "Jane",
+        "lastName": "Doe",
+        "email": "jane@example.org",
+        "affiliation": "Example University",
+        "active": true,
+        "imageUrl": null,
+        "createdAt": "2026-01-01T00:00:00Z",
+        "updatedAt": "2026-01-02T00:00:00Z"
+      },
+      "perms": [
+        "VIEW",
+        "COMMENT",
+        "EDIT",
+        "ADMIN"
+      ]
+    }
+  ],
+  "groups": [
+    {
+      "group": {
+        "uuid": "80000000-0000-0000-0000-000000000009",
+        "name": "Reviewers",
+        "description": null,
+        "private": false,
+        "users": [
+          {
+            "uuid": "40000000-0000-0000-0000-000000000001",
+            "firstName": "Jane",
+            "lastName": "Doe",
+            "gravatarHash": "abc",
+            "imageUrl": null,
+            "affiliation": null,
+            "membershipType": "OwnerUserGroupMembershipType"
+          }
+        ],
+        "createdAt": "2026-01-01T00:00:00Z",
+        "updatedAt": "2026-01-01T00:00:00Z"
+      },
+      "perms": [
+        "VIEW",
+        "COMMENT"
+      ]
+    }
+  ]
+}

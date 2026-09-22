@@ -7,9 +7,28 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+The package was rewritten; its previous, experimental API is not kept.
+
 ### Added
 
+- Wire models aligned with the server: knowledge model (flat, events, bundles), `template.json`
+  (local and packaged), project events, changes, replies, versions, files and reports, and the
+  document context
+- Strict or lenient handling of unknown keys (`dsw.models.strictness`)
+- Knowledge model graph with resolved references, reverse lookups and visitors
+- Nested knowledge model for authoring (`tree`) with conversions to and from the flat model
+- Knowledge model compiler, package chains, diff, decompile and squash
+- Knowledge model builder and semantic validation
+- Project content compilation, event squashing, reply walking, indications and metrics
+- Migrations of knowledge model bundles (metamodel 1–20) and best-effort `template.json` upgrades
+- Document context object model for templates, with Markdown helpers in the `rendering` extra
+- JSON Schema generation (`dsw.models.schemas`)
+- Example scripts (`examples/`): validating, building and diffing knowledge models, generating schemas
 - `language` field of `DocumentTemplateMetadata`
+
+### Changed
+
+- Supports Python 3.12 and newer
 
 
 ## [4.34.0]

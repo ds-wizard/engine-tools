@@ -1,93 +1,82 @@
+"""Project replies: values stored under reply paths (``chapterUuid.questionUuid…``)."""
 from __future__ import annotations
 
 import typing
+from uuid import UUID
 
 import pydantic
 
-from ..common import BaseModel
+from ..common import BaseModel, JsonValue, Timestamp, UserSuggestion
 
 
-if typing.TYPE_CHECKING:
-    from datetime import datetime
-    from uuid import UUID
-
-    from .common import UserInfo
-
-
-class BaseIntegrationReplyType(BaseModel):
-    type: str
-
-
-class PlainIntegrationReplyType(BaseIntegrationReplyType):
+class PlainIntegrationReplyType(BaseModel):
     type: typing.Literal['PlainType'] = 'PlainType'
-    content: str
+    value: str
 
 
 class IntegrationReplyType(BaseModel):
     type: typing.Literal['IntegrationType'] = 'IntegrationType'
     value: str
-    raw: pydantic.Json[dict[str, typing.Any]]
+    raw: JsonValue
 
 
-IntegrationReply = typing.Annotated[
-    PlainIntegrationReplyType |
-    IntegrationReplyType,
+IntegrationReplyValueContent = typing.Annotated[
+    PlainIntegrationReplyType | IntegrationReplyType,
     pydantic.Field(discriminator='type'),
 ]
 
 
-class BaseReplyValue(BaseModel):
-    type: str
-
-
-class StringReplyValue(BaseReplyValue):
+class StringReplyValue(BaseModel):
     type: typing.Literal['StringReply'] = 'StringReply'
     value: str
 
 
-class AnswerReplyValue(BaseReplyValue):
+class AnswerReplyValue(BaseModel):
     type: typing.Literal['AnswerReply'] = 'AnswerReply'
     value: UUID
 
 
-class MultiChoiceReplyValue(BaseReplyValue):
+class MultiChoiceReplyValue(BaseModel):
     type: typing.Literal['MultiChoiceReply'] = 'MultiChoiceReply'
     value: list[UUID]
 
 
-class ItemListReplyValue(BaseReplyValue):
+class ItemListReplyValue(BaseModel):
     type: typing.Literal['ItemListReply'] = 'ItemListReply'
-    value: list[str]
+    value: list[UUID]
 
 
-class IntegrationReplyValue(BaseReplyValue):
+class IntegrationReplyValue(BaseModel):
     type: typing.Literal['IntegrationReply'] = 'IntegrationReply'
-    value: IntegrationReply
+    value: IntegrationReplyValueContent
 
 
-class ItemSelectionReplyValue(BaseReplyValue):
+class ItemSelectReplyValue(BaseModel):
     type: typing.Literal['ItemSelectReply'] = 'ItemSelectReply'
     value: UUID
 
 
-class FileReplyValue(BaseReplyValue):
+class FileReplyValue(BaseModel):
     type: typing.Literal['FileReply'] = 'FileReply'
     value: UUID
 
 
 ReplyValue = typing.Annotated[
-    StringReplyValue |
-    AnswerReplyValue |
-    MultiChoiceReplyValue |
-    ItemListReplyValue |
-    IntegrationReplyValue |
-    ItemSelectionReplyValue |
-    FileReplyValue,
+    StringReplyValue
+    | AnswerReplyValue
+    | MultiChoiceReplyValue
+    | ItemListReplyValue
+    | IntegrationReplyValue
+    | ItemSelectReplyValue
+    | FileReplyValue,
     pydantic.Field(discriminator='type'),
 ]
 
 
 class Reply(BaseModel):
     value: ReplyValue
-    created_by: UserInfo | None
-    created_at: datetime
+    created_by: UserSuggestion | None = None
+    created_at: Timestamp
+
+
+Replies = dict[str, Reply]

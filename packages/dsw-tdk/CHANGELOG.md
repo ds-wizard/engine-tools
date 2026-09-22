@@ -15,6 +15,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Update to DT metamodel 18.3
+- Metamodel version handling is shared with `dsw-models` (now a dependency)
+
+### Fixed
+
+- `options` of `allowedPackages` in `template.json` are no longer dropped when the TDK rewrites it
+- `metamodelVersion` `"18"` is accepted as `18.0`, as the server does
 
 
 ## [4.34.0]

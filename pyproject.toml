@@ -35,6 +35,8 @@ target-version = "py314"
 line-length = 100
 indent-width = 4
 include = ["packages/*/dsw/**/*.py"]
+# Lets ruff resolve `dsw.models.*` through the PEP 420 namespace (see runtime-evaluated-base-classes).
+namespace-packages = ["packages/dsw-models/dsw"]
 
 [tool.ruff.lint]
 select = [
@@ -114,11 +116,24 @@ section-order = [
 [tool.ruff.lint.isort.sections]
 "monorepo" = ["dsw"]
 
+[tool.ruff.lint.per-file-ignores]
+# Uncertain metamodel migration steps are kept as explained TODOs by decision.
+"packages/dsw-models/dsw/models/**/migrations/*.py" = ["FIX002", "TD002", "TD003"]
+"packages/dsw-models/dsw/models/**/migrations.py" = ["FIX002", "TD002", "TD003"]
+
+[tool.ruff.lint.flake8-type-checking]
+# Pydantic resolves annotations at runtime, so their imports must stay real.
+runtime-evaluated-base-classes = [
+    "pydantic.BaseModel",
+    "dsw.models.common.BaseModel",
+]
+
 [tool.ruff.lint.flake8-bandit]
 allowed-markup-calls = [
     "markdown.markdown",
     "document_worker.sanitizer.sanitize_html",
     "dsw.document_worker.sanitizer.sanitize_html",
+    "dsw.models.document_context.rendering.sanitize_html",
 ]
 
 [tool.ruff.lint.flake8-quotes]

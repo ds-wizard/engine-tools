@@ -27,11 +27,13 @@ class TemplateFileType(enum.Enum):
 class PackageFilter:
 
     def __init__(self, *, organization_id: str | None = None, km_id: str | None = None,
-                 min_version: str | None = None, max_version: str | None = None):
+                 min_version: str | None = None, max_version: str | None = None,
+                 options: dict[str, str] | None = None):
         self.organization_id = organization_id
         self.km_id = km_id
         self.min_version = min_version
         self.max_version = max_version
+        self.options = options
 
     @classmethod
     def load(cls, data):
@@ -40,15 +42,19 @@ class PackageFilter:
             km_id=data.get('kmId', None),
             min_version=data.get('minVersion', None),
             max_version=data.get('maxVersion', None),
+            options=data.get('options', None),
         )
 
     def serialize(self):
-        return {
+        result = {
             'orgId': self.organization_id,
             'kmId': self.km_id,
             'minVersion': self.min_version,
             'maxVersion': self.max_version,
         }
+        if self.options is not None:
+            result['options'] = self.options
+        return result
 
 
 class Step:

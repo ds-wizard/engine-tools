@@ -1,0 +1,91 @@
+{
+    "templateId": "horizon-europe-dmp",
+    "organizationId": "dsw",
+    "version": "1.21.1",
+    "name": "Horizon Europe DMP",
+    "description": "Data Management Plan according to the Horizon Europe template",
+    "license": "Apache-2.0",
+    "metamodelVersion": "18.0",
+    "allowedPackages": [
+        {
+            "orgId": "dsw",
+            "kmId": "root",
+            "minVersion": "2.7.0",
+            "maxVersion": null
+        },
+        {
+            "orgId": "dsw",
+            "kmId": "lifesciences",
+            "minVersion": "2.7.0",
+            "maxVersion": null
+        }
+    ],
+    "formats": [
+        {
+            "uuid": "5b9800f9-22ba-41f8-9ccd-f17fda46f69a",
+            "name": "HTML Document",
+            "icon": "far fa-file-code",
+            "steps": [
+                {
+                    "name": "jinja",
+                    "options": {
+                        "template": "src/index.html.j2",
+                        "content-type": "text/html",
+                        "extension": "html"
+                    }
+                }
+            ]
+        },
+        {
+            "uuid": "68c26e34-5e77-4e15-9bf7-06ff92582257",
+            "name": "PDF Document",
+            "icon": "far fa-file-pdf",
+            "steps": [
+                {
+                    "name": "jinja",
+                    "options": {
+                        "template": "src/index.html.j2",
+                        "content-type": "text/html",
+                        "extension": "html"
+                    }
+                },
+                {
+                    "name": "weasyprint",
+                    "options": {}
+                }
+            ]
+        },
+        {
+            "uuid": "f4bd941a-dfbe-4226-a1fc-200fb5269311",
+            "name": "MS Word Document",
+            "icon": "far fa-file-word",
+            "steps": [
+                {
+                    "name": "jinja",
+                    "options": {
+                        "template": "src/word/index.html.j2",
+                        "content-type": "text/html",
+                        "extension": "html"
+                    }
+                },
+                {
+                    "name": "pandoc",
+                    "options": {
+                        "from": "html",
+                        "to": "docx",
+                        "args": "--filter=pandoc-docx-pagebreakpy --reference-doc=src/word/reference.docx"
+                    }
+                }
+            ]
+        }
+    ],
+    "_tdk": {
+        "version": "4.29.0",
+        "readmeFile": "README.md",
+        "files": [
+            "assets/*",
+            "src/*",
+            "src/**/*"
+        ]
+    }
+}

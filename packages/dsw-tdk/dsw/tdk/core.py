@@ -12,6 +12,9 @@ import zipfile
 
 import watchfiles
 
+from dsw.models.errors import MetamodelVersionError
+from dsw.models.versions import MetamodelVersion
+
 from . import consts
 from .api_client import WizardAPIClient, WizardCommunicationError
 from .model import Template, TemplateFile, TemplateFileType, TemplateProject
@@ -48,23 +51,20 @@ class TDKCore:
             return
         mm_ver = str(self.safe_template.metamodel_version)
         try:
-            if '.' not in mm_ver:
-                mm_ver = f'{mm_ver}.0'
-            mm_major, mm_minor = map(int, mm_ver.split('.'))
-        except ValueError as e:
+            mm_major, mm_minor = MetamodelVersion.parse(mm_ver)
+        except MetamodelVersionError as e:
             raise TDKProcessingError(f'Invalid metamodel version format: {mm_ver}', hint) from e
         mmr_ver = self.remote_metamodel_version
         try:
-            if '.' not in mmr_ver:
-                mmr_ver = f'{mmr_ver}.0'
-            mmr_major, mmr_minor = map(int, mmr_ver.split('.'))
-        except ValueError as e:
+            mmr_major, mmr_minor = MetamodelVersion.parse(mmr_ver)
+        except MetamodelVersionError as e:
             raise TDKProcessingError(f'Invalid remote metamodel version format: {mmr_ver}',
                                      'Check if connecting to correct API with matching version '
                                      'as you have in TDK.') from e
+        mm_ver, mmr_ver = f'{mm_major}.{mm_minor}', f'{mmr_major}.{mmr_minor}'
         if (mm_major, mm_minor) == (mmr_major, mmr_minor):
             self.logger.debug('Metamodel version %s matches remote version %s',
-                              mmr_ver, mmr_ver)
+                              mm_ver, mmr_ver)
         elif mm_major == mmr_major and mm_minor < mmr_minor:
             self.logger.warning('Local metamodel version %s is older than remote version %s, '
                                 'but still compatible', mm_ver, mmr_ver)
