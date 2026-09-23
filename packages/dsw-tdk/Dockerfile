@@ -2,6 +2,31 @@
 # The default keeps a plain `docker build` working outside CI.
 ARG PYTHON_BASE_VERSION=4.35.0
 
+# The dsw-* distributions are pure Python - every one of them builds to a
+# py3-none-any wheel - so they are built once on the build platform and reused
+# by every target platform. Under multi-arch emulation that is the difference
+# between one native build and one emulated build per architecture, and almost
+# all of the emulated cost is PEP 517 build-environment setup repeated per
+# package rather than the build itself.
+FROM --platform=$BUILDPLATFORM ghcr.io/ds-wizard/python-base:${PYTHON_BASE_VERSION}-basic AS workspace-wheels
+
+ARG PACKAGE_VERSION
+ENV UV_DYNAMIC_VERSIONING_BYPASS=${PACKAGE_VERSION}
+
+# Sources only: nothing outside packages/ takes part in building a wheel, so a
+# change to the docs or the mirror tooling no longer invalidates this layer.
+COPY packages /app/packages
+
+# One pip invocation, not one per package: each still gets its own isolated
+# build environment, but pip itself starts once.
+RUN python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/app/wheels \
+      /app/packages/dsw-models \
+      /app/packages/dsw-tdk
+
+
+# Third-party wheels. These are architecture-specific, so this stage is built
+# once per target platform - but it depends only on the dependency manifests,
+# so it is reused across commits.
 FROM ghcr.io/ds-wizard/python-base:${PYTHON_BASE_VERSION}-basic AS builder
 
 # .dockerignore excludes .git, so the build context carries no repository and
@@ -45,12 +70,6 @@ COPY packages/dsw-tdk/README.md /app/packages/dsw-tdk/
 RUN uv export --locked --no-dev --no-emit-workspace --no-hashes --package dsw-tdk -o /app/requirements.txt \
  && python -m pip wheel --no-cache-dir --wheel-dir=/app/wheels -r /app/requirements.txt
 
-# Sources: changes on every commit, so everything below rebuilds each time.
-COPY . /app
-
-RUN python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/app/wheels /app/packages/dsw-models \
- && python -m pip wheel --no-cache-dir --no-deps --wheel-dir=/app/wheels /app/packages/dsw-tdk
-
 
 FROM ghcr.io/ds-wizard/python-base:${PYTHON_BASE_VERSION}-basic
 
@@ -64,7 +83,13 @@ WORKDIR /home/user
 
 # Install Python packages
 COPY --from=builder --chown=user:user /app/wheels /home/user/wheels
-RUN python -m pip install --break-system-packages --user --no-cache --no-index /home/user/wheels/*  \
+COPY --from=workspace-wheels --chown=user:user /app/wheels /home/user/wheels
+
+# uv rather than pip: this unpacks and byte-compiles the whole dependency set,
+# and it runs emulated on every non-native architecture. It is bind-mounted
+# rather than copied so nothing of it remains in the image.
+RUN --mount=from=ghcr.io/astral-sh/uv:0.12.7,source=/uv,target=/usr/local/bin/uv \
+    uv pip install --prefix /home/user/.local --no-cache --no-index --compile-bytecode /home/user/wheels/*  \
  && rm -rf /home/user/wheels
 
 # Run
