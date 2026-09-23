@@ -10,6 +10,11 @@ ARG PYTHON_BASE_VERSION=4.35.0
 # package rather than the build itself.
 FROM --platform=$BUILDPLATFORM ghcr.io/ds-wizard/python-base:${PYTHON_BASE_VERSION}-docworker-lambda AS workspace-wheels
 
+# .dockerignore excludes .git, so the build context carries no repository and
+# uv-dynamic-versioning cannot derive the version from a tag. CI passes the
+# version in; without it the build fails loudly rather than shipping 0.0.0.
+# This is the only stage that needs it: it is the only one building a dsw-*
+# wheel, and it rebuilds on every commit regardless.
 ARG PACKAGE_VERSION
 ENV UV_DYNAMIC_VERSIONING_BYPASS=${PACKAGE_VERSION}
 
@@ -33,11 +38,14 @@ RUN python -m pip wheel --no-deps --wheel-dir=/app/wheels \
 # so it is reused across commits.
 FROM ghcr.io/ds-wizard/python-base:${PYTHON_BASE_VERSION}-docworker-lambda AS builder
 
-# .dockerignore excludes .git, so the build context carries no repository and
-# uv-dynamic-versioning cannot derive the version from a tag. CI passes the
-# version in; without it the build fails loudly rather than shipping 0.0.0.
-ARG PACKAGE_VERSION
-ENV UV_DYNAMIC_VERSIONING_BYPASS=${PACKAGE_VERSION}
+# A constant, deliberately not PACKAGE_VERSION. `uv export` builds each
+# workspace member's metadata rather than reading it (project.dependencies is
+# dynamic), so uv-dynamic-versioning needs *a* version to exist - but
+# --no-emit-workspace keeps the members out of requirements.txt, so the value
+# is discarded. PACKAGE_VERSION carries the commit sha, and an ENV holding it
+# here gave every commit a new cache key for every layer below, including the
+# third-party wheel build - the most expensive layer in the image.
+ENV UV_DYNAMIC_VERSIONING_BYPASS=0.0.0
 
 COPY --from=ghcr.io/astral-sh/uv:0.12.7 /uv /bin/uv
 
