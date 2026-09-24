@@ -1,4 +1,4 @@
-from dsw.document_worker.model.context import Document
+from dsw.models.document_context.graph import Document
 
 
 BASE_DATA = {

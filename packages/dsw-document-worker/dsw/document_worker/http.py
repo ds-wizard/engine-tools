@@ -8,8 +8,8 @@ import requests
 
 
 if typing.TYPE_CHECKING:
-    from ..config import TemplateConfig
-    from ..urls import UrlPolicy
+    from .config import TemplateConfig
+    from .urls import UrlPolicy
 
 
 LOG = logging.getLogger(__name__)

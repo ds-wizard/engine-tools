@@ -8,12 +8,11 @@ import zoneinfo
 import dateutil.parser as dp
 import jinja2
 
-from dsw.document_worker.utils import byte_size_format
+from dsw.models.document_context.graph import DocumentContext
+from dsw.models.document_context.rendering import render_markdown
 
 from ..exceptions import JobError
-from ..model import DocumentContext
-from ..model.utils import render_markdown
-from ..utils import JinjaEnvironment
+from ..utils import JinjaEnvironment, byte_size_format
 from .extraction import extract_replies
 from .tests import tests
 

@@ -6,7 +6,7 @@ from dsw.document_worker.config import (
     TemplateConfig,
     TemplateRequestsConfig,
 )
-from dsw.document_worker.model.http import RequestsWrapper
+from dsw.document_worker.http import RequestsWrapper
 from dsw.document_worker.urls import UrlNotAllowedError, UrlPolicy
 
 

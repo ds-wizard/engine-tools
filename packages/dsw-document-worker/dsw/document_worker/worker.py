@@ -10,6 +10,7 @@ import dateutil.parser
 from dsw.command_queue import CommandQueue, CommandWorker
 from dsw.config.sentry import SentryReporter
 from dsw.database.database import Database
+from dsw.models.document_context.graph import check_metamodel_version
 from dsw.storage import S3Storage
 
 from . import consts
@@ -21,7 +22,7 @@ from .limits import LimitsEnforcer
 from .pot import PotFileJob
 from .templates import Format, Template, TemplateRegistry
 from .templates.locales import TemplateLocale
-from .utils import byte_size_format, check_metamodel_version
+from .utils import byte_size_format
 
 
 if typing.TYPE_CHECKING:

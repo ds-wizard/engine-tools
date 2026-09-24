@@ -131,8 +131,6 @@ runtime-evaluated-base-classes = [
 [tool.ruff.lint.flake8-bandit]
 allowed-markup-calls = [
     "markdown.markdown",
-    "document_worker.sanitizer.sanitize_html",
-    "dsw.document_worker.sanitizer.sanitize_html",
     "dsw.models.document_context.rendering.sanitize_html",
 ]
 

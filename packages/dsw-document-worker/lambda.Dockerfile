@@ -28,6 +28,7 @@ RUN python -m pip wheel --no-deps --wheel-dir=/app/wheels \
       /app/packages/dsw-command-queue \
       /app/packages/dsw-config \
       /app/packages/dsw-database \
+      /app/packages/dsw-models \
       /app/packages/dsw-storage \
       /app/packages/dsw-document-worker/addons/* \
       /app/packages/dsw-document-worker

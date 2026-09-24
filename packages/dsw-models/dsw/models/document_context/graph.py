@@ -1,8 +1,8 @@
 """Document context object model used by document templates (``ctx|to_context_obj``).
 
-Port of ``dsw.document_worker.model.context``; its public API (classes, attributes, aliases,
-computed properties and quirks) must stay identical, because document templates depend on it.
-Markdown helpers need the ``dsw-models[rendering]`` extra.
+Rendered by ``dsw-document-worker``, so its public API (classes, attributes, aliases, computed
+properties and quirks) is what document templates are written against and cannot change without
+a document template metamodel version. Markdown helpers need the ``dsw-models[rendering]`` extra.
 """
 from __future__ import annotations
 
