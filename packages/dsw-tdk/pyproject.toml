@@ -46,7 +46,7 @@ build-backend = "hatchling.build"
 source = "uv-dynamic-versioning"
 
 [tool.hatch.metadata.hooks.uv-dynamic-versioning]
-dependencies = ["aiohttp", "Babel", "click", "colorama", "humanize", "Jinja2", "multidict", "pathspec", "python-dotenv", "python-slugify", "watchfiles", "dsw-models=={{ version }}"]
+dependencies = ["aiohttp", "Babel", "click", "colorama", "humanize", "Jinja2", "multidict", "pathspec", "pydantic", "python-dotenv", "python-slugify", "watchfiles", "dsw-models=={{ version }}"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["dsw"]

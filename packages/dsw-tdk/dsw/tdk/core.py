@@ -10,9 +10,12 @@ import tempfile
 import typing
 import zipfile
 
+import pydantic
 import watchfiles
 
+from dsw.models.document_template.metadata import DocumentTemplateBundle
 from dsw.models.errors import MetamodelVersionError
+from dsw.models.strictness import load as load_model
 from dsw.models.versions import MetamodelVersion
 
 from . import consts
@@ -361,6 +364,24 @@ class TDKCore:
         output.write_bytes(pot_file.data)
         return pot_file
 
+    def _package_descriptor(self, descriptor: dict) -> dict:
+        """Normalize the package descriptor through the shared DocumentTemplateBundle.
+
+        `package` does not run TemplateValidator, so it has always accepted a template.json
+        that `verify` rejects. Validation failures are therefore reported but not fatal: the
+        descriptor is written as assembled, exactly as before.
+        """
+        try:
+            return load_model(DocumentTemplateBundle, descriptor).to_json_data()
+        except pydantic.ValidationError as e:
+            problems = ', '.join(
+                f'{".".join(str(part) for part in error["loc"])}: {error["msg"]}'
+                for error in e.errors()
+            )
+            self.logger.warning('Template does not match the document template bundle (%s) - '
+                                'packaging it anyway, run "dsw-tdk verify" for details', problems)
+            return descriptor
+
     def create_package(self, output: pathlib.Path, force: bool):
         if output.exists() and not force:
             raise RuntimeError(f'File {output} already exists (not forced)')
@@ -389,17 +410,27 @@ class TDKCore:
                                       file.filename.as_posix())
                     pkg.writestr(f'template/assets/{file.filename.as_posix()}',
                                  file.content)
-            descriptor['files'] = files
-            descriptor['assets'] = assets
             if len(files) == 0 and len(assets) == 0:
                 self.logger.warning('No files or assets found in the template, maybe you forgot '
                                     'to update _tdk.files patterns in template.json?')
             timestamp = datetime.datetime.now(tz=datetime.UTC).strftime('%Y-%m-%dT%H:%M:%S.%fZ')
-            descriptor['createdAt'] = timestamp
-            descriptor['updatedAt'] = timestamp
+            # The package descriptor is the shared DocumentTemplateBundle: building it through
+            # dsw-models validates what we ship and keeps the shape in one place. The local
+            # template.json stays the TDK's own lenient model, as `verify` reports on it.
+            metamodel_version = descriptor['metamodelVersion']
+            descriptor.update({
+                # the local descriptor accepts an int (see TemplateValidator), the bundle does not;
+                # anything else is left as it is so an invalid value is reported, not rewritten
+                'metamodelVersion': (str(metamodel_version)
+                                     if isinstance(metamodel_version, int) else metamodel_version),
+                'files': files,
+                'assets': assets,
+                'createdAt': timestamp,
+                'updatedAt': timestamp,
+            })
             self.logger.debug('Packaging template.json file')
             pkg.writestr('template/template.json',
-                         data=json.dumps(descriptor, indent=4))
+                         data=json.dumps(self._package_descriptor(descriptor), indent=4))
         self.logger.debug('ZIP packaging done')
 
     def extract_package(self, zip_data: bytes, template_dir: pathlib.Path | None, force: bool):
