@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Update to DT metamodel 18.3
 - Metamodel version handling is shared with `dsw-models` (now a dependency)
+- The `template.json` written into a package is built and validated as the shared `DocumentTemplateBundle` from `dsw-models`, so the package shape has one definition; a template that does not match it is reported as a warning and still packaged, as before
 
 ### Fixed
 
