@@ -1,147 +1,93 @@
 from __future__ import annotations
 
-import base64
 import dataclasses
 import datetime
 import logging
+import os
+import pathlib
 import shutil
 import typing
 
+from dsw.templating import (
+    PandocSettings,
+    RenderContext,
+    RenderSettings,
+    RequestsSettings,
+    SecuritySettings,
+    TemplateSettings,
+    register_plugin_steps,
+)
+from dsw.templating import Template as TemplateEngine
+from dsw.templating.settings import bundled_pandoc_filters
+
 from .. import consts
 from ..context import Context
-from .formats import Format
-from .locales import LocaleLoader, RenderContext, TemplateLocale
-from .steps.base import Step, register_step
+from .locales import LocaleLoader
 
 
 if typing.TYPE_CHECKING:
-    from pathlib import Path
-
     from dsw.database.model import (
         DBDocumentTemplate,
         DBDocumentTemplateAsset,
         DBDocumentTemplateFile,
     )
-    from dsw.models.document_context.graph import ProjectFile
+    from dsw.templating import DocumentFile, Format, TemplateLocale
 
-    from ..documents import DocumentFile
+    from ..config import DocumentWorkerConfig
 
 
 LOG = logging.getLogger(__name__)
 
 
-class TemplateError(Exception):
-
-    def __init__(self, template_uuid: str, message: str):
-        self.template_uuid = template_uuid
-        self.message = message
-
-    def __str__(self):
-        return f'Error in template "{self.template_uuid}"\n' \
-               f'- {self.message}'
-
-
-class Asset:
-
-    def __init__(self, *, uuid: str, name: str, content_type: str,
-                 data: bytes, path: Path):
-        self.uuid = uuid
-        self.name = name
-        self.content_type = content_type
-        self.data = data
-        self.path = path
-
-    @property
-    def is_image(self) -> bool:
-        return self.content_type.startswith('image/')
-
-    @property
-    def data_base64(self) -> str:
-        return base64.b64encode(self.data).decode('ascii')
-
-    @property
-    def data_url(self) -> str:
-        return f'data:{self.content_type};base64,{self.data_base64}'
-
-    @property
-    def src_value(self):
-        return self.data_url
+def render_settings(cfg: DocumentWorkerConfig, coordinates: str) -> RenderSettings:
+    """Map the worker configuration onto what the rendering of a template needs."""
+    template_cfg = cfg.templates.get_config(coordinates)
+    template_settings = None
+    if template_cfg is not None:
+        template_settings = TemplateSettings(
+            secrets=template_cfg.secrets,
+            requests=RequestsSettings(
+                enabled=template_cfg.requests.enabled,
+                limit=template_cfg.requests.limit,
+                timeout=template_cfg.requests.timeout,
+            ),
+        )
+    return RenderSettings(
+        security=SecuritySettings(
+            allow_external_resources=cfg.security.allow_external_resources,
+            allow_private_network=cfg.security.allow_private_network,
+            allowed_hosts=cfg.security.allowed_hosts,
+            allowed_paths=cfg.security.allowed_paths,
+            max_redirects=cfg.security.max_redirects,
+        ),
+        pandoc=PandocSettings(
+            command=cfg.pandoc.command,
+            timeout=cfg.pandoc.timeout,
+            # deployments may add their own filters and templates there
+            filter_dirs=[
+                pathlib.Path(os.getenv('PANDOC_FILTERS', '/pandoc/filters')),
+                bundled_pandoc_filters(),
+            ],
+            templates_dir=pathlib.Path(os.getenv('PANDOC_TEMPLATES', '/pandoc/templates')),
+        ),
+        template=template_settings,
+    )
 
 
-@dataclasses.dataclass
-class TemplateComposite:
-    template: DBDocumentTemplate
-    files: dict[str, DBDocumentTemplateFile]
-    assets: dict[str, DBDocumentTemplateAsset]
+class S3ProjectFiles:
+    """Project files of one project, downloaded from S3 into the template directory."""
 
-
-class Template:
-
-    def __init__(self, tenant_uuid: str, template_dir: Path,
-                 db_template: TemplateComposite):
+    def __init__(self, *, tenant_uuid: str, project_uuid: str | None, cache_dir: pathlib.Path):
         self.tenant_uuid = tenant_uuid
-        self.template_dir = template_dir
-        self.last_used = datetime.datetime.now(tz=datetime.UTC)
-        self.db_template = db_template
-        self.template_uuid = self.db_template.template.uuid
-        self.coordinates = self.db_template.template.coordinates
+        self.project_uuid = project_uuid
+        self.cache_dir = cache_dir
 
-        self.formats: dict[str, Format] = {}
-        self.project_uuid: str | None = None
-        self.render_ctx = RenderContext.null()
-        self._locale_loader = LocaleLoader(
-            cache_dir=template_dir / consts.LOCALES_CACHE_DIR,
-            tenant_uuid=tenant_uuid,
-        )
-
-    def raise_exc(self, message: str):
-        raise TemplateError(self.template_uuid, message)
-
-    def fetch_asset(self, file_name: str) -> Asset | None:
-        LOG.info('Fetching asset "%s"', file_name)
-        file_path = self.template_dir / file_name
-        asset = None
-        for a in self.db_template.assets.values():
-            if a.file_name == file_name:
-                asset = a
-                break
-        if asset is None or not file_path.exists():
-            LOG.error('Asset "%s" not found', file_name)
-            return None
-        return Asset(
-            uuid=asset.uuid,
-            name=file_name,
-            content_type=asset.content_type,
-            data=file_path.read_bytes(),
-            path=file_path,
-        )
-
-    def fetch_project_file(self, file: ProjectFile) -> Asset | None:
-        return self._fetch_project_file(
-            file_uuid=file.uuid,
-            name=file.name,
-            content_type=file.content_type,
-        )
-
-    def fetch_project_file_dict(self, file: dict) -> Asset | None:
-        file_uuid = file.get('uuid')
-        name = file.get('fileName')
-        content_type = file.get('contentType')
-        if isinstance(file_uuid, str) and isinstance(name, str) and isinstance(content_type, str):
-            return self._fetch_project_file(
-                file_uuid=file_uuid,
-                name=name,
-                content_type=content_type,
-            )
-        return None
-
-    def _fetch_project_file(self, file_uuid: str, name: str,
-                            content_type: str) -> Asset | None:
-        LOG.info('Fetching project file "%s"', file_uuid)
+    def resolve(self, file_uuid: str, name: str,
+                content_type: str) -> pathlib.Path | None:
         if self.project_uuid is None:
             LOG.warning('Project UUID is not set, cannot fetch project file')
             return None
-        file_path = self.template_dir / 'project-files' / file_uuid
+        file_path = self.cache_dir / file_uuid
         if not file_path.parent.exists():
             file_path.parent.mkdir(parents=True, exist_ok=True)
         if not file_path.exists():
@@ -152,18 +98,48 @@ class Template:
                 target_path=file_path,
             )
             if not result:
-                LOG.error('Project file "%s" cannot be retrieved', file_uuid)
                 return None
-        return Asset(
-            uuid=file_uuid,
-            name=name,
-            content_type=content_type,
-            data=file_path.read_bytes(),
-            path=file_path,
+        return file_path
+
+
+@dataclasses.dataclass
+class TemplateComposite:
+    template: DBDocumentTemplate
+    files: dict[str, DBDocumentTemplateFile]
+    assets: dict[str, DBDocumentTemplateAsset]
+
+
+class Template:
+    """Local copy of a document template from the database, rendered by dsw-templating."""
+
+    def __init__(self, tenant_uuid: str, template_dir: pathlib.Path,
+                 db_template: TemplateComposite):
+        ctx = Context.get()
+        self.tenant_uuid = tenant_uuid
+        self.template_dir = template_dir
+        self.last_used = datetime.datetime.now(tz=datetime.UTC)
+        self.db_template = db_template
+        self.template_uuid = self.db_template.template.uuid
+        self.coordinates = self.db_template.template.coordinates
+
+        self.engine = TemplateEngine(
+            template_dir=template_dir,
+            formats=self.db_template.template.formats,
+            assets=self.db_template.assets.values(),
+            template_uuid=self.template_uuid,
+            coordinates=self.coordinates,
+            settings=render_settings(ctx.app.cfg, self.coordinates),
+            plugins=ctx.app.pm,
+        )
+        self.render_ctx = RenderContext.null()
+        self._locale_loader = LocaleLoader(
+            cache_dir=template_dir / consts.LOCALES_CACHE_DIR,
+            tenant_uuid=tenant_uuid,
         )
 
-    def asset_path(self, filename: str) -> str:
-        return str(self.template_dir / filename)
+    @property
+    def formats(self) -> dict[str, Format]:
+        return self.engine.formats
 
     def _store_asset(self, asset: DBDocumentTemplateAsset):
         LOG.debug('Storing asset %s (%s)', asset.uuid, asset.file_name)
@@ -267,9 +243,11 @@ class Template:
         for asset_uuid in to_chk:
             self._update_asset(db_assets[asset_uuid])
         self.db_template.assets = db_assets
+        self.engine.assets = list(db_assets.values())
 
     def update_template(self, db_template: TemplateComposite):
         self.db_template.template = db_template.template
+        self.engine.formats_metadata = db_template.template.formats
         if not self.template_dir.exists():
             self.template_dir.mkdir()
         self.update_template_files(db_template.files)
@@ -288,31 +266,28 @@ class Template:
             locale=locale,
         )
 
-    def prepare_format(self, format_uuid: str):
-        for format_meta in self.db_template.template.formats:
-            if format_uuid == format_meta.get(consts.FormatField.UUID):
-                self.formats[format_uuid] = Format(self, format_meta)
-                return True
-        return False
+    def prepare_format(self, format_uuid: str) -> bool:
+        return self.engine.prepare_format(format_uuid)
 
     def has_format(self, format_uuid: str) -> bool:
-        return any(
-            f[consts.FormatField.UUID] == format_uuid
-            for f in self.db_template.template.formats
-        )
+        return self.engine.has_format(format_uuid)
 
     def __getitem__(self, format_uuid: str) -> Format:
-        return self.formats[format_uuid]
+        return self.engine[format_uuid]
 
     def render(self, format_uuid: str, project_uuid: str | None,
                context: dict) -> DocumentFile:
-        Context.get().app.pm.hook.enrich_document_context(context=context)
-
         self.last_used = datetime.datetime.now(tz=datetime.UTC)
-        self.project_uuid = project_uuid
-        result = self[format_uuid].execute(context)
-        self.project_uuid = None
-        return result
+        return self.engine.render(
+            format_uuid,
+            context,
+            render_ctx=self.render_ctx,
+            project_files=S3ProjectFiles(
+                tenant_uuid=self.tenant_uuid,
+                project_uuid=project_uuid,
+                cache_dir=self.template_dir / 'project-files',
+            ),
+        )
 
 
 class TemplateRegistry:
@@ -327,14 +302,7 @@ class TemplateRegistry:
 
     def __init__(self):
         self._templates: dict[str, dict[str, Template]] = {}
-        self._load_plugin_steps()
-
-    def _load_plugin_steps(self):
-        for steps_dict in Context.get().app.pm.hook.provide_steps():
-            for name, step_class in steps_dict.items():
-                if not issubclass(step_class, Step):
-                    raise RuntimeError(f'Provided class "{step_class}" is not a subclass of Step')
-                register_step(name, step_class)
+        register_plugin_steps(Context.get().app.pm)
 
     def has_template(self, tenant_uuid: str, template_uuid: str) -> bool:
         return tenant_uuid in self._templates and \

@@ -19,14 +19,7 @@ classifiers = [
     "Topic :: Utilities",
 ]
 requires-python = ">=3.12, <4"
-dynamic = ["version", "dependencies"]
-
-[project.optional-dependencies]
-test = [
-    "pytest",
-    "pytest-recording",
-    "vcrpy",
-]
+dynamic = ["version", "dependencies", "optional-dependencies"]
 
 [project.urls]
 Homepage = "https://ds-wizard.org"
@@ -46,7 +39,12 @@ build-backend = "hatchling.build"
 source = "uv-dynamic-versioning"
 
 [tool.hatch.metadata.hooks.uv-dynamic-versioning]
-dependencies = ["aiohttp", "Babel", "click", "colorama", "humanize", "Jinja2", "multidict", "pathspec", "pydantic", "python-dotenv", "python-slugify", "watchfiles", "dsw-models=={{ version }}"]
+dependencies = ["aiohttp", "Babel", "click", "colorama", "humanize", "Jinja2", "multidict", "pathspec", "pydantic", "python-dotenv", "python-slugify", "watchfiles", "dsw-models=={{ version }}", "dsw-templating=={{ version }}"]
+
+# `all` adds what the optional rendering steps need (PDF, Excel, RDF, HTTP), see dsw-templating
+[tool.hatch.metadata.hooks.uv-dynamic-versioning.optional-dependencies]
+all = ["dsw-templating[all]=={{ version }}"]
+test = ["pytest", "pytest-recording", "vcrpy"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["dsw"]

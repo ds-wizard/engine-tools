@@ -60,6 +60,45 @@ For further information, visit our [documentation](https://docs.ds-wizard.org).
 -  `verify` = check the metadata of local template project
 -  `package` = create a distribution ZIP package that is importable to DSW via web interface
 -  `pot` = create a POT file with translatable strings of the local template project
+-  `render` = render a document from the local template project and a document context (no DSW instance needed)
+
+### Rendering documents locally
+
+`render` uses the same engine as the DSW document worker ([dsw-templating](../dsw-templating)). You need a document context as a JSON file:
+
+```shell script
+$ dsw-tdk render --context context.json --format "HTML Document" --output document.html
+$ dsw-tdk render -c context.json -F "PDF Document" --po cs.po --project-files ./files
+```
+
+- `--format` accepts the UUID or name of a format (it can be omitted if the template has only one)
+- `--po` renders with translations from a PO file (e.g. a translated `dsw-tdk pot` output); the language is taken from `document.language` of the context unless `--language` is given
+- `--project-files` is a directory with files uploaded to the project, named by their UUID or file name
+- Only files selected by `_tdk.files` are available to the rendering, as on the server
+- The context is completed as the document worker does it with its default configuration: `config` gets the service name and URL of the Data Stewardship Wizard and fallbacks for missing branding (app title, colors, logo), and `extras` requested by the format but missing in the context are rendered as for a document without a project (with a warning)
+- The worker's defaults can be overridden with `-D NAME=VALUE` (repeatable), named as in the `documentContext` section of the document worker configuration, or with its environment variables (also in `.env`); the option wins over the environment:
+
+```shell script
+$ dsw-tdk render -c context.json -F "HTML Document" -D "serviceName=FAIR Wizard" -D serviceUrl=https://fair-wizard.com
+$ echo 'DOCUMENT_CONTEXT_SERVICE_NAME=FAIR Wizard' >> .env
+```
+
+| Name | Environment variable | Default |
+|---|---|---|
+| `serviceName` | `DOCUMENT_CONTEXT_SERVICE_NAME` | `Data Stewardship Wizard` |
+| `serviceNameShort` | `DOCUMENT_CONTEXT_SERVICE_NAME_SHORT` | `DSW` |
+| `serviceUrl` | `DOCUMENT_CONTEXT_SERVICE_URL` | `https://ds-wizard.org` |
+| `serviceDomainName` | `DOCUMENT_CONTEXT_SERVICE_DOMAIN_NAME` | `ds-wizard.org` |
+| `defaultPrimaryColor` | `DOCUMENT_CONTEXT_DEFAULT_PRIMARY_COLOR` | `#0033aa` |
+| `defaultIllustrationsColor` | `DOCUMENT_CONTEXT_DEFAULT_ILLUSTRATIONS_COLOR` | `#0033aa` |
+| `defaultLogoUrl` | `DOCUMENT_CONTEXT_DEFAULT_LOGO_URL` | `{{clientUrl}}/assets/logo.svg` |
+| `defaultAppTitle` | `DOCUMENT_CONTEXT_DEFAULT_APP_TITLE` | `DS Wizard` |
+| `defaultAppTitleShort` | `DOCUMENT_CONTEXT_DEFAULT_APP_TITLE_SHORT` | `DS Wizard` |
+
+The `service*` values are always set; the `default*` ones apply only where the context has no value.
+- Steps `weasyprint`, `excel` and `rdflib-convert`, the `requests` global and the `pandoc-docx-pagebreakpy` Pandoc filter need optional dependencies: `pip install 'dsw-tdk[all]'`; WeasyPrint also needs [Pango](https://doc.courtbouillon.org/weasyprint/stable/first_steps.html#installation) and the `pandoc` step needs [pandoc](https://pandoc.org) installed
+- The `docx-*.lua` Pandoc filters of the document worker are always available; `--pandoc-filters DIR` adds more (searched first) and `--pandoc-templates DIR` provides templates for the `template` option of the `pandoc` step (or `PANDOC_FILTERS` / `PANDOC_TEMPLATES`, as for the worker)
+- The `secrets` and `requests` globals exist only when configured for the template on the server; locally, `--secret NAME=VALUE` (repeatable) provides `secrets` and `--allow-requests` provides `requests`
 
 ### Environment variables
 

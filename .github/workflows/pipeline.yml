@@ -134,6 +134,12 @@ jobs:
       run: |
         uv run --no-sync bash scripts/test-package.sh dsw-tdk
 
+    - name: "Test: templating"
+      id: test-templating
+      continue-on-error: true
+      run: |
+        uv run --no-sync bash scripts/test-package.sh dsw-templating
+
     - name: "Evaluate tests"
       if: always()
       shell: bash
@@ -150,8 +156,9 @@ jobs:
           dsw-models=${{ steps.test-models.outcome }}
           dsw-storage=${{ steps.test-storage.outcome }}
           dsw-tdk=${{ steps.test-tdk.outcome }}
+          dsw-templating=${{ steps.test-templating.outcome }}
       run: |
-        EXPECTED=9
+        EXPECTED=10
         SEEN=0
         FAILED=""
         while IFS='=' read -r pkg outcome; do
@@ -175,12 +182,13 @@ jobs:
         fi
         echo "## All $EXPECTED packages passed"
 
-  # dsw-tdk and its only workspace dependency dsw-models declare requires-python
-  # >=3.12 (unlike the rest of the workspace, which is >=3.14) because the TDK is
-  # a CLI that end users pip install. Both are installed standalone from this
-  # checkout here rather than via `uv sync`, which is bound to the root >=3.14
-  # floor. Python 3.14 is already covered across all three OSes by the
-  # test-worker job above.
+  # dsw-tdk, its only workspace dependency dsw-models and dsw-templating (the
+  # rendering library the TDK is meant to use) declare requires-python >=3.12
+  # (unlike the rest of the workspace, which is >=3.14) because the TDK is a CLI
+  # that end users pip install. They are installed standalone from this checkout
+  # here rather than via `uv sync`, which is bound to the root >=3.14 floor.
+  # Python 3.14 is already covered across all three OSes by the test-worker job
+  # above.
   test-tdk-oldest:
     name: Test TDK
     # Avoid double runs: in-repo branches are covered by the push event.
@@ -216,8 +224,8 @@ jobs:
 
     - name: Install dsw-tdk with test dependencies
       run: |
-        # dsw-models from this checkout, not PyPI: dsw-tdk pins the same version
-        uv pip install './packages/dsw-models[test]' './packages/dsw-tdk[test]'
+        # dsw-models and dsw-templating from this checkout, not PyPI: dsw-tdk pins the same version
+        uv pip install './packages/dsw-models[test]' './packages/dsw-templating[all,test]' './packages/dsw-tdk[test]'
         .venv/bin/python --version
 
     - name: "Verify: TDK"
@@ -226,6 +234,11 @@ jobs:
 
     - name: "Test: Models"
       working-directory: packages/dsw-models
+      run: |
+        ../../.venv/bin/pytest -s tests
+
+    - name: "Test: Templating"
+      working-directory: packages/dsw-templating
       run: |
         ../../.venv/bin/pytest -s tests
 
@@ -255,6 +268,7 @@ jobs:
         - dsw-models
         - dsw-storage
         - dsw-tdk
+        - dsw-templating
         python-version:
         - "3.14"
 

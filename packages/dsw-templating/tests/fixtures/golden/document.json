@@ -1,0 +1,32 @@
+{
+  "document": {
+    "createdAt": "2026-03-01T23:30:00Z",
+    "language": "cs",
+    "name": "Golden Plan"
+  },
+  "entries": [
+    {
+      "size": 1536000,
+      "title": "Datasets"
+    },
+    {
+      "size": null,
+      "title": "Software."
+    },
+    {
+      "size": 42,
+      "title": "Publications"
+    }
+  ],
+  "extras": {
+    "plugin": "Enriched by a plugin"
+  },
+  "files": [
+    {
+      "contentType": "text/plain",
+      "fileName": "notes.txt",
+      "uuid": "22222222-0000-0000-0000-000000000001"
+    }
+  ],
+  "summary": "Plan with **bold** text and a [link](https://example.org).\n\n<script>alert(1)</script>"
+}

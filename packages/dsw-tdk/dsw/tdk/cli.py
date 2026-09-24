@@ -18,11 +18,14 @@ from . import consts
 from .api_client import WizardCommunicationError
 from .config import CONFIG
 from .core import TDKCore, TDKProcessingError
+from .render import context_defaults, render_settings
 from .utils import FormatSpec, TemplateBuilder, create_dot_env, safe_utf8
 from .validation import ValidationError
 
 
 if typing.TYPE_CHECKING:
+    from dsw.templating import ContextDefaults
+
     from .model import Template
 
 
@@ -584,6 +587,121 @@ def create_pot_file(ctx, template_dir, output, force: bool):
         sys.exit(1)
     filename = click.style(output, bold=True)
     ClickPrinter.success(f'POT file {filename} created')
+
+
+class _ForwardHandler(logging.Handler):
+    """Hands records of dsw.templating to the CLI logger, warnings unless debugging.
+
+    Records carrying an exception only accompany the error that is reported
+    anyway, so they are shown in the debug mode only.
+    """
+
+    def __init__(self, logger: logging.Logger):
+        super().__init__()
+        self.logger = logger
+        self.debug = logger.level <= logging.DEBUG
+
+    def emit(self, record: logging.LogRecord):
+        if self.debug or (record.levelno >= logging.WARNING and record.exc_info is None):
+            self.logger.log(record.levelno, '%s', record.getMessage())
+
+
+def _forward_templating_logs(logger: logging.Logger):
+    templating_logger = logging.getLogger('dsw.templating')
+    templating_logger.handlers = [_ForwardHandler(logger)]
+    templating_logger.propagate = False
+    templating_logger.setLevel(logging.DEBUG)
+
+
+def _parse_pairs(values: tuple[str, ...]) -> dict[str, str]:
+    pairs: dict[str, str] = {}
+    for value in values:
+        name, sep, text = value.partition('=')
+        if not sep or not name.strip():
+            raise click.BadParameter(f'"{value}" is not NAME=VALUE')
+        pairs[name.strip()] = text
+    return pairs
+
+
+def _parse_secrets(ctx, param, values: tuple[str, ...]) -> dict[str, str]:
+    return _parse_pairs(values)
+
+
+def _parse_context_defaults(ctx, param, values: tuple[str, ...]) -> ContextDefaults:
+    overrides = _parse_pairs(values)
+    try:
+        return context_defaults(overrides)
+    except ValueError as e:
+        raise click.BadParameter(str(e)) from e
+
+
+@main.command(help='Render a document from the local template and a document context.',
+              name='render')
+@click.argument('TEMPLATE-DIR', type=DIR_TYPE, default=CURRENT_DIR, required=False)
+@click.option('-c', '--context', 'context_file', required=True, type=FILE_READ_TYPE,
+              help='JSON file with the document context.')
+@click.option('-F', '--format', 'format_ref', default=None,
+              help='UUID or name of the format (can be omitted if there is only one).')
+@click.option('-o', '--output', default=None, type=click.Path(dir_okay=False, writable=True),
+              help='Target file [default: <template-id>.<extension>].')
+@click.option('-p', '--po', 'po_file', default=None, type=FILE_READ_TYPE,
+              help='PO file with translations to render with.')
+@click.option('-l', '--language', default=None,
+              help='Language of the document [default: document.language of the context].')
+@click.option('--project-files', default=None,
+              type=click.Path(exists=True, file_okay=False, resolve_path=True),
+              help='Directory with project files, named by their UUID or file name.')
+@click.option('-D', '--context-default', 'context_default', multiple=True,
+              metavar='NAME=VALUE', callback=_parse_context_defaults,
+              help='Override a value the document worker adds to ctx.config, named as in its '
+                   'documentContext configuration (e.g. serviceName=FAIR Wizard); can be '
+                   'repeated. Its DOCUMENT_CONTEXT_* environment variables (and .env) work too.')
+@click.option('-s', '--secret', 'secrets', multiple=True, metavar='NAME=VALUE',
+              callback=_parse_secrets,
+              help='Value of the secrets global in templates (as configured for the template '
+                   'in the document worker); can be repeated.')
+@click.option('--allow-requests', is_flag=True,
+              help='Provide the requests global for HTTP requests from templates '
+                   '(as enabled for the template in the document worker).')
+@click.option('--pandoc-filters', default=None, envvar='PANDOC_FILTERS',
+              type=click.Path(exists=True, file_okay=False, resolve_path=True),
+              help='Directory with additional Pandoc filters, searched before the bundled ones.')
+@click.option('--pandoc-templates', default=None, envvar='PANDOC_TEMPLATES',
+              type=click.Path(exists=True, file_okay=False, resolve_path=True),
+              help='Directory with Pandoc templates (the template option of the pandoc step).')
+@click.option('-f', '--force', is_flag=True, help='Overwrite the output file if already exists.')
+@click.pass_context
+def render_document(ctx, template_dir, context_file, format_ref, output, po_file, language,
+                    project_files, context_default: ContextDefaults, secrets: dict[str, str],
+                    allow_requests: bool, pandoc_filters, pandoc_templates, force: bool):
+    tdk = TDKCore(logger=ctx.obj.logger)
+    load_local(tdk, template_dir)
+    _forward_templating_logs(ctx.obj.logger)
+    try:
+        output_path, document = tdk.render(
+            context_file=pathlib.Path(context_file),
+            format_ref=format_ref,
+            output=None if output is None else pathlib.Path(output),
+            force=force,
+            po_file=None if po_file is None else pathlib.Path(po_file),
+            language=language,
+            project_files_dir=None if project_files is None else pathlib.Path(project_files),
+            context_defaults=context_default,
+            settings=render_settings(
+                pandoc_filters_dir=None if pandoc_filters is None else pathlib.Path(pandoc_filters),
+                pandoc_templates_dir=(None if pandoc_templates is None
+                                      else pathlib.Path(pandoc_templates)),
+                secrets=secrets,
+                allow_requests=allow_requests,
+            ),
+        )
+    except Exception as e:
+        ClickPrinter.failure('Failed to render the document')
+        ClickPrinter.error(f'> {e}')
+        sys.exit(1)
+    filename = click.style(output_path.as_posix(), bold=True)
+    size = humanize.naturalsize(document.byte_size)
+    ClickPrinter.success(f'Document {filename} rendered ({document.content_type}, {size})')
 
 
 @main.group(help='Manage shared user configuration (~/.dsw-tdk).', name='config')

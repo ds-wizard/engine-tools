@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+from dsw.templating.utils import byte_size_format
+
 from .context import Context
 from .exceptions import JobError
-from .utils import byte_size_format
 
 
 class LimitsEnforcer:

@@ -19,8 +19,10 @@ In this monorepo, we manage the following Python packages (each has its own subd
 * [Config (dsw-config)](packages/dsw-config)
 * [Database (dsw-database)](packages/dsw-database)
 * [Storage (dsw-storage)](packages/dsw-storage)
+* [Templating (dsw-templating)](packages/dsw-templating)
 
-Libraries are currently kept compatible with Python 3.14 and higher.
+Libraries are currently kept compatible with Python 3.14 and higher, except for
+`dsw-templating` that renders document templates also for the TDK (Python 3.12 and higher).
 
 ### Utilities
 
