@@ -10,12 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - New `pot` command creating a POT file with translatable strings of the template project
+- New `render` command rendering a document from the local template project and a document context (JSON file), optionally with a PO file and project files, without any DSW instance; rendering is done by `dsw-templating`, the same engine as the document worker uses, and only the files selected by `_tdk.files` are available to it, as on the server; the context gets the document worker's defaults (`config` service information and branding fallbacks, missing `extras`), which can be overridden with `-D NAME=VALUE` or the worker's `DOCUMENT_CONTEXT_*` environment variables; `--secret` / `--allow-requests` provide the `secrets` / `requests` globals and `--pandoc-filters` / `--pandoc-templates` the directories of the worker's Pandoc filters and templates
+- `all` extra (`pip install 'dsw-tdk[all]'`) with the optional dependencies of rendering steps (PDF, Excel, RDF, HTTP)
 - `language` field in `template.json` (prompted by `dsw-tdk new`, defaults to `en`)
 
 ### Changed
 
 - Update to DT metamodel 18.3
 - Metamodel version handling is shared with `dsw-models` (now a dependency)
+- The `pot` command extracts messages with `dsw-templating` (now a dependency), the same code as the document worker, instead of a copy of it
 - The `template.json` written into a package is built and validated as the shared `DocumentTemplateBundle` from `dsw-models`, so the package shape has one definition; a template that does not match it is reported as a warning and still packaged, as before
 
 ### Fixed

@@ -12,7 +12,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Document template locales: a `.po` file attached to a document template version is applied at render time, so language is a parameter of document generation instead of a property of the format
 - Generation of the POT file with translatable strings (new `generatePotFile` command function), stored in S3 and flagged by `document_template.pot_file_ready`
 - `document.language` and `document.locale` in the document context
-- Translations are available to all steps via `Step.before_render` and the `gettext` / `ngettext` / `pgettext` helpers (see [Translations](./support/Translations.md))
+- Translations are available to all steps via `Step.before_render` and the `gettext` / `ngettext` / `pgettext` helpers (see [Translations](../dsw-templating/support/Translations.md))
 - Lambda handler reads its configuration from AWS AppConfig when `AWS_APP_CONFIG` is set (see `dsw-config`)
 - `docx-landscape.lua` Pandoc filter (a `landscape` div, or `\landscape` / `\portrait` paragraphs, switch DOCX page orientation)
 
@@ -22,6 +22,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - The `jinja2.ext.i18n` extension is always enabled for Jinja-powered steps
 - `extras.project` (and the deprecated `extras.questionnaire`) provide `knowledge_model_package_uuid` instead of `knowledge_package_uuid`
 - The template-facing document context object model (`ctx|to_context_obj`) comes from `dsw-models` (`dsw.models.document_context.graph`) instead of a copy inside the worker; the object model, its attributes and its Markdown rendering are unchanged
+- The rendering engine (formats, steps, Jinja filters and tests, conversions, POT extraction) moved to the new `dsw-templating` package, together with the Pandoc filters, the `pandoc-docx-pagebreakpy` filter (now a command of `dsw-templating[docx]` instead of a separate addon) and the template development documentation; rendering is unchanged
+- Plugins are loaded from the `dsw_templating_plugins` entry point and implement the hooks of `dsw.templating.plugins` (pluggy project `dsw-templating`) instead of `dsw_document_worker_plugins` / `dsw.document_worker.plugins`
+- The Pandoc filters are shipped inside `dsw-templating`; the images no longer copy them to `/pandoc/filters`, which (or `PANDOC_FILTERS`) is still searched first for filters added by a deployment
 
 ### Fixed
 

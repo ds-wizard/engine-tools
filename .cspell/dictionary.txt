@@ -5,6 +5,8 @@ appconfigdata
 Stubber
 autouse
 caplog
+capfd
+keepends
 delenv
 SIGABRT
 pgconn
@@ -25,6 +27,8 @@ pagebreak
 pagebreaks
 pagebreakpy
 panflute
+Pango
+OOXML
 idstring
 privkey
 searchpath

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from dsw.templating import TemplateTriggeredError
+
 
 class JobError(Exception):
 
@@ -40,6 +42,15 @@ def create_job_error(job_id: str, message: str, document_found=True, exc=None):
 
     if isinstance(exc, JobError):
         return exc
+
+    if isinstance(exc, TemplateTriggeredError):
+        # raised by a template to report a problem to its user, not a system failure
+        return JobError(
+            job_id=job_id,
+            msg=exc.msg,
+            exc=None,
+            skip_reporting=True,
+        )
 
     return JobError(
         job_id=job_id,

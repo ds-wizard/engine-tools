@@ -1,0 +1,5 @@
+{
+  "config": {"clientUrl": "https://wizard.example.org/", "appTitle": "My Wizard"},
+  "document": {"name": "My Plan", "language": "cs"},
+  "files": [{"uuid": "22222222-0000-0000-0000-000000000001", "fileName": "notes.txt", "contentType": "text/plain"}]
+}

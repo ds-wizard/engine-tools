@@ -1,0 +1,19 @@
+{%- set logo = assets('assets/logo.png') -%}
+{%- set attachment = assets(ctx.files[0]) -%}
+<!DOCTYPE html>
+<html lang="{{ ctx.document.language }}">
+<head><title>{{ ctx.document.name }}</title></head>
+<body>
+<h1>{% trans %}Data Management Plan{% endtrans %}</h1>
+<img src="{{ logo.src_value }}" alt="{{ logo.name }}">
+<p>{{ ctx.document.createdAt|datetime_format('%d. %m. %Y', 'Europe/Prague') }}</p>
+<ol>
+{%- for item in ctx.entries %}
+  <li id="{{ loop.index0|of_alphabet }}">{{ loop.index|roman }}. {{ item.title|dot }}{% if item.size is not none %} ({{ item.size|bytesize_format }}){% endif %}</li>
+{%- endfor %}
+</ol>
+{{ ctx.summary|markdown }}
+{% if attachment %}<p>{{ attachment.name }}: {{ attachment.data.decode('utf-8') }} ({{ attachment.content_type }})</p>{% endif %}
+<p class="newpage-before">{{ ctx.extras.plugin }}</p>
+</body>
+</html>

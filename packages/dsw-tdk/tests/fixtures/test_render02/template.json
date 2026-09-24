@@ -1,0 +1,35 @@
+{
+  "organizationId": "test",
+  "templateId": "render02",
+  "version": "1.0.0",
+  "name": "Test template for rendering options",
+  "description": "Dummy document template for secrets, requests and pandoc",
+  "metamodelVersion": "18.3",
+  "language": "en",
+  "license": "Apache-2.0",
+  "allowedPackages": [],
+  "formats": [
+    {
+      "uuid": "b5a1d3f2-3f9e-4f5b-9a37-2a1a4c9b8d01",
+      "name": "Globals",
+      "icon": "far fa-file-code",
+      "steps": [
+        {"name": "jinja", "options": {"template": "src/globals.txt.j2", "content-type": "text/plain", "extension": "txt"}}
+      ]
+    },
+    {
+      "uuid": "b5a1d3f2-3f9e-4f5b-9a37-2a1a4c9b8d02",
+      "name": "Word",
+      "icon": "far fa-file-word",
+      "steps": [
+        {"name": "jinja", "options": {"template": "src/document.html.j2"}},
+        {"name": "pandoc", "options": {"from": "html", "to": "docx", "template": "custom.docx", "filters": "docx-pagebreak.lua,mine.lua"}}
+      ]
+    }
+  ],
+  "_tdk": {
+    "version": "4.34.0",
+    "readmeFile": "README.md",
+    "files": ["src/**/*"]
+  }
+}

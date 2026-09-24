@@ -12,17 +12,17 @@ from dsw.config.sentry import SentryReporter
 from dsw.database.database import Database
 from dsw.models.document_context.graph import check_metamodel_version
 from dsw.storage import S3Storage
+from dsw.templating import ContextDefaults, DocumentFile, TemplateLocale, enrich_context_config
+from dsw.templating.utils import byte_size_format
 
 from . import consts
 from .build_info import BUILD_INFO
 from .context import Context
-from .documents import DocumentFile, DocumentNameGiver
+from .documents import DocumentNameGiver
 from .exceptions import DocumentNotFoundError, JobError, create_job_error
 from .limits import LimitsEnforcer
 from .pot import PotFileJob
 from .templates import Format, Template, TemplateRegistry
-from .templates.locales import TemplateLocale
-from .utils import byte_size_format
 
 
 if typing.TYPE_CHECKING:
@@ -180,32 +180,18 @@ class Job:
         )
 
     def _enrich_context_config(self):
-        old = self.doc_context.get('config', {})
-
-        client_url = old.get('clientUrl', '').rstrip('/')
-        app_title = (old.get('appTitle', None) or
-                     self.ctx.app.cfg.context.default_app_title)
-        app_title_short = (old.get('appTitleShort', None) or
-                           self.ctx.app.cfg.context.default_app_title_short)
-        primary_color = (old.get('primaryColor', None) or
-                         self.ctx.app.cfg.context.default_primary_color)
-        illustrations_color = (old.get('illustrationsColor', None) or
-                               self.ctx.app.cfg.context.default_illustrations_color)
-        logo_url_template = (old.get('logoUrl', None) or
-                             self.ctx.app.cfg.context.default_logo_url)
-        logo_url = logo_url_template.replace('{{clientUrl}}', client_url)
-
-        self.doc_context['config'].update({
-            'serviceName': self.ctx.app.cfg.context.service_name,
-            'serviceNameShort': self.ctx.app.cfg.context.service_name_short,
-            'serviceUrl': self.ctx.app.cfg.context.service_url,
-            'serviceDomainName': self.ctx.app.cfg.context.service_domain_name,
-            'appTitle': app_title,
-            'appTitleShort': app_title_short,
-            'primaryColor': primary_color,
-            'illustrationsColor': illustrations_color,
-            'logoUrl': logo_url,
-        })
+        cfg = self.ctx.app.cfg.context
+        enrich_context_config(self.doc_context, ContextDefaults(
+            service_name=cfg.service_name,
+            service_name_short=cfg.service_name_short,
+            service_url=cfg.service_url,
+            service_domain_name=cfg.service_domain_name,
+            default_primary_color=cfg.default_primary_color,
+            default_illustrations_color=cfg.default_illustrations_color,
+            default_logo_url=cfg.default_logo_url,
+            default_app_title=cfg.default_app_title,
+            default_app_title_short=cfg.default_app_title_short,
+        ))
 
     def _enrich_context(self):
         extras: dict[str, typing.Any] = {}

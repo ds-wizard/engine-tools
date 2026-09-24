@@ -108,6 +108,7 @@ jobs:
           - dsw-models
           - dsw-storage
           - dsw-tdk
+          - dsw-templating
 
     steps:
     - name: Check out repository

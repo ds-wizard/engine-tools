@@ -67,6 +67,7 @@ COPY packages/dsw-mailer/pyproject.toml /app/packages/dsw-mailer/
 COPY packages/dsw-models/pyproject.toml /app/packages/dsw-models/
 COPY packages/dsw-storage/pyproject.toml /app/packages/dsw-storage/
 COPY packages/dsw-tdk/pyproject.toml /app/packages/dsw-tdk/
+COPY packages/dsw-templating/pyproject.toml /app/packages/dsw-templating/
 
 # project.dependencies is dynamic, so `uv export` must build each member's
 # metadata rather than read it, and hatchling validates project.readme while
@@ -80,6 +81,7 @@ COPY packages/dsw-mailer/README.md /app/packages/dsw-mailer/
 COPY packages/dsw-models/README.md /app/packages/dsw-models/
 COPY packages/dsw-storage/README.md /app/packages/dsw-storage/
 COPY packages/dsw-tdk/README.md /app/packages/dsw-tdk/
+COPY packages/dsw-templating/README.md /app/packages/dsw-templating/
 
 RUN uv export --locked --no-dev --no-emit-workspace --no-hashes --package dsw-data-seeder -o /app/requirements.txt \
  && python -m pip wheel --no-cache-dir --wheel-dir=/app/wheels -r /app/requirements.txt
