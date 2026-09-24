@@ -1,7 +1,6 @@
 import pytest
 
-from dsw.document_worker.model.utils import render_markdown
-from dsw.document_worker.sanitizer import sanitize_html
+from dsw.models.document_context.rendering import render_markdown, sanitize_html
 
 
 @pytest.mark.parametrize('html', [

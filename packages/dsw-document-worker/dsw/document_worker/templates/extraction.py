@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import abc
 
-from ..model import context as dc
+from dsw.models.document_context import graph as dc
 
 
 DEFAULT_CONFIG = {

@@ -9,7 +9,7 @@ This document describes the structure of document context provided by the Docume
 * All data types are using Python, e.g., `str` is textual string, `Optional[str]` is a string or `None`, `list[str]` is a list of strings.
 * We use `snake_case` for naming of attributes and variables, `PascalCase` is used for class names.
 * `datetime` is the standard [`datetime.datetime`](https://docs.python.org/3/library/datetime.html#datetime-objects).
-* You can investigate the [`context`](../document_worker/model/context.py) module; however, constructs that are not documented here may change in any version without an explicit notice.
+* You can investigate the [`graph`](../../dsw-models/dsw/models/document_context/graph.py) module of `dsw-models`; however, constructs that are not documented here may change in any version without an explicit notice.
 
 ## Diagram
 

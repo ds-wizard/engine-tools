@@ -1,6 +1,8 @@
 """Markdown rendering and HTML sanitizing for document contexts (``dsw-models[rendering]``).
 
-Port of ``dsw.document_worker.model.utils`` and ``dsw.document_worker.sanitizer``.
+Markdown reaches templates through the ``markdown`` filter and the ``*_html`` properties of
+:mod:`~dsw.models.document_context.graph`; the output is sanitized because it carries raw HTML
+from end users (project replies).
 """
 from __future__ import annotations
 

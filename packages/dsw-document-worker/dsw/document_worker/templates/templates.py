@@ -22,9 +22,9 @@ if typing.TYPE_CHECKING:
         DBDocumentTemplateAsset,
         DBDocumentTemplateFile,
     )
+    from dsw.models.document_context.graph import ProjectFile
 
     from ..documents import DocumentFile
-    from ..model.context import ProjectFile
 
 
 LOG = logging.getLogger(__name__)

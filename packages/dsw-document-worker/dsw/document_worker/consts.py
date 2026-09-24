@@ -29,9 +29,6 @@ LOCALE_MO_FILE_NAME = 'translation.mo'
 LOCALE_STAMP_FILE_NAME = 'updated_at'
 LOCALES_CACHE_DIR = '.locales'
 
-CURRENT_METAMODEL_MAJOR = 18
-CURRENT_METAMODEL_MINOR = 3
-
 try:
     __version__ = version(PACKAGE_NAME)
 except PackageNotFoundError:

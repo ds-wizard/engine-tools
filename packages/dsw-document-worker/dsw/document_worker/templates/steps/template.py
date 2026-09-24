@@ -9,11 +9,12 @@ import jinja2
 import jinja2.exceptions
 import rdflib
 
+from dsw.models.document_context.graph import ProjectFile
+
 from ...consts import DEFAULT_ENCODING, JINJA_EXTENSIONS, JINJA_I18N_TRIMMED
 from ...context import Context
 from ...documents import DocumentFile, FileFormat, FileFormats
-from ...model.context import ProjectFile
-from ...model.http import RequestsWrapper
+from ...http import RequestsWrapper
 from ...urls import UrlPolicy
 from ...utils import JinjaEnvironment
 from ..filters import filters

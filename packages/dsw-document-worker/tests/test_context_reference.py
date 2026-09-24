@@ -1,26 +1,23 @@
-"""Parity of the template-facing document context between the worker and dsw-models.
+"""The template-facing document context, built from real contexts by the worker's own filter.
 
-``dsw.models.document_context.graph`` must expose exactly what ``ctx|to_context_obj`` exposes
-today. Both object models are built from the same contexts and compared attribute by attribute
-(properties included), recursively.
+The object model itself lives in ``dsw.models.document_context.graph``; what is asserted here is
+that ``ctx|to_context_obj`` keeps producing it for the contexts the worker actually receives —
+the synthetic one and one generated over a released knowledge model with replies to (almost)
+every question.
 """
 import copy
-import datetime
 import gzip
 import json
 import pathlib
 import uuid
 
-import pytest
-
-from dsw.document_worker.model import context as worker_context
-from dsw.models.document_context import graph as models_context
-from dsw.models.document_context.wire import DocumentContext as WireDocumentContext
+from dsw.document_worker.templates.filters import to_context_obj
 from dsw.models.knowledge_model import graph as km_graph
 from dsw.models.knowledge_model.bundle import compile_bundle
 from dsw.models.knowledge_model.package import KnowledgeModelBundle
 from dsw.models.project.report import generate_report
 from dsw.models.strictness import load
+from dsw.models.document_context.wire import DocumentContext as WireDocumentContext
 
 
 MODELS_FIXTURES = pathlib.Path(__file__).parents[2] / 'dsw-models' / 'tests' / 'fixtures'
@@ -106,104 +103,34 @@ def generated_context() -> dict:
     return ctx
 
 
-_SCALARS = (str, int, float, bool, type(None), datetime.datetime, uuid.UUID)
-
-
-def assert_same_surface(old, new, path='dc', seen=None):
-    seen = set() if seen is None else seen
-    if isinstance(old, _SCALARS) or isinstance(new, _SCALARS):
-        assert type(old) is type(new) and old == new, f'{path}: {old!r} != {new!r}'
-        return
-    if isinstance(old, (list, tuple)):
-        assert isinstance(new, type(old)) and len(old) == len(new), f'{path}: {old!r} vs {new!r}'
-        for index, (left, right) in enumerate(zip(old, new, strict=True)):
-            assert_same_surface(left, right, f'{path}[{index}]', seen)
-        return
-    if isinstance(old, dict):
-        assert isinstance(new, dict) and list(old) == list(new), f'{path}: keys differ'
-        for key in old:
-            assert_same_surface(old[key], new[key], f'{path}[{key!r}]', seen)
-        return
-    assert type(old).__name__ == type(new).__name__, f'{path}: {type(old)} vs {type(new)}'
-    if (id(old), id(new)) in seen:
-        return
-    seen.add((id(old), id(new)))
-    names = sorted(name for name in dir(old) if not name.startswith('_'))
-    assert names == sorted(name for name in dir(new) if not name.startswith('_')), f'{path}: attributes differ'
-    for name in names:
-        left, right = _read(old, name), _read(new, name)
-        if callable(left) and not isinstance(left, type):
-            assert callable(right), f'{path}.{name}: callable differs'
-            continue
-        assert_same_surface(left, right, f'{path}.{name}', seen)
-
-
-def _read(obj, name):
-    try:
-        return getattr(obj, name)
-    except Exception as error:  # noqa: BLE001 (compare failing properties too)
-        return ('raised', type(error).__name__, str(error))
-
-
-def build_both(ctx: dict):
-    old = worker_context.DocumentContext(ctx=copy.deepcopy(ctx))
-    old.resolve_links()
-    new = models_context.DocumentContext(ctx=copy.deepcopy(ctx))
-    new.resolve_links()
-    return old, new
-
-
-def test_synthetic_context_parity():
-    old, new = build_both(enrich(json.loads(SYNTHETIC_CONTEXT.read_text(encoding='utf-8'))))
-    assert_same_surface(old, new)
+def test_synthetic_context():
+    dc = to_context_obj(enrich(json.loads(SYNTHETIC_CONTEXT.read_text(encoding='utf-8'))))
+    assert dc.km.chapters
+    assert dc.current_phase.title
 
 
 def test_metric_without_measure():
     ctx = enrich(json.loads(SYNTHETIC_CONTEXT.read_text(encoding='utf-8')))
     ctx['report']['chapterReports'][0]['metrics'][0]['measure'] = None
-    old, new = build_both(ctx)
-    assert old.report.chapter_reports[0].metrics[0].measure is None
-    assert_same_surface(old, new)
+    dc = to_context_obj(ctx)
+    assert dc.report.chapter_reports[0].metrics[0].measure is None
 
 
-def test_generated_reference_context_parity():
-    ctx = enrich(generated_context())
-    old, new = build_both(ctx)
-    assert len(old.replies) > 300
-    assert_same_surface(old, new)
+def test_generated_reference_context():
+    dc = to_context_obj(enrich(generated_context()))
+    assert len(dc.replies) > 300
 
 
 # the parts real templates use most, asserted explicitly
 def test_template_hot_paths():
-    old, new = build_both(enrich(generated_context()))
-    for dc in (old, new):
-        assert dc.project.created_by is not None
-        assert dc.project.versions and dc.project.version is not None
-        assert dc.pkg.id and dc.pkg.org_id and dc.pkg.km_id and dc.pkg.version
-        assert dc.config.client_url and dc.config.service_name
-        assert dc.doc.created_at is not None
-        assert dc.report.total_report.indications
-        assert dc.current_phase.title
-        assert dc.km.chapters and dc.e.choices
-    first = next(iter(old.replies.values()))
-    assert str(first.path) == str(new.replies[first.path].path)
-
-
-def test_markdown_rendering_parity():
-    for text in ['**bold**\\', '- a\n- b', '<script>alert(1)</script>', '```\n- x\\\n```', None]:
-        assert worker_context.render_markdown(text) == models_context.render_markdown(text)
-    assert worker_context.strip_markdown('*a* b') == models_context.strip_markdown('*a* b')
-
-
-@pytest.mark.parametrize('version', ['18.3', '18.9', '17.9', '18.2', 'x'])
-def test_metamodel_version_check_parity(version):
-    from dsw.document_worker.utils import check_metamodel_version  # noqa: PLC0415
-
-    def outcome(check):
-        try:
-            check(version)
-        except ValueError as error:
-            return str(error)
-        return None
-
-    assert outcome(check_metamodel_version) == outcome(models_context.check_metamodel_version)
+    dc = to_context_obj(enrich(generated_context()))
+    assert dc.project.created_by is not None
+    assert dc.project.versions and dc.project.version is not None
+    assert dc.pkg.id and dc.pkg.org_id and dc.pkg.km_id and dc.pkg.version
+    assert dc.config.client_url and dc.config.service_name
+    assert dc.doc.created_at is not None
+    assert dc.report.total_report.indications
+    assert dc.current_phase.title
+    assert dc.km.chapters and dc.e.choices
+    first = next(iter(dc.replies.values()))
+    assert dc.replies[first.path] is first
