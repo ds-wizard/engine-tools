@@ -17,17 +17,27 @@ from dsw.models.document_template.metadata import DocumentTemplateBundle
 from dsw.models.errors import MetamodelVersionError
 from dsw.models.strictness import load as load_model
 from dsw.models.versions import MetamodelVersion
+from dsw.templating import ContextDefaults, RenderContext, RenderSettings
 
 from . import consts
 from .api_client import WizardAPIClient, WizardCommunicationError
 from .model import Template, TemplateFile, TemplateFileType, TemplateProject
 from .pot import PotFile, create_pot_file
+from .render import (
+    DirectoryProjectFiles,
+    enrich_context,
+    find_format,
+    load_translations,
+    render_document,
+)
 from .utils import UUIDGen
 from .validation import TemplateValidator, ValidationError
 
 
 if typing.TYPE_CHECKING:
     from asyncio import Event
+
+    from dsw.templating import DocumentFile
 
 
 ChangeItem = tuple[watchfiles.Change, pathlib.Path]
@@ -363,6 +373,49 @@ class TDKCore:
         self.logger.debug('Writing POT file: %s', output.as_posix())
         output.write_bytes(pot_file.data)
         return pot_file
+
+    def render(self, *, context_file: pathlib.Path, format_ref: str | None,
+               output: pathlib.Path | None, force: bool, po_file: pathlib.Path | None = None,
+               language: str | None = None,
+               project_files_dir: pathlib.Path | None = None,
+               context_defaults: ContextDefaults | None = None,
+               settings: RenderSettings | None = None,
+               ) -> tuple[pathlib.Path, DocumentFile]:
+        template = self.safe_project.safe_template
+        format_spec = find_format(template, format_ref)
+        self.logger.debug('Loading document context: %s', context_file.as_posix())
+        context = json.loads(context_file.read_text(encoding=consts.DEFAULT_ENCODING))
+        for name in enrich_context(context, format_spec, context_defaults):
+            self.logger.warning('Extra "%s" is not in the context, rendering as '
+                                'for a document without a project', name)
+        if language is None:
+            language = (context.get('document') or {}).get('language')
+        if po_file is None:
+            render_ctx = RenderContext.null(language=language)
+        else:
+            self.logger.debug('Loading translations: %s', po_file.as_posix())
+            render_ctx = RenderContext(translations=load_translations(po_file), language=language)
+        project_files = None
+        if project_files_dir is not None:
+            project_files = DirectoryProjectFiles(project_files_dir)
+        self.logger.info('Rendering format "%s" of %s', format_spec.name, template.coordinates)
+        with tempfile.TemporaryDirectory() as workdir:
+            document = render_document(
+                template,
+                workdir=pathlib.Path(workdir),
+                format_uuid=str(format_spec.uuid),
+                context=context,
+                render_ctx=render_ctx,
+                project_files=project_files,
+                settings=settings,
+            )
+        if output is None:
+            output = pathlib.Path.cwd() / document.filename(template.template_id or 'document')
+        if output.exists() and not force:
+            raise RuntimeError(f'File {output} already exists (not forced)')
+        self.logger.debug('Writing document: %s', output.as_posix())
+        output.write_bytes(document.content)
+        return output, document
 
     def _package_descriptor(self, descriptor: dict) -> dict:
         """Normalize the package descriptor through the shared DocumentTemplateBundle.

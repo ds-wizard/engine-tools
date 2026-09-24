@@ -72,8 +72,8 @@ def run(config: DocumentWorkerConfig, workdir: str):
 
 @main.command()
 def list_plugins():
-    from .plugins.manager import create_manager
+    from dsw.templating.plugins import create_manager
 
     pm = create_manager()
-    for plugin in pm.list_name_plugin():
-        click.echo(f'{plugin[0]}: {plugin[1].__name__}')
+    for name, module in pm.list_name_plugin():
+        click.echo(f'{name}: {getattr(module, "__name__", module)}')

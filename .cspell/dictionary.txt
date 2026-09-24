@@ -25,6 +25,8 @@ pagebreak
 pagebreaks
 pagebreakpy
 panflute
+Pango
+OOXML
 idstring
 privkey
 searchpath

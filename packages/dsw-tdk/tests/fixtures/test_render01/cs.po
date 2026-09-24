@@ -1,0 +1,7 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=utf-8\n"
+"Language: cs\n"
+
+msgid "Data Management Plan"
+msgstr "Plán správy dat"

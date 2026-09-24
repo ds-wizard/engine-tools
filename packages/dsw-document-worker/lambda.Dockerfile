@@ -30,7 +30,7 @@ RUN python -m pip wheel --no-deps --wheel-dir=/app/wheels \
       /app/packages/dsw-database \
       /app/packages/dsw-models \
       /app/packages/dsw-storage \
-      /app/packages/dsw-document-worker/addons/* \
+      /app/packages/dsw-templating \
       /app/packages/dsw-document-worker
 
 
@@ -64,6 +64,7 @@ COPY packages/dsw-mailer/pyproject.toml /app/packages/dsw-mailer/
 COPY packages/dsw-models/pyproject.toml /app/packages/dsw-models/
 COPY packages/dsw-storage/pyproject.toml /app/packages/dsw-storage/
 COPY packages/dsw-tdk/pyproject.toml /app/packages/dsw-tdk/
+COPY packages/dsw-templating/pyproject.toml /app/packages/dsw-templating/
 
 # project.dependencies is dynamic, so `uv export` must build each member's
 # metadata rather than read it, and hatchling validates project.readme while
@@ -77,6 +78,7 @@ COPY packages/dsw-mailer/README.md /app/packages/dsw-mailer/
 COPY packages/dsw-models/README.md /app/packages/dsw-models/
 COPY packages/dsw-storage/README.md /app/packages/dsw-storage/
 COPY packages/dsw-tdk/README.md /app/packages/dsw-tdk/
+COPY packages/dsw-templating/README.md /app/packages/dsw-templating/
 
 # Install Python dependencies (resolved from uv.lock)
 RUN uv --directory /app export --locked --no-dev --no-emit-workspace --no-hashes --package dsw-document-worker -o /app/requirements.txt \
@@ -94,9 +96,6 @@ ENV APPLICATION_CONFIG_PATH=${LAMBDA_TASK_ROOT}/application.yml \
 # Add fonts
 COPY packages/dsw-document-worker/resources/fonts /usr/share/fonts/truetype/custom
 RUN fc-cache
-
-## Add Pandoc filters
-COPY packages/dsw-document-worker/resources/pandoc/filters /pandoc/filters
 
 WORKDIR ${LAMBDA_TASK_ROOT}
 

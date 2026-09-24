@@ -1,0 +1,63 @@
+[project]
+name = "dsw-templating"
+description = "Data Stewardship Wizard document template rendering"
+readme = "README.md"
+keywords = ["documents", "dsw", "generation", "jinja2", "pandoc", "template"]
+license = { text = "Apache License 2.0" }
+authors = [
+    { name = "Marek Suchánek", email = "marek.suchanek@ds-wizard.org" }
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Text Processing",
+]
+requires-python = ">=3.12, <4"
+dynamic = ["version", "dependencies", "optional-dependencies"]
+
+[project.urls]
+Homepage = "https://ds-wizard.org"
+Repository = "https://github.com/ds-wizard/engine-tools"
+Documentation = "https://guide.ds-wizard.org"
+Issues = "https://github.com/ds-wizard/ds-wizard/issues"
+
+[project.scripts]
+# Pandoc filter for `--filter=pandoc-docx-pagebreakpy` (needs the docx extra)
+pandoc-docx-pagebreakpy = "dsw.templating.docx_pagebreak:main"
+
+[build-system]
+requires = ["hatchling==1.32.0", "uv-dynamic-versioning==0.14.1"]
+build-backend = "hatchling.build"
+
+
+[tool.hatch.version]
+source = "uv-dynamic-versioning"
+
+[tool.hatch.build.targets.wheel]
+packages = ["dsw"]
+artifacts = ["dsw/*/build_info.py"]
+
+[tool.hatch.build.targets.sdist]
+artifacts = ["dsw/*/build_info.py"]
+
+# Heavy dependencies are extras: a step whose extra is missing fails with an
+# "install dsw-templating[<extra>]" error when it is used, not on import.
+[tool.hatch.metadata.hooks.uv-dynamic-versioning]
+dependencies = ["Babel", "Jinja2", "pluggy", "python-dateutil", "dsw-models[rendering]=={{ version }}"]
+
+[tool.hatch.metadata.hooks.uv-dynamic-versioning.optional-dependencies]
+docx = ["panflute"]
+excel = ["XlsxWriter"]
+http = ["requests"]
+pdf = ["weasyprint"]
+rdf = ["rdflib", "rdflib-jsonld"]
+all = ["panflute", "rdflib", "rdflib-jsonld", "requests", "weasyprint", "XlsxWriter"]
+test = ["polib", "pytest"]
+
+[tool.uv-dynamic-versioning]
+vcs = "git"
+style = "pep440"

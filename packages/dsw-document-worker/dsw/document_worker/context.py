@@ -66,7 +66,7 @@ class Context:
 
     @classmethod
     def initialize(cls, db, s3, config, workdir):
-        from .plugins.manager import create_manager
+        from dsw.templating.plugins import create_manager
         cls._instance = _Context(
             app=AppContext(
                 pm=create_manager(),

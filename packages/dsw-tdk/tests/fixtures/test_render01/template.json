@@ -1,0 +1,50 @@
+{
+  "organizationId": "test",
+  "templateId": "render01",
+  "version": "1.0.0",
+  "name": "Test template for rendering",
+  "description": "Dummy document template for rendering locally",
+  "metamodelVersion": "18.3",
+  "language": "en",
+  "license": "Apache-2.0",
+  "allowedPackages": [],
+  "formats": [
+    {
+      "uuid": "d3e98eb6-344d-481f-8e37-6a67b6cd1ad2",
+      "name": "JSON Data",
+      "icon": "far fa-file",
+      "steps": [{"name": "json", "options": {}}]
+    },
+    {
+      "uuid": "a9293d08-59a4-4e6b-ae62-7a6a570b031c",
+      "name": "HTML Document",
+      "icon": "far fa-file-code",
+      "steps": [
+        {"name": "jinja", "options": {"template": "src/document.html.j2", "content-type": "text/html", "extension": "html"}}
+      ]
+    },
+    {
+      "uuid": "0f5c8a55-9d2e-4b8e-8e57-7d6c0b7f3e10",
+      "name": "Project JSON",
+      "icon": "far fa-file",
+      "steps": [{"name": "json", "options": {"extras": "project,submissions"}}]
+    },
+    {
+      "uuid": "6e1b4ee5-4c47-4a2c-9a5b-3cf8b1b6c2a1",
+      "name": "Excluded",
+      "icon": "far fa-file-code",
+      "steps": [
+        {"name": "jinja", "options": {"template": "src/excluded.html.j2", "content-type": "text/html", "extension": "html"}}
+      ]
+    }
+  ],
+  "_tdk": {
+    "version": "4.34.0",
+    "readmeFile": "README.md",
+    "files": [
+      "src/**/*",
+      "assets/**/*",
+      "!src/excluded.html.j2"
+    ]
+  }
+}

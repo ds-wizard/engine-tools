@@ -4,7 +4,8 @@ import polib
 import pytest
 
 from dsw.document_worker import consts
-from dsw.document_worker.templates.locales import LocaleLoader, TemplateLocale
+from dsw.document_worker.templates.locales import LocaleLoader
+from dsw.templating import TemplateLocale
 
 
 LOCALE_UUID = '44444444-4444-4444-4444-444444444444'

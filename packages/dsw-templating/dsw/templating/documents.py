@@ -1,0 +1,147 @@
+from __future__ import annotations
+
+import pathlib
+
+from . import consts
+
+
+class FileFormat:
+
+    def __init__(self, name: str, content_type: str, file_extension: str):
+        self.name = name
+        self.content_type = content_type
+        self.file_extension = file_extension
+
+    def __eq__(self, other):
+        return isinstance(other, FileFormat) and other.name == self.name
+
+    def __hash__(self):
+        return hash(self.name)
+
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        return f'Format[{self.name}]'
+
+
+class FileFormats:
+    JSON = FileFormat('json', 'application/json', 'json')
+    HTML = FileFormat('html', 'text/html', 'html')
+    PDF = FileFormat('pdf', 'application/pdf', 'pdf')
+    DOCX = FileFormat(
+        'docx',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'docx',
+    )
+    Markdown = FileFormat('markdown', 'text/markdown', 'md')
+    ODT = FileFormat('odt', 'application/vnd.oasis.opendocument.text', 'odt')
+    RST = FileFormat('rst', 'text/x-rst', 'rst')
+    LaTeX = FileFormat('latex', 'application/x-tex', 'tex')
+    EPUB = FileFormat('epub', 'application/epub+zip', 'epub')
+    DocBook4 = FileFormat('docbook4', 'application/docbook+xml', 'dbk')
+    DocBook5 = FileFormat('docbook5', 'application/docbook+xml', 'dbk')
+    PPTX = FileFormat(
+        'pptx',
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'pptx',
+    )
+    RTF = FileFormat('rtf', 'application/rtf', 'rtf')
+    ADoc = FileFormat('asciidoc', 'text/asciidoc', 'adoc')
+    RDF_XML = FileFormat('rdf', 'application/rdf+xml', 'rdf')
+    N3 = FileFormat('n3', 'text/n3', 'n3')
+    NTRIPLES = FileFormat('nt', 'application/n-triples', 'nt')
+    TURTLE = FileFormat('ttl', 'text/turtle', 'ttl')
+    TRIG = FileFormat('trig', 'application/trig', 'trig')
+    JSONLD = FileFormat('jsonld', 'application/ld+json', 'jsonld')
+    ZIP = FileFormat('zip', 'application/zip', 'zip')
+    TAR = FileFormat('tar', 'application/x-tar', 'tar')
+    TAR_GZIP = FileFormat('gzip', 'application/gzip', 'tar.gz')
+    TAR_BZIP2 = FileFormat('bzip2', 'application/x-bzip2', 'tar.bz2')
+    TAR_LZMA = FileFormat('lzma', 'application/x-lzma', 'tar.xz')
+    XLSX = FileFormat(
+        'xlsx',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'xlsx',
+    )
+    XLSM = FileFormat(
+        'xlsm',
+        'application/vnd.ms-excel.sheet.macroEnabled.12',
+        'xlsm',
+    )
+
+    @staticmethod
+    def get(name: str):
+        known_formats = {
+            'html': FileFormats.HTML,
+            'pdf': FileFormats.PDF,
+            'docx': FileFormats.DOCX,
+            'markdown': FileFormats.Markdown,
+            'odt': FileFormats.ODT,
+            'rst': FileFormats.RST,
+            'latex': FileFormats.LaTeX,
+            'json': FileFormats.JSON,
+            'epub': FileFormats.EPUB,
+            'docbook4': FileFormats.DocBook4,
+            'docbook5': FileFormats.DocBook5,
+            'pptx': FileFormats.PPTX,
+            'rtf': FileFormats.RTF,
+            'asciidoc': FileFormats.ADoc,
+            'rdf': FileFormats.RDF_XML,
+            'rdf/xml': FileFormats.RDF_XML,
+            'turtle': FileFormats.TURTLE,
+            'ttl': FileFormats.TURTLE,
+            'n3': FileFormats.N3,
+            'ntriples': FileFormats.NTRIPLES,
+            'n-triples': FileFormats.NTRIPLES,
+            'trig': FileFormats.TRIG,
+            'json-ld': FileFormats.JSONLD,
+            'jsonld': FileFormats.JSONLD,
+            'zip': FileFormats.ZIP,
+            'tar': FileFormats.TAR,
+            'gzip': FileFormats.TAR_GZIP,
+            'bzip2': FileFormats.TAR_BZIP2,
+            'lzma': FileFormats.TAR_LZMA,
+            'xlsx': FileFormats.XLSX,
+            'xlsm': FileFormats.XLSM,
+        }
+        return known_formats.get(name)
+
+
+class DocumentFile:
+
+    def __init__(self, file_format: FileFormat, content: bytes,
+                 encoding: str | None = None):
+        self.file_format = file_format
+        self._content = content
+        self.byte_size = len(content)
+        self.encoding = encoding
+
+    @property
+    def content_type(self) -> str:
+        return self.file_format.content_type
+
+    @property
+    def safe_encoding(self) -> str:
+        return self.encoding or consts.DEFAULT_ENCODING
+
+    @property
+    def content(self) -> bytes:
+        return self._content
+
+    @content.setter
+    def content(self, content: bytes):
+        self._content = content
+        self.byte_size = len(content)
+
+    def filename(self, name: str) -> str:
+        return f'{name}.{self.file_format.file_extension}'
+
+    def store(self, name: str):
+        pathlib.Path(self.filename(name)).write_bytes(self.content)
+
+    @property
+    def object_content_type(self) -> str:
+        if self.encoding is not None:
+            return f'{self.content_type}; charset={self.encoding}'
+        return self.content_type
