@@ -13,6 +13,7 @@ members = [
     "dsw-models",
     "dsw-storage",
     "dsw-tdk",
+    "dsw-templating",
 ]
 
 [manifest.dependency-groups]
@@ -502,27 +503,19 @@ requires-dist = [
 name = "dsw-document-worker"
 source = { editable = "packages/dsw-document-worker" }
 dependencies = [
-    { name = "babel" },
     { name = "click" },
     { name = "dsw-command-queue" },
     { name = "dsw-config" },
     { name = "dsw-database" },
-    { name = "dsw-models", extra = ["rendering"] },
+    { name = "dsw-models" },
     { name = "dsw-storage" },
-    { name = "jinja2" },
-    { name = "panflute" },
+    { name = "dsw-templating", extra = ["all"] },
     { name = "pathvalidate" },
-    { name = "pluggy" },
     { name = "polib" },
     { name = "python-dateutil" },
     { name = "python-slugify" },
-    { name = "rdflib" },
-    { name = "rdflib-jsonld" },
-    { name = "requests" },
     { name = "sentry-sdk" },
     { name = "tenacity" },
-    { name = "weasyprint" },
-    { name = "xlsxwriter" },
 ]
 
 [package.optional-dependencies]
@@ -532,28 +525,20 @@ test = [
 
 [package.metadata]
 requires-dist = [
-    { name = "babel" },
     { name = "click" },
     { name = "dsw-command-queue", editable = "packages/dsw-command-queue" },
     { name = "dsw-config", editable = "packages/dsw-config" },
     { name = "dsw-database", editable = "packages/dsw-database" },
-    { name = "dsw-models", extras = ["rendering"], editable = "packages/dsw-models" },
+    { name = "dsw-models", editable = "packages/dsw-models" },
     { name = "dsw-storage", editable = "packages/dsw-storage" },
-    { name = "jinja2" },
-    { name = "panflute" },
+    { name = "dsw-templating", extras = ["all"], editable = "packages/dsw-templating" },
     { name = "pathvalidate" },
-    { name = "pluggy" },
     { name = "polib" },
     { name = "pytest", marker = "extra == 'test'" },
     { name = "python-dateutil" },
     { name = "python-slugify" },
-    { name = "rdflib" },
-    { name = "rdflib-jsonld" },
-    { name = "requests" },
     { name = "sentry-sdk" },
     { name = "tenacity" },
-    { name = "weasyprint" },
-    { name = "xlsxwriter" },
 ]
 provides-extras = ["test"]
 
@@ -655,6 +640,7 @@ dependencies = [
     { name = "click" },
     { name = "colorama" },
     { name = "dsw-models" },
+    { name = "dsw-templating" },
     { name = "humanize" },
     { name = "jinja2" },
     { name = "multidict" },
@@ -666,6 +652,9 @@ dependencies = [
 ]
 
 [package.optional-dependencies]
+all = [
+    { name = "dsw-templating", extra = ["all"] },
+]
 test = [
     { name = "pytest" },
     { name = "pytest-recording" },
@@ -679,6 +668,8 @@ requires-dist = [
     { name = "click" },
     { name = "colorama" },
     { name = "dsw-models", editable = "packages/dsw-models" },
+    { name = "dsw-templating", editable = "packages/dsw-templating" },
+    { name = "dsw-templating", extras = ["all"], marker = "extra == 'all'", editable = "packages/dsw-templating" },
     { name = "humanize" },
     { name = "jinja2" },
     { name = "multidict" },
@@ -691,7 +682,72 @@ requires-dist = [
     { name = "vcrpy", marker = "extra == 'test'" },
     { name = "watchfiles" },
 ]
-provides-extras = ["test"]
+provides-extras = ["all", "test"]
+
+[[package]]
+name = "dsw-templating"
+source = { editable = "packages/dsw-templating" }
+dependencies = [
+    { name = "babel" },
+    { name = "dsw-models", extra = ["rendering"] },
+    { name = "jinja2" },
+    { name = "pluggy" },
+    { name = "python-dateutil" },
+]
+
+[package.optional-dependencies]
+all = [
+    { name = "panflute" },
+    { name = "rdflib" },
+    { name = "rdflib-jsonld" },
+    { name = "requests" },
+    { name = "weasyprint" },
+    { name = "xlsxwriter" },
+]
+docx = [
+    { name = "panflute" },
+]
+excel = [
+    { name = "xlsxwriter" },
+]
+http = [
+    { name = "requests" },
+]
+pdf = [
+    { name = "weasyprint" },
+]
+rdf = [
+    { name = "rdflib" },
+    { name = "rdflib-jsonld" },
+]
+test = [
+    { name = "polib" },
+    { name = "pytest" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "babel" },
+    { name = "dsw-models", extras = ["rendering"], editable = "packages/dsw-models" },
+    { name = "jinja2" },
+    { name = "panflute", marker = "extra == 'all'" },
+    { name = "panflute", marker = "extra == 'docx'" },
+    { name = "pluggy" },
+    { name = "polib", marker = "extra == 'test'" },
+    { name = "pytest", marker = "extra == 'test'" },
+    { name = "python-dateutil" },
+    { name = "rdflib", marker = "extra == 'all'" },
+    { name = "rdflib", marker = "extra == 'rdf'" },
+    { name = "rdflib-jsonld", marker = "extra == 'all'" },
+    { name = "rdflib-jsonld", marker = "extra == 'rdf'" },
+    { name = "requests", marker = "extra == 'all'" },
+    { name = "requests", marker = "extra == 'http'" },
+    { name = "weasyprint", marker = "extra == 'all'" },
+    { name = "weasyprint", marker = "extra == 'pdf'" },
+    { name = "xlsxwriter", marker = "extra == 'all'" },
+    { name = "xlsxwriter", marker = "extra == 'excel'" },
+]
+provides-extras = ["all", "docx", "excel", "http", "pdf", "rdf", "test"]
 
 [[package]]
 name = "fonttools"

@@ -1,0 +1,15 @@
+{
+  "properties": {"document": {"title": {{ ctx.document.name|tojson }}, "created": "2026-01-01"}},
+  "formats": {"bold": {"bold": true}},
+  "sheets": [
+    {
+      "name": "Items",
+      "data": [
+        {"type": "row", "cell": "A1", "data": ["Title", "Size"], "format": "bold"},
+        {%- for item in ctx.entries %}
+        {"type": "row", "row": {{ loop.index }}, "col": 0, "data": [{{ item.title|tojson }}, {{ item.size|tojson }}]}{{ "," if not loop.last }}
+        {%- endfor %}
+      ]
+    }
+  ]
+}

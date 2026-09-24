@@ -1,4 +1,5 @@
-from .formats import Format
+from dsw.templating import Format
+
 from .templates import Template, TemplateRegistry
 
 

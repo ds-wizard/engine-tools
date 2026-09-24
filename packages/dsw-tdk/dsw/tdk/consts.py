@@ -32,11 +32,8 @@ REGEX_MIME_TYPE = re.compile(r'^(?![-])(?!.*[-]$)[-\w.]+/[-\w.]+$')
 DEFAULT_LIST_FORMAT = '{template.id:<50} {template.name:<30} [{template.uuid}]'
 DEFAULT_ENCODING = 'utf-8'
 DEFAULT_LANGUAGE = 'en'
-DEFAULT_LOCALE_DOMAIN = 'default'
 DEFAULT_README = pathlib.Path('README.md')
 
-JINJA_EXTENSIONS = ('jinja2.ext.do', 'jinja2.ext.loopcontrols')
-JINJA_I18N_TRIMMED = True
 POT_FILE_DEFAULT = 'template.pot'
 
 TEMPLATE_FILE = 'template.json'

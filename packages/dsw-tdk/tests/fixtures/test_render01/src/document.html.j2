@@ -1,0 +1,6 @@
+{%- set logo = assets('assets/logo.png') -%}
+{%- set attachment = assets(ctx.files[0]) -%}
+<h1>{% trans %}Data Management Plan{% endtrans %}</h1>
+<p lang="{{ ctx.document.language }}">{{ ctx.document.name }}</p>
+<img src="{{ logo.src_value if logo else 'missing' }}">
+<p>{{ attachment.data.decode() if attachment else 'no attachment' }}</p>

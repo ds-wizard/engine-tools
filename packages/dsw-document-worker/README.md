@@ -21,12 +21,13 @@ For more information, see [deployment example](https://github.com/ds-wizard/dsw-
 
 For general information, please visit our [User Guide](https://guide.ds-wizard.org).
 
-DSW Document Worker technical documentation for template development:
+Documents are rendered by [dsw-templating](../dsw-templating), which also holds the technical
+documentation for template development:
 
-* [Document Context](./support/DocumentContext.md)
-* [Jinja Filters](./support/JinjaFilters.md)
-* [Jinja Tests](./support/JinjaTests.md)
-* [Translations](./support/Translations.md)
+* [Document Context](../dsw-templating/support/DocumentContext.md)
+* [Jinja Filters](../dsw-templating/support/JinjaFilters.md)
+* [Jinja Tests](../dsw-templating/support/JinjaTests.md)
+* [Translations](../dsw-templating/support/Translations.md)
 
 ## Docker
 

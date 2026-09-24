@@ -1,0 +1,16 @@
+{
+  "document": {
+    "name": "Golden Plan",
+    "language": "cs",
+    "createdAt": "2026-03-01T23:30:00Z"
+  },
+  "entries": [
+    {"title": "Datasets", "size": 1536000},
+    {"title": "Software.", "size": null},
+    {"title": "Publications", "size": 42}
+  ],
+  "summary": "Plan with **bold** text and a [link](https://example.org).\n\n<script>alert(1)</script>",
+  "files": [
+    {"uuid": "22222222-0000-0000-0000-000000000001", "fileName": "notes.txt", "contentType": "text/plain"}
+  ]
+}

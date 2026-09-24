@@ -1,0 +1,65 @@
+{
+  "organizationId": "dsw",
+  "templateId": "golden",
+  "version": "1.0.0",
+  "name": "Golden Fixture",
+  "description": "Small template exercising the built-in steps",
+  "license": "Apache-2.0",
+  "metamodelVersion": "18.3",
+  "allowedPackages": [],
+  "formats": [
+    {
+      "uuid": "11111111-0000-0000-0000-000000000001",
+      "name": "JSON Data",
+      "icon": "far fa-file",
+      "steps": [
+        {"name": "json", "options": {}}
+      ]
+    },
+    {
+      "uuid": "11111111-0000-0000-0000-000000000002",
+      "name": "HTML Document",
+      "icon": "far fa-file-code",
+      "steps": [
+        {"name": "jinja", "options": {"template": "src/document.html.j2", "content-type": "text/html", "extension": "html"}}
+      ]
+    },
+    {
+      "uuid": "11111111-0000-0000-0000-000000000003",
+      "name": "Zipped HTML",
+      "icon": "far fa-file-archive",
+      "steps": [
+        {"name": "jinja", "options": {"template": "src/document.html.j2", "content-type": "text/html", "extension": "html"}},
+        {"name": "archive", "options": {"type": "zip", "compression": "gzip", "inputFileDst": "report.html"}}
+      ]
+    },
+    {
+      "uuid": "11111111-0000-0000-0000-000000000004",
+      "name": "Excel",
+      "icon": "far fa-file-excel",
+      "steps": [
+        {"name": "jinja", "options": {"template": "src/sheet.json.j2", "content-type": "application/json", "extension": "json"}},
+        {"name": "excel", "options": {}}
+      ]
+    },
+    {
+      "uuid": "11111111-0000-0000-0000-000000000005",
+      "name": "PDF Document",
+      "icon": "far fa-file-pdf",
+      "steps": [
+        {"name": "jinja", "options": {"template": "src/document.html.j2", "content-type": "text/html", "extension": "html"}},
+        {"name": "weasyprint", "options": {}}
+      ]
+    },
+    {
+      "uuid": "11111111-0000-0000-0000-000000000006",
+      "name": "MS Word Document",
+      "icon": "far fa-file-word",
+      "steps": [
+        {"name": "jinja", "options": {"template": "src/document.html.j2", "content-type": "text/html", "extension": "html"}},
+        {"name": "pandoc", "options": {"from": "html", "to": "docx", "filters": "docx-pagebreak.lua"}},
+        {"name": "enrich-docx", "options": {"rewrite:docProps/custom.xml": "render:src/custom.xml.j2"}}
+      ]
+    }
+  ]
+}

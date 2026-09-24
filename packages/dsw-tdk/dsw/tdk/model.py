@@ -9,6 +9,8 @@ import typing
 
 import pathspec
 
+from dsw.templating.consts import JINJA_FILE_EXTENSIONS
+
 from . import consts
 
 
@@ -143,7 +145,7 @@ class TDKConfig:
 class TemplateFile:
 
     DEFAULT_CONTENT_TYPE = 'application/octet-stream'
-    TEMPLATE_EXTENSIONS = ('.j2', '.jinja', '.jinja2', '.jnj')
+    TEMPLATE_EXTENSIONS = JINJA_FILE_EXTENSIONS
 
     def __init__(self, *, filename: pathlib.Path, remote_uuid: str | None = None,
                  remote_id: str | None = None, remote_type: TemplateFileType | None = None,

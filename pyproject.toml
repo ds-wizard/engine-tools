@@ -23,6 +23,7 @@ dsw-mailer = { workspace = true }
 dsw-models = { workspace = true }
 dsw-storage = { workspace = true }
 dsw-tdk = { workspace = true }
+dsw-templating = { workspace = true }
 
 [tool.uv.workspace]
 members = ["packages/*"]
