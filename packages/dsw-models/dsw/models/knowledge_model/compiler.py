@@ -4,7 +4,8 @@ A faithful port of the backend compiler (``Wizard.Service.KnowledgeModel.Compile
 its quirks, so the result equals what the backend would produce:
 
 * an event whose entity or parent does not exist is ignored (an added question is still
-  stored, just not linked),
+  stored, just not linked); an added question, answer or choice whose parent cannot contain it
+  is stored unlinked,
 * removing a UUID from a parent list removes its first occurrence only, except for moves,
 * editing a question, reference or integration with a different type converts the entity and
   resets type-specific fields,
@@ -260,7 +261,9 @@ class Compiler:
         linked = self._edit_question_parent(
             event.parent_uuid, lambda items: items.append(event.entity_uuid))
         if not linked:
-            self._ignored(event, 'parent not found, question stored unlinked')
+            in_question = event.parent_uuid in self.entities.questions
+            problem = 'parent cannot contain questions' if in_question else 'parent not found'
+            self._ignored(event, f'{problem}, question stored unlinked')
         self.entities.questions[event.entity_uuid] = self._create(event, content)
 
     def _delete_question(self, event: ev.Event, content: typing.Any) -> None:
@@ -278,8 +281,9 @@ class Compiler:
             change(e.chapters[parent_uuid].question_uuids)
         elif parent_uuid in e.questions:
             children = _question_children(e.questions[parent_uuid], 'questions')
-            if children is not None:
-                change(children)
+            if children is None:
+                return False
+            change(children)
         elif parent_uuid in e.answers:
             change(e.answers[parent_uuid].follow_up_uuids)
         else:
@@ -294,7 +298,9 @@ class Compiler:
                 self._ignored(event, 'parent not found')
                 return
             children = _question_children(parent, kind)
-            if children is not None:
+            if children is None:
+                self._ignored(event, f'parent cannot contain {kind}, stored unlinked')
+            else:
                 children.append(event.entity_uuid)
             getattr(self.entities, collection)[event.entity_uuid] = self._create(event, content)
         return handler

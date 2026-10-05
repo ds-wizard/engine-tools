@@ -78,17 +78,32 @@ def test_add_question_with_missing_parent_is_stored_unlinked():
     assert ignored == [(u(32), 'parent not found, question stored unlinked')]
 
 
-def test_add_question_under_non_list_question_is_stored_unlinked_silently():
+def test_add_question_under_non_list_question_is_stored_unlinked():
     km, ignored = compile_with_ignored([
         *base_events(),
         event(ev.AddListQuestionEventContent(title='Item', annotations=[], tag_uuids=[]), 32, 30),
         event(ev.AddListQuestionEventContent(title='Item', annotations=[], tag_uuids=[]), 33, 31),
     ])
-    assert ignored == []
+    assert ignored == [(u(32), 'parent cannot contain questions, question stored unlinked')]
     assert u(32) in km.entities.questions
     assert km.entities.questions[u(31)].item_template_question_uuids == [u(33)]
     km_graph = graph.KnowledgeModel(km)
     assert km_graph.unreachable == [km_graph[u(32)]]
+
+
+def test_add_answer_and_choice_under_wrong_question_type_are_stored_unlinked():
+    km, ignored = compile_with_ignored([
+        *base_events(),
+        event(ev.AddAnswerEventContent(label='No', annotations=[], metric_measures=[]), 41, 31),
+        event(ev.AddChoiceEventContent(label='A', annotations=[]), 50, 30),
+    ])
+    assert ignored == [(u(41), 'parent cannot contain answers, stored unlinked'),
+                       (u(50), 'parent cannot contain choices, stored unlinked')]
+    assert u(41) in km.entities.answers
+    assert u(50) in km.entities.choices
+    assert km.entities.questions[u(30)].answer_uuids == [u(40)]
+    km_graph = graph.KnowledgeModel(km)
+    assert set(km_graph.unreachable) == {km_graph[u(41)], km_graph[u(50)]}
 
 
 def test_add_answer_with_missing_parent_is_dropped():
@@ -212,8 +227,8 @@ def test_compile_does_not_mutate_base():
 
 
 REFERENCE_COUNTS = {
-    'dmp.eosc.cz_czech-nrp-km_1.0.2.km.gz': (1469, 2, 105),
-    'dsw_root_2.8.1.km.gz': (2010, 20, 113),
+    'dmp.eosc.cz_czech-nrp-km_1.0.2.km.gz': (1469, 10, 105),
+    'dsw_root_2.8.1.km.gz': (2010, 21, 113),
     'dsw_smp_1.2.4.km.gz': (412, 0, 53),
 }
 
