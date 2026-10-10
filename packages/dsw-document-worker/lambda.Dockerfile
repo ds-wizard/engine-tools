@@ -48,7 +48,7 @@ FROM ghcr.io/ds-wizard/python-base:${PYTHON_BASE_VERSION}-docworker-lambda AS bu
 # third-party wheel build - the most expensive layer in the image.
 ENV UV_DYNAMIC_VERSIONING_BYPASS=0.0.0
 
-COPY --from=ghcr.io/astral-sh/uv:0.12.7 /uv /bin/uv
+COPY --from=ghcr.io/astral-sh/uv:0.12.24 /uv /bin/uv
 
 # Dependency manifests only. This layer is invalidated only when dependencies
 # change, so the expensive third-party wheel build below is reused across
@@ -110,7 +110,7 @@ COPY --from=workspace-wheels /app/wheels /tmp/wheels
 # uv rather than pip: this unpacks and byte-compiles the whole dependency set,
 # and it runs emulated on every non-native architecture. It is bind-mounted
 # rather than copied so nothing of it remains in the image.
-RUN --mount=from=ghcr.io/astral-sh/uv:0.12.7,source=/uv,target=/usr/local/bin/uv \
+RUN --mount=from=ghcr.io/astral-sh/uv:0.12.24,source=/uv,target=/usr/local/bin/uv \
     uv pip install --system --no-cache --no-index --compile-bytecode /tmp/wheels/*  \
  && rm -rf /tmp/wheels
 
