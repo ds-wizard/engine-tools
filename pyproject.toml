@@ -13,6 +13,17 @@ translations = [
     "babel==2.18.0",
 ]
 
+# One exact uv everywhere: CI (setup-uv reads this), the Dockerfiles' uv image
+# and every developer machine. The lockfile format changes even between patch
+# releases (0.12.7 writes `revision = 3`, 0.12.23 writes 5), and uv rewrites a
+# lockfile in its own format whenever it changes anything in it, so two uv
+# versions produce two different files from the same inputs and byte-for-byte
+# lockfile checks fail for reasons unrelated to the change under test.
+# Upgrading uv is a change of its own: this pin, the Dockerfiles' image, and
+# both lockfiles regenerated.
+[tool.uv]
+required-version = "==0.12.24"
+
 [tool.uv.sources]
 dsw-command-queue = { workspace = true }
 dsw-config = { workspace = true }
