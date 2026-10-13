@@ -7,6 +7,13 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+
+## [4.35.1]
+
+Released for version consistency with other DSW tools.
+
+## [4.35.0]
+
 ### Added
 
 - Rendering engine of document templates extracted from `dsw-document-worker`: formats, steps,
@@ -21,3 +28,6 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `enrich_context_config` and `ContextDefaults`: the service information and branding fallbacks the document worker adds to `ctx.config`
 - Plugins use the `dsw-templating` pluggy project and the `dsw_templating_plugins` entry point
 - The `pandoc-docx-pagebreakpy` Pandoc filter is a command of this package (`docx` extra) instead of a separate addon installed only in the document worker image
+
+[4.35.0]: /../../tree/v4.35.0
+[4.35.1]: /../../tree/v4.35.1

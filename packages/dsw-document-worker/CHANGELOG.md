@@ -7,6 +7,15 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+
+## [4.35.1]
+
+### Security
+
+- Updated base Docker image to 4.35.1 with fixed dependencies (CVE-2026-19445)
+
+## [4.35.0]
+
 ### Added
 
 - Document template locales: a `.po` file attached to a document template version is applied at render time, so language is a parameter of document generation instead of a property of the format
@@ -35,7 +44,6 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - The `policy.ext.i18n.trimmed` step option; `{% trans %}` blocks are now always trimmed, since the trimming decides the `msgid` and the POT file is per document template while the option was per format. Use `{% trans notrimmed %}` where the whitespace matters.
 - The experimental `i18n-dir`, `i18n-domain` and `i18n-lang` step options; they are now ignored and a template still using them renders untranslated. Use document template locales instead.
-
 
 ## [4.34.0]
 
@@ -702,3 +710,5 @@ Released for version consistency with other DSW tools.
 [4.32.0]: /../../tree/v4.32.0
 [4.33.0]: /../../tree/v4.33.0
 [4.34.0]: /../../tree/v4.34.0
+[4.35.0]: /../../tree/v4.35.0
+[4.35.1]: /../../tree/v4.35.1

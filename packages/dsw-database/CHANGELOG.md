@@ -7,6 +7,13 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+
+## [4.35.1]
+
+Released for version consistency with other DSW tools.
+
+## [4.35.0]
+
 ### Added
 
 - `language` and `pot_file_ready` fields of `document_template` and a method to update the POT file flag
@@ -14,7 +21,6 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Changed
 
 - Read the `project` table column `knowledge_model_package_uuid` (renamed in the backend)
-
 
 ## [4.34.0]
 
@@ -26,6 +32,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Added
 
 - `PostgresConnection.discard` to give up a connection that may still be in use by an abandoned thread
+
 ## [4.33.0]
 
 Released for version consistency with other DSW tools.
@@ -530,3 +537,5 @@ Released for version consistency with other DSW tools.
 [4.32.0]: /../../tree/v4.32.0
 [4.33.0]: /../../tree/v4.33.0
 [4.34.0]: /../../tree/v4.34.0
+[4.35.0]: /../../tree/v4.35.0
+[4.35.1]: /../../tree/v4.35.1

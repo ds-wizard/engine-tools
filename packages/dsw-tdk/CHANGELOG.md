@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [4.35.1]
+
+### Security
+
+- Updated base Docker image to 4.35.1 with fixed dependencies (CVE-2026-19445)
+
+## [4.35.0]
+
 ### Added
 
 - New `pot` command creating a POT file with translatable strings of the template project
@@ -25,7 +34,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `options` of `allowedPackages` in `template.json` are no longer dropped when the TDK rewrites it
 - `metamodelVersion` `"18"` is accepted as `18.0`, as the server does
-
 
 ## [4.34.0]
 
@@ -765,3 +773,5 @@ Initial DSW Template Development Kit (versioned as part of the [DSW platform](ht
 [4.32.0]: /../../tree/v4.32.0
 [4.33.0]: /../../tree/v4.33.0
 [4.34.0]: /../../tree/v4.34.0
+[4.35.0]: /../../tree/v4.35.0
+[4.35.1]: /../../tree/v4.35.1

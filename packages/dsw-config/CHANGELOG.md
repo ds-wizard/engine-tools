@@ -7,6 +7,13 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+
+## [4.35.1]
+
+Released for version consistency with other DSW tools.
+
+## [4.35.0]
+
 ### Added
 
 - `read_config` loads the configuration YAML from AWS AppConfig when `AWS_APP_CONFIG` is set (environment `Default`, profile derived from the file name, overridable by `AWS_APP_CONFIG_ENVIRONMENT` / `AWS_APP_CONFIG_PROFILE`), and from the local file otherwise; a warm Lambda reuses its session and re-polls only after the poll interval
@@ -511,3 +518,5 @@ Released for version consistency with other DSW tools.
 [4.32.0]: /../../tree/v4.32.0
 [4.33.0]: /../../tree/v4.33.0
 [4.34.0]: /../../tree/v4.34.0
+[4.35.0]: /../../tree/v4.35.0
+[4.35.1]: /../../tree/v4.35.1

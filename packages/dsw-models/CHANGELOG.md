@@ -7,6 +7,13 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+
+## [4.35.1]
+
+Released for version consistency with other DSW tools.
+
+## [4.35.0]
+
 The package was rewritten; its previous, experimental API is not kept.
 
 ### Added
@@ -29,7 +36,6 @@ The package was rewritten; its previous, experimental API is not kept.
 ### Changed
 
 - Supports Python 3.12 and newer
-
 
 ## [4.34.0]
 
@@ -437,3 +443,5 @@ Released for version consistency with other DSW tools.
 [4.32.0]: /../../tree/v4.32.0
 [4.33.0]: /../../tree/v4.33.0
 [4.34.0]: /../../tree/v4.34.0
+[4.35.0]: /../../tree/v4.35.0
+[4.35.1]: /../../tree/v4.35.1
