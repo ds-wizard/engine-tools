@@ -134,10 +134,12 @@ section-order = [
 "packages/dsw-models/dsw/models/**/migrations.py" = ["FIX002", "TD002", "TD003"]
 
 [tool.ruff.lint.flake8-type-checking]
-# Pydantic resolves annotations at runtime, so their imports must stay real.
+# Pydantic and SQLAlchemy's declarative mapping (`Mapped[...]`) resolve
+# annotations at runtime, so their imports must stay real.
 runtime-evaluated-base-classes = [
     "pydantic.BaseModel",
     "dsw.models.common.BaseModel",
+    "sqlalchemy.orm.DeclarativeBase",
 ]
 
 [tool.ruff.lint.flake8-bandit]

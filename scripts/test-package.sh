@@ -6,7 +6,16 @@ set -u
 
 PKG="$1"
 
-if ! cd "packages/$PKG"; then
+# The package may live under any packages*/ root.
+DIR=""
+for CANDIDATE in packages*/"$PKG"; do
+  if [ -d "$CANDIDATE" ]; then
+    DIR="$CANDIDATE"
+    break
+  fi
+done
+
+if [ -z "$DIR" ] || ! cd "$DIR"; then
   echo "## Setup ($PKG): failed - no such package directory"
   exit 1
 fi

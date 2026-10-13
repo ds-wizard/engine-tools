@@ -39,13 +39,20 @@ BUILD_INFO = BuildInfo(
 )
 EOF
 
-# Copy to packages
-for PKG in $(ls packages); do
-    for MODULE in $(ls packages/$PKG/dsw); do
-        DIR="packages/$PKG/dsw/$MODULE"
-        if [ -d "$DIR" ]; then
-            cp $BUILD_INFO_FILE "$DIR/$BUILD_INFO_FILE"
-        fi
+# Copy to every module of every package under the given package roots
+# (default: packages). A package's namespace directory is its name up to the
+# first dash: packages/dsw-config/dsw/config/build_info.py.
+ROOTS=${*:-packages}
+for ROOT in $ROOTS; do
+    for PKG in $(ls "$ROOT"); do
+        NS="${PKG%%-*}"
+        [ -d "$ROOT/$PKG/$NS" ] || continue
+        for MODULE in $(ls "$ROOT/$PKG/$NS"); do
+            DIR="$ROOT/$PKG/$NS/$MODULE"
+            if [ -d "$DIR" ]; then
+                cp $BUILD_INFO_FILE "$DIR/$BUILD_INFO_FILE"
+            fi
+        done
     done
 done
 
