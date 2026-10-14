@@ -10,6 +10,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Added
 
 - Methods for downloading and storing document template locales and for storing the document template POT file
+- Methods for downloading and storing mail template locales (`mail-template-locales/<uuid>/`)
+- `head_instance_object` and `store_instance_object` for instance-level objects, which are never prefixed with the tenant (e.g. the default mail POT `mail-templates/mail.pot`); `head_instance_object` returns an `ObjectInfo` with the user metadata and the ETag
 
 
 ## [4.34.0]

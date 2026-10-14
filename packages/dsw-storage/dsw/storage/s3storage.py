@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import dataclasses
 import logging
 import typing
 
@@ -20,6 +21,7 @@ LOG = logging.getLogger(__name__)
 DOCUMENTS_DIR = 'documents'
 DOCUMENT_TEMPLATES_DIR = 'document-templates'
 DOCUMENT_TEMPLATE_LOCALES_DIR = 'document-template-locales'
+MAIL_TEMPLATE_LOCALES_DIR = 'mail-template-locales'
 
 POT_CONTENT_TYPE = 'text/x-gettext-translation'
 
@@ -27,6 +29,16 @@ RETRY_S3_MULTIPLIER = 0.5
 RETRY_S3_TRIES = 3
 
 _NOT_FOUND_CODES = frozenset({'NoSuchKey', 'NoSuchBucket', '404'})
+
+
+@dataclasses.dataclass(frozen=True)
+class ObjectInfo:
+    """What a HEAD request tells about an object."""
+
+    #: user metadata (``x-amz-meta-*``), keys without the prefix
+    metadata: dict[str, str]
+    #: without quotes; the MD5 of the content for a single-part upload
+    etag: str
 
 
 class S3Storage:
@@ -191,6 +203,74 @@ class S3Storage:
             content_type=content_type,
             data=data,
             metadata=None,
+        )
+
+    @tenacity.retry(
+        reraise=True,
+        wait=tenacity.wait_exponential(multiplier=RETRY_S3_MULTIPLIER),
+        stop=tenacity.stop_after_attempt(RETRY_S3_TRIES),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
+    )
+    def download_mail_template_locale(self, *, tenant_uuid: str, locale_uuid: str,
+                                      file_name: str, target_path: Path) -> bool:
+        return self._download_file(
+            tenant_uuid=tenant_uuid,
+            file_name=f'{MAIL_TEMPLATE_LOCALES_DIR}/{locale_uuid}/{file_name}',
+            target_path=target_path,
+        )
+
+    @tenacity.retry(
+        reraise=True,
+        wait=tenacity.wait_exponential(multiplier=RETRY_S3_MULTIPLIER),
+        stop=tenacity.stop_after_attempt(RETRY_S3_TRIES),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
+    )
+    def store_mail_template_locale(self, *, tenant_uuid: str, locale_uuid: str,
+                                   file_name: str, content_type: str, data: bytes):
+        self.store_object(
+            tenant_uuid=tenant_uuid,
+            object_name=f'{MAIL_TEMPLATE_LOCALES_DIR}/{locale_uuid}/{file_name}',
+            content_type=content_type,
+            data=data,
+        )
+
+    @tenacity.retry(
+        reraise=True,
+        wait=tenacity.wait_exponential(multiplier=RETRY_S3_MULTIPLIER),
+        stop=tenacity.stop_after_attempt(RETRY_S3_TRIES),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
+    )
+    def head_instance_object(self, *, object_name: str) -> ObjectInfo | None:
+        """Metadata and ETag of an instance-level object (never tenant-prefixed)."""
+        try:
+            response = self.client.head_object(Bucket=self.cfg.bucket, Key=object_name)
+        except botocore.exceptions.ClientError as e:
+            if e.response.get('Error', {}).get('Code') in _NOT_FOUND_CODES:
+                return None
+            raise
+        return ObjectInfo(
+            metadata=dict(response.get('Metadata', {})),
+            etag=response.get('ETag', '').strip('"'),
+        )
+
+    @tenacity.retry(
+        reraise=True,
+        wait=tenacity.wait_exponential(multiplier=RETRY_S3_MULTIPLIER),
+        stop=tenacity.stop_after_attempt(RETRY_S3_TRIES),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
+    )
+    def store_instance_object(self, *, object_name: str, content_type: str,
+                              data: bytes, metadata: dict | None = None):
+        """Store an instance-level object (never tenant-prefixed)."""
+        self._put_object(
+            object_name=object_name,
+            content_type=content_type,
+            data=data,
+            metadata=metadata,
         )
 
     @tenacity.retry(
