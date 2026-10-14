@@ -320,12 +320,12 @@ class DBSubmission:
 
     uuid: str
     state: str
-    location: str
-    returned_data: str
+    location: str | None
+    returned_data: str | None
     service_id: str
-    document_uuid: str
-    created_by: str
-    created_at: datetime
+    document_uuid: str | None
+    created_by: str | None
+    created_at: datetime | None
     updated_at: datetime
     tenant_uuid: str
 
@@ -337,8 +337,8 @@ class DBSubmission:
             location=data['location'],
             returned_data=data['returned_data'],
             service_id=data['service_id'],
-            document_uuid=str(data['document_uuid']),
-            created_by=str(data['created_by']),
+            document_uuid=_str_or_none(data['document_uuid']),
+            created_by=_str_or_none(data['created_by']),
             created_at=data['created_at'],
             updated_at=data['updated_at'],
             tenant_uuid=str(data.get('tenant_uuid', NULL_UUID)),
@@ -353,7 +353,8 @@ class DBSubmission:
             'service_id': self.service_id,
             'document_uuid': self.document_uuid,
             'created_by': self.created_by,
-            'created_at': self.created_at.isoformat(timespec='milliseconds'),
+            'created_at': (None if self.created_at is None
+                           else self.created_at.isoformat(timespec='milliseconds')),
             'updated_at': self.updated_at.isoformat(timespec='milliseconds'),
             'tenant_uuid': self.tenant_uuid,
         }
@@ -388,7 +389,7 @@ class DBProjectSimple:
             name=data['name'],
             visibility=data['visibility'],
             sharing=data['sharing'],
-            knowledge_model_package_uuid=data['knowledge_model_package_uuid'],
+            knowledge_model_package_uuid=str(data['knowledge_model_package_uuid']),
             document_template_uuid=_str_or_none(data['document_template_uuid']),
             format_uuid=_str_or_none(data['format_uuid']),
             created_by=_str_or_none(data['created_by']),

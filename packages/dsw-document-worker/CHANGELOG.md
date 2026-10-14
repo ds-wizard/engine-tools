@@ -18,7 +18,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
-- Update to DT metamodel 19.0 (WEP 24): only document contexts of major version 19 are accepted
+- Update to DT metamodel 19.0 (WEP 24): only document contexts of major version 19 are accepted; any other (e.g. of a document queued before the upgrade) fails the document with "Unsupported document context metamodel version X, expected 19.x. Regenerate the document." (`missing` when there is none) and is not reported to Sentry
+- `extras.questionnaire`, the deprecated alias of `extras.project`, is removed; for a KM editor preview (no project) `extras.project` is `null` and `extras.submissions` empty
 - Configuration `documentContext.defaultAppTitleShort` and `documentContext.defaultIllustrationsColor` (`DOCUMENT_CONTEXT_DEFAULT_APP_TITLE_SHORT`, `DOCUMENT_CONTEXT_DEFAULT_ILLUSTRATIONS_COLOR`) are removed with the context keys they filled; `config.example.yml` documents the `documentContext` section under its real name
 - Template references are `<id>:<version>` (Wizard 5.0), so `templates[].ids` prefixes in the configuration change from e.g. `dsw:` to `dsw.`
 - Without a `tenant_limit_bundle` table (FAIR Wizard 5.0) the worker applies no storage limit of its own; the backend enforces the plan

@@ -1,11 +1,13 @@
 """Row mapping against rows shaped like the Wizard 5.0 schema."""
 import datetime
+import json
 import uuid
 
 from dsw.database.model import (
     DBDocument,
     DBDocumentTemplate,
     DBProjectSimple,
+    DBSubmission,
     DocumentTemplatePhase,
 )
 
@@ -102,3 +104,22 @@ def test_project_simple():
     assert (data['document_template_uuid'], data['format_uuid'], data['created_by']) == (
         None, None, None)
     assert data['workspace_uuid'] == str(WORKSPACE)
+
+
+def test_project_simple_extras_are_json():
+    # extras.project goes into the context, which steps such as `json` serialize
+    data = DBProjectSimple.from_dict_row(project_row(
+        format_uuid=uuid.UUID('00000000-0000-0000-0000-000000000007'),
+        created_by=uuid.UUID('00000000-0000-0000-0000-000000000008'))).to_dict()
+    assert json.loads(json.dumps(data)) == data
+    assert data['knowledge_model_package_uuid'] == '00000000-0000-0000-0000-000000000006'
+
+
+def test_submission_extras_with_nullable_columns_are_json():
+    data = DBSubmission.from_dict_row({
+        'uuid': uuid.UUID('00000000-0000-0000-0000-000000000009'), 'state': 'DoneSubmissionState',
+        'location': None, 'returned_data': None, 'service_id': 'repo', 'document_uuid': None,
+        'created_by': None, 'created_at': None, 'updated_at': NOW, 'tenant_uuid': TENANT,
+    }).to_dict()
+    assert json.loads(json.dumps(data)) == data
+    assert (data['document_uuid'], data['created_by'], data['created_at']) == (None, None, None)
