@@ -2,18 +2,18 @@ interactions:
 - request:
     body: null
     headers:
-      Authorization:
-      - Bearer eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE3NzE5NzQwMDAsInRlbmFudFV1aWQiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJ0b2tlblV1aWQiOiIwNzU4MzIwOS0zMWM3LTQzNDAtYTNjNS0xNjE1MjJlOTEzOTIiLCJ1c2VyVXVpZCI6ImVjNmY4ZTkwLTJhOTEtNDllYy1hYTNmLTllYWIyMjY3ZmM2NiIsInZlcnNpb24iOjR9.bw-6wNcflwtewdeueOg6gAM9O93kgb3gtXhHWNXVFnM0p_FtlRsbW-ZR_pxjh3CCtLHJ2QQmaa7fXVCC1OsVgOwgtgO5rIGhT62UU4DfL1d2oNXq5huyHCxTzgung_YEI1Eg76RulfWb5wUPhHfaBJbPYLuPh5Q56U8RD-khTQeqcLuvNLWBKYTHqe7k7X41vJw__sL1GyC60bXXYUlqLZaiPkvc5JNWxxxTL2R4lw1zlpnJxFHhLq8TWPDehtBuYADWyxDdS3s-4Vr_axSuenE7ZCHU-AFF4Vr1mS-w_Kx69s_wpsgRxtZh3s5yIAQ45tikMXR5cijEEuJYO7VorTjclQvbh-Sk29Y7r8lZ2scZp8z8Zf8kiLpPKnJpItpKZLmjLYOJZRCBX6EW3fN92sbsOq3yPxFchl6DB-cmmGs9EoLvWLimNm8rqpO5pXyGiATah6R0fFRTNtfRcfhfkAIr_X6e3PVtnpOCFtACpUzHnl0p7tYbF-OvhdgAUVZCOZjnFQ5z5EFZjEKbaImqUZJQMz5J8wwsP-N7j8GHjrR5fHgotu-5Ps8WAm2ibYrM15MReorfhWUQmeh7wvNoJ4lj9mFByb0qgTwNgnnLpfFGbglZhyB1jvTiB4TxFoCsaEuyVOBQVAKS9_ufT5wymBcL_fa3PGeDTzPGjA1pv_Q
       User-Agent:
-      - dsw-tdk/4.27.0
+      - dsw-tdk/4.35.0
+      authorization:
+      - Bearer dummy-token
     method: GET
-    uri: http://localhost:3000/wizard-api/
+    uri: http://single.fair-wizard.localhost:3000/api/
   response:
     body:
-      string: '{"builtAt":"2026-02-20T08:28:05Z","components":[{"builtAt":"2026-02-20T09:47:33Z","createdAt":"2026-02-19T12:59:11.534362Z","name":"Document
-        Worker","updatedAt":"2026-02-22T06:26:24.005577Z","version":"refactor/id-to-uuid~cfe4120"}],"metamodelVersions":[{"name":"Knowledge
-        Model","version":"19"},{"name":"Document Template","version":"17.1"}],"name":"Engine
-        Wizard","version":"feature/refactor-id-to-uuid~a92aba6c"}'
+      string: '{"builtAt":"2026-10-14T14:11:04Z","components":[{"builtAt":"2026-10-14T18:24:20Z","createdAt":"2026-10-14T16:58:40.476791Z","name":"Document
+        Worker","updatedAt":"2026-10-14T17:25:03.455715Z","version":"update/fw5~87566ae"}],"metamodelVersions":[{"name":"Knowledge
+        Model","version":"20"},{"name":"Document Template","version":"19.0"}],"name":"Admin
+        Server","version":"main~4e7d05995"}'
     headers:
       Access-Control-Allow-Credential:
       - 'true'
@@ -23,31 +23,33 @@ interactions:
       - OPTIONS, HEAD, GET, POST, PUT, DELETE
       Access-Control-Allow-Origin:
       - '*'
+      Access-Control-Expose-Headers:
+      - ETag, x-trace-uuid
       Content-Type:
       - application/json
       Date:
-      - Tue, 24 Feb 2026 06:36:50 GMT
+      - Wed, 14 Oct 2026 17:33:32 GMT
       Server:
-      - Warp/3.3.31
+      - Warp/3.4.9
       Transfer-Encoding:
       - chunked
       x-trace-uuid:
-      - f2133f2c-8c94-4f3a-8c36-4c0cfa3b4a8e
+      - 5f672524-b028-4142-8d43-59ca042fc5cd
     status:
       code: 200
       message: OK
 - request:
     body: null
     headers:
-      Authorization:
-      - Bearer eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE3NzE5NzQwMDAsInRlbmFudFV1aWQiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJ0b2tlblV1aWQiOiIwNzU4MzIwOS0zMWM3LTQzNDAtYTNjNS0xNjE1MjJlOTEzOTIiLCJ1c2VyVXVpZCI6ImVjNmY4ZTkwLTJhOTEtNDllYy1hYTNmLTllYWIyMjY3ZmM2NiIsInZlcnNpb24iOjR9.bw-6wNcflwtewdeueOg6gAM9O93kgb3gtXhHWNXVFnM0p_FtlRsbW-ZR_pxjh3CCtLHJ2QQmaa7fXVCC1OsVgOwgtgO5rIGhT62UU4DfL1d2oNXq5huyHCxTzgung_YEI1Eg76RulfWb5wUPhHfaBJbPYLuPh5Q56U8RD-khTQeqcLuvNLWBKYTHqe7k7X41vJw__sL1GyC60bXXYUlqLZaiPkvc5JNWxxxTL2R4lw1zlpnJxFHhLq8TWPDehtBuYADWyxDdS3s-4Vr_axSuenE7ZCHU-AFF4Vr1mS-w_Kx69s_wpsgRxtZh3s5yIAQ45tikMXR5cijEEuJYO7VorTjclQvbh-Sk29Y7r8lZ2scZp8z8Zf8kiLpPKnJpItpKZLmjLYOJZRCBX6EW3fN92sbsOq3yPxFchl6DB-cmmGs9EoLvWLimNm8rqpO5pXyGiATah6R0fFRTNtfRcfhfkAIr_X6e3PVtnpOCFtACpUzHnl0p7tYbF-OvhdgAUVZCOZjnFQ5z5EFZjEKbaImqUZJQMz5J8wwsP-N7j8GHjrR5fHgotu-5Ps8WAm2ibYrM15MReorfhWUQmeh7wvNoJ4lj9mFByb0qgTwNgnnLpfFGbglZhyB1jvTiB4TxFoCsaEuyVOBQVAKS9_ufT5wymBcL_fa3PGeDTzPGjA1pv_Q
       User-Agent:
-      - dsw-tdk/4.27.0
+      - dsw-tdk/4.35.0
+      authorization:
+      - Bearer dummy-token
     method: GET
-    uri: http://localhost:3000/wizard-api/users/current
+    uri: http://single.fair-wizard.localhost:3000/api/users/current
   response:
     body:
-      string: '{"active":true,"affiliation":"My University","createdAt":"2018-01-20T00:00:00Z","email":"albert.einstein@example.com","firstName":"Albert","imageUrl":null,"lastName":"Einstein","lastSeenNewsId":null,"locale":null,"permissions":["UM_PERM","KM_PERM","KM_UPGRADE_PERM","KM_PUBLISH_PERM","PM_READ_PERM","PM_WRITE_PERM","PRJ_PERM","CFG_PERM","SUBM_PERM","DOC_PERM","PRJ_TML_PERM","LOC_PERM","DOC_TML_WRITE_PERM","DOC_TML_READ_PERM","PRJ_FILE_PERM"],"role":"admin","sources":["internal"],"updatedAt":"2018-01-25T00:00:00Z","uuid":"ec6f8e90-2a91-49ec-aa3f-9eab2267fc66"}'
+      string: '{"active":true,"affiliation":null,"createdAt":"2026-10-14T15:02:55.871273Z","email":"admin@fair-wizard.localhost","emailPending":"admin@fair-wizard.localhost","emailVerifiedAt":null,"firstName":"Admin","imageUrl":null,"lastName":"User","role":{"name":"Admin","permissions":["projects.view","projects.comment","projects.edit","projects.manage","projects.create","projects.manageTemplates","knowledgeModels.useEditor","knowledgeModels.manage","documentTemplates.useEditor","documentTemplates.manage","members.manage","roles.manage","userGroups.manage","userGroups.create","settings.manage","users.manage","workspaces.manage","organizationLibrary.manage","organizationSettings.manage","analytics.use","auditLog.use","automations.manage","mcp.connect"],"uuid":"25631728-9873-43a6-b1ca-0012c272f3ba"},"updatedAt":"2026-10-14T15:02:55.871273Z","uuid":"f79351e0-3d26-4710-ab9e-36db954ea6ae"}'
     headers:
       Access-Control-Allow-Credential:
       - 'true'
@@ -57,28 +59,30 @@ interactions:
       - OPTIONS, HEAD, GET, POST, PUT, DELETE
       Access-Control-Allow-Origin:
       - '*'
+      Access-Control-Expose-Headers:
+      - ETag, x-trace-uuid
       Content-Type:
       - application/json
       Date:
-      - Tue, 24 Feb 2026 06:36:50 GMT
+      - Wed, 14 Oct 2026 17:33:32 GMT
       Server:
-      - Warp/3.3.31
+      - Warp/3.4.9
       Transfer-Encoding:
       - chunked
       x-trace-uuid:
-      - b99d7e3f-8b92-496a-bd53-57e5f4ce4552
+      - acff03f9-3881-4df6-987b-2412082f5293
     status:
       code: 200
       message: OK
 - request:
     body: null
     headers:
-      Authorization:
-      - Bearer eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE3NzE5NzQwMDAsInRlbmFudFV1aWQiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJ0b2tlblV1aWQiOiIwNzU4MzIwOS0zMWM3LTQzNDAtYTNjNS0xNjE1MjJlOTEzOTIiLCJ1c2VyVXVpZCI6ImVjNmY4ZTkwLTJhOTEtNDllYy1hYTNmLTllYWIyMjY3ZmM2NiIsInZlcnNpb24iOjR9.bw-6wNcflwtewdeueOg6gAM9O93kgb3gtXhHWNXVFnM0p_FtlRsbW-ZR_pxjh3CCtLHJ2QQmaa7fXVCC1OsVgOwgtgO5rIGhT62UU4DfL1d2oNXq5huyHCxTzgung_YEI1Eg76RulfWb5wUPhHfaBJbPYLuPh5Q56U8RD-khTQeqcLuvNLWBKYTHqe7k7X41vJw__sL1GyC60bXXYUlqLZaiPkvc5JNWxxxTL2R4lw1zlpnJxFHhLq8TWPDehtBuYADWyxDdS3s-4Vr_axSuenE7ZCHU-AFF4Vr1mS-w_Kx69s_wpsgRxtZh3s5yIAQ45tikMXR5cijEEuJYO7VorTjclQvbh-Sk29Y7r8lZ2scZp8z8Zf8kiLpPKnJpItpKZLmjLYOJZRCBX6EW3fN92sbsOq3yPxFchl6DB-cmmGs9EoLvWLimNm8rqpO5pXyGiATah6R0fFRTNtfRcfhfkAIr_X6e3PVtnpOCFtACpUzHnl0p7tYbF-OvhdgAUVZCOZjnFQ5z5EFZjEKbaImqUZJQMz5J8wwsP-N7j8GHjrR5fHgotu-5Ps8WAm2ibYrM15MReorfhWUQmeh7wvNoJ4lj9mFByb0qgTwNgnnLpfFGbglZhyB1jvTiB4TxFoCsaEuyVOBQVAKS9_ufT5wymBcL_fa3PGeDTzPGjA1pv_Q
       User-Agent:
-      - dsw-tdk/4.27.0
+      - dsw-tdk/4.35.0
+      authorization:
+      - Bearer dummy-token
     method: GET
-    uri: http://localhost:3000/wizard-api/document-template-drafts?size=10000&page=0&q=test.example01
+    uri: http://single.fair-wizard.localhost:3000/api/document-template-drafts?page=0&q=test.example01&size=10000
   response:
     body:
       string: '{"_embedded":{"documentTemplateDrafts":[]},"page":{"number":0,"size":10000,"totalElements":0,"totalPages":0}}'
@@ -91,31 +95,33 @@ interactions:
       - OPTIONS, HEAD, GET, POST, PUT, DELETE
       Access-Control-Allow-Origin:
       - '*'
+      Access-Control-Expose-Headers:
+      - ETag, x-trace-uuid
       Content-Type:
       - application/json
       Date:
-      - Tue, 24 Feb 2026 06:36:50 GMT
+      - Wed, 14 Oct 2026 17:33:32 GMT
       Server:
-      - Warp/3.3.31
+      - Warp/3.4.9
       Transfer-Encoding:
       - chunked
       x-trace-uuid:
-      - e865a251-f9ee-49a3-81f9-acdb8f89b362
+      - 3e85ac51-4fa6-46ac-8a76-fec65148c630
     status:
       code: 200
       message: OK
 - request:
     body: null
     headers:
-      Authorization:
-      - Bearer eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE3NzE5NzQwMDAsInRlbmFudFV1aWQiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJ0b2tlblV1aWQiOiIwNzU4MzIwOS0zMWM3LTQzNDAtYTNjNS0xNjE1MjJlOTEzOTIiLCJ1c2VyVXVpZCI6ImVjNmY4ZTkwLTJhOTEtNDllYy1hYTNmLTllYWIyMjY3ZmM2NiIsInZlcnNpb24iOjR9.bw-6wNcflwtewdeueOg6gAM9O93kgb3gtXhHWNXVFnM0p_FtlRsbW-ZR_pxjh3CCtLHJ2QQmaa7fXVCC1OsVgOwgtgO5rIGhT62UU4DfL1d2oNXq5huyHCxTzgung_YEI1Eg76RulfWb5wUPhHfaBJbPYLuPh5Q56U8RD-khTQeqcLuvNLWBKYTHqe7k7X41vJw__sL1GyC60bXXYUlqLZaiPkvc5JNWxxxTL2R4lw1zlpnJxFHhLq8TWPDehtBuYADWyxDdS3s-4Vr_axSuenE7ZCHU-AFF4Vr1mS-w_Kx69s_wpsgRxtZh3s5yIAQ45tikMXR5cijEEuJYO7VorTjclQvbh-Sk29Y7r8lZ2scZp8z8Zf8kiLpPKnJpItpKZLmjLYOJZRCBX6EW3fN92sbsOq3yPxFchl6DB-cmmGs9EoLvWLimNm8rqpO5pXyGiATah6R0fFRTNtfRcfhfkAIr_X6e3PVtnpOCFtACpUzHnl0p7tYbF-OvhdgAUVZCOZjnFQ5z5EFZjEKbaImqUZJQMz5J8wwsP-N7j8GHjrR5fHgotu-5Ps8WAm2ibYrM15MReorfhWUQmeh7wvNoJ4lj9mFByb0qgTwNgnnLpfFGbglZhyB1jvTiB4TxFoCsaEuyVOBQVAKS9_ufT5wymBcL_fa3PGeDTzPGjA1pv_Q
       User-Agent:
-      - dsw-tdk/4.27.0
+      - dsw-tdk/4.35.0
+      authorization:
+      - Bearer dummy-token
     method: POST
-    uri: http://localhost:3000/wizard-api/document-template-drafts
+    uri: http://single.fair-wizard.localhost:3000/api/document-template-drafts?tenant=true
   response:
     body:
-      string: '{"name":"Test template 01","uuid":"f61d3e30-61c8-4fdd-bf9b-b5faba84d01b"}'
+      string: '{"name":"Test template 01","uuid":"76d3fa68-67bb-4486-b12a-5cb3d255c89f"}'
     headers:
       Access-Control-Allow-Credential:
       - 'true'
@@ -125,32 +131,34 @@ interactions:
       - OPTIONS, HEAD, GET, POST, PUT, DELETE
       Access-Control-Allow-Origin:
       - '*'
+      Access-Control-Expose-Headers:
+      - ETag, x-trace-uuid
       Content-Type:
       - application/json
       Date:
-      - Tue, 24 Feb 2026 06:36:50 GMT
+      - Wed, 14 Oct 2026 17:33:32 GMT
       Server:
-      - Warp/3.3.31
+      - Warp/3.4.9
       Transfer-Encoding:
       - chunked
       x-trace-uuid:
-      - 095d0cd5-1637-43fb-96dc-2d3971730e35
+      - 9ee544ba-1779-45d6-9e6f-927a36e413b8
     status:
       code: 201
       message: Created
 - request:
     body: null
     headers:
-      Authorization:
-      - Bearer eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE3NzE5NzQwMDAsInRlbmFudFV1aWQiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJ0b2tlblV1aWQiOiIwNzU4MzIwOS0zMWM3LTQzNDAtYTNjNS0xNjE1MjJlOTEzOTIiLCJ1c2VyVXVpZCI6ImVjNmY4ZTkwLTJhOTEtNDllYy1hYTNmLTllYWIyMjY3ZmM2NiIsInZlcnNpb24iOjR9.bw-6wNcflwtewdeueOg6gAM9O93kgb3gtXhHWNXVFnM0p_FtlRsbW-ZR_pxjh3CCtLHJ2QQmaa7fXVCC1OsVgOwgtgO5rIGhT62UU4DfL1d2oNXq5huyHCxTzgung_YEI1Eg76RulfWb5wUPhHfaBJbPYLuPh5Q56U8RD-khTQeqcLuvNLWBKYTHqe7k7X41vJw__sL1GyC60bXXYUlqLZaiPkvc5JNWxxxTL2R4lw1zlpnJxFHhLq8TWPDehtBuYADWyxDdS3s-4Vr_axSuenE7ZCHU-AFF4Vr1mS-w_Kx69s_wpsgRxtZh3s5yIAQ45tikMXR5cijEEuJYO7VorTjclQvbh-Sk29Y7r8lZ2scZp8z8Zf8kiLpPKnJpItpKZLmjLYOJZRCBX6EW3fN92sbsOq3yPxFchl6DB-cmmGs9EoLvWLimNm8rqpO5pXyGiATah6R0fFRTNtfRcfhfkAIr_X6e3PVtnpOCFtACpUzHnl0p7tYbF-OvhdgAUVZCOZjnFQ5z5EFZjEKbaImqUZJQMz5J8wwsP-N7j8GHjrR5fHgotu-5Ps8WAm2ibYrM15MReorfhWUQmeh7wvNoJ4lj9mFByb0qgTwNgnnLpfFGbglZhyB1jvTiB4TxFoCsaEuyVOBQVAKS9_ufT5wymBcL_fa3PGeDTzPGjA1pv_Q
       User-Agent:
-      - dsw-tdk/4.27.0
+      - dsw-tdk/4.35.0
+      authorization:
+      - Bearer dummy-token
     method: GET
-    uri: http://localhost:3000/wizard-api/document-template-drafts/f61d3e30-61c8-4fdd-bf9b-b5faba84d01b
+    uri: http://single.fair-wizard.localhost:3000/api/document-template-drafts/76d3fa68-67bb-4486-b12a-5cb3d255c89f
   response:
     body:
-      string: '{"allowedPackages":[],"createdAt":"2026-02-24T06:36:50.431876Z","description":"","formatUuid":null,"formats":[],"id":"test.example01","knowledgeModelEditor":null,"knowledgeModelEditorUuid":null,"license":"","name":"Test
-        template 01","project":null,"projectUuid":null,"readme":"","updatedAt":"2026-02-24T06:36:50.431876Z","uuid":"f61d3e30-61c8-4fdd-bf9b-b5faba84d01b","version":"1.0.0"}'
+      string: '{"allowedPackages":[],"createdAt":"2026-10-14T17:33:33.03705Z","description":"","formatUuid":null,"formats":[],"id":"test.example01","knowledgeModelEditor":null,"knowledgeModelEditorUuid":null,"language":"en","license":"","name":"Test
+        template 01","project":null,"projectUuid":null,"readme":"","updatedAt":"2026-10-14T17:33:33.03705Z","uuid":"76d3fa68-67bb-4486-b12a-5cb3d255c89f","version":"1.0.0","workspaceUuid":null}'
     headers:
       Access-Control-Allow-Credential:
       - 'true'
@@ -160,35 +168,37 @@ interactions:
       - OPTIONS, HEAD, GET, POST, PUT, DELETE
       Access-Control-Allow-Origin:
       - '*'
+      Access-Control-Expose-Headers:
+      - ETag, x-trace-uuid
       Content-Type:
       - application/json
       Date:
-      - Tue, 24 Feb 2026 06:36:50 GMT
+      - Wed, 14 Oct 2026 17:33:32 GMT
       Server:
-      - Warp/3.3.31
+      - Warp/3.4.9
       Transfer-Encoding:
       - chunked
       x-trace-uuid:
-      - cefb91ab-0cb0-4fa7-882c-819719b69f5c
+      - 8650694c-b771-4aa3-90f6-23f602ff6dd5
     status:
       code: 200
       message: OK
 - request:
     body: null
     headers:
-      Authorization:
-      - Bearer eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE3NzE5NzQwMDAsInRlbmFudFV1aWQiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJ0b2tlblV1aWQiOiIwNzU4MzIwOS0zMWM3LTQzNDAtYTNjNS0xNjE1MjJlOTEzOTIiLCJ1c2VyVXVpZCI6ImVjNmY4ZTkwLTJhOTEtNDllYy1hYTNmLTllYWIyMjY3ZmM2NiIsInZlcnNpb24iOjR9.bw-6wNcflwtewdeueOg6gAM9O93kgb3gtXhHWNXVFnM0p_FtlRsbW-ZR_pxjh3CCtLHJ2QQmaa7fXVCC1OsVgOwgtgO5rIGhT62UU4DfL1d2oNXq5huyHCxTzgung_YEI1Eg76RulfWb5wUPhHfaBJbPYLuPh5Q56U8RD-khTQeqcLuvNLWBKYTHqe7k7X41vJw__sL1GyC60bXXYUlqLZaiPkvc5JNWxxxTL2R4lw1zlpnJxFHhLq8TWPDehtBuYADWyxDdS3s-4Vr_axSuenE7ZCHU-AFF4Vr1mS-w_Kx69s_wpsgRxtZh3s5yIAQ45tikMXR5cijEEuJYO7VorTjclQvbh-Sk29Y7r8lZ2scZp8z8Zf8kiLpPKnJpItpKZLmjLYOJZRCBX6EW3fN92sbsOq3yPxFchl6DB-cmmGs9EoLvWLimNm8rqpO5pXyGiATah6R0fFRTNtfRcfhfkAIr_X6e3PVtnpOCFtACpUzHnl0p7tYbF-OvhdgAUVZCOZjnFQ5z5EFZjEKbaImqUZJQMz5J8wwsP-N7j8GHjrR5fHgotu-5Ps8WAm2ibYrM15MReorfhWUQmeh7wvNoJ4lj9mFByb0qgTwNgnnLpfFGbglZhyB1jvTiB4TxFoCsaEuyVOBQVAKS9_ufT5wymBcL_fa3PGeDTzPGjA1pv_Q
       User-Agent:
-      - dsw-tdk/4.27.0
+      - dsw-tdk/4.35.0
+      authorization:
+      - Bearer dummy-token
     method: PUT
-    uri: http://localhost:3000/wizard-api/document-template-drafts/f61d3e30-61c8-4fdd-bf9b-b5faba84d01b
+    uri: http://single.fair-wizard.localhost:3000/api/document-template-drafts/76d3fa68-67bb-4486-b12a-5cb3d255c89f
   response:
     body:
-      string: '{"allowedPackages":[{"id":null,"maxVersion":null,"minVersion":null}],"createdAt":"2026-02-24T06:36:50.442507Z","description":"Dummy
-        document template 01 for testing purposes","formatUuid":null,"formats":[{"createdAt":"2026-02-24T06:36:50.431876Z","documentTemplateUuid":"f61d3e30-61c8-4fdd-bf9b-b5faba84d01b","icon":"far
-        fa-file-code","name":"HTML Document","steps":[{"createdAt":"2026-02-24T06:36:50.431876Z","documentTemplateUuid":"f61d3e30-61c8-4fdd-bf9b-b5faba84d01b","formatUuid":"a9293d08-59a4-4e6b-ae62-7a6a570b031c","name":"jinja","options":{"content-type":"text/html","extension":"html","template":"src/template.html.j2"},"position":0,"tenantUuid":"00000000-0000-0000-0000-000000000000","updatedAt":"2026-02-24T06:36:50.442507Z"}],"tenantUuid":"00000000-0000-0000-0000-000000000000","updatedAt":"2026-02-24T06:36:50.442507Z","uuid":"a9293d08-59a4-4e6b-ae62-7a6a570b031c"},{"createdAt":"2026-02-24T06:36:50.431876Z","documentTemplateUuid":"f61d3e30-61c8-4fdd-bf9b-b5faba84d01b","icon":"far
-        fa-file","name":"JSON Data","steps":[{"createdAt":"2026-02-24T06:36:50.431876Z","documentTemplateUuid":"f61d3e30-61c8-4fdd-bf9b-b5faba84d01b","formatUuid":"d3e98eb6-344d-481f-8e37-6a67b6cd1ad2","name":"json","options":{},"position":0,"tenantUuid":"00000000-0000-0000-0000-000000000000","updatedAt":"2026-02-24T06:36:50.442507Z"}],"tenantUuid":"00000000-0000-0000-0000-000000000000","updatedAt":"2026-02-24T06:36:50.442507Z","uuid":"d3e98eb6-344d-481f-8e37-6a67b6cd1ad2"}],"id":"test.example01","knowledgeModelEditor":null,"knowledgeModelEditorUuid":null,"license":"Apache-2.0","name":"Test
-        template 01","project":null,"projectUuid":null,"readme":"# Example Template\n","updatedAt":"2026-02-24T06:36:50.442507Z","uuid":"f61d3e30-61c8-4fdd-bf9b-b5faba84d01b","version":"1.0.0"}'
+      string: '{"allowedPackages":[{"id":null,"maxVersion":null,"minVersion":null}],"createdAt":"2026-10-14T17:33:33.043868669Z","description":"Dummy
+        document template 01 for testing purposes","formatUuid":null,"formats":[{"createdAt":"2026-10-14T17:33:33.03705Z","documentTemplateUuid":"76d3fa68-67bb-4486-b12a-5cb3d255c89f","icon":"far
+        fa-file","name":"JSON Data","steps":[{"createdAt":"2026-10-14T17:33:33.03705Z","documentTemplateUuid":"76d3fa68-67bb-4486-b12a-5cb3d255c89f","formatUuid":"d3e98eb6-344d-481f-8e37-6a67b6cd1ad2","name":"json","options":{},"position":0,"tenantUuid":"bf9fa415-f2e1-43d2-82be-4b8241d14d7f","updatedAt":"2026-10-14T17:33:33.043868669Z"}],"tenantUuid":"bf9fa415-f2e1-43d2-82be-4b8241d14d7f","updatedAt":"2026-10-14T17:33:33.043868669Z","uuid":"d3e98eb6-344d-481f-8e37-6a67b6cd1ad2"},{"createdAt":"2026-10-14T17:33:33.03705Z","documentTemplateUuid":"76d3fa68-67bb-4486-b12a-5cb3d255c89f","icon":"far
+        fa-file-code","name":"HTML Document","steps":[{"createdAt":"2026-10-14T17:33:33.03705Z","documentTemplateUuid":"76d3fa68-67bb-4486-b12a-5cb3d255c89f","formatUuid":"a9293d08-59a4-4e6b-ae62-7a6a570b031c","name":"jinja","options":{"content-type":"text/html","extension":"html","template":"src/template.html.j2"},"position":0,"tenantUuid":"bf9fa415-f2e1-43d2-82be-4b8241d14d7f","updatedAt":"2026-10-14T17:33:33.043868669Z"}],"tenantUuid":"bf9fa415-f2e1-43d2-82be-4b8241d14d7f","updatedAt":"2026-10-14T17:33:33.043868669Z","uuid":"a9293d08-59a4-4e6b-ae62-7a6a570b031c"}],"id":"test.example01","knowledgeModelEditor":null,"knowledgeModelEditorUuid":null,"language":"en","license":"Apache-2.0","name":"Test
+        template 01","project":null,"projectUuid":null,"readme":"# Example Template\n","updatedAt":"2026-10-14T17:33:33.043868669Z","uuid":"76d3fa68-67bb-4486-b12a-5cb3d255c89f","version":"1.0.0","workspaceUuid":null}'
     headers:
       Access-Control-Allow-Credential:
       - 'true'
@@ -198,32 +208,37 @@ interactions:
       - OPTIONS, HEAD, GET, POST, PUT, DELETE
       Access-Control-Allow-Origin:
       - '*'
+      Access-Control-Expose-Headers:
+      - ETag, x-trace-uuid
       Content-Type:
       - application/json
       Date:
-      - Tue, 24 Feb 2026 06:36:50 GMT
+      - Wed, 14 Oct 2026 17:33:32 GMT
       Server:
-      - Warp/3.3.31
+      - Warp/3.4.9
       Transfer-Encoding:
       - chunked
       x-trace-uuid:
-      - 002366b3-80a8-48af-bd20-f64ad1b9f0b0
+      - fe3cb3ab-2bce-41db-8b5a-4ea49b3068cf
     status:
       code: 200
       message: OK
 - request:
     body: null
     headers:
-      Authorization:
-      - Bearer eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE3NzE5NzQwMDAsInRlbmFudFV1aWQiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJ0b2tlblV1aWQiOiIwNzU4MzIwOS0zMWM3LTQzNDAtYTNjNS0xNjE1MjJlOTEzOTIiLCJ1c2VyVXVpZCI6ImVjNmY4ZTkwLTJhOTEtNDllYy1hYTNmLTllYWIyMjY3ZmM2NiIsInZlcnNpb24iOjR9.bw-6wNcflwtewdeueOg6gAM9O93kgb3gtXhHWNXVFnM0p_FtlRsbW-ZR_pxjh3CCtLHJ2QQmaa7fXVCC1OsVgOwgtgO5rIGhT62UU4DfL1d2oNXq5huyHCxTzgung_YEI1Eg76RulfWb5wUPhHfaBJbPYLuPh5Q56U8RD-khTQeqcLuvNLWBKYTHqe7k7X41vJw__sL1GyC60bXXYUlqLZaiPkvc5JNWxxxTL2R4lw1zlpnJxFHhLq8TWPDehtBuYADWyxDdS3s-4Vr_axSuenE7ZCHU-AFF4Vr1mS-w_Kx69s_wpsgRxtZh3s5yIAQ45tikMXR5cijEEuJYO7VorTjclQvbh-Sk29Y7r8lZ2scZp8z8Zf8kiLpPKnJpItpKZLmjLYOJZRCBX6EW3fN92sbsOq3yPxFchl6DB-cmmGs9EoLvWLimNm8rqpO5pXyGiATah6R0fFRTNtfRcfhfkAIr_X6e3PVtnpOCFtACpUzHnl0p7tYbF-OvhdgAUVZCOZjnFQ5z5EFZjEKbaImqUZJQMz5J8wwsP-N7j8GHjrR5fHgotu-5Ps8WAm2ibYrM15MReorfhWUQmeh7wvNoJ4lj9mFByb0qgTwNgnnLpfFGbglZhyB1jvTiB4TxFoCsaEuyVOBQVAKS9_ufT5wymBcL_fa3PGeDTzPGjA1pv_Q
       User-Agent:
-      - dsw-tdk/4.27.0
-    method: POST
-    uri: http://localhost:3000/wizard-api/document-template-drafts/f61d3e30-61c8-4fdd-bf9b-b5faba84d01b/files
+      - dsw-tdk/4.35.0
+      authorization:
+      - Bearer dummy-token
+    method: GET
+    uri: http://single.fair-wizard.localhost:3000/api/document-template-drafts/76d3fa68-67bb-4486-b12a-5cb3d255c89f
   response:
     body:
-      string: '{"content":"{# example template #}\n<!DOCTYPE html>\n<html>\n    <head>\n        <title>Example</title>\n    </head>\n    <body>\n        <h1>This
-        is example</h1>\n    </body>\n</html>\n","createdAt":"2026-02-24T06:36:50.453490387Z","documentTemplateUuid":"f61d3e30-61c8-4fdd-bf9b-b5faba84d01b","fileName":"src/template.json.j2","tenantUuid":"00000000-0000-0000-0000-000000000000","updatedAt":"2026-02-24T06:36:50.453490387Z","uuid":"dbdbbba6-19d6-41bb-b33b-148c9fa8e9d2"}'
+      string: '{"allowedPackages":[{"id":null,"maxVersion":null,"minVersion":null}],"createdAt":"2026-10-14T17:33:33.043869Z","description":"Dummy
+        document template 01 for testing purposes","formatUuid":null,"formats":[{"createdAt":"2026-10-14T17:33:33.03705Z","documentTemplateUuid":"76d3fa68-67bb-4486-b12a-5cb3d255c89f","icon":"far
+        fa-file-code","name":"HTML Document","steps":[{"createdAt":"2026-10-14T17:33:33.03705Z","documentTemplateUuid":"76d3fa68-67bb-4486-b12a-5cb3d255c89f","formatUuid":"a9293d08-59a4-4e6b-ae62-7a6a570b031c","name":"jinja","options":{"content-type":"text/html","extension":"html","template":"src/template.html.j2"},"position":0,"tenantUuid":"bf9fa415-f2e1-43d2-82be-4b8241d14d7f","updatedAt":"2026-10-14T17:33:33.043869Z"}],"tenantUuid":"bf9fa415-f2e1-43d2-82be-4b8241d14d7f","updatedAt":"2026-10-14T17:33:33.043869Z","uuid":"a9293d08-59a4-4e6b-ae62-7a6a570b031c"},{"createdAt":"2026-10-14T17:33:33.03705Z","documentTemplateUuid":"76d3fa68-67bb-4486-b12a-5cb3d255c89f","icon":"far
+        fa-file","name":"JSON Data","steps":[{"createdAt":"2026-10-14T17:33:33.03705Z","documentTemplateUuid":"76d3fa68-67bb-4486-b12a-5cb3d255c89f","formatUuid":"d3e98eb6-344d-481f-8e37-6a67b6cd1ad2","name":"json","options":{},"position":0,"tenantUuid":"bf9fa415-f2e1-43d2-82be-4b8241d14d7f","updatedAt":"2026-10-14T17:33:33.043869Z"}],"tenantUuid":"bf9fa415-f2e1-43d2-82be-4b8241d14d7f","updatedAt":"2026-10-14T17:33:33.043869Z","uuid":"d3e98eb6-344d-481f-8e37-6a67b6cd1ad2"}],"id":"test.example01","knowledgeModelEditor":null,"knowledgeModelEditorUuid":null,"language":"en","license":"Apache-2.0","name":"Test
+        template 01","project":null,"projectUuid":null,"readme":"# Example Template\n","updatedAt":"2026-10-14T17:33:33.043869Z","uuid":"76d3fa68-67bb-4486-b12a-5cb3d255c89f","version":"1.0.0","workspaceUuid":null}'
     headers:
       Access-Control-Allow-Credential:
       - 'true'
@@ -233,16 +248,92 @@ interactions:
       - OPTIONS, HEAD, GET, POST, PUT, DELETE
       Access-Control-Allow-Origin:
       - '*'
+      Access-Control-Expose-Headers:
+      - ETag, x-trace-uuid
       Content-Type:
       - application/json
       Date:
-      - Tue, 24 Feb 2026 06:36:50 GMT
+      - Wed, 14 Oct 2026 17:33:32 GMT
       Server:
-      - Warp/3.3.31
+      - Warp/3.4.9
       Transfer-Encoding:
       - chunked
       x-trace-uuid:
-      - ffa2bd08-947f-447f-8ef6-9971e5ec559d
+      - f5ea3f43-07d9-495f-aec0-adcc26c9c488
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      User-Agent:
+      - dsw-tdk/4.35.0
+      authorization:
+      - Bearer dummy-token
+    method: GET
+    uri: http://single.fair-wizard.localhost:3000/api/workspaces?page=0&size=2
+  response:
+    body:
+      string: '{"_embedded":{"workspaces":[{"createdAt":"2026-10-14T15:02:55.803812Z","defaultRoleUuid":"18e1ef79-f66c-4ddb-a1cc-d674ae7c7694","description":null,"logo":null,"name":"single","primaryColor":null,"tenantUuid":"bf9fa415-f2e1-43d2-82be-4b8241d14d7f","updatedAt":"2026-10-14T15:02:55.803812Z","uuid":"80e21d14-2ae1-4eff-8e94-f37a4aaff5d5"}]},"page":{"number":0,"size":2,"totalElements":1,"totalPages":1}}'
+    headers:
+      Access-Control-Allow-Credential:
+      - 'true'
+      Access-Control-Allow-Headers:
+      - Origin, X-Requested-With, Content-Type, Accept, Authorization
+      Access-Control-Allow-Methods:
+      - OPTIONS, HEAD, GET, POST, PUT, DELETE
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - ETag, x-trace-uuid
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 14 Oct 2026 17:33:32 GMT
+      Server:
+      - Warp/3.4.9
+      Transfer-Encoding:
+      - chunked
+      x-trace-uuid:
+      - aed5aa72-eeb7-44a8-851f-bebeeb60adb4
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      User-Agent:
+      - dsw-tdk/4.35.0
+      authorization:
+      - Bearer dummy-token
+    method: POST
+    uri: http://single.fair-wizard.localhost:3000/api/document-template-drafts/76d3fa68-67bb-4486-b12a-5cb3d255c89f/files
+  response:
+    body:
+      string: '{"content":"{# example template #}\n<!DOCTYPE html>\n<html>\n    <head>\n        <title>Example</title>\n    </head>\n    <body>\n        {#
+        TRANSLATORS: main heading of the example #}\n        <h1>{% trans %}This is
+        example{% endtrans %}</h1>\n        <p>{{ _(''Hello'') }}</p>\n    </body>\n</html>\n","createdAt":"2026-10-14T17:33:33.054653627Z","documentTemplateUuid":"76d3fa68-67bb-4486-b12a-5cb3d255c89f","fileName":"src/template.json.j2","tenantUuid":"bf9fa415-f2e1-43d2-82be-4b8241d14d7f","updatedAt":"2026-10-14T17:33:33.054653627Z","uuid":"c6eb6660-1e16-43c6-92e7-f6a44c5f050f"}'
+    headers:
+      Access-Control-Allow-Credential:
+      - 'true'
+      Access-Control-Allow-Headers:
+      - Origin, X-Requested-With, Content-Type, Accept, Authorization
+      Access-Control-Allow-Methods:
+      - OPTIONS, HEAD, GET, POST, PUT, DELETE
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - ETag, x-trace-uuid
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 14 Oct 2026 17:33:32 GMT
+      Server:
+      - Warp/3.4.9
+      Transfer-Encoding:
+      - chunked
+      x-trace-uuid:
+      - 24d70c3d-16f9-4f35-81f8-76166bd97a41
     status:
       code: 201
       message: Created

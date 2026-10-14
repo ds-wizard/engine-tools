@@ -2,18 +2,18 @@ interactions:
 - request:
     body: null
     headers:
-      Authorization:
-      - Bearer foo
       User-Agent:
-      - dsw-tdk/4.27.0
+      - dsw-tdk/4.35.0
+      authorization:
+      - Bearer dummy-token
     method: GET
-    uri: http://localhost:3000/wizard-api/
+    uri: http://single.fair-wizard.localhost:3000/api/
   response:
     body:
-      string: '{"builtAt":"2026-02-20T08:28:05Z","components":[{"builtAt":"2026-02-20T09:47:33Z","createdAt":"2026-02-19T12:59:11.534362Z","name":"Document
-        Worker","updatedAt":"2026-02-22T06:26:24.005577Z","version":"refactor/id-to-uuid~cfe4120"}],"metamodelVersions":[{"name":"Knowledge
-        Model","version":"19"},{"name":"Document Template","version":"17.1"}],"name":"Engine
-        Wizard","version":"feature/refactor-id-to-uuid~a92aba6c"}'
+      string: '{"builtAt":"2026-10-14T14:11:04Z","components":[{"builtAt":"2026-10-14T18:24:20Z","createdAt":"2026-10-14T16:58:40.476791Z","name":"Document
+        Worker","updatedAt":"2026-10-14T17:25:03.455715Z","version":"update/fw5~87566ae"}],"metamodelVersions":[{"name":"Knowledge
+        Model","version":"20"},{"name":"Document Template","version":"19.0"}],"name":"Admin
+        Server","version":"main~4e7d05995"}'
     headers:
       Access-Control-Allow-Credential:
       - 'true'
@@ -23,28 +23,30 @@ interactions:
       - OPTIONS, HEAD, GET, POST, PUT, DELETE
       Access-Control-Allow-Origin:
       - '*'
+      Access-Control-Expose-Headers:
+      - ETag, x-trace-uuid
       Content-Type:
       - application/json
       Date:
-      - Tue, 24 Feb 2026 06:26:50 GMT
+      - Wed, 14 Oct 2026 17:33:32 GMT
       Server:
-      - Warp/3.3.31
+      - Warp/3.4.9
       Transfer-Encoding:
       - chunked
       x-trace-uuid:
-      - 5f62955d-ab6b-422f-b420-8394811e472a
+      - f00c98e5-910c-47d2-80dc-2b9773cc8c26
     status:
       code: 200
       message: OK
 - request:
     body: null
     headers:
-      Authorization:
-      - Bearer foo
       User-Agent:
-      - dsw-tdk/4.27.0
+      - dsw-tdk/4.35.0
+      authorization:
+      - Bearer dummy-token
     method: GET
-    uri: http://localhost:3000/wizard-api/users/current
+    uri: http://single.fair-wizard.localhost:3000/api/users/current
   response:
     body:
       string: '{"message":{"code":"error.service.token.unable_to_decode_token","defaultMessage":"Unable
@@ -58,12 +60,14 @@ interactions:
       - OPTIONS, HEAD, GET, POST, PUT, DELETE
       Access-Control-Allow-Origin:
       - '*'
+      Access-Control-Expose-Headers:
+      - ETag, x-trace-uuid
       Content-Type:
       - application/json
       Date:
-      - Tue, 24 Feb 2026 06:26:50 GMT
+      - Wed, 14 Oct 2026 17:33:32 GMT
       Server:
-      - Warp/3.3.31
+      - Warp/3.4.9
       Transfer-Encoding:
       - chunked
     status:
