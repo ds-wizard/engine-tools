@@ -9,12 +9,33 @@ from dsw.models.knowledge_model.package import KnowledgeModelBundle
 from dsw.models.strictness import UnknownKeys, load
 
 
+def as_5_0_export(legacy):
+    """The reference bundles predate 5.0; this is how the backend exports them since."""
+    def identity(item):
+        item = dict(item)
+        item['id'] = f"{item.pop('organizationId')}.{item.pop('kmId')}"
+        return item
+
+    def package(item):
+        item = identity(item)
+        for prefix in ('previousPackage', 'forkOfPackage', 'mergeCheckpointPackage'):
+            reference = item.get(f'{prefix}Id')
+            organization_id, km_id, version = reference.split(':') if reference else (None,) * 3
+            item[f'{prefix}Id'] = f'{organization_id}.{km_id}' if reference else None
+            item[f'{prefix}Version'] = version
+        return item
+
+    return {**identity(legacy), 'packages': [package(p) for p in legacy['packages']]}
+
+
 @pytest.mark.parametrize('name', REFERENCE_BUNDLES)
 def test_reference_bundle_round_trip(name):
     data = load_reference(name)
     bundle = load(KnowledgeModelBundle, data)
     assert bundle.metamodel_version == 20
-    assert_same_json(data, bundle.to_json_data())
+    exported = as_5_0_export(data)
+    assert_same_json(exported, bundle.to_json_data())
+    assert_same_json(exported, load(KnowledgeModelBundle, exported).to_json_data())
 
 
 def test_flat_knowledge_model_round_trip():

@@ -14,6 +14,6 @@ the package installed (`pip install dsw-models`) and prints its options with `--
 python create_km.py -o example.km
 python validate_km.py example.km
 python diff_kms.py
-python diff_kms.py dsw_root_2.8.1.km --from dsw:root:2.7.0
+python diff_kms.py dsw_root_2.8.1.km --from dsw.root:2.7.0
 python generate_schema.py km-bundle -o kmp_schema.json
 ```

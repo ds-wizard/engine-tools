@@ -75,10 +75,9 @@ def test_builder_events_and_bundle():
     question.answer('No')
     km = builder.build()
     assert compile_events(builder.to_events(clock=clock())) == km
-    bundle = builder.to_bundle(organization_id='example', km_id='data', version='1.0.0',
-                               name='Data KM', clock=clock())
+    bundle = builder.to_bundle(id='example.data', version='1.0.0', name='Data KM', clock=clock())
     bundle = load(KnowledgeModelBundle, bundle.to_json_data())  # strict round trip
-    assert bundle.packages[0].id == 'example:data:1.0.0'
+    assert bundle.packages[0].reference == 'example.data:1.0.0'
     assert compile_bundle(bundle) == km
 
 

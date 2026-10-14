@@ -26,7 +26,7 @@ def test_create_and_validate(tmp_path):
 def test_validate_reference_bundle():
     result = run('validate_km.py', SMP_BUNDLE)
     assert result.returncode == 0, result.stderr
-    assert 'dsw:smp:1.2.4: 7 package(s)' in result.stdout
+    assert 'dsw.smp:1.2.4: 7 package(s)' in result.stdout
 
 
 def test_diff_built_in_versions():
@@ -39,7 +39,7 @@ def test_diff_built_in_versions():
 
 
 def test_diff_bundle_versions():
-    result = run('diff_kms.py', SMP_BUNDLE, '--from', 'dsw:smp:1.2.3', '--json')
+    result = run('diff_kms.py', SMP_BUNDLE, '--from', 'dsw.smp:1.2.3', '--json')
     assert result.returncode == 0, result.stderr
     events = json.loads(result.stdout)
     assert [event['content']['eventType'] for event in events] == ['EditQuestionEvent']

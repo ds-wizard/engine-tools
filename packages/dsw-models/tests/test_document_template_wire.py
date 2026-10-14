@@ -18,8 +18,15 @@ def test_reference_local_descriptor_round_trip(path):
     metadata = load(DocumentTemplateMetadata, data)
     assert metadata.parsed_metamodel_version == MetamodelVersion(18, 0)
     assert metadata.tdk is not None
-    # 18.0 descriptors predate `language`; the model writes its default
-    assert_same_json({**data, 'language': 'en'}, metadata.to_json_data())
+    assert metadata.id == f"{data['organizationId']}.{data['templateId']}"
+    # 18.0 descriptors predate `language` and the single `id`; the model writes the 5.0 shape
+    expected = {**data, 'id': metadata.id, 'language': 'en'}
+    del expected['organizationId'], expected['templateId']
+    for pattern in expected['allowedPackages']:
+        org_id, km_id = pattern.pop('orgId'), pattern.pop('kmId')
+        pattern['id'] = f'{org_id}.{km_id}' if org_id and km_id else None
+    assert_same_json(expected, metadata.to_json_data())
+    assert_same_json(expected, load(DocumentTemplateMetadata, expected).to_json_data())
 
 
 def test_local_descriptor_without_optional_sections():
@@ -33,7 +40,7 @@ def test_local_descriptor_without_optional_sections():
 def test_bundle_descriptor_round_trip():
     data = load_synthetic('template_bundle.json')
     bundle = load(DocumentTemplateBundle, data)
-    assert bundle.coordinate == bundle.id
+    assert bundle.reference == 'example.my-template:1.0.0'
     assert_same_json(data, bundle.to_json_data())
 
 
@@ -56,6 +63,27 @@ def test_package_pattern_uses_backend_keys():
     data['allowedPackages'][0]['organizationId'] = 'dsw'
     with pytest.raises(pydantic.ValidationError, match='Unknown keys for PackagePattern: organizationId'):
         load(DocumentTemplateBundle, data)
+
+
+@pytest.mark.parametrize(('legacy', 'expected'), [
+    ({'orgId': 'dsw', 'kmId': 'root'}, 'dsw.root'),
+    ({'orgId': 'dsw', 'kmId': None}, None),
+    ({'orgId': None, 'kmId': None}, None),
+    ({'id': 'dsw.root', 'orgId': None, 'kmId': None}, 'dsw.root'),
+])
+def test_package_pattern_reads_legacy_keys(legacy, expected):
+    data = load_synthetic('template_bundle.json')
+    data['allowedPackages'][0] = {**legacy, 'minVersion': '2.0.0', 'maxVersion': None}
+    pattern = load(DocumentTemplateBundle, data).allowed_packages[0]
+    assert pattern.id == expected
+    assert 'orgId' not in pattern.to_json_data()
+
+
+def test_legacy_identity_is_read():
+    data = load_synthetic('template_bundle.json')
+    legacy = {**data, 'id': 'example:my-template:1.0.0', 'organizationId': 'example',
+              'templateId': 'my-template'}
+    assert_same_json(data, load(DocumentTemplateBundle, legacy).to_json_data())
 
 
 def test_package_pattern_options_are_optional():

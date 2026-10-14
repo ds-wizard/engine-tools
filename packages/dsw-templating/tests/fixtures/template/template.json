@@ -1,6 +1,5 @@
 {
-  "organizationId": "dsw",
-  "templateId": "golden",
+  "id": "dsw.golden",
   "version": "1.0.0",
   "name": "Golden Fixture",
   "description": "Small template exercising the built-in steps",

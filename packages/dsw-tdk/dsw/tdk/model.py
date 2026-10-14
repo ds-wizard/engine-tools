@@ -9,6 +9,8 @@ import typing
 
 import pathspec
 
+from dsw.models.coordinate import join_legacy_id, parse_legacy_reference
+from dsw.models.document_template.metadata import upgrade_legacy_package_pattern
 from dsw.templating.consts import JINJA_FILE_EXTENSIONS
 
 from . import consts
@@ -28,20 +30,19 @@ class TemplateFileType(enum.Enum):
 
 class PackageFilter:
 
-    def __init__(self, *, organization_id: str | None = None, km_id: str | None = None,
+    def __init__(self, *, id: str | None = None,  # noqa: A002
                  min_version: str | None = None, max_version: str | None = None,
                  options: dict[str, str] | None = None):
-        self.organization_id = organization_id
-        self.km_id = km_id
+        self.id = id
         self.min_version = min_version
         self.max_version = max_version
         self.options = options
 
     @classmethod
     def load(cls, data):
+        data = upgrade_legacy_package_pattern(data)
         return PackageFilter(
-            organization_id=data.get('orgId', None),
-            km_id=data.get('kmId', None),
+            id=data.get('id', None),
             min_version=data.get('minVersion', None),
             max_version=data.get('maxVersion', None),
             options=data.get('options', None),
@@ -49,8 +50,7 @@ class PackageFilter:
 
     def serialize(self):
         result = {
-            'orgId': self.organization_id,
-            'kmId': self.km_id,
+            'id': self.id,
             'minVersion': self.min_version,
             'maxVersion': self.max_version,
         }
@@ -183,13 +183,11 @@ class TemplateFile:
 
 class Template:
 
-    def __init__(self, *, uuid=None, template_id=None, organization_id=None,
-                 version=None, name=None,
+    def __init__(self, *, uuid=None, id=None, version=None, name=None,  # noqa: A002
                  description=None, readme=None, template_license=None,
                  metamodel_version=None, language=None, tdk_config=None, loaded_json=None):
         self.uuid: str | None = uuid
-        self.template_id: str | None = template_id
-        self.organization_id: str | None = organization_id
+        self.id: str | None = id
         self.version: str | None = version
         self.name: str | None = name
         self.description: str | None = description
@@ -206,32 +204,30 @@ class Template:
 
     @property
     def coordinates(self) -> str:
-        return f'{self.organization_id}:{self.template_id}:{self.version}'
+        """The reference ``<id>:<version>``."""
+        return f'{self.id}:{self.version}'
 
-    @property
-    def id(self) -> str:
-        return self.coordinates
-
-    def id_with_org(self, organization_id: str) -> str:
-        return f'{organization_id}:{self.template_id}:{self.version}'
+    @staticmethod
+    def _load_identity(data) -> tuple[str, str]:
+        """``id`` and ``version``, also from the pre-5.0 ``organizationId`` + ``templateId``."""
+        template_id, version = data.get('id', None), data.get('version', None)
+        if data.get('organizationId') and data.get('templateId'):
+            template_id = join_legacy_id(data['organizationId'], data['templateId'])
+        elif isinstance(template_id, str) and template_id.count(':') == 2:  # noqa: PLR2004
+            template_id, composed_version = parse_legacy_reference(template_id) or (None, None)
+            version = version or composed_version
+        elif not template_id:
+            template_id = data.get('templateId', None)
+        if not template_id or not version:
+            raise RuntimeError('Cannot retrieve template ID and version')
+        return template_id, version
 
     @classmethod
     def _common_load(cls, data):
-        if 'id' in data:
-            composite_id: str = data['id']
-            if composite_id.count(':') != 2:
-                raise RuntimeError(f'Invalid template ID: {composite_id}')
-            _, tmp_id, version = composite_id.split(':')
-        else:
-            try:
-                tmp_id = data['templateId']
-                version = data['version']
-            except KeyError as e:
-                raise RuntimeError('Cannot retrieve template ID') from e
+        template_id, version = cls._load_identity(data)
         template = Template(
             uuid=data.get('uuid', None),
-            organization_id=data.get('organizationId', '~'),
-            template_id=tmp_id,
+            id=template_id,
             version=version,
             name=data.get('name', 'Unknown template'),
             description=data.get('description', ''),
@@ -259,8 +255,11 @@ class Template:
         return cls._common_load(data)
 
     def serialize_local(self) -> collections.OrderedDict:
-        self.loaded_json['templateId'] = self.template_id
-        self.loaded_json['organizationId'] = self.organization_id
+        for legacy_key in ('organizationId', 'templateId'):
+            self.loaded_json.pop(legacy_key, None)
+        if 'id' not in self.loaded_json:
+            self.loaded_json = collections.OrderedDict([('id', None), *self.loaded_json.items()])
+        self.loaded_json['id'] = self.id
         self.loaded_json['version'] = self.version
         self.loaded_json['name'] = self.name
         self.loaded_json['description'] = self.description
@@ -275,8 +274,7 @@ class Template:
     def serialize_remote(self) -> dict[str, typing.Any]:
         return {
             'uuid': self.uuid,
-            'templateId': self.template_id,
-            'organizationId': self.organization_id,
+            'id': self.id,
             'version': self.version,
             'name': self.name,
             'description': self.description,
@@ -291,9 +289,7 @@ class Template:
 
     def serialize_for_package(self) -> dict[str, typing.Any]:
         return {
-            'id': self.coordinates,
-            'templateId': self.template_id,
-            'organizationId': self.organization_id,
+            'id': self.id,
             'version': self.version,
             'name': self.name,
             'description': self.description,
@@ -307,7 +303,7 @@ class Template:
 
     def serialize_for_update(self) -> dict[str, typing.Any]:
         return {
-            'templateId': self.template_id,
+            'id': self.id,
             'version': self.version,
             'name': self.name,
             'description': self.description,
@@ -324,14 +320,13 @@ class Template:
         return {
             'basedOn': based_on,
             'name': self.name,
-            'templateId': self.template_id,
+            'id': self.id,
             'version': self.version,
         }
 
     def serialize_local_new(self) -> dict[str, typing.Any]:
         return {
-            'templateId': self.template_id,
-            'organizationId': self.organization_id,
+            'id': self.id,
             'version': self.version,
             'name': self.name,
             'description': self.description,

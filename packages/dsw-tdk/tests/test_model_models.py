@@ -12,17 +12,15 @@ from dsw.tdk.validation import TemplateValidator
 
 
 DESCRIPTOR = {
-    'templateId': 'my-template',
-    'organizationId': 'example',
+    'id': 'example.my-template',
     'version': '1.0.0',
     'name': 'My template',
     'description': 'Test',
     'license': 'Apache-2.0',
     'metamodelVersion': '18.3',
     'allowedPackages': [
-        {'orgId': 'dsw', 'kmId': None, 'minVersion': None, 'maxVersion': None,
-         'options': {'mode': 'full'}},
-        {'orgId': None, 'kmId': None, 'minVersion': None, 'maxVersion': None},
+        {'id': 'dsw.root', 'minVersion': None, 'maxVersion': None, 'options': {'mode': 'full'}},
+        {'id': None, 'minVersion': None, 'maxVersion': None},
     ],
     'formats': [],
     'unknownKey': 'kept',
@@ -39,6 +37,42 @@ def test_allowed_package_options_survive_rewrite():
     assert serialized['allowedPackages'] == DESCRIPTOR['allowedPackages']
     assert serialized['unknownKey'] == 'kept'
     assert template.serialize_for_package()['allowedPackages'] == DESCRIPTOR['allowedPackages']
+
+
+def test_legacy_local_descriptor_is_rewritten_with_single_id():
+    legacy = {
+        'organizationId': 'example',
+        'templateId': 'my-template',
+        **{k: v for k, v in DESCRIPTOR.items() if k not in ('id', 'allowedPackages')},
+        'allowedPackages': [
+            {'orgId': 'dsw', 'kmId': 'root', 'minVersion': None, 'maxVersion': None,
+             'options': {'mode': 'full'}},
+            {'orgId': 'dsw', 'kmId': None, 'minVersion': None, 'maxVersion': None},
+        ],
+    }
+    template = Template.load_local(collections.OrderedDict(legacy))
+    assert template.coordinates == 'example.my-template:1.0.0'
+    serialized = template.serialize_local()
+    assert next(iter(serialized)) == 'id'
+    assert 'organizationId' not in serialized
+    assert 'templateId' not in serialized
+    assert serialized['allowedPackages'] == DESCRIPTOR['allowedPackages']
+    package = template.serialize_for_package()
+    assert (package['id'], package['version']) == ('example.my-template', '1.0.0')
+
+
+@pytest.mark.parametrize(('identity', 'expected'), [
+    ({'id': 'example.my-template', 'version': '1.0.0'}, 'example.my-template:1.0.0'),
+    ({'id': 'example:my-template:1.0.0'}, 'example.my-template:1.0.0'),
+    ({'templateId': 'my-template', 'version': '1.0.0'}, 'my-template:1.0.0'),
+])
+def test_remote_identity_shapes(identity, expected):
+    assert Template.load_remote(identity).coordinates == expected
+
+
+def test_remote_identity_is_required():
+    with pytest.raises(RuntimeError, match='Cannot retrieve template ID'):
+        Template.load_remote({'name': 'No identity'})
 
 
 @pytest.mark.parametrize(('version', 'valid'), [

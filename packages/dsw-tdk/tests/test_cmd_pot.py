@@ -16,7 +16,7 @@ def test_pot_ok(fixtures_path: pathlib.Path, tmp_path: pathlib.Path):
     assert 'created' in result.output
 
     content = output.read_text(encoding='utf-8')
-    assert 'Project-Id-Version: test:example01:1.0.0 1.0.0' in content
+    assert 'Project-Id-Version: test.example01:1.0.0 1.0.0' in content
     assert 'Language: en' in content
     assert 'Plural-Forms: nplurals=2; plural=(n != 1);' in content
     assert 'charset=utf-8' in content
