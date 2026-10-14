@@ -61,6 +61,7 @@ For further information, visit our [documentation](https://docs.ds-wizard.org).
 -  `package` = create a distribution ZIP package that is importable to DSW via web interface
 -  `pot` = create a POT file with translatable strings of the local template project
 -  `get-context` = download the document context of a project (`--project UUID`, optionally `--event UUID`) or a knowledge model editor (`--km-editor UUID`), as the server sends it; it prints the ETag, which is the context's `hash`
+-  `generate-context` = generate plausible document contexts from a knowledge model: `--sample` (shipped with the TDK), `--km-bundle FILE`, `--km-package UUID` (from the server) or `--from FILE` (keeps its knowledge model, package, config and workspace); `--profile empty|minimal|typical|full|edge` (repeatable) sets how much is filled in, `--count N` the variants per profile, `--source project|km-editor` the kind of context, `--seed` makes the output reproducible and `-D KEY=VALUE` sets `config` values. Every generated context passes `validate-context`
 -  `validate-context` = check document context files against the 19.0 schema and their own knowledge model (reply paths and values, files, labels, phase, version, hash); it prints errors and warnings and exits with `1` on any error, and `--fix-hash` rewrites a hash that does not match the content
 -  `render` = render a document from the local template project and a document context (no DSW instance needed)
 
