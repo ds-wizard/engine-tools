@@ -89,6 +89,14 @@ def test_block_that_commits_ends_the_savepoint():
     assert fake.log == ['SAVEPOINT "dsw_query";']
 
 
+def test_block_that_rolls_back_and_raises_still_raises():
+    connection, fake = fake_connection()
+    with pytest.raises(RuntimeError, match='query failed'), connection.savepoint():
+        fake.info.transaction_status = IDLE
+        raise RuntimeError('query failed')
+    assert fake.log == ['SAVEPOINT "dsw_query";']
+
+
 def test_autocommit_connection_has_no_savepoint():
     connection = PostgresConnection(name='test', dsn='postgresql://', autocommit=True)
     with connection.savepoint():
