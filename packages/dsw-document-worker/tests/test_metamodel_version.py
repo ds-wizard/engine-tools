@@ -8,15 +8,15 @@ import pytest
 from dsw.models.document_context.graph import check_metamodel_version
 
 
-@pytest.mark.parametrize('version', ['18.3', '18.9', '18.10'])
+@pytest.mark.parametrize('version', ['19.0', '19', '19.9', '19.10'])
 def test_accepted(version):
     check_metamodel_version(version)
 
 
 @pytest.mark.parametrize(('version', 'message'), [
-    ('18.2', 'expected at least 3 minor version'),
-    ('17.9', 'expected major version 18'),
-    ('19.0', 'expected major version 18'),
+    ('18.3', 'expected major version 19'),
+    ('17.9', 'expected major version 19'),
+    ('20.0', 'expected major version 19'),
     ('x', 'Invalid metamodel version format'),
     ('', 'Invalid metamodel version format'),
 ])

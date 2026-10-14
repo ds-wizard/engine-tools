@@ -17,6 +17,7 @@ from dsw.models.knowledge_model.bundle import compile_bundle
 from dsw.models.knowledge_model.package import KnowledgeModelBundle
 from dsw.models.project.report import generate_report
 from dsw.models.strictness import load
+from dsw.models.document_context.hash import compute_context_hash
 from dsw.models.document_context.wire import DocumentContext as WireDocumentContext
 
 
@@ -32,8 +33,7 @@ def enrich(ctx: dict) -> dict:
     config.update({
         'serviceName': 'FAIR Wizard', 'serviceNameShort': 'FW', 'serviceUrl': 'https://fw.example.org',
         'serviceDomainName': 'fw.example.org', 'appTitle': config['appTitle'] or 'FAIR Wizard',
-        'appTitleShort': config['appTitleShort'] or 'FW', 'primaryColor': config['primaryColor'] or '#0033aa',
-        'illustrationsColor': config['illustrationsColor'] or '#e95e2a', 'logoUrl': config['logoUrl'] or '',
+        'primaryColor': config['primaryColor'] or '#0033aa', 'logoUrl': config['logoUrl'] or '',
     })
     ctx['extras'] = {}
     return ctx
@@ -45,7 +45,7 @@ def generated_context() -> dict:
     with gzip.open(REFERENCE_BUNDLE, 'rt', encoding='utf-8') as file:
         km = compile_bundle(load(KnowledgeModelBundle, json.load(file)))
     graph = km_graph.KnowledgeModel(km)
-    file_uuid = base['project']['files'][0]['uuid']
+    file_uuid = base['questionnaire']['files'][0]['uuid']
     counter = iter(range(1, 1_000_000))
     replies: dict[str, dict] = {}
     items_of: dict[str, list[str]] = {}
@@ -92,45 +92,54 @@ def generated_context() -> dict:
             visit(question, str(chapter.uuid), 0)
 
     ctx = copy.deepcopy(base)
+    questionnaire = ctx['questionnaire']
+    todo_label = next(iter(base['questionnaire']['labels'].values()))[0]
     ctx['knowledgeModel'] = km.to_json_data()
-    ctx['project']['replies'] = replies
-    ctx['project']['phaseUuid'] = str(km.phase_uuids[1])
-    ctx['project']['labels'] = {path: [base['project']['labels'][next(iter(base['project']['labels']))][0]]
-                                for path in list(replies)[:5]}
+    questionnaire['replies'] = replies
+    questionnaire['phaseUuid'] = str(km.phase_uuids[1])
+    questionnaire['labels'] = {path: [todo_label] for path in list(replies)[:5]}
     content = load(WireDocumentContext, ctx)
-    report = generate_report(content.knowledge_model, content.project.replies, content.project.phase_uuid)
-    ctx['report'] = report.to_json_data()
+    report = generate_report(content.knowledge_model, content.questionnaire.replies,
+                             content.questionnaire.phase_uuid).to_json_data()
+    questionnaire['report'] = {key: report[key]
+                               for key in ('totalReport', 'chapterReports', 'chapters', 'metrics')}
+    ctx['hash'] = compute_context_hash(ctx)
+    load(WireDocumentContext, ctx)  # still a valid 19.0 context
     return ctx
 
 
 def test_synthetic_context():
     dc = to_context_obj(enrich(json.loads(SYNTHETIC_CONTEXT.read_text(encoding='utf-8'))))
     assert dc.km.chapters
-    assert dc.current_phase.title
+    assert dc.questionnaire.phase.title
 
 
 def test_metric_without_measure():
     ctx = enrich(json.loads(SYNTHETIC_CONTEXT.read_text(encoding='utf-8')))
-    ctx['report']['chapterReports'][0]['metrics'][0]['measure'] = None
+    ctx['questionnaire']['report']['chapterReports'][0]['metrics'][0]['measure'] = None
     dc = to_context_obj(ctx)
-    assert dc.report.chapter_reports[0].metrics[0].measure is None
+    assert dc.questionnaire.report.chapter_reports[0].metrics[0].measure is None
 
 
 def test_generated_reference_context():
     dc = to_context_obj(enrich(generated_context()))
-    assert len(dc.replies) > 300
+    assert len(dc.questionnaire.replies) > 300
 
 
 # the parts real templates use most, asserted explicitly
 def test_template_hot_paths():
     dc = to_context_obj(enrich(generated_context()))
     assert dc.project.created_by is not None
-    assert dc.project.versions and dc.project.version is not None
-    assert dc.pkg.id and dc.pkg.org_id and dc.pkg.km_id and dc.pkg.version
+    assert dc.project.users and dc.project.groups
+    assert dc.workspace.name
+    assert dc.questionnaire.versions and dc.questionnaire.version is not None
+    assert dc.km_package.id and dc.km_package.version
     assert dc.config.client_url and dc.config.service_name
-    assert dc.doc.created_at is not None
-    assert dc.report.total_report.indications
-    assert dc.current_phase.title
-    assert dc.km.chapters and dc.e.choices
-    first = next(iter(dc.replies.values()))
-    assert dc.replies[first.path] is first
+    assert dc.document.created_at is not None
+    assert dc.document.document_template.id and dc.document.format.name
+    assert dc.questionnaire.report.total_report.indications
+    assert dc.questionnaire.phase.title
+    assert dc.questionnaire.todos
+    assert dc.km.chapters and dc.km.entities.choices
+    first = next(iter(dc.questionnaire.replies.values()))
+    assert dc.questionnaire.replies[first.path] is first

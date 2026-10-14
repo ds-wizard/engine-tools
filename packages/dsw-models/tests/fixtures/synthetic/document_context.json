@@ -1,25 +1,15 @@
 {
-  "config": {
-    "clientUrl": "https://fair-wizard.example.org",
-    "appTitle": null,
-    "appTitleShort": null,
-    "illustrationsColor": "#e95e2a",
-    "primaryColor": null,
-    "logoUrl": null
+  "metamodelVersion": "19.0",
+  "hash": "sha256:45f63ec9da12ca4b33e74dceda9949d376979a90d7e6db2c8b66393ee76f527c",
+  "workspace": {
+    "uuid": "90000000-0000-0000-0000-000000000001",
+    "name": "Faculty of Science",
+    "description": null
   },
-  "document": {
-    "uuid": "80000000-0000-0000-0000-000000000001",
-    "name": "My DMP",
-    "documentTemplateUuid": "80000000-0000-0000-0000-000000000002",
-    "formatUuid": "20000000-0000-0000-0000-000000000001",
-    "language": "cs",
-    "locale": {
-      "uuid": "80000000-0000-0000-0000-000000000003",
-      "name": "Czech",
-      "code": "cs",
-      "createdAt": "2026-05-01T00:00:00Z",
-      "updatedAt": "2026-05-01T00:00:00Z"
-    },
+  "project": {
+    "uuid": "80000000-0000-0000-0000-000000000004",
+    "name": "My Project",
+    "description": null,
     "createdBy": {
       "uuid": "40000000-0000-0000-0000-000000000001",
       "firstName": "Jane",
@@ -31,12 +21,70 @@
       "createdAt": "2026-01-01T00:00:00Z",
       "updatedAt": "2026-01-02T00:00:00Z"
     },
-    "createdAt": "2026-09-14T11:00:00.25Z"
+    "createdAt": "2026-09-01T00:00:00Z",
+    "updatedAt": "2026-09-14T10:30:00Z",
+    "visibility": "PrivateProjectVisibility",
+    "sharing": "RestrictedProjectSharing",
+    "isTemplate": false,
+    "knowledgeModelPackageUuid": "80000000-0000-0000-0000-000000000007",
+    "selectedQuestionTagUuids": [],
+    "projectTags": [
+      "dmp",
+      "synthetic"
+    ],
+    "documentTemplateUuid": null,
+    "formatUuid": null,
+    "users": [
+      {
+        "user": {
+          "uuid": "40000000-0000-0000-0000-000000000001",
+          "firstName": "Jane",
+          "lastName": "Doe",
+          "email": "jane@example.org",
+          "affiliation": "Example University",
+          "active": true,
+          "imageUrl": null,
+          "createdAt": "2026-01-01T00:00:00Z",
+          "updatedAt": "2026-01-02T00:00:00Z"
+        },
+        "perms": [
+          "ADMIN",
+          "COMMENT",
+          "EDIT",
+          "VIEW"
+        ]
+      }
+    ],
+    "groups": [
+      {
+        "group": {
+          "uuid": "80000000-0000-0000-0000-000000000009",
+          "name": "Reviewers",
+          "description": null,
+          "private": false,
+          "members": [
+            {
+              "uuid": "40000000-0000-0000-0000-000000000001",
+              "firstName": "Jane",
+              "lastName": "Doe",
+              "gravatarHash": "abc",
+              "imageUrl": null,
+              "affiliation": null,
+              "membershipType": "OwnerUserGroupMembershipType"
+            }
+          ],
+          "createdAt": "2026-01-01T00:00:00Z",
+          "updatedAt": "2026-01-01T00:00:00Z"
+        },
+        "perms": [
+          "COMMENT",
+          "VIEW"
+        ]
+      }
+    ]
   },
-  "project": {
-    "uuid": "80000000-0000-0000-0000-000000000004",
-    "name": "My Project",
-    "description": null,
+  "knowledgeModelEditor": null,
+  "questionnaire": {
     "replies": {
       "00000000-0000-0000-0000-000000000101.00000000-0000-0000-0000-000000000201": {
         "value": {
@@ -116,12 +164,12 @@
         "createdAt": "2026-09-14T10:01:01Z"
       }
     },
-    "phaseUuid": "00000000-0000-0000-0000-000000000a01",
     "labels": {
       "00000000-0000-0000-0000-000000000101.00000000-0000-0000-0000-000000000201": [
         "615b9028-5e3f-414f-b245-12d2ae2eeb20"
       ]
     },
+    "phaseUuid": "00000000-0000-0000-0000-000000000a01",
     "versionUuid": "80000000-0000-0000-0000-000000000005",
     "versions": [
       {
@@ -141,10 +189,6 @@
         "updatedAt": "2026-09-14T10:30:00Z"
       }
     ],
-    "projectTags": [
-      "dmp",
-      "synthetic"
-    ],
     "files": [
       {
         "uuid": "60000000-0000-0000-0000-000000000001",
@@ -153,20 +197,77 @@
         "fileSize": 1234
       }
     ],
-    "language": "cs",
-    "createdBy": {
-      "uuid": "40000000-0000-0000-0000-000000000001",
-      "firstName": "Jane",
-      "lastName": "Doe",
-      "email": "jane@example.org",
-      "affiliation": "Example University",
-      "active": true,
-      "imageUrl": null,
-      "createdAt": "2026-01-01T00:00:00Z",
-      "updatedAt": "2026-01-02T00:00:00Z"
+    "report": {
+      "totalReport": {
+        "indications": [
+          {
+            "indicationType": "PhasesAnsweredIndication",
+            "answeredQuestions": 1,
+            "unansweredQuestions": 0
+          },
+          {
+            "indicationType": "AnsweredIndication",
+            "answeredQuestions": 8,
+            "unansweredQuestions": 1
+          }
+        ],
+        "metrics": [
+          {
+            "metricUuid": "00000000-0000-0000-0000-000000000901",
+            "measure": 1.0
+          }
+        ]
+      },
+      "chapterReports": [
+        {
+          "chapterUuid": "00000000-0000-0000-0000-000000000101",
+          "indications": [
+            {
+              "indicationType": "PhasesAnsweredIndication",
+              "answeredQuestions": 1,
+              "unansweredQuestions": 0
+            },
+            {
+              "indicationType": "AnsweredIndication",
+              "answeredQuestions": 8,
+              "unansweredQuestions": 1
+            }
+          ],
+          "metrics": [
+            {
+              "metricUuid": "00000000-0000-0000-0000-000000000901",
+              "measure": 1.0
+            }
+          ]
+        }
+      ],
+      "chapters": [
+        {
+          "uuid": "00000000-0000-0000-0000-000000000101",
+          "annotations": [],
+          "title": "Chapter",
+          "text": null,
+          "questionUuids": [
+            "00000000-0000-0000-0000-000000000201",
+            "00000000-0000-0000-0000-000000000202",
+            "00000000-0000-0000-0000-000000000203",
+            "00000000-0000-0000-0000-000000000205",
+            "00000000-0000-0000-0000-000000000206",
+            "00000000-0000-0000-0000-000000000207"
+          ]
+        }
+      ],
+      "metrics": [
+        {
+          "uuid": "00000000-0000-0000-0000-000000000901",
+          "annotations": [],
+          "title": "Findability",
+          "abbreviation": "F",
+          "description": null
+        }
+      ]
     },
-    "createdAt": "2026-09-01T00:00:00Z",
-    "updatedAt": "2026-09-14T10:30:00Z"
+    "language": "cs"
   },
   "knowledgeModel": {
     "uuid": "00000000-0000-0000-0000-000000000001",
@@ -570,155 +671,56 @@
       }
     }
   },
-  "report": {
-    "uuid": "80000000-0000-0000-0000-000000000006",
-    "totalReport": {
-      "indications": [
-        {
-          "indicationType": "PhasesAnsweredIndication",
-          "answeredQuestions": 1,
-          "unansweredQuestions": 0
-        },
-        {
-          "indicationType": "AnsweredIndication",
-          "answeredQuestions": 8,
-          "unansweredQuestions": 1
-        }
-      ],
-      "metrics": [
-        {
-          "metricUuid": "00000000-0000-0000-0000-000000000901",
-          "measure": 1.0
-        }
-      ]
-    },
-    "chapterReports": [
-      {
-        "chapterUuid": "00000000-0000-0000-0000-000000000101",
-        "indications": [
-          {
-            "indicationType": "PhasesAnsweredIndication",
-            "answeredQuestions": 1,
-            "unansweredQuestions": 0
-          },
-          {
-            "indicationType": "AnsweredIndication",
-            "answeredQuestions": 8,
-            "unansweredQuestions": 1
-          }
-        ],
-        "metrics": [
-          {
-            "metricUuid": "00000000-0000-0000-0000-000000000901",
-            "measure": 1.0
-          }
-        ]
-      }
-    ],
-    "chapters": [
-      {
-        "uuid": "00000000-0000-0000-0000-000000000101",
-        "annotations": [],
-        "title": "Chapter",
-        "text": null,
-        "questionUuids": [
-          "00000000-0000-0000-0000-000000000201",
-          "00000000-0000-0000-0000-000000000202",
-          "00000000-0000-0000-0000-000000000203",
-          "00000000-0000-0000-0000-000000000205",
-          "00000000-0000-0000-0000-000000000206",
-          "00000000-0000-0000-0000-000000000207"
-        ]
-      }
-    ],
-    "metrics": [
-      {
-        "uuid": "00000000-0000-0000-0000-000000000901",
-        "annotations": [],
-        "title": "Findability",
-        "abbreviation": "F",
-        "description": null
-      }
-    ],
-    "createdAt": "2026-09-14T11:00:00Z",
-    "updatedAt": "2026-09-14T11:00:00Z"
-  },
   "knowledgeModelPackage": {
     "uuid": "80000000-0000-0000-0000-000000000007",
-    "name": "Synthetic KM",
-    "organizationId": "example",
-    "kmId": "synthetic",
+    "id": "synthetic",
     "version": "1.0.0",
-    "versions": [],
-    "remoteLatestVersion": null,
+    "name": "Synthetic KM",
     "description": "Synthetic knowledge model",
-    "organization": {
-      "organizationId": "example",
-      "name": "My Organization",
-      "logo": null,
-      "createdAt": "2026-01-01T00:00:00Z"
-    },
     "language": "en",
-    "createdAt": "2026-01-01T00:00:00Z"
-  },
-  "organization": {
-    "tenantUuid": "80000000-0000-0000-0000-000000000008",
-    "name": "My Organization",
-    "description": "Synthetic",
-    "organizationId": "example",
-    "affiliations": [
-      "Example University"
-    ],
     "createdAt": "2026-01-01T00:00:00Z",
-    "updatedAt": "2026-01-01T00:00:00Z"
+    "workspaceUuid": null
   },
-  "metamodelVersion": "18.3",
-  "users": [
-    {
-      "user": {
-        "uuid": "40000000-0000-0000-0000-000000000001",
-        "firstName": "Jane",
-        "lastName": "Doe",
-        "email": "jane@example.org",
-        "affiliation": "Example University",
-        "active": true,
-        "imageUrl": null,
-        "createdAt": "2026-01-01T00:00:00Z",
-        "updatedAt": "2026-01-02T00:00:00Z"
-      },
-      "perms": [
-        "VIEW",
-        "COMMENT",
-        "EDIT",
-        "ADMIN"
-      ]
-    }
-  ],
-  "groups": [
-    {
-      "group": {
-        "uuid": "80000000-0000-0000-0000-000000000009",
-        "name": "Reviewers",
-        "description": null,
-        "private": false,
-        "users": [
-          {
-            "uuid": "40000000-0000-0000-0000-000000000001",
-            "firstName": "Jane",
-            "lastName": "Doe",
-            "gravatarHash": "abc",
-            "imageUrl": null,
-            "affiliation": null,
-            "membershipType": "OwnerUserGroupMembershipType"
-          }
-        ],
-        "createdAt": "2026-01-01T00:00:00Z",
-        "updatedAt": "2026-01-01T00:00:00Z"
-      },
-      "perms": [
-        "VIEW",
-        "COMMENT"
-      ]
-    }
-  ]
+  "document": {
+    "uuid": "80000000-0000-0000-0000-000000000001",
+    "name": "My DMP",
+    "documentTemplate": {
+      "uuid": "80000000-0000-0000-0000-000000000002",
+      "id": "questionnaire-report",
+      "version": "2.4.0",
+      "workspaceUuid": null
+    },
+    "format": {
+      "uuid": "20000000-0000-0000-0000-000000000001",
+      "name": "PDF"
+    },
+    "language": "cs",
+    "locale": {
+      "uuid": "80000000-0000-0000-0000-000000000003",
+      "name": "Czech",
+      "code": "cs",
+      "createdAt": "2026-05-01T00:00:00Z",
+      "updatedAt": "2026-05-01T00:00:00Z"
+    },
+    "preview": false,
+    "eventUuid": "30000000-0000-0000-0000-000000000012",
+    "createdBy": {
+      "uuid": "40000000-0000-0000-0000-000000000001",
+      "firstName": "Jane",
+      "lastName": "Doe",
+      "email": "jane@example.org",
+      "affiliation": "Example University",
+      "active": true,
+      "imageUrl": null,
+      "createdAt": "2026-01-01T00:00:00Z",
+      "updatedAt": "2026-01-02T00:00:00Z"
+    },
+    "createdAt": "2026-09-14T11:00:00.25Z"
+  },
+  "config": {
+    "clientUrl": "https://fair-wizard.example.org",
+    "appTitle": null,
+    "primaryColor": null,
+    "logoUrl": null
+  }
 }

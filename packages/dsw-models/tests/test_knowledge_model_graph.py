@@ -141,7 +141,7 @@ def test_visitor_orders(km):
 def test_walk_replies():
     context = load_synthetic('document_context.json')
     km = convert.flat_to_graph(load(flat.KnowledgeModel, context['knowledgeModel']))
-    replies = {path: load(Reply, reply) for path, reply in context['project']['replies'].items()}
+    replies = {path: load(Reply, reply) for path, reply in context['questionnaire']['replies'].items()}
     walked = [(qp.question.title, qp.reply is not None, qp.depth) for qp in walk_replies(km, replies)]
     assert walked == [
         ('Options', True, 0),

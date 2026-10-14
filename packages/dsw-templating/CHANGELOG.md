@@ -18,6 +18,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Optional extras `pdf`, `rdf`, `excel`, `docx`, `http` and `all`; a step whose extra is missing
   fails with `MissingExtraError` when it is used
 - Pandoc filters shipped as package data (`settings.bundled_pandoc_filters`)
+- `ctx|to_context_obj` serves document context metamodel 19.0 (see `support/DocumentContext.md`, which has a migration table from 18.x)
 - `enrich_context_config` and `ContextDefaults`: the service information and branding fallbacks the document worker adds to `ctx.config`
 - Plugins use the `dsw-templating` pluggy project and the `dsw_templating_plugins` entry point
 - The `pandoc-docx-pagebreakpy` Pandoc filter is a command of this package (`docx` extra) instead of a separate addon installed only in the document worker image

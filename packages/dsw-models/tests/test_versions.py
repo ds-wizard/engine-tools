@@ -21,15 +21,14 @@ def test_parse_invalid(value):
 
 
 def test_str():
-    assert str(DOCUMENT_TEMPLATE_METAMODEL_VERSION) == '18.3'
+    assert str(DOCUMENT_TEMPLATE_METAMODEL_VERSION) == '19.0'
 
 
 @pytest.mark.parametrize(('other', 'supported'), [
-    ('18.3', True),
-    ('18.0', True),
-    ('18.4', False),
-    ('17.1', False),
-    ('19.0', False),
+    ('19.0', True),
+    ('19.1', False),
+    ('18.3', False),
+    ('20.0', False),
 ])
 def test_supports(other, supported):
     assert DOCUMENT_TEMPLATE_METAMODEL_VERSION.supports(MetamodelVersion.parse(other)) is supported

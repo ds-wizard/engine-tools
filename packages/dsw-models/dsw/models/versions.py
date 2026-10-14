@@ -32,4 +32,4 @@ class MetamodelVersion(typing.NamedTuple):
 
 
 KM_METAMODEL_VERSION = 20
-DOCUMENT_TEMPLATE_METAMODEL_VERSION = MetamodelVersion(18, 3)
+DOCUMENT_TEMPLATE_METAMODEL_VERSION = MetamodelVersion(19, 0)

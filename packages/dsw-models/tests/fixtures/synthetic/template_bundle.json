@@ -2,7 +2,7 @@
   "id": "example.my-template",
   "name": "My Template",
   "version": "1.0.0",
-  "metamodelVersion": "18.3",
+  "metamodelVersion": "19.0",
   "description": "Synthetic template",
   "readme": "# My Template",
   "license": "Apache-2.0",
