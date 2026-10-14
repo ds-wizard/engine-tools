@@ -111,5 +111,9 @@ RUN --mount=from=ghcr.io/astral-sh/uv:0.12.24,source=/uv,target=/usr/local/bin/u
     uv pip install --prefix /home/user/.local --no-cache --no-index --compile-bytecode /home/user/wheels/*  \
  && rm -rf /home/user/wheels
 
+# The default mail POT of these templates (templates/locale/mail.pot), which the
+# mailer keeps current in S3 for translating them; versioned as the mailer.
+RUN dsw-mailer make-pot /home/user/templates
+
 # Run
 CMD ["dsw-mailer", "run"]

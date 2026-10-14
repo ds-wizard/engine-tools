@@ -18,7 +18,7 @@ from dsw.config.sentry import SentryReporter
 from dsw.database.database import Database
 from dsw.storage import S3Storage
 
-from . import consts
+from . import consts, pot
 from .build_info import BUILD_INFO
 from .config import MailConfig, MailerConfig, merge_mail_configs
 from .context import Context
@@ -36,6 +36,9 @@ LOG = logging.getLogger(__name__)
 
 
 class Mailer(CommandWorker):
+
+    #: the default POT is synced once per process (worker start, Lambda cold start)
+    _default_pot_synced = False
 
     def __init__(self, cfg: MailerConfig, workdir: pathlib.Path):
         self.cfg = cfg
@@ -84,6 +87,7 @@ class Mailer(CommandWorker):
         Context.get().app.db.connect()
         # prepare
         self._update_component_info()
+        self._sync_default_pot_at_startup()
         # init queue
         LOG.info('Preparing command queue')
         return CommandQueue(
@@ -94,6 +98,24 @@ class Mailer(CommandWorker):
             wait_timeout=Context.get().app.cfg.db.queue_timeout,
             work_timeout=Context.get().app.cfg.experimental.job_timeout,
         )
+
+    def sync_default_pot(self, *, force: bool = False) -> pot.SyncResult:
+        return pot.sync_default_pot(self.ctx.app.s3, self.workdir, force=force)
+
+    def _sync_default_pot_at_startup(self):
+        """Never blocks sending mail: a failure is only reported."""
+        if not self.cfg.mail.sync_default_pot or Mailer._default_pot_synced:
+            return
+        Mailer._default_pot_synced = True
+        if not (self.workdir / pot.POT_PATH).exists():
+            LOG.warning('No default mail POT in the templates (%s), not syncing it; '
+                        'build it with: dsw-mailer make-pot', pot.POT_PATH)
+            return
+        try:
+            self.sync_default_pot()
+        except Exception as e:
+            LOG.warning('Cannot sync the default mail POT: %s', str(e))
+            SentryReporter.capture_exception(e)
 
     def run(self):
         LOG.info('Starting mailer worker (loop)')

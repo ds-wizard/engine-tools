@@ -44,6 +44,9 @@ mail:
     selector:
     # DKIM private key file (path)
     privkeyFile:
+  # syncDefaultPot: keep the default mail POT (mail-templates/mail.pot in S3) current
+  # at startup; turn it off for the Registry server (default: true)
+  syncDefaultPot: true
 
 # AWS Configuration used by server (fallback if not provided for mail)
 #aws:
