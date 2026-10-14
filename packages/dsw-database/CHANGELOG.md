@@ -10,6 +10,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Added
 
 - `language` and `pot_file_ready` fields of `document_template` and a method to update the POT file flag
+- `DBMailTemplateLocale` (`mail_template_locale`) with `get_mail_template_locale` and
+  `get_enabled_mail_template_locales` (Wizard 5.0 mail translations)
 
 ### Changed
 
@@ -22,6 +24,14 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `fetch_tenant_limits` returns `None` (no limit) when there is no `tenant_limit_bundle` table,
   as in FAIR Wizard 5.0, which computes limits from tenant plans
 - `fetch_project_simple` returns `None` for a missing project
+- `DBLocale` has the Wizard 5.0 shape of the `locale` table (`code`, `name`, `pot_version`,
+  `enabled`, `default_locale`, `official`, timestamps); `organization_id`, `locale_id`,
+  `version` and the `id` property are gone
+
+### Removed
+
+- `get_default_locale`: mails no longer fall back to the default UI locale, but to the default
+  mail template locale
 
 ### Fixed
 

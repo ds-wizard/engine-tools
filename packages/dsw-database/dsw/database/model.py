@@ -445,33 +445,44 @@ class DBUserEntity:
 
 @dataclasses.dataclass
 class DBLocale:
+    """A UI locale (Wizard 5.0, WEP 27): one PO per language code and tenant."""
     TABLE_NAME = 'locale'
 
     uuid: str
-    organization_id: str
-    locale_id: str
-    version: str
-    name: str
+    tenant_uuid: str
+    #: BCP 47, normalized by the backend (e.g. ``pt-BR``)
     code: str
-    default_locale: bool
+    name: str
+    #: ``Project-Id-Version`` of the PO, informational only
+    pot_version: str | None
     enabled: bool
+    #: at most one per tenant, and only an enabled one
+    default_locale: bool
+    official: bool
+    created_at: datetime
+    #: bumped whenever the PO is replaced
+    updated_at: datetime
 
-    @staticmethod
-    def from_dict_row(data: dict):
-        return DBLocale(
+    @classmethod
+    def from_dict_row(cls, data: dict) -> typing.Self:
+        return cls(
             uuid=str(data['uuid']),
-            organization_id=data['organization_id'],
-            locale_id=data['locale_id'],
-            version=data['version'],
-            name=data['name'],
+            tenant_uuid=str(data['tenant_uuid']),
             code=data['code'],
-            default_locale=data['default_locale'],
+            name=data['name'],
+            pot_version=data.get('pot_version'),
             enabled=data['enabled'],
+            default_locale=data['default_locale'],
+            official=data.get('official', False),
+            created_at=data['created_at'],
+            updated_at=data['updated_at'],
         )
 
-    @property
-    def id(self) -> str:
-        return f'{self.organization_id}:{self.locale_id}:{self.version}'
+
+@dataclasses.dataclass
+class DBMailTemplateLocale(DBLocale):
+    """A translation of the mail templates; the same shape as a UI locale (WEP 27, B5)."""
+    TABLE_NAME = 'mail_template_locale'
 
 
 @dataclasses.dataclass

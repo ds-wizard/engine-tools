@@ -99,12 +99,15 @@ class Database:
                       'AS result;')
     SELECT_USER = ('SELECT * FROM user_entity '
                    'WHERE uuid = %(user_uuid)s AND tenant_uuid = %(tenant_uuid)s;')
-    SELECT_DEFAULT_LOCALE = ('SELECT * FROM locale '
-                             'WHERE default_locale IS TRUE AND '
-                             '  enabled is TRUE AND '
-                             '  tenant_uuid = %(tenant_uuid)s;')
     SELECT_LOCALE = ('SELECT * FROM locale '
                      'WHERE uuid = %(locale_uuid)s AND tenant_uuid = %(tenant_uuid)s;')
+    SELECT_MAIL_TEMPLATE_LOCALE = ('SELECT * FROM mail_template_locale '
+                                   'WHERE uuid = %(locale_uuid)s '
+                                   '  AND tenant_uuid = %(tenant_uuid)s;')
+    SELECT_ENABLED_MAIL_TEMPLATE_LOCALES = ('SELECT * FROM mail_template_locale '
+                                            'WHERE enabled IS TRUE '
+                                            '  AND tenant_uuid = %(tenant_uuid)s '
+                                            'ORDER BY code;')
 
     def __init__(self, cfg: DatabaseConfig, connect: bool = True,
                  with_queue: bool = True):
@@ -511,23 +514,17 @@ class Database:
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
     @_in_savepoint
-    def get_default_locale(self, tenant_uuid: str) -> model.DBLocale | None:
-        if not self._check_table_exists(table_name='locale'):
-            return None
+    def get_enabled_mail_template_locales(
+            self, tenant_uuid: str) -> list[model.DBMailTemplateLocale]:
+        if not self._check_table_exists(table_name='mail_template_locale'):
+            return []
         with self.conn_query.new_cursor(use_dict=True) as cursor:
-            try:
-                cursor.execute(
-                    query=self.SELECT_DEFAULT_LOCALE,
-                    params={'tenant_uuid': tenant_uuid},
-                )
-                result = cursor.fetchone()
-                if result is None:
-                    return None
-                return model.DBLocale.from_dict_row(data=result)
-            except Exception as e:
-                LOG.warning('Could not retrieve default locale for tenant "%s": %s',
-                            tenant_uuid, str(e))
-                return None
+            cursor.execute(
+                query=self.SELECT_ENABLED_MAIL_TEMPLATE_LOCALES,
+                params={'tenant_uuid': tenant_uuid},
+            )
+            return [model.DBMailTemplateLocale.from_dict_row(data=row)
+                    for row in cursor.fetchall()]
 
     @tenacity.retry(
         reraise=True,
@@ -554,6 +551,28 @@ class Database:
                 LOG.warning('Could not retrieve locale "%s" for tenant "%s": %s',
                             locale_uuid, tenant_uuid, str(e))
                 return None
+
+    @tenacity.retry(
+        reraise=True,
+        wait=tenacity.wait_exponential(multiplier=RETRY_QUERY_MULTIPLIER),
+        stop=tenacity.stop_after_attempt(RETRY_QUERY_TRIES),
+        before=tenacity.before_log(LOG, logging.DEBUG),
+        after=tenacity.after_log(LOG, logging.DEBUG),
+    )
+    @_in_savepoint
+    def get_mail_template_locale(self, locale_uuid: str,
+                                 tenant_uuid: str) -> model.DBMailTemplateLocale | None:
+        if not self._check_table_exists(table_name='mail_template_locale'):
+            return None
+        with self.conn_query.new_cursor(use_dict=True) as cursor:
+            cursor.execute(
+                query=self.SELECT_MAIL_TEMPLATE_LOCALE,
+                params={'locale_uuid': locale_uuid, 'tenant_uuid': tenant_uuid},
+            )
+            result = cursor.fetchone()
+            if result is None:
+                return None
+            return model.DBMailTemplateLocale.from_dict_row(data=result)
 
     @tenacity.retry(
         reraise=True,

@@ -6,6 +6,8 @@ import uuid
 from dsw.database.model import (
     DBDocument,
     DBDocumentTemplate,
+    DBLocale,
+    DBMailTemplateLocale,
     DBProjectSimple,
     DBSubmission,
     DocumentTemplatePhase,
@@ -123,3 +125,24 @@ def test_submission_extras_with_nullable_columns_are_json():
     }).to_dict()
     assert json.loads(json.dumps(data)) == data
     assert (data['document_uuid'], data['created_by'], data['created_at']) == (None, None, None)
+
+
+def locale_row(**changes) -> dict:
+    return {
+        'uuid': uuid.UUID('00000000-0000-0000-0000-000000000009'), 'tenant_uuid': TENANT,
+        'code': 'de', 'name': 'German', 'pot_version': 'fw-mail-templates:5.0.0',
+        'enabled': True, 'default_locale': False, 'official': True,
+        'created_at': NOW, 'updated_at': NOW, **changes,
+    }
+
+
+def test_locale_tables_share_the_shape():
+    ui = DBLocale.from_dict_row(locale_row())
+    mail = DBMailTemplateLocale.from_dict_row(locale_row(pot_version=None))
+    assert (ui.uuid, ui.tenant_uuid, ui.code, ui.official) == \
+        ('00000000-0000-0000-0000-000000000009', str(TENANT), 'de', True)
+    assert isinstance(mail, DBMailTemplateLocale)
+    assert mail.pot_version is None
+    assert mail.updated_at == NOW
+    assert (DBLocale.TABLE_NAME, DBMailTemplateLocale.TABLE_NAME) == \
+        ('locale', 'mail_template_locale')
