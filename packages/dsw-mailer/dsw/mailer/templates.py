@@ -94,7 +94,6 @@ class TemplateRegistry:
 
     DESCRIPTOR_FILENAME = 'message.json'
     DESCRIPTOR_PATTERN = f'./**/{DESCRIPTOR_FILENAME}'
-    DEFAULT_LOCALE = '~:default:1.0.0'
 
     def __init__(self, cfg: MailerConfig, workdir: pathlib.Path):
         self.cfg = cfg
@@ -226,10 +225,6 @@ class TemplateRegistry:
                 tenant_uuid=tenant_uuid,
                 locale_uuid=locale_uuid,
             )
-            if locale.id == self.DEFAULT_LOCALE:
-                LOG.info('Locale is default locale - using null translations')
-                self._install_null_translations()
-                return
             if locale is None:
                 LOG.error('Could not find locale for tenant %s', tenant_uuid)
                 raise RuntimeError(f'Locale not found in DB: {locale_uuid}')
