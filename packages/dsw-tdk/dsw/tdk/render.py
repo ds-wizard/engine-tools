@@ -174,7 +174,6 @@ def context_defaults(overrides: dict[str, str] | None = None,
 EXTRAS_WITHOUT_PROJECT: dict[str, typing.Any] = {
     'submissions': [],
     'project': None,
-    'questionnaire': None,
 }
 
 

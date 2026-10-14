@@ -11,6 +11,8 @@ from dsw.command_queue import CommandQueue, CommandWorker
 from dsw.config.sentry import SentryReporter
 from dsw.database.database import Database
 from dsw.models.document_context.graph import check_metamodel_version
+from dsw.models.errors import MetamodelVersionError
+from dsw.models.versions import DOCUMENT_TEMPLATE_METAMODEL_VERSION, MetamodelVersion
 from dsw.storage import S3Storage
 from dsw.templating import ContextDefaults, DocumentFile, TemplateLocale, enrich_context_config
 from dsw.templating.utils import byte_size_format
@@ -202,16 +204,6 @@ class Job:
                     tenant_uuid=self.tenant_uuid,
                 )
             extras['submissions'] = [s.to_dict() for s in submissions]
-        if self.safe_format.requires_via_extras('questionnaire'):
-            # older deprecated variant (questionnaire -> project)
-            if self.safe_doc.project_uuid is None:
-                extras['questionnaire'] = None
-            else:
-                questionnaire = self.ctx.app.db.fetch_project_simple(
-                    project_uuid=self.safe_doc.project_uuid,
-                    tenant_uuid=self.tenant_uuid,
-                )
-                extras['questionnaire'] = None if questionnaire is None else questionnaire.to_dict()
         if self.safe_format.requires_via_extras('project'):
             if self.safe_doc.project_uuid is None:
                 extras['project'] = None
@@ -226,9 +218,22 @@ class Job:
 
     def check_compliance(self):
         SentryReporter.set_tags(phase='check')
-        check_metamodel_version(
-            metamodel_version=str(self.doc_context.get('metamodelVersion', '0')),
-        )
+        version = self.doc_context.get('metamodelVersion')
+        try:
+            check_metamodel_version(metamodel_version=str(version))
+        except ValueError as e:
+            # e.g. a document queued by the backend before an upgrade: the context was built
+            # for the old metamodel, and only generating it again builds a current one
+            try:
+                shown = 'missing' if version is None else str(MetamodelVersion.parse(version))
+            except MetamodelVersionError:
+                shown = 'missing'
+            raise JobError(
+                job_id=self.doc_uuid,
+                msg=(f'Unsupported document context metamodel version {shown}, expected '
+                     f'{DOCUMENT_TEMPLATE_METAMODEL_VERSION.major}.x. Regenerate the document.'),
+                skip_reporting=True,
+            ) from e
 
     @handle_job_step('Failed to prepare document locale')
     def prepare_locale(self):
