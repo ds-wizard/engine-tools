@@ -108,14 +108,7 @@ class Mailer(CommandWorker):
         )
         if user is None:
             raise RuntimeError(f'Cannot find user: {recipient_uuid}')
-        if user.locale is not None:
-            return user.locale
-        default_locale = app_ctx.db.get_default_locale(
-            tenant_uuid=tenant_uuid,
-        )
-        if default_locale is not None:
-            return default_locale.uuid
-        return None
+        return user.locale
 
     def _get_msg_request(self, command: PersistentCommand) -> MessageRequest:
         mc = MailerCommand.load(command)
