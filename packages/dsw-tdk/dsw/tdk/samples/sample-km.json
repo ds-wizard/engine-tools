@@ -1,0 +1,1007 @@
+{
+  "id": "tdk.sample",
+  "name": "TDK Sample Knowledge Model",
+  "version": "1.0.0",
+  "metamodelVersion": 20,
+  "packages": [
+    {
+      "id": "tdk.sample",
+      "name": "TDK Sample Knowledge Model",
+      "version": "1.0.0",
+      "phase": "ReleasedKnowledgeModelPackagePhase",
+      "metamodelVersion": 20,
+      "description": "Covers every question and value type for generating document contexts",
+      "readme": "",
+      "license": "CC0-1.0",
+      "language": "en",
+      "events": [
+        {
+          "uuid": "9d3cdb2b-b0bf-5713-a0db-d496899cd5c3",
+          "parentUuid": "00000000-0000-0000-0000-000000000000",
+          "entityUuid": "f90c49d3-26d0-5797-a9cd-202d525b9e94",
+          "content": {
+            "eventType": "AddKnowledgeModelEvent",
+            "annotations": []
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "f0fdd8bf-4129-56d8-8841-84e947f825fa",
+          "parentUuid": "f90c49d3-26d0-5797-a9cd-202d525b9e94",
+          "entityUuid": "c219ba3d-ba70-597e-a994-b2eb34838781",
+          "content": {
+            "eventType": "AddChapterEvent",
+            "title": "Project",
+            "text": "About the **project**.",
+            "annotations": []
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "019ad9a6-de5f-5587-a306-2c915c681a85",
+          "parentUuid": "c219ba3d-ba70-597e-a994-b2eb34838781",
+          "entityUuid": "76fa1f3e-2806-5e4e-8c81-4df2eab08bd1",
+          "content": {
+            "eventType": "AddQuestionEvent",
+            "title": "Will you reuse existing data?",
+            "text": "Data *already* collected by others.",
+            "requiredPhaseUuid": "45f253b6-bfa1-5ecc-8bf5-7db804a5a7ee",
+            "annotations": [],
+            "tagUuids": [
+              "6599f977-6d7f-517a-a3af-7852ec7f22a5"
+            ],
+            "questionType": "OptionsQuestion"
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "c25f4207-d847-5d47-96ba-e15ad4e22087",
+          "parentUuid": "76fa1f3e-2806-5e4e-8c81-4df2eab08bd1",
+          "entityUuid": "95605c3d-dfbf-59d4-bf5a-ee159e8dc8aa",
+          "content": {
+            "eventType": "AddAnswerEvent",
+            "label": "Yes",
+            "advice": null,
+            "annotations": [],
+            "metricMeasures": [
+              {
+                "metricUuid": "e5aa4c72-4b32-5fde-a7ec-9bb66a3b4557",
+                "measure": 1.0,
+                "weight": 1.0
+              },
+              {
+                "metricUuid": "304731aa-7c64-5778-b4f0-3a2f6b7865c1",
+                "measure": 1.0,
+                "weight": 1.0
+              }
+            ]
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "6eee6c21-9cbb-5899-b5ba-39545c2ff6b7",
+          "parentUuid": "95605c3d-dfbf-59d4-bf5a-ee159e8dc8aa",
+          "entityUuid": "83934557-1c8b-5bbd-936a-3511be8b1d94",
+          "content": {
+            "eventType": "AddQuestionEvent",
+            "title": "Which data will you reuse?",
+            "text": null,
+            "requiredPhaseUuid": null,
+            "annotations": [],
+            "tagUuids": [],
+            "questionType": "ValueQuestion",
+            "valueType": "TextQuestionValueType",
+            "validations": []
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "33325087-7ebb-53c4-be63-068f2cf58fcd",
+          "parentUuid": "95605c3d-dfbf-59d4-bf5a-ee159e8dc8aa",
+          "entityUuid": "15cd65be-4647-5c15-b6cc-75c85b9fc8ae",
+          "content": {
+            "eventType": "AddQuestionEvent",
+            "title": "Is the data openly available?",
+            "text": null,
+            "requiredPhaseUuid": null,
+            "annotations": [],
+            "tagUuids": [],
+            "questionType": "OptionsQuestion"
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "4cdaceec-8bf8-5196-a4fc-46d149b9f0f4",
+          "parentUuid": "15cd65be-4647-5c15-b6cc-75c85b9fc8ae",
+          "entityUuid": "6a6aa990-0052-555d-a4ff-95d02cfc79a3",
+          "content": {
+            "eventType": "AddAnswerEvent",
+            "label": "Yes",
+            "advice": null,
+            "annotations": [],
+            "metricMeasures": [
+              {
+                "metricUuid": "304731aa-7c64-5778-b4f0-3a2f6b7865c1",
+                "measure": 1.0,
+                "weight": 0.5
+              }
+            ]
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "d271e859-e562-5f99-b2e2-f2417580f954",
+          "parentUuid": "15cd65be-4647-5c15-b6cc-75c85b9fc8ae",
+          "entityUuid": "a94a98a1-c8ab-5bb0-b575-f16d0226fa47",
+          "content": {
+            "eventType": "AddAnswerEvent",
+            "label": "No",
+            "advice": "Check the license before you reuse it.",
+            "annotations": [],
+            "metricMeasures": []
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "766e6344-dc66-5d9a-ac7b-be91f99795be",
+          "parentUuid": "a94a98a1-c8ab-5bb0-b575-f16d0226fa47",
+          "entityUuid": "e70c0cd3-6c9c-5728-b19c-e695cc2a79a3",
+          "content": {
+            "eventType": "AddQuestionEvent",
+            "title": "Who grants access?",
+            "text": null,
+            "requiredPhaseUuid": "26f02d26-28f8-540c-a082-9c383423f80b",
+            "annotations": [],
+            "tagUuids": [],
+            "questionType": "ValueQuestion",
+            "valueType": "StringQuestionValueType",
+            "validations": []
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "4e709aa1-1140-534a-83ad-54b84d51d60a",
+          "parentUuid": "76fa1f3e-2806-5e4e-8c81-4df2eab08bd1",
+          "entityUuid": "039f43de-105e-5742-8ea0-823a4b532de3",
+          "content": {
+            "eventType": "AddAnswerEvent",
+            "label": "No",
+            "advice": null,
+            "annotations": [],
+            "metricMeasures": [
+              {
+                "metricUuid": "304731aa-7c64-5778-b4f0-3a2f6b7865c1",
+                "measure": 0.0,
+                "weight": 1.0
+              }
+            ]
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "8d74a620-a699-5bf1-8c3e-6335c1fa50f3",
+          "parentUuid": "76fa1f3e-2806-5e4e-8c81-4df2eab08bd1",
+          "entityUuid": "18abe09f-3aab-5911-9e48-4e71fe708441",
+          "content": {
+            "eventType": "AddExpertEvent",
+            "name": "Data Steward",
+            "email": "steward@example.org",
+            "annotations": []
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "16fb709f-5909-571b-bba3-e2167bc76691",
+          "parentUuid": "76fa1f3e-2806-5e4e-8c81-4df2eab08bd1",
+          "entityUuid": "69c8d925-9376-542b-bfb1-f5848ab374b5",
+          "content": {
+            "eventType": "AddReferenceEvent",
+            "annotations": [],
+            "referenceType": "URLReference",
+            "url": "https://www.go-fair.org/fair-principles/",
+            "label": "FAIR principles"
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "ff693663-b8a4-5b0b-9e46-73e6f5781f22",
+          "parentUuid": "76fa1f3e-2806-5e4e-8c81-4df2eab08bd1",
+          "entityUuid": "1b56b45d-1065-51b1-b4fb-db3a2cae938e",
+          "content": {
+            "eventType": "AddReferenceEvent",
+            "annotations": [],
+            "referenceType": "ResourcePageReference",
+            "resourcePageUuid": "98861dbc-e76f-52c4-a8dc-188e02670d12"
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "023b8b79-a749-5cd5-9b45-6e01f7ee763f",
+          "parentUuid": "c219ba3d-ba70-597e-a994-b2eb34838781",
+          "entityUuid": "0d4a08cc-31b7-5abb-bf5c-fdc91a318a88",
+          "content": {
+            "eventType": "AddQuestionEvent",
+            "title": "Which topics does the project cover?",
+            "text": null,
+            "requiredPhaseUuid": null,
+            "annotations": [],
+            "tagUuids": [
+              "989cfbb0-0feb-5ae0-a7c0-599d8e9abb85"
+            ],
+            "questionType": "MultiChoiceQuestion"
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "91200af1-3419-5286-868c-18cec1e1eea1",
+          "parentUuid": "0d4a08cc-31b7-5abb-bf5c-fdc91a318a88",
+          "entityUuid": "b6bbe34b-4504-50e5-bb30-947ce2a515e6",
+          "content": {
+            "eventType": "AddChoiceEvent",
+            "label": "Health",
+            "annotations": []
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "36966e95-ed79-5726-add3-8e684423000d",
+          "parentUuid": "0d4a08cc-31b7-5abb-bf5c-fdc91a318a88",
+          "entityUuid": "345bc1be-5293-564b-b1db-830d1c61aaa8",
+          "content": {
+            "eventType": "AddChoiceEvent",
+            "label": "Climate",
+            "annotations": []
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "a4320163-2c39-5a9a-8646-b98bdbf4975d",
+          "parentUuid": "0d4a08cc-31b7-5abb-bf5c-fdc91a318a88",
+          "entityUuid": "6a69b153-2d55-51dc-9005-0bfed983545a",
+          "content": {
+            "eventType": "AddChoiceEvent",
+            "label": "Social science",
+            "annotations": []
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "b1c618f5-6fe2-5caf-9666-33a2a8b3033d",
+          "parentUuid": "0d4a08cc-31b7-5abb-bf5c-fdc91a318a88",
+          "entityUuid": "bbec23fc-d4b7-5849-9678-864ce0d3e7b6",
+          "content": {
+            "eventType": "AddChoiceEvent",
+            "label": "Engineering",
+            "annotations": []
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "d4e65ed8-4732-5374-8f62-647cfcac393d",
+          "parentUuid": "c219ba3d-ba70-597e-a994-b2eb34838781",
+          "entityUuid": "7d2aa311-7781-54df-a3a5-d4541ca8cdf1",
+          "content": {
+            "eventType": "AddQuestionEvent",
+            "title": "An options question without answers",
+            "text": null,
+            "requiredPhaseUuid": null,
+            "annotations": [],
+            "tagUuids": [],
+            "questionType": "OptionsQuestion"
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "d8bf86df-c74c-5a6f-9b63-78ed9eeaac8d",
+          "parentUuid": "7d2aa311-7781-54df-a3a5-d4541ca8cdf1",
+          "entityUuid": "8a895795-fced-57d1-8fc5-b1cab99db07b",
+          "content": {
+            "eventType": "AddReferenceEvent",
+            "annotations": [],
+            "referenceType": "CrossReference",
+            "targetUuid": "76fa1f3e-2806-5e4e-8c81-4df2eab08bd1",
+            "description": "See the reuse question."
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "34c091f7-86c9-5ea8-b609-ac198fb04a76",
+          "parentUuid": "f90c49d3-26d0-5797-a9cd-202d525b9e94",
+          "entityUuid": "df3f34d7-663b-5293-9436-697a500e9e78",
+          "content": {
+            "eventType": "AddChapterEvent",
+            "title": "Values",
+            "text": null,
+            "annotations": []
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "4497345f-a9aa-576e-87e4-5996f27ebfaa",
+          "parentUuid": "df3f34d7-663b-5293-9436-697a500e9e78",
+          "entityUuid": "a8280a1c-352f-57a2-b28c-9e99f94f107e",
+          "content": {
+            "eventType": "AddQuestionEvent",
+            "title": "Acronym",
+            "text": null,
+            "requiredPhaseUuid": null,
+            "annotations": [],
+            "tagUuids": [],
+            "questionType": "ValueQuestion",
+            "valueType": "StringQuestionValueType",
+            "validations": [
+              {
+                "type": "MinLengthQuestionValidation",
+                "value": 2
+              },
+              {
+                "type": "MaxLengthQuestionValidation",
+                "value": 12
+              }
+            ]
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "b4a967ed-2a95-5b7c-b25e-f95e6b0c1ffe",
+          "parentUuid": "df3f34d7-663b-5293-9436-697a500e9e78",
+          "entityUuid": "e0442056-ccb9-5c34-a189-10680ac9c90d",
+          "content": {
+            "eventType": "AddQuestionEvent",
+            "title": "Abstract",
+            "text": null,
+            "requiredPhaseUuid": null,
+            "annotations": [],
+            "tagUuids": [],
+            "questionType": "ValueQuestion",
+            "valueType": "TextQuestionValueType",
+            "validations": []
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "8d00695a-5a1b-59a6-b2b1-d9615702a7d4",
+          "parentUuid": "df3f34d7-663b-5293-9436-697a500e9e78",
+          "entityUuid": "fded5e09-48f1-55bc-8303-270259a47287",
+          "content": {
+            "eventType": "AddQuestionEvent",
+            "title": "Budget in EUR",
+            "text": null,
+            "requiredPhaseUuid": null,
+            "annotations": [],
+            "tagUuids": [],
+            "questionType": "ValueQuestion",
+            "valueType": "NumberQuestionValueType",
+            "validations": [
+              {
+                "type": "MinNumberQuestionValidation",
+                "value": 0.0
+              },
+              {
+                "type": "MaxNumberQuestionValidation",
+                "value": 1000000.0
+              }
+            ]
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "286c8b90-1965-5514-80f6-9b8a7712f7d5",
+          "parentUuid": "df3f34d7-663b-5293-9436-697a500e9e78",
+          "entityUuid": "d103c7bb-fdd9-5c1d-aaed-a498b8505daa",
+          "content": {
+            "eventType": "AddQuestionEvent",
+            "title": "Start date",
+            "text": null,
+            "requiredPhaseUuid": null,
+            "annotations": [],
+            "tagUuids": [],
+            "questionType": "ValueQuestion",
+            "valueType": "DateQuestionValueType",
+            "validations": [
+              {
+                "type": "FromDateQuestionValidation",
+                "value": "2025-01-01"
+              },
+              {
+                "type": "ToDateQuestionValidation",
+                "value": "2030-12-31"
+              }
+            ]
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "cab8362b-a0e3-5588-a1cc-9c120bcf8f2c",
+          "parentUuid": "df3f34d7-663b-5293-9436-697a500e9e78",
+          "entityUuid": "c8baaf4e-2f7e-51b2-983d-42ee2d27e27a",
+          "content": {
+            "eventType": "AddQuestionEvent",
+            "title": "Kick-off meeting",
+            "text": null,
+            "requiredPhaseUuid": null,
+            "annotations": [],
+            "tagUuids": [],
+            "questionType": "ValueQuestion",
+            "valueType": "DateTimeQuestionValueType",
+            "validations": [
+              {
+                "type": "FromDateTimeQuestionValidation",
+                "value": "2025-01-01T08:00:00Z"
+              },
+              {
+                "type": "ToDateTimeQuestionValidation",
+                "value": "2030-12-31T18:00:00Z"
+              }
+            ]
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "743127cf-f436-5109-ad1f-888a18c74269",
+          "parentUuid": "df3f34d7-663b-5293-9436-697a500e9e78",
+          "entityUuid": "add6685f-e23e-53c0-8bbc-ee0ae9a08c32",
+          "content": {
+            "eventType": "AddQuestionEvent",
+            "title": "Daily stand-up",
+            "text": null,
+            "requiredPhaseUuid": null,
+            "annotations": [],
+            "tagUuids": [],
+            "questionType": "ValueQuestion",
+            "valueType": "TimeQuestionValueType",
+            "validations": [
+              {
+                "type": "FromTimeQuestionValidation",
+                "value": "08:00"
+              },
+              {
+                "type": "ToTimeQuestionValidation",
+                "value": "12:00"
+              }
+            ]
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "619a7f6e-b368-5a96-870c-2349a69f9c8f",
+          "parentUuid": "df3f34d7-663b-5293-9436-697a500e9e78",
+          "entityUuid": "e170de5c-3ef3-5c15-a1b0-09f994954683",
+          "content": {
+            "eventType": "AddQuestionEvent",
+            "title": "Contact email",
+            "text": null,
+            "requiredPhaseUuid": null,
+            "annotations": [],
+            "tagUuids": [],
+            "questionType": "ValueQuestion",
+            "valueType": "EmailQuestionValueType",
+            "validations": []
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "21941c11-12a0-5215-8cdc-f4f905c38966",
+          "parentUuid": "df3f34d7-663b-5293-9436-697a500e9e78",
+          "entityUuid": "63211fe6-8dfb-5bf6-a342-f02894415cc6",
+          "content": {
+            "eventType": "AddQuestionEvent",
+            "title": "Project website",
+            "text": null,
+            "requiredPhaseUuid": null,
+            "annotations": [],
+            "tagUuids": [],
+            "questionType": "ValueQuestion",
+            "valueType": "UrlQuestionValueType",
+            "validations": [
+              {
+                "type": "DomainQuestionValidation",
+                "value": "example.org"
+              }
+            ]
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "149eddc9-9550-5ead-9b58-0c56a4020979",
+          "parentUuid": "df3f34d7-663b-5293-9436-697a500e9e78",
+          "entityUuid": "8f41b192-bf40-518a-b185-beea4db38f09",
+          "content": {
+            "eventType": "AddQuestionEvent",
+            "title": "Project colour",
+            "text": null,
+            "requiredPhaseUuid": null,
+            "annotations": [],
+            "tagUuids": [],
+            "questionType": "ValueQuestion",
+            "valueType": "ColorQuestionValueType",
+            "validations": []
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "d861d1c0-1ba2-579f-89b1-7d3bb596f1b8",
+          "parentUuid": "df3f34d7-663b-5293-9436-697a500e9e78",
+          "entityUuid": "320a0f1b-4696-5c18-8f78-e917302f5a49",
+          "content": {
+            "eventType": "AddQuestionEvent",
+            "title": "PI ORCID",
+            "text": null,
+            "requiredPhaseUuid": null,
+            "annotations": [],
+            "tagUuids": [],
+            "questionType": "ValueQuestion",
+            "valueType": "StringQuestionValueType",
+            "validations": [
+              {
+                "type": "OrcidQuestionValidation"
+              }
+            ]
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "39da8c8c-1997-5291-b31f-14446b398662",
+          "parentUuid": "df3f34d7-663b-5293-9436-697a500e9e78",
+          "entityUuid": "6ce4a7fe-4f79-5ddf-b814-3a5a45dbf395",
+          "content": {
+            "eventType": "AddQuestionEvent",
+            "title": "Data DOI",
+            "text": null,
+            "requiredPhaseUuid": null,
+            "annotations": [],
+            "tagUuids": [],
+            "questionType": "ValueQuestion",
+            "valueType": "StringQuestionValueType",
+            "validations": [
+              {
+                "type": "DoiQuestionValidation"
+              }
+            ]
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "812216e7-b578-5173-a532-9c107dc885b0",
+          "parentUuid": "df3f34d7-663b-5293-9436-697a500e9e78",
+          "entityUuid": "3b61bd0e-d393-5b0a-9f5b-02012dfb9115",
+          "content": {
+            "eventType": "AddQuestionEvent",
+            "title": "Grant number",
+            "text": null,
+            "requiredPhaseUuid": null,
+            "annotations": [],
+            "tagUuids": [],
+            "questionType": "ValueQuestion",
+            "valueType": "StringQuestionValueType",
+            "validations": [
+              {
+                "type": "RegexQuestionValidation",
+                "value": "^[0-9]{6,9}$"
+              }
+            ]
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "3f8f8287-a2f6-5bee-8c8a-5003479fab7d",
+          "parentUuid": "df3f34d7-663b-5293-9436-697a500e9e78",
+          "entityUuid": "020fa112-7126-526d-8bbb-3e1725991a1a",
+          "content": {
+            "eventType": "AddQuestionEvent",
+            "title": "Unsatisfiable code",
+            "text": null,
+            "requiredPhaseUuid": null,
+            "annotations": [],
+            "tagUuids": [],
+            "questionType": "ValueQuestion",
+            "valueType": "StringQuestionValueType",
+            "validations": [
+              {
+                "type": "RegexQuestionValidation",
+                "value": "^ZZZ-[0-9]{4}-QQQ$"
+              }
+            ]
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "aeab96e2-7013-5160-bbe5-818beb97876c",
+          "parentUuid": "df3f34d7-663b-5293-9436-697a500e9e78",
+          "entityUuid": "5c04036a-5ddf-5db0-a5f4-6e549ae34a64",
+          "content": {
+            "eventType": "AddQuestionEvent",
+            "title": "Target repository",
+            "text": null,
+            "requiredPhaseUuid": null,
+            "annotations": [],
+            "tagUuids": [],
+            "questionType": "IntegrationQuestion",
+            "integrationUuid": "bec30123-6ae9-5625-b4e2-166539e2911f",
+            "variables": {}
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "44ab5831-7575-5c6e-8399-cc182bd88951",
+          "parentUuid": "f90c49d3-26d0-5797-a9cd-202d525b9e94",
+          "entityUuid": "2919813a-a672-56b5-a023-8892301f007a",
+          "content": {
+            "eventType": "AddChapterEvent",
+            "title": "Datasets",
+            "text": null,
+            "annotations": []
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "1556406a-1937-5702-897c-d38af819ec18",
+          "parentUuid": "2919813a-a672-56b5-a023-8892301f007a",
+          "entityUuid": "c8a0722d-dd85-55aa-bd3e-84fceb37b715",
+          "content": {
+            "eventType": "AddQuestionEvent",
+            "title": "Datasets you will produce",
+            "text": null,
+            "requiredPhaseUuid": "45f253b6-bfa1-5ecc-8bf5-7db804a5a7ee",
+            "annotations": [],
+            "tagUuids": [],
+            "questionType": "ListQuestion"
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "322d8e29-241a-5692-8405-3c150a1289a9",
+          "parentUuid": "c8a0722d-dd85-55aa-bd3e-84fceb37b715",
+          "entityUuid": "4a5e838a-08dd-55e4-a75d-4044f73cbe15",
+          "content": {
+            "eventType": "AddQuestionEvent",
+            "title": "Name",
+            "text": null,
+            "requiredPhaseUuid": "45f253b6-bfa1-5ecc-8bf5-7db804a5a7ee",
+            "annotations": [],
+            "tagUuids": [],
+            "questionType": "ValueQuestion",
+            "valueType": "StringQuestionValueType",
+            "validations": []
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "af9cd07b-4686-55d6-b37a-2f6a2a889fb3",
+          "parentUuid": "c8a0722d-dd85-55aa-bd3e-84fceb37b715",
+          "entityUuid": "f9ecf2d9-4d8c-5afa-9921-8ed92d20f108",
+          "content": {
+            "eventType": "AddQuestionEvent",
+            "title": "Expected size in GB",
+            "text": null,
+            "requiredPhaseUuid": null,
+            "annotations": [],
+            "tagUuids": [],
+            "questionType": "ValueQuestion",
+            "valueType": "NumberQuestionValueType",
+            "validations": []
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "d2af118e-6453-5c1d-8f0f-da177092dbfe",
+          "parentUuid": "c8a0722d-dd85-55aa-bd3e-84fceb37b715",
+          "entityUuid": "5f38f55d-3f32-5177-83fb-e80223aa2cfb",
+          "content": {
+            "eventType": "AddQuestionEvent",
+            "title": "Does it contain personal data?",
+            "text": null,
+            "requiredPhaseUuid": null,
+            "annotations": [],
+            "tagUuids": [
+              "989cfbb0-0feb-5ae0-a7c0-599d8e9abb85"
+            ],
+            "questionType": "OptionsQuestion"
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "c4c3114c-f7be-55c9-b29d-3ee4d386bdcf",
+          "parentUuid": "5f38f55d-3f32-5177-83fb-e80223aa2cfb",
+          "entityUuid": "1b17c8e1-2d45-5b2f-8420-000866ea5676",
+          "content": {
+            "eventType": "AddAnswerEvent",
+            "label": "No",
+            "advice": null,
+            "annotations": [],
+            "metricMeasures": []
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "f419d2f1-cf5f-5f60-bf33-7b105f4a6523",
+          "parentUuid": "5f38f55d-3f32-5177-83fb-e80223aa2cfb",
+          "entityUuid": "fb38bf6b-7c36-5265-9721-cd3da9b18e99",
+          "content": {
+            "eventType": "AddAnswerEvent",
+            "label": "Yes",
+            "advice": null,
+            "annotations": [],
+            "metricMeasures": []
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "8ab7a781-427c-5570-b45c-c43add882765",
+          "parentUuid": "fb38bf6b-7c36-5265-9721-cd3da9b18e99",
+          "entityUuid": "56613517-e0e7-5eb2-8782-3d8ad17f34e9",
+          "content": {
+            "eventType": "AddQuestionEvent",
+            "title": "Consent form",
+            "text": null,
+            "requiredPhaseUuid": null,
+            "annotations": [],
+            "tagUuids": [],
+            "questionType": "FileQuestion",
+            "maxSize": 1000000,
+            "fileTypes": "application/pdf"
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "834006f1-4763-5835-ac79-c9e8cd489e66",
+          "parentUuid": "c8a0722d-dd85-55aa-bd3e-84fceb37b715",
+          "entityUuid": "1b1137c2-c6f0-5760-b9a6-d1e9db2c1bca",
+          "content": {
+            "eventType": "AddQuestionEvent",
+            "title": "Files of the dataset",
+            "text": null,
+            "requiredPhaseUuid": null,
+            "annotations": [],
+            "tagUuids": [],
+            "questionType": "ListQuestion"
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "56a811b7-e148-55f6-9f81-dd378156e1a8",
+          "parentUuid": "1b1137c2-c6f0-5760-b9a6-d1e9db2c1bca",
+          "entityUuid": "57c6ad9a-9a31-560f-af24-380fa6f70898",
+          "content": {
+            "eventType": "AddQuestionEvent",
+            "title": "File name",
+            "text": null,
+            "requiredPhaseUuid": null,
+            "annotations": [],
+            "tagUuids": [],
+            "questionType": "ValueQuestion",
+            "valueType": "StringQuestionValueType",
+            "validations": []
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "75225f62-4641-5965-9ce6-21d9889b258a",
+          "parentUuid": "1b1137c2-c6f0-5760-b9a6-d1e9db2c1bca",
+          "entityUuid": "903c290b-0181-5156-a1c4-3fc62eb8bea9",
+          "content": {
+            "eventType": "AddQuestionEvent",
+            "title": "Formats of the file",
+            "text": null,
+            "requiredPhaseUuid": null,
+            "annotations": [],
+            "tagUuids": [],
+            "questionType": "ListQuestion"
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "277ee40a-e1bd-52ee-903a-52a6ca114b3b",
+          "parentUuid": "903c290b-0181-5156-a1c4-3fc62eb8bea9",
+          "entityUuid": "b745e3f4-8609-5849-a761-79ce99d0a37d",
+          "content": {
+            "eventType": "AddQuestionEvent",
+            "title": "Format",
+            "text": null,
+            "requiredPhaseUuid": null,
+            "annotations": [],
+            "tagUuids": [],
+            "questionType": "ValueQuestion",
+            "valueType": "StringQuestionValueType",
+            "validations": []
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "c14e7a1e-ba71-5d3a-822c-85800f98f4e5",
+          "parentUuid": "2919813a-a672-56b5-a023-8892301f007a",
+          "entityUuid": "79005671-9690-5556-8dd8-24a73ad52c35",
+          "content": {
+            "eventType": "AddQuestionEvent",
+            "title": "Main dataset",
+            "text": null,
+            "requiredPhaseUuid": null,
+            "annotations": [],
+            "tagUuids": [],
+            "questionType": "ItemSelectQuestion",
+            "listQuestionUuid": "c8a0722d-dd85-55aa-bd3e-84fceb37b715"
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "c7ff4b00-a490-567b-a597-3e753ce48e08",
+          "parentUuid": "2919813a-a672-56b5-a023-8892301f007a",
+          "entityUuid": "4ffa7e5d-81d6-5629-ad3c-78af2b60113c",
+          "content": {
+            "eventType": "AddQuestionEvent",
+            "title": "Data management plan",
+            "text": null,
+            "requiredPhaseUuid": null,
+            "annotations": [],
+            "tagUuids": [],
+            "questionType": "FileQuestion",
+            "maxSize": 5000000,
+            "fileTypes": "application/pdf, application/vnd.oasis.opendocument.text"
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "24ae7e5a-239d-560a-bfcf-2f1c7ce2ba71",
+          "parentUuid": "2919813a-a672-56b5-a023-8892301f007a",
+          "entityUuid": "f59d1c14-8e0b-54e2-8bd8-3bcbdfbe10b0",
+          "content": {
+            "eventType": "AddQuestionEvent",
+            "title": "Any attachment",
+            "text": null,
+            "requiredPhaseUuid": null,
+            "annotations": [],
+            "tagUuids": [],
+            "questionType": "FileQuestion",
+            "maxSize": null,
+            "fileTypes": null
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "cc804db3-c0f3-55b3-ad3f-847e159a53d1",
+          "parentUuid": "f90c49d3-26d0-5797-a9cd-202d525b9e94",
+          "entityUuid": "6599f977-6d7f-517a-a3af-7852ec7f22a5",
+          "content": {
+            "eventType": "AddTagEvent",
+            "name": "Horizon Europe",
+            "description": null,
+            "color": "#f1c40f",
+            "annotations": []
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "795ab836-8f92-55a1-aa05-12f96350267b",
+          "parentUuid": "f90c49d3-26d0-5797-a9cd-202d525b9e94",
+          "entityUuid": "989cfbb0-0feb-5ae0-a7c0-599d8e9abb85",
+          "content": {
+            "eventType": "AddTagEvent",
+            "name": "Sensitive data",
+            "description": null,
+            "color": "#c0392b",
+            "annotations": []
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "2fe6880c-51c1-51a9-8b30-bf48c08f5edd",
+          "parentUuid": "f90c49d3-26d0-5797-a9cd-202d525b9e94",
+          "entityUuid": "bec30123-6ae9-5625-b4e2-166539e2911f",
+          "content": {
+            "eventType": "AddIntegrationEvent",
+            "integrationType": "ApiIntegration",
+            "name": "Repository search",
+            "variables": [],
+            "allowCustomReply": true,
+            "requestMethod": "GET",
+            "requestUrl": "https://repo.example.org/search?q=${q}",
+            "requestHeaders": [],
+            "requestBody": null,
+            "requestAllowEmptySearch": true,
+            "responseListField": "items",
+            "responseItemTemplate": "{{item.name}}",
+            "responseItemTemplateForSelection": null,
+            "testQ": "",
+            "testVariables": {},
+            "testResponse": null,
+            "annotations": []
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "517aa7de-4485-5643-bbdd-a567eb50ff95",
+          "parentUuid": "f90c49d3-26d0-5797-a9cd-202d525b9e94",
+          "entityUuid": "e5aa4c72-4b32-5fde-a7ec-9bb66a3b4557",
+          "content": {
+            "eventType": "AddMetricEvent",
+            "title": "Findability",
+            "abbreviation": "F",
+            "description": null,
+            "annotations": []
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "aa6ef5a5-7112-53e5-bcc1-d44066c61013",
+          "parentUuid": "f90c49d3-26d0-5797-a9cd-202d525b9e94",
+          "entityUuid": "304731aa-7c64-5778-b4f0-3a2f6b7865c1",
+          "content": {
+            "eventType": "AddMetricEvent",
+            "title": "Reusability",
+            "abbreviation": "R",
+            "description": null,
+            "annotations": []
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "fdbc234a-5e39-5fb5-91a7-74c86a3c8953",
+          "parentUuid": "f90c49d3-26d0-5797-a9cd-202d525b9e94",
+          "entityUuid": "45f253b6-bfa1-5ecc-8bf5-7db804a5a7ee",
+          "content": {
+            "eventType": "AddPhaseEvent",
+            "title": "Before submitting the proposal",
+            "description": null,
+            "annotations": []
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "9d6e29f9-8eed-5d79-adbb-a48864130d97",
+          "parentUuid": "f90c49d3-26d0-5797-a9cd-202d525b9e94",
+          "entityUuid": "26f02d26-28f8-540c-a082-9c383423f80b",
+          "content": {
+            "eventType": "AddPhaseEvent",
+            "title": "Before finishing the project",
+            "description": null,
+            "annotations": []
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "6a84cf01-0c70-5d29-8207-1c86b22e9ff8",
+          "parentUuid": "f90c49d3-26d0-5797-a9cd-202d525b9e94",
+          "entityUuid": "2fba6a55-f999-5c39-a3a2-028a11ba838d",
+          "content": {
+            "eventType": "AddPhaseEvent",
+            "title": "After finishing the project",
+            "description": null,
+            "annotations": []
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "19e23b05-752b-5968-8cc3-647859f5bb04",
+          "parentUuid": "f90c49d3-26d0-5797-a9cd-202d525b9e94",
+          "entityUuid": "bcee1d62-9eba-56f6-b4fc-570f8b6aa11f",
+          "content": {
+            "eventType": "AddResourceCollectionEvent",
+            "title": "Guidance",
+            "annotations": []
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        },
+        {
+          "uuid": "08d2ebb0-d999-5146-9d28-2658e8db46a7",
+          "parentUuid": "bcee1d62-9eba-56f6-b4fc-570f8b6aa11f",
+          "entityUuid": "98861dbc-e76f-52c4-a8dc-188e02670d12",
+          "content": {
+            "eventType": "AddResourcePageEvent",
+            "title": "Licenses",
+            "content": "Choose an open license where you can.",
+            "annotations": []
+          },
+          "createdAt": "2025-01-01T00:00:00Z"
+        }
+      ],
+      "nonEditable": false,
+      "createdAt": "2025-01-01T00:00:00Z",
+      "previousPackageId": null,
+      "previousPackageVersion": null,
+      "forkOfPackageId": null,
+      "forkOfPackageVersion": null,
+      "mergeCheckpointPackageId": null,
+      "mergeCheckpointPackageVersion": null
+    }
+  ]
+}
