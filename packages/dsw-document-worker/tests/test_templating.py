@@ -164,9 +164,8 @@ def test_context_config_uses_worker_configuration():
             context=DocumentContextConfig(
                 service_name='FAIR Wizard', service_name_short='FW',
                 service_url='https://fair-wizard.com', service_domain_name='fair-wizard.com',
-                default_primary_color='#111111', default_illustrations_color='#222222',
+                default_primary_color='#111111',
                 default_logo_url='{{clientUrl}}/logo.png', default_app_title='FW',
-                default_app_title_short='FWs',
             ),
         ))),
     )
@@ -178,8 +177,6 @@ def test_context_config_uses_worker_configuration():
         'serviceUrl': 'https://fair-wizard.com',
         'serviceDomainName': 'fair-wizard.com',
         'appTitle': 'Mine',
-        'appTitleShort': 'FWs',
         'primaryColor': '#111111',
-        'illustrationsColor': '#222222',
         'logoUrl': 'https://fw.example.org/logo.png',
     }

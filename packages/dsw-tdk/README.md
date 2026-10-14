@@ -90,10 +90,8 @@ $ echo 'DOCUMENT_CONTEXT_SERVICE_NAME=FAIR Wizard' >> .env
 | `serviceUrl` | `DOCUMENT_CONTEXT_SERVICE_URL` | `https://ds-wizard.org` |
 | `serviceDomainName` | `DOCUMENT_CONTEXT_SERVICE_DOMAIN_NAME` | `ds-wizard.org` |
 | `defaultPrimaryColor` | `DOCUMENT_CONTEXT_DEFAULT_PRIMARY_COLOR` | `#0033aa` |
-| `defaultIllustrationsColor` | `DOCUMENT_CONTEXT_DEFAULT_ILLUSTRATIONS_COLOR` | `#0033aa` |
 | `defaultLogoUrl` | `DOCUMENT_CONTEXT_DEFAULT_LOGO_URL` | `{{clientUrl}}/assets/logo.svg` |
 | `defaultAppTitle` | `DOCUMENT_CONTEXT_DEFAULT_APP_TITLE` | `DS Wizard` |
-| `defaultAppTitleShort` | `DOCUMENT_CONTEXT_DEFAULT_APP_TITLE_SHORT` | `DS Wizard` |
 
 The `service*` values are always set; the `default*` ones apply only where the context has no value.
 - Steps `weasyprint`, `excel` and `rdflib-convert`, the `requests` global and the `pandoc-docx-pagebreakpy` Pandoc filter need optional dependencies: `pip install 'dsw-tdk[all]'`; WeasyPrint also needs [Pango](https://doc.courtbouillon.org/weasyprint/stable/first_steps.html#installation) and the `pandoc` step needs [pandoc](https://pandoc.org) installed

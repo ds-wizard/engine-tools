@@ -187,10 +187,8 @@ class Job:
             service_url=cfg.service_url,
             service_domain_name=cfg.service_domain_name,
             default_primary_color=cfg.default_primary_color,
-            default_illustrations_color=cfg.default_illustrations_color,
             default_logo_url=cfg.default_logo_url,
             default_app_title=cfg.default_app_title,
-            default_app_title_short=cfg.default_app_title_short,
         ))
 
     def _enrich_context(self):
