@@ -146,6 +146,16 @@ class WizardAPIClient:
             self._check_status(r, expected_status=200)
             return await r.json()
 
+    async def _get_bytes_and_etag(self, endpoint: str, params=None) -> tuple[bytes, str | None]:
+        async with self.session.get(
+            url=f'{self.api_url}{endpoint}',
+            headers=self._headers(),
+            params=params,
+        ) as r:
+            self._check_status(r, expected_status=200)
+            etag = r.headers.get('ETag')
+            return await r.read(), None if etag is None else etag.strip('"')
+
     async def _get_bytes(self, endpoint: str) -> bytes:
         async with self.session.get(
             url=f'{self.api_url}{endpoint}',
@@ -253,6 +263,23 @@ class WizardAPIClient:
             template_id=template_id,
             endpoint='/document-template-drafts',
             key='documentTemplateDrafts',
+        )
+
+    @handle_client_errors
+    async def get_project_document_context(
+            self, project_uuid: str, event_uuid: str | None = None,
+    ) -> tuple[bytes, str | None]:
+        """The document context of a project (as of an event), unchanged, and its ETag."""
+        return await self._get_bytes_and_etag(
+            endpoint=f'/projects/{project_uuid}/document-context',
+            params=None if event_uuid is None else {'eventUuid': event_uuid},
+        )
+
+    @handle_client_errors
+    async def get_km_editor_document_context(self, km_editor_uuid: str) -> tuple[bytes, str | None]:
+        """The document context of a knowledge model editor, unchanged, and its ETag."""
+        return await self._get_bytes_and_etag(
+            endpoint=f'/knowledge-model-editors/{km_editor_uuid}/document-context',
         )
 
     @handle_client_errors

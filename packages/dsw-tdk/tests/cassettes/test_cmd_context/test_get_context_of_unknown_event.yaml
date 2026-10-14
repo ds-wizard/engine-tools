@@ -1,0 +1,112 @@
+interactions:
+- request:
+    body: null
+    headers:
+      User-Agent:
+      - dsw-tdk/4.35.0
+      authorization:
+      - Bearer dummy-token
+    method: GET
+    uri: http://single.fair-wizard.localhost:3000/api/
+  response:
+    body:
+      string: '{"builtAt":"2026-10-14T14:11:04Z","components":[{"builtAt":"2026-10-14T18:24:20Z","createdAt":"2026-10-14T16:58:40.476791Z","name":"Document
+        Worker","updatedAt":"2026-10-14T17:25:03.455715Z","version":"update/fw5~87566ae"}],"metamodelVersions":[{"name":"Knowledge
+        Model","version":"20"},{"name":"Document Template","version":"19.0"}],"name":"Admin
+        Server","version":"main~4e7d05995"}'
+    headers:
+      Access-Control-Allow-Credential:
+      - 'true'
+      Access-Control-Allow-Headers:
+      - Origin, X-Requested-With, Content-Type, Accept, Authorization
+      Access-Control-Allow-Methods:
+      - OPTIONS, HEAD, GET, POST, PUT, DELETE
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - ETag, x-trace-uuid
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 14 Oct 2026 17:39:49 GMT
+      Server:
+      - Warp/3.4.9
+      Transfer-Encoding:
+      - chunked
+      x-trace-uuid:
+      - a408b18a-835a-4dc2-b5d7-263e8fd0016d
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      User-Agent:
+      - dsw-tdk/4.35.0
+      authorization:
+      - Bearer dummy-token
+    method: GET
+    uri: http://single.fair-wizard.localhost:3000/api/users/current
+  response:
+    body:
+      string: '{"active":true,"affiliation":null,"createdAt":"2026-10-14T15:02:55.871273Z","email":"admin@fair-wizard.localhost","emailPending":"admin@fair-wizard.localhost","emailVerifiedAt":null,"firstName":"Admin","imageUrl":null,"lastName":"User","role":{"name":"Admin","permissions":["projects.view","projects.comment","projects.edit","projects.manage","projects.create","projects.manageTemplates","knowledgeModels.useEditor","knowledgeModels.manage","documentTemplates.useEditor","documentTemplates.manage","members.manage","roles.manage","userGroups.manage","userGroups.create","settings.manage","users.manage","workspaces.manage","organizationLibrary.manage","organizationSettings.manage","analytics.use","auditLog.use","automations.manage","mcp.connect"],"uuid":"25631728-9873-43a6-b1ca-0012c272f3ba"},"updatedAt":"2026-10-14T15:02:55.871273Z","uuid":"f79351e0-3d26-4710-ab9e-36db954ea6ae"}'
+    headers:
+      Access-Control-Allow-Credential:
+      - 'true'
+      Access-Control-Allow-Headers:
+      - Origin, X-Requested-With, Content-Type, Accept, Authorization
+      Access-Control-Allow-Methods:
+      - OPTIONS, HEAD, GET, POST, PUT, DELETE
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - ETag, x-trace-uuid
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 14 Oct 2026 17:39:49 GMT
+      Server:
+      - Warp/3.4.9
+      Transfer-Encoding:
+      - chunked
+      x-trace-uuid:
+      - ccba935c-77c5-4675-b108-2dd2feb5de74
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      User-Agent:
+      - dsw-tdk/4.35.0
+      authorization:
+      - Bearer dummy-token
+    method: GET
+    uri: http://single.fair-wizard.localhost:3000/api/projects/6ada95e3-97aa-4674-996c-db68574119b8/document-context?eventUuid=99999999-9999-9999-9999-999999999999
+  response:
+    body:
+      string: '{"message":{"code":"error.database.entity_not_found","defaultMessage":"Object
+        of type ''%s'' does not exist (%s)","params":["project_event","uuid: 99999999-9999-9999-9999-999999999999"]},"status":404}'
+    headers:
+      Access-Control-Allow-Credential:
+      - 'true'
+      Access-Control-Allow-Headers:
+      - Origin, X-Requested-With, Content-Type, Accept, Authorization
+      Access-Control-Allow-Methods:
+      - OPTIONS, HEAD, GET, POST, PUT, DELETE
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - ETag, x-trace-uuid
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 14 Oct 2026 17:39:49 GMT
+      Server:
+      - Warp/3.4.9
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 404
+      message: Not Found
+version: 1
