@@ -38,6 +38,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Every query attempt runs in its own savepoint: a failed query no longer leaves the transaction
   aborted, so retries can succeed, the job's transaction and command lock survive, and the
   original error is reported instead of `InFailedSqlTransaction`
+  (a query that commits the transaction itself, such as `update_component_info`, ends its
+  savepoint with it)
 - `DocumentTemplatePhase` values match the backend and `is_draft` / `is_released` /
   `is_deprecated` compare them correctly (they were always false)
 - Nullable references (`created_by`, a project's `format_uuid` and `document_template_uuid`) are

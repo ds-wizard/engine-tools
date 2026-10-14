@@ -17,6 +17,7 @@ from dsw.database.database import Database, PostgresConnection, _in_savepoint
 
 INERROR = psycopg.pq.TransactionStatus.INERROR
 INTRANS = psycopg.pq.TransactionStatus.INTRANS
+IDLE = psycopg.pq.TransactionStatus.IDLE
 
 
 class FakeCursor:
@@ -79,6 +80,13 @@ def test_error_caught_inside_block_is_rolled_back_too():
         fake.info.transaction_status = INERROR  # a statement failed, the block caught it
     assert 'ROLLBACK TO SAVEPOINT "dsw_query";' in fake.log
     assert fake.info.transaction_status == INTRANS
+
+
+def test_block_that_commits_ends_the_savepoint():
+    connection, fake = fake_connection()
+    with connection.savepoint():
+        fake.info.transaction_status = IDLE  # e.g. update_component_info commits
+    assert fake.log == ['SAVEPOINT "dsw_query";']
 
 
 def test_autocommit_connection_has_no_savepoint():
@@ -163,3 +171,14 @@ def test_missing_tenant_limit_table_means_no_limit(database):
             pytest.skip('the test database has a tenant_limit_bundle table')
     assert database.fetch_tenant_limits('00000000-0000-0000-0000-000000000000') is None
     assert database.conn_query.connection.info.transaction_status != INERROR
+
+
+@integration
+def test_committing_query_leaves_a_usable_connection(database):
+    with database.conn_query.savepoint(), database.conn_query.new_cursor() as cursor:
+        cursor.execute('SELECT 1;')
+        database.conn_query.connection.commit()
+    assert database.conn_query.connection.info.transaction_status == IDLE
+    with database.conn_query.new_cursor() as cursor:
+        cursor.execute('SELECT 1;')
+        assert cursor.fetchone()[0] == 1
