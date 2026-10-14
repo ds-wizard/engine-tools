@@ -7,6 +7,7 @@ import typing
 import uuid
 
 from dsw.command_queue import CommandJobError
+from dsw.models.coordinate import build_reference, join_legacy_id
 from dsw.templating import consts as templating_consts
 from dsw.templating.pot import extract_catalog, render_pot_file
 
@@ -27,18 +28,19 @@ class PotFileRequest:
     command_uuid: str
     tenant_uuid: str
     document_template_uuid: str
-    organization_id: str
+    #: the single id of the template (Wizard 5.0), e.g. dsw.questionnaire-report
     template_id: str
     version: str
     language: str
 
     @property
     def coordinates(self) -> str:
-        return f'{self.organization_id}:{self.template_id}:{self.version}'
+        return build_reference(self.template_id, self.version)
 
     @property
     def file_name(self) -> str:
-        return f'{self.organization_id}_{self.template_id}_{self.version}.pot'
+        # the name the backend reads (DocumentTemplateS3.potFileName)
+        return f'{self.template_id}_{self.version}.pot'
 
     @staticmethod
     def load(command: PersistentCommand) -> PotFileRequest:
@@ -54,8 +56,7 @@ class PotFileRequest:
                 exc=e,
             ) from e
         coordinates = {
-            'organizationId': str(body.get('organizationId', '')),
-            'templateId': str(body.get('templateId', '')),
+            'id': str(_template_id(body)),
             'version': str(body.get('version', '')),
         }
         for name, value in coordinates.items():
@@ -69,11 +70,18 @@ class PotFileRequest:
             command_uuid=command.uuid,
             tenant_uuid=command.tenant_uuid,
             document_template_uuid=template_uuid,
-            organization_id=coordinates['organizationId'],
-            template_id=coordinates['templateId'],
+            template_id=coordinates['id'],
             version=coordinates['version'],
             language=str(body.get('language') or templating_consts.DEFAULT_LANGUAGE),
         )
+
+
+def _template_id(body: dict) -> str:
+    # a command queued by a backend before 5.0 still has organizationId + templateId;
+    # the 5.0 migration gave such a template the joined id, which is where the file belongs
+    if 'id' not in body and 'organizationId' in body and 'templateId' in body:
+        return join_legacy_id(str(body['organizationId']), str(body['templateId']))
+    return body.get('id', '')
 
 
 class PotFileJob:
