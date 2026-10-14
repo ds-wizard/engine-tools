@@ -1,0 +1,46 @@
+{
+  "metamodelVersion": 19,
+  "hash": "sha256:7357368c501cc707de06a6b915939c073e77438b053e46ebc03a82a595e1190c",
+  "project": {
+    "uuid": "6f4b3b1e-0a8d-4a1a-9c3b-2d4f5e6a7b8c",
+    "name": "Edge \"cases\" \\ /slash/ \u0000 \u001f tab\there",
+    "description": null,
+    "tags": [],
+    "labels": {},
+    "numbers": {
+      "one": 1.0,
+      "big": 1e21,
+      "tiny": 1e-7,
+      "micro": 0.000001,
+      "negativeZero": -0,
+      "maxSafe": 9007199254740992,
+      "fraction": 333333333.3333332,
+      "denormal": 5e-324,
+      "maxDouble": 1.7976931348623157e+308,
+      "plain": 123.456,
+      "half": 0.5,
+      "negative": -42.25
+    }
+  },
+  "knowledgeModel": {
+    "uuid": "0d2e4f6a-8b9c-4d1e-8f2a-3b4c5d6e7f80",
+    "entities": {
+      "chapters": {},
+      "questions": {}
+    }
+  },
+  "document": null,
+  "questionnaire": {
+    "replies": {
+      "～": {"value": {"type": "StringReply", "value": "fullwidth tilde"}},
+      "😀": {"value": {"type": "StringReply", "value": "emoji key"}},
+      "a": {"value": {"type": "StringReply", "value": "lower"}},
+      "A": {"value": {"type": "StringReply", "value": "upper"}},
+      "é": {"value": {"type": "StringReply", "value": "accented"}},
+      "price": {"value": {"type": "StringReply", "value": "10 € 😀"}},
+      "empty": {"value": {"type": "ItemListReply", "value": []}},
+      "nothing": null,
+      "nested": {"value": {"type": "ItemListReply", "value": [[], {}, [{}], null, true, false]}}
+    }
+  }
+}
