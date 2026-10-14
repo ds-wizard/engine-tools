@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New `get-context` command downloading the document context of a project (as of an event) or a knowledge model editor; it fails when the server's document context metamodel is not the TDK's
 - New `validate-context` command checking document contexts (`--fix-hash` rewrites a wrong hash)
 - New `generate-context` command generating valid, reproducible document contexts by profile from the bundled sample knowledge model, a bundle file, a package on the server or an existing context
+- `generate-context --mutate` (perturbs an existing context at the profile's rate) and `--anonymize` (replaces its personal data and free text with deterministic placeholders)
 
 ### Changed
 
