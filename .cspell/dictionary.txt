@@ -3,6 +3,7 @@ Aeson
 popleft
 appconfigdata
 Stubber
+wrapwidth
 autouse
 caplog
 capfd

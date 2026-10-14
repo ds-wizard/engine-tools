@@ -96,6 +96,12 @@ class _MailKeys(ConfigKeysContainer):
         default=None,
         cast=cast_optional_str,
     )
+    sync_default_pot = ConfigKey(
+        yaml_path=['mail', 'syncDefaultPot'],
+        var_names=['MAIL_SYNC_DEFAULT_POT'],
+        default=True,
+        cast=cast_bool,
+    )
 
 
 class _MailLegacySMTPKeys(ConfigKeysContainer):
@@ -309,8 +315,11 @@ class MailConfig(ConfigModel):
     def __init__(self, *, enabled: bool, name: str, email: str,
                  provider: str, smtp: MailSMTPConfig, amazon_ses: MailAmazonSESConfig,
                  rate_limit_window: int, rate_limit_count: int,
-                 dkim_selector: str | None = None, dkim_privkey_file: str | None = None):
+                 dkim_selector: str | None = None, dkim_privkey_file: str | None = None,
+                 sync_default_pot: bool = True):
         self.enabled = enabled
+        #: keep the default mail POT in S3 current (off for the Registry server)
+        self.sync_default_pot = sync_default_pot
         self.name = name
         self.email = email
 
@@ -356,7 +365,8 @@ class MailConfig(ConfigModel):
                f'- rate_limit_window = {self.rate_limit_window}\n' \
                f'- rate_limit_count = {self.rate_limit_count}\n' \
                f'- dkim_selector = {self.dkim_selector}\n' \
-               f'- dkim_privkey_file = {self.dkim_privkey_file}\n'
+               f'- dkim_privkey_file = {self.dkim_privkey_file}\n' \
+               f'- sync_default_pot = {self.sync_default_pot}\n'
 
 
 class MailerConfig:
@@ -436,6 +446,7 @@ class MailerConfigParser(DSWConfigParser):
             rate_limit_count=int(self.get(self.keys.mail.rate_limit_count)),
             dkim_selector=self.get(self.keys.mail.dkim_selector),
             dkim_privkey_file=self.get(self.keys.mail.dkim_privkey_file),
+            sync_default_pot=self.get(self.keys.mail.sync_default_pot),
         )
 
     @property

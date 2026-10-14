@@ -43,7 +43,7 @@ artifacts = ["dsw/*/build_info.py"]
 artifacts = ["dsw/*/build_info.py"]
 
 [tool.hatch.metadata.hooks.uv-dynamic-versioning]
-dependencies = ["boto3", "click", "dkimpy", "Jinja2", "Markdown", "pathvalidate", "polib", "python-dateutil", "sentry-sdk", "tenacity", "dsw-command-queue=={{ version }}", "dsw-config=={{ version }}", "dsw-database=={{ version }}", "dsw-storage=={{ version }}"]
+dependencies = ["boto3", "click", "dkimpy", "Jinja2", "Markdown", "packaging", "pathvalidate", "polib", "python-dateutil", "sentry-sdk", "tenacity", "dsw-command-queue=={{ version }}", "dsw-config=={{ version }}", "dsw-database=={{ version }}", "dsw-storage=={{ version }}"]
 
 [tool.uv-dynamic-versioning]
 vcs = "git"
