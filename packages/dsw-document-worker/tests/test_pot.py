@@ -18,21 +18,33 @@ def make_command(**body):
 def test_request_load_ok():
     rq = PotFileRequest.load(make_command(
         documentTemplateUuid='33333333-3333-3333-3333-333333333333',
-        organizationId='org',
-        templateId='tid',
+        id='org.tid',
         version='1.0.0',
         language='cs',
     ))
-    assert rq.coordinates == 'org:tid:1.0.0'
-    assert rq.file_name == 'org_tid_1.0.0.pot'
+    assert rq.coordinates == 'org.tid:1.0.0'
+    # the name the backend reads: DocumentTemplateS3.potFileName
+    assert rq.file_name == 'org.tid_1.0.0.pot'
     assert rq.language == 'cs'
+
+
+def test_request_load_pre_5_0_body():
+    # queued by a backend before the upgrade; the migration gave the template the joined id
+    rq = PotFileRequest.load(make_command(
+        documentTemplateUuid='33333333-3333-3333-3333-333333333333',
+        organizationId='org',
+        templateId='tid',
+        version='1.0.0',
+        language='en',
+    ))
+    assert rq.coordinates == 'org.tid:1.0.0'
+    assert rq.file_name == 'org.tid_1.0.0.pot'
 
 
 def test_request_load_without_language():
     rq = PotFileRequest.load(make_command(
         documentTemplateUuid='33333333-3333-3333-3333-333333333333',
-        organizationId='org',
-        templateId='tid',
+        id='org.tid',
         version='1.0.0',
         language=None,
     ))
@@ -43,15 +55,27 @@ def test_request_load_rejects_bad_uuid():
     with pytest.raises(CommandJobError) as e:
         PotFileRequest.load(make_command(
             documentTemplateUuid='not-a-uuid',
-            organizationId='org',
-            templateId='tid',
+            id='org.tid',
             version='1.0.0',
         ))
     assert not e.value.try_again
 
 
-@pytest.mark.parametrize('field', ['organizationId', 'templateId', 'version'])
+@pytest.mark.parametrize('field', ['id', 'version'])
 def test_request_load_rejects_traversal(field):
+    body = {
+        'documentTemplateUuid': '33333333-3333-3333-3333-333333333333',
+        'id': 'org.tid',
+        'version': '1.0.0',
+    }
+    body[field] = '../../etc/passwd'
+    with pytest.raises(CommandJobError, match=f'Invalid value of "{field}"') as e:
+        PotFileRequest.load(make_command(**body))
+    assert not e.value.try_again
+
+
+@pytest.mark.parametrize('field', ['organizationId', 'templateId'])
+def test_request_load_rejects_traversal_in_pre_5_0_body(field):
     body = {
         'documentTemplateUuid': '33333333-3333-3333-3333-333333333333',
         'organizationId': 'org',
@@ -59,6 +83,11 @@ def test_request_load_rejects_traversal(field):
         'version': '1.0.0',
     }
     body[field] = '../../etc/passwd'
-    with pytest.raises(CommandJobError) as e:
+    with pytest.raises(CommandJobError, match='Invalid value of "id"'):
         PotFileRequest.load(make_command(**body))
-    assert not e.value.try_again
+
+
+def test_request_load_requires_id():
+    with pytest.raises(CommandJobError, match='Invalid value of "id"'):
+        PotFileRequest.load(make_command(
+            documentTemplateUuid='33333333-3333-3333-3333-333333333333', version='1.0.0'))
