@@ -201,6 +201,8 @@ class Template:
         self.extras: list[TemplateFile] = []
         self.tdk_config: TDKConfig = tdk_config or TDKConfig()
         self.loaded_json: collections.OrderedDict = loaded_json or collections.OrderedDict()
+        #: the workspace of a remote template, None for one shared by the organization
+        self.workspace_uuid: str | None = None
 
     @property
     def coordinates(self) -> str:
@@ -252,7 +254,9 @@ class Template:
 
     @classmethod
     def load_remote(cls, data: dict):
-        return cls._common_load(data)
+        template = cls._common_load(data)
+        template.workspace_uuid = data.get('workspaceUuid')
+        return template
 
     def serialize_local(self) -> collections.OrderedDict:
         for legacy_key in ('organizationId', 'templateId'):

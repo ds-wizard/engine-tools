@@ -2,18 +2,18 @@ interactions:
 - request:
     body: null
     headers:
-      Authorization:
-      - Bearer eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE3NzE5NzQwMDAsInRlbmFudFV1aWQiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJ0b2tlblV1aWQiOiIwNzU4MzIwOS0zMWM3LTQzNDAtYTNjNS0xNjE1MjJlOTEzOTIiLCJ1c2VyVXVpZCI6ImVjNmY4ZTkwLTJhOTEtNDllYy1hYTNmLTllYWIyMjY3ZmM2NiIsInZlcnNpb24iOjR9.bw-6wNcflwtewdeueOg6gAM9O93kgb3gtXhHWNXVFnM0p_FtlRsbW-ZR_pxjh3CCtLHJ2QQmaa7fXVCC1OsVgOwgtgO5rIGhT62UU4DfL1d2oNXq5huyHCxTzgung_YEI1Eg76RulfWb5wUPhHfaBJbPYLuPh5Q56U8RD-khTQeqcLuvNLWBKYTHqe7k7X41vJw__sL1GyC60bXXYUlqLZaiPkvc5JNWxxxTL2R4lw1zlpnJxFHhLq8TWPDehtBuYADWyxDdS3s-4Vr_axSuenE7ZCHU-AFF4Vr1mS-w_Kx69s_wpsgRxtZh3s5yIAQ45tikMXR5cijEEuJYO7VorTjclQvbh-Sk29Y7r8lZ2scZp8z8Zf8kiLpPKnJpItpKZLmjLYOJZRCBX6EW3fN92sbsOq3yPxFchl6DB-cmmGs9EoLvWLimNm8rqpO5pXyGiATah6R0fFRTNtfRcfhfkAIr_X6e3PVtnpOCFtACpUzHnl0p7tYbF-OvhdgAUVZCOZjnFQ5z5EFZjEKbaImqUZJQMz5J8wwsP-N7j8GHjrR5fHgotu-5Ps8WAm2ibYrM15MReorfhWUQmeh7wvNoJ4lj9mFByb0qgTwNgnnLpfFGbglZhyB1jvTiB4TxFoCsaEuyVOBQVAKS9_ufT5wymBcL_fa3PGeDTzPGjA1pv_Q
       User-Agent:
-      - dsw-tdk/4.27.0
+      - dsw-tdk/4.35.0
+      authorization:
+      - Bearer dummy-token
     method: GET
-    uri: http://localhost:3000/wizard-api/
+    uri: http://single.fair-wizard.localhost:3000/api/
   response:
     body:
-      string: '{"builtAt":"2026-02-20T08:28:05Z","components":[{"builtAt":"2026-02-20T09:47:33Z","createdAt":"2026-02-19T12:59:11.534362Z","name":"Document
-        Worker","updatedAt":"2026-02-22T06:26:24.005577Z","version":"refactor/id-to-uuid~cfe4120"}],"metamodelVersions":[{"name":"Knowledge
-        Model","version":"19"},{"name":"Document Template","version":"17.1"}],"name":"Engine
-        Wizard","version":"feature/refactor-id-to-uuid~a92aba6c"}'
+      string: '{"builtAt":"2026-10-14T14:11:04Z","components":[{"builtAt":"2026-10-14T18:24:20Z","createdAt":"2026-10-14T16:58:40.476791Z","name":"Document
+        Worker","updatedAt":"2026-10-14T17:25:03.455715Z","version":"update/fw5~87566ae"}],"metamodelVersions":[{"name":"Knowledge
+        Model","version":"20"},{"name":"Document Template","version":"19.0"}],"name":"Admin
+        Server","version":"main~4e7d05995"}'
     headers:
       Access-Control-Allow-Credential:
       - 'true'
@@ -23,31 +23,33 @@ interactions:
       - OPTIONS, HEAD, GET, POST, PUT, DELETE
       Access-Control-Allow-Origin:
       - '*'
+      Access-Control-Expose-Headers:
+      - ETag, x-trace-uuid
       Content-Type:
       - application/json
       Date:
-      - Tue, 24 Feb 2026 06:26:50 GMT
+      - Wed, 14 Oct 2026 17:33:32 GMT
       Server:
-      - Warp/3.3.31
+      - Warp/3.4.9
       Transfer-Encoding:
       - chunked
       x-trace-uuid:
-      - 552dc29e-066f-4ab4-ba62-dffd7b5ba75a
+      - 225df472-8b71-4d66-bb5c-9390b66ea891
     status:
       code: 200
       message: OK
 - request:
     body: null
     headers:
-      Authorization:
-      - Bearer eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE3NzE5NzQwMDAsInRlbmFudFV1aWQiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJ0b2tlblV1aWQiOiIwNzU4MzIwOS0zMWM3LTQzNDAtYTNjNS0xNjE1MjJlOTEzOTIiLCJ1c2VyVXVpZCI6ImVjNmY4ZTkwLTJhOTEtNDllYy1hYTNmLTllYWIyMjY3ZmM2NiIsInZlcnNpb24iOjR9.bw-6wNcflwtewdeueOg6gAM9O93kgb3gtXhHWNXVFnM0p_FtlRsbW-ZR_pxjh3CCtLHJ2QQmaa7fXVCC1OsVgOwgtgO5rIGhT62UU4DfL1d2oNXq5huyHCxTzgung_YEI1Eg76RulfWb5wUPhHfaBJbPYLuPh5Q56U8RD-khTQeqcLuvNLWBKYTHqe7k7X41vJw__sL1GyC60bXXYUlqLZaiPkvc5JNWxxxTL2R4lw1zlpnJxFHhLq8TWPDehtBuYADWyxDdS3s-4Vr_axSuenE7ZCHU-AFF4Vr1mS-w_Kx69s_wpsgRxtZh3s5yIAQ45tikMXR5cijEEuJYO7VorTjclQvbh-Sk29Y7r8lZ2scZp8z8Zf8kiLpPKnJpItpKZLmjLYOJZRCBX6EW3fN92sbsOq3yPxFchl6DB-cmmGs9EoLvWLimNm8rqpO5pXyGiATah6R0fFRTNtfRcfhfkAIr_X6e3PVtnpOCFtACpUzHnl0p7tYbF-OvhdgAUVZCOZjnFQ5z5EFZjEKbaImqUZJQMz5J8wwsP-N7j8GHjrR5fHgotu-5Ps8WAm2ibYrM15MReorfhWUQmeh7wvNoJ4lj9mFByb0qgTwNgnnLpfFGbglZhyB1jvTiB4TxFoCsaEuyVOBQVAKS9_ufT5wymBcL_fa3PGeDTzPGjA1pv_Q
       User-Agent:
-      - dsw-tdk/4.27.0
+      - dsw-tdk/4.35.0
+      authorization:
+      - Bearer dummy-token
     method: GET
-    uri: http://localhost:3000/wizard-api/users/current
+    uri: http://single.fair-wizard.localhost:3000/api/users/current
   response:
     body:
-      string: '{"active":true,"affiliation":"My University","createdAt":"2018-01-20T00:00:00Z","email":"albert.einstein@example.com","firstName":"Albert","imageUrl":null,"lastName":"Einstein","lastSeenNewsId":null,"locale":null,"permissions":["UM_PERM","KM_PERM","KM_UPGRADE_PERM","KM_PUBLISH_PERM","PM_READ_PERM","PM_WRITE_PERM","PRJ_PERM","CFG_PERM","SUBM_PERM","DOC_PERM","PRJ_TML_PERM","LOC_PERM","DOC_TML_WRITE_PERM","DOC_TML_READ_PERM","PRJ_FILE_PERM"],"role":"admin","sources":["internal"],"updatedAt":"2018-01-25T00:00:00Z","uuid":"ec6f8e90-2a91-49ec-aa3f-9eab2267fc66"}'
+      string: '{"active":true,"affiliation":null,"createdAt":"2026-10-14T15:02:55.871273Z","email":"admin@fair-wizard.localhost","emailPending":"admin@fair-wizard.localhost","emailVerifiedAt":null,"firstName":"Admin","imageUrl":null,"lastName":"User","role":{"name":"Admin","permissions":["projects.view","projects.comment","projects.edit","projects.manage","projects.create","projects.manageTemplates","knowledgeModels.useEditor","knowledgeModels.manage","documentTemplates.useEditor","documentTemplates.manage","members.manage","roles.manage","userGroups.manage","userGroups.create","settings.manage","users.manage","workspaces.manage","organizationLibrary.manage","organizationSettings.manage","analytics.use","auditLog.use","automations.manage","mcp.connect"],"uuid":"25631728-9873-43a6-b1ca-0012c272f3ba"},"updatedAt":"2026-10-14T15:02:55.871273Z","uuid":"f79351e0-3d26-4710-ab9e-36db954ea6ae"}'
     headers:
       Access-Control-Allow-Credential:
       - 'true'
@@ -57,33 +59,37 @@ interactions:
       - OPTIONS, HEAD, GET, POST, PUT, DELETE
       Access-Control-Allow-Origin:
       - '*'
+      Access-Control-Expose-Headers:
+      - ETag, x-trace-uuid
       Content-Type:
       - application/json
       Date:
-      - Tue, 24 Feb 2026 06:26:50 GMT
+      - Wed, 14 Oct 2026 17:33:32 GMT
       Server:
-      - Warp/3.3.31
+      - Warp/3.4.9
       Transfer-Encoding:
       - chunked
       x-trace-uuid:
-      - bede9dbb-c1a2-4501-aff4-28db80973039
+      - bd6cb3a7-89e8-459b-be78-d08bd7c5e1e1
     status:
       code: 200
       message: OK
 - request:
     body: null
     headers:
-      Authorization:
-      - Bearer eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE3NzE5NzQwMDAsInRlbmFudFV1aWQiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJ0b2tlblV1aWQiOiIwNzU4MzIwOS0zMWM3LTQzNDAtYTNjNS0xNjE1MjJlOTEzOTIiLCJ1c2VyVXVpZCI6ImVjNmY4ZTkwLTJhOTEtNDllYy1hYTNmLTllYWIyMjY3ZmM2NiIsInZlcnNpb24iOjR9.bw-6wNcflwtewdeueOg6gAM9O93kgb3gtXhHWNXVFnM0p_FtlRsbW-ZR_pxjh3CCtLHJ2QQmaa7fXVCC1OsVgOwgtgO5rIGhT62UU4DfL1d2oNXq5huyHCxTzgung_YEI1Eg76RulfWb5wUPhHfaBJbPYLuPh5Q56U8RD-khTQeqcLuvNLWBKYTHqe7k7X41vJw__sL1GyC60bXXYUlqLZaiPkvc5JNWxxxTL2R4lw1zlpnJxFHhLq8TWPDehtBuYADWyxDdS3s-4Vr_axSuenE7ZCHU-AFF4Vr1mS-w_Kx69s_wpsgRxtZh3s5yIAQ45tikMXR5cijEEuJYO7VorTjclQvbh-Sk29Y7r8lZ2scZp8z8Zf8kiLpPKnJpItpKZLmjLYOJZRCBX6EW3fN92sbsOq3yPxFchl6DB-cmmGs9EoLvWLimNm8rqpO5pXyGiATah6R0fFRTNtfRcfhfkAIr_X6e3PVtnpOCFtACpUzHnl0p7tYbF-OvhdgAUVZCOZjnFQ5z5EFZjEKbaImqUZJQMz5J8wwsP-N7j8GHjrR5fHgotu-5Ps8WAm2ibYrM15MReorfhWUQmeh7wvNoJ4lj9mFByb0qgTwNgnnLpfFGbglZhyB1jvTiB4TxFoCsaEuyVOBQVAKS9_ufT5wymBcL_fa3PGeDTzPGjA1pv_Q
       User-Agent:
-      - dsw-tdk/4.27.0
+      - dsw-tdk/4.35.0
+      authorization:
+      - Bearer dummy-token
     method: GET
-    uri: http://localhost:3000/wizard-api/document-template-drafts?size=10000&page=0&q=organization.questionnaire-report
+    uri: http://single.fair-wizard.localhost:3000/api/document-template-drafts?page=0&q=testbed.fw5-smoke&size=10000
   response:
     body:
-      string: '{"_embedded":{"documentTemplateDrafts":[{"createdAt":"2026-02-24T06:15:04.677049Z","description":"Exported
-        questions and answers from a questionnaire","id":"organization.questionnaire-report","name":"Questionnaire
-        Report","updatedAt":"2026-02-24T06:15:04.734896Z","uuid":"7e4da640-82ba-40cb-a072-288112911fba","version":"2.17.0"}]},"page":{"number":0,"size":10000,"totalElements":1,"totalPages":1}}'
+      string: '{"_embedded":{"documentTemplateDrafts":[{"createdAt":"2026-10-14T17:24:50.461061Z","description":"Minimal
+        template for trying the document worker against Wizard 5.0 (raw 19.0 context
+        only)","id":"testbed.fw5-smoke","name":"Smoke draft","updatedAt":"2026-10-14T17:24:50.464916Z","uuid":"882760cc-f9b2-4ab3-a49e-22ac7497ba05","version":"1.3.0","workspaceUuid":null},{"createdAt":"2026-10-14T17:32:03.745228Z","description":"Minimal
+        template for trying the document worker against Wizard 5.0 (raw 19.0 context
+        only)","id":"testbed.fw5-smoke","name":"Smoke via TDK","updatedAt":"2026-10-14T17:32:03.774543Z","uuid":"1f951c48-b168-428b-8984-3d458517558b","version":"1.4.0","workspaceUuid":null}]},"page":{"number":0,"size":10000,"totalElements":2,"totalPages":1}}'
     headers:
       Access-Control-Allow-Credential:
       - 'true'
@@ -93,95 +99,42 @@ interactions:
       - OPTIONS, HEAD, GET, POST, PUT, DELETE
       Access-Control-Allow-Origin:
       - '*'
+      Access-Control-Expose-Headers:
+      - ETag, x-trace-uuid
       Content-Type:
       - application/json
       Date:
-      - Tue, 24 Feb 2026 06:26:50 GMT
+      - Wed, 14 Oct 2026 17:33:32 GMT
       Server:
-      - Warp/3.3.31
+      - Warp/3.4.9
       Transfer-Encoding:
       - chunked
       x-trace-uuid:
-      - 7f6f0871-f904-41a5-8061-fcf277b86e1c
+      - d33f0391-749e-47bb-bfce-f1520b3228c7
     status:
       code: 200
       message: OK
 - request:
     body: null
     headers:
-      Authorization:
-      - Bearer eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE3NzE5NzQwMDAsInRlbmFudFV1aWQiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJ0b2tlblV1aWQiOiIwNzU4MzIwOS0zMWM3LTQzNDAtYTNjNS0xNjE1MjJlOTEzOTIiLCJ1c2VyVXVpZCI6ImVjNmY4ZTkwLTJhOTEtNDllYy1hYTNmLTllYWIyMjY3ZmM2NiIsInZlcnNpb24iOjR9.bw-6wNcflwtewdeueOg6gAM9O93kgb3gtXhHWNXVFnM0p_FtlRsbW-ZR_pxjh3CCtLHJ2QQmaa7fXVCC1OsVgOwgtgO5rIGhT62UU4DfL1d2oNXq5huyHCxTzgung_YEI1Eg76RulfWb5wUPhHfaBJbPYLuPh5Q56U8RD-khTQeqcLuvNLWBKYTHqe7k7X41vJw__sL1GyC60bXXYUlqLZaiPkvc5JNWxxxTL2R4lw1zlpnJxFHhLq8TWPDehtBuYADWyxDdS3s-4Vr_axSuenE7ZCHU-AFF4Vr1mS-w_Kx69s_wpsgRxtZh3s5yIAQ45tikMXR5cijEEuJYO7VorTjclQvbh-Sk29Y7r8lZ2scZp8z8Zf8kiLpPKnJpItpKZLmjLYOJZRCBX6EW3fN92sbsOq3yPxFchl6DB-cmmGs9EoLvWLimNm8rqpO5pXyGiATah6R0fFRTNtfRcfhfkAIr_X6e3PVtnpOCFtACpUzHnl0p7tYbF-OvhdgAUVZCOZjnFQ5z5EFZjEKbaImqUZJQMz5J8wwsP-N7j8GHjrR5fHgotu-5Ps8WAm2ibYrM15MReorfhWUQmeh7wvNoJ4lj9mFByb0qgTwNgnnLpfFGbglZhyB1jvTiB4TxFoCsaEuyVOBQVAKS9_ufT5wymBcL_fa3PGeDTzPGjA1pv_Q
       User-Agent:
-      - dsw-tdk/4.27.0
+      - dsw-tdk/4.35.0
+      authorization:
+      - Bearer dummy-token
     method: GET
-    uri: http://localhost:3000/wizard-api/document-template-drafts/7e4da640-82ba-40cb-a072-288112911fba
+    uri: http://single.fair-wizard.localhost:3000/api/document-template-drafts/882760cc-f9b2-4ab3-a49e-22ac7497ba05
   response:
     body:
-      string: "{\"allowedPackages\":[{\"id\":null,\"maxVersion\":null,\"minVersion\":null}],\"createdAt\":\"2026-02-24T06:15:04.677049Z\",\"description\":\"Exported
-        questions and answers from a questionnaire\",\"formatUuid\":null,\"formats\":[{\"createdAt\":\"2026-02-24T06:15:04.677049Z\",\"documentTemplateUuid\":\"7e4da640-82ba-40cb-a072-288112911fba\",\"icon\":\"far
-        fa-file-code\",\"name\":\"HTML Document\",\"steps\":[{\"createdAt\":\"2026-02-24T06:15:04.677049Z\",\"documentTemplateUuid\":\"7e4da640-82ba-40cb-a072-288112911fba\",\"formatUuid\":\"a9293d08-59a4-4e6b-ae62-7a6a570b031c\",\"name\":\"jinja\",\"options\":{\"content-type\":\"text/html\",\"extension\":\"html\",\"template\":\"src/default.html.j2\"},\"position\":0,\"tenantUuid\":\"00000000-0000-0000-0000-000000000000\",\"updatedAt\":\"2026-02-24T06:15:04.677049Z\"}],\"tenantUuid\":\"00000000-0000-0000-0000-000000000000\",\"updatedAt\":\"2026-02-24T06:15:04.677049Z\",\"uuid\":\"a9293d08-59a4-4e6b-ae62-7a6a570b031c\"},{\"createdAt\":\"2026-02-24T06:15:04.677049Z\",\"documentTemplateUuid\":\"7e4da640-82ba-40cb-a072-288112911fba\",\"icon\":\"far
-        fa-file\",\"name\":\"JSON Data\",\"steps\":[{\"createdAt\":\"2026-02-24T06:15:04.677049Z\",\"documentTemplateUuid\":\"7e4da640-82ba-40cb-a072-288112911fba\",\"formatUuid\":\"d3e98eb6-344d-481f-8e37-6a67b6cd1ad2\",\"name\":\"json\",\"options\":{},\"position\":0,\"tenantUuid\":\"00000000-0000-0000-0000-000000000000\",\"updatedAt\":\"2026-02-24T06:15:04.677049Z\"}],\"tenantUuid\":\"00000000-0000-0000-0000-000000000000\",\"updatedAt\":\"2026-02-24T06:15:04.677049Z\",\"uuid\":\"d3e98eb6-344d-481f-8e37-6a67b6cd1ad2\"},{\"createdAt\":\"2026-02-24T06:15:04.677049Z\",\"documentTemplateUuid\":\"7e4da640-82ba-40cb-a072-288112911fba\",\"icon\":\"far
-        fa-file-alt\",\"name\":\"LaTeX Document\",\"steps\":[{\"createdAt\":\"2026-02-24T06:15:04.677049Z\",\"documentTemplateUuid\":\"7e4da640-82ba-40cb-a072-288112911fba\",\"formatUuid\":\"dbc94579-40d7-42c3-975c-71e30d07778b\",\"name\":\"jinja\",\"options\":{\"content-type\":\"text/x-tex\",\"extension\":\"tex\",\"template\":\"src/default.tex.j2\"},\"position\":0,\"tenantUuid\":\"00000000-0000-0000-0000-000000000000\",\"updatedAt\":\"2026-02-24T06:15:04.677049Z\"}],\"tenantUuid\":\"00000000-0000-0000-0000-000000000000\",\"updatedAt\":\"2026-02-24T06:15:04.677049Z\",\"uuid\":\"dbc94579-40d7-42c3-975c-71e30d07778b\"},{\"createdAt\":\"2026-02-24T06:15:04.677049Z\",\"documentTemplateUuid\":\"7e4da640-82ba-40cb-a072-288112911fba\",\"icon\":\"far
-        fa-file-alt\",\"name\":\"Markdown Document\",\"steps\":[{\"createdAt\":\"2026-02-24T06:15:04.677049Z\",\"documentTemplateUuid\":\"7e4da640-82ba-40cb-a072-288112911fba\",\"formatUuid\":\"f0533e48-f4c5-4af2-b2c1-5a47d4a247c0\",\"name\":\"jinja\",\"options\":{\"content-type\":\"text/html\",\"extension\":\"md\",\"template\":\"src/default.md.j2\"},\"position\":0,\"tenantUuid\":\"00000000-0000-0000-0000-000000000000\",\"updatedAt\":\"2026-02-24T06:15:04.677049Z\"}],\"tenantUuid\":\"00000000-0000-0000-0000-000000000000\",\"updatedAt\":\"2026-02-24T06:15:04.677049Z\",\"uuid\":\"f0533e48-f4c5-4af2-b2c1-5a47d4a247c0\"},{\"createdAt\":\"2026-02-24T06:15:04.677049Z\",\"documentTemplateUuid\":\"7e4da640-82ba-40cb-a072-288112911fba\",\"icon\":\"far
-        fa-file-word\",\"name\":\"MS Word Document\",\"steps\":[{\"createdAt\":\"2026-02-24T06:15:04.677049Z\",\"documentTemplateUuid\":\"7e4da640-82ba-40cb-a072-288112911fba\",\"formatUuid\":\"f4bd941a-dfbe-4226-a1fc-200fb5269311\",\"name\":\"jinja\",\"options\":{\"content-type\":\"text/html\",\"extension\":\"html\",\"template\":\"src/for-word.html.j2\"},\"position\":0,\"tenantUuid\":\"00000000-0000-0000-0000-000000000000\",\"updatedAt\":\"2026-02-24T06:15:04.677049Z\"},{\"createdAt\":\"2026-02-24T06:15:04.677049Z\",\"documentTemplateUuid\":\"7e4da640-82ba-40cb-a072-288112911fba\",\"formatUuid\":\"f4bd941a-dfbe-4226-a1fc-200fb5269311\",\"name\":\"pandoc\",\"options\":{\"args\":\"--filter=pandoc-docx-pagebreakpy
-        --reference-doc=src/reference.docx\",\"from\":\"html\",\"to\":\"docx\"},\"position\":1,\"tenantUuid\":\"00000000-0000-0000-0000-000000000000\",\"updatedAt\":\"2026-02-24T06:15:04.677049Z\"}],\"tenantUuid\":\"00000000-0000-0000-0000-000000000000\",\"updatedAt\":\"2026-02-24T06:15:04.677049Z\",\"uuid\":\"f4bd941a-dfbe-4226-a1fc-200fb5269311\"},{\"createdAt\":\"2026-02-24T06:15:04.677049Z\",\"documentTemplateUuid\":\"7e4da640-82ba-40cb-a072-288112911fba\",\"icon\":\"far
-        fa-file-pdf\",\"name\":\"PDF Document\",\"steps\":[{\"createdAt\":\"2026-02-24T06:15:04.677049Z\",\"documentTemplateUuid\":\"7e4da640-82ba-40cb-a072-288112911fba\",\"formatUuid\":\"68c26e34-5e77-4e15-9bf7-06ff92582257\",\"name\":\"jinja\",\"options\":{\"content-type\":\"text/html\",\"extension\":\"html\",\"template\":\"src/default.html.j2\"},\"position\":0,\"tenantUuid\":\"00000000-0000-0000-0000-000000000000\",\"updatedAt\":\"2026-02-24T06:15:04.677049Z\"},{\"createdAt\":\"2026-02-24T06:15:04.677049Z\",\"documentTemplateUuid\":\"7e4da640-82ba-40cb-a072-288112911fba\",\"formatUuid\":\"68c26e34-5e77-4e15-9bf7-06ff92582257\",\"name\":\"weasyprint\",\"options\":{},\"position\":1,\"tenantUuid\":\"00000000-0000-0000-0000-000000000000\",\"updatedAt\":\"2026-02-24T06:15:04.677049Z\"}],\"tenantUuid\":\"00000000-0000-0000-0000-000000000000\",\"updatedAt\":\"2026-02-24T06:15:04.677049Z\",\"uuid\":\"68c26e34-5e77-4e15-9bf7-06ff92582257\"}],\"id\":\"organization.questionnaire-report\",\"knowledgeModelEditor\":null,\"knowledgeModelEditorUuid\":null,\"license\":\"Apache-2.0\",\"name\":\"Questionnaire
-        Report\",\"project\":null,\"projectUuid\":null,\"readme\":\"# Questionnaire
-        Report\\n\\nThis generic *default* template for [Data Stewardship Wizard](https://ds-wizard.org)
-        (DSW) directly transforms answers from a questionnaire into a document while
-        maintaining the structure. It is not tied to any knowledge model and is included
-        by default in every DSW instance.\\n\\n\\n## Usage \\n\\nThis template is
-        available through [DSW Registry](https://registry.ds-wizard.org/templates).\\n\\n\\n##
-        Issues and Contributing\\n\\nThis document template for DSW is available as
-        open-source via GitHub Repository [ds-wizard/questionnaire-report-template](https://github.com/ds-wizard/questionnaire-report-template),
-        you can [report issues](https://github.com/ds-wizard/questionnaire-report-template/issues)
-        there and fork it for customisations or contributions.\\n\\n\\n### Contributors\\n\\n*
-        **Marek Such\xE1nek** <[marek.suchanek@ds-wizard.org](mailto:marek.suchanek@ds-wizard.org)>\\n
-        \ * ORCID: [0000-0001-7525-9218](https://orcid.org/0000-0001-7525-9218)\\n
-        \ * GitHub: [@MarekSuchanek](https://github.com/MarekSuchanek)\\n* **Kry\u0161tof
-        Komanec** <[krystof.komanec@ds-wizard.org](mailto:krystof.komanec@ds-wizard.org)>\\n
-        \ * ORCID: [0000-0003-3856-1682](https://orcid.org/0000-0003-3856-1682)\\n
-        \ * GitHub: [@krystofkomanec](https://github.com/krystofkomanec)\\n* **Jana
-        Mart\xEDnkov\xE1** <[jana.martinkova@ds-wizard.org](mailto:jana.martinkova@ds-wizard.org)>\\n
-        \ * ORCID: [0000-0001-8575-6533](https://orcid.org/0000-0001-8575-6533/)\\n
-        \ * GitHub: [@jmartinkova](https://github.com/jmartinkova)\\n\\n\\n## Changelog\\n\\n###
-        2.16.1\\n\\n- Adjusted to template metamodel version 17.1 (released in DSW
-        4.26.0)\\n\\n### 2.16.0\\n\\n- Adjusted to template metamodel version 17.0
-        (released in DSW 4.22.0)\\n\\n### 2.15.0\\n\\n- Remove External Resource Pages
-        listing\\n- Improve URL to External Resource Page for LateX\\n- Add URL to
-        External Resource Page for PDF/HTML, Markdown, Word\\n\\n### 2.14.1\\n\\n-
-        Fixed LaTeX rendering with references\\n\\n### 2.14.0\\n\\n- Adjusted to template
-        metamodel version 16 (released in DSW 4.13.0)\\n\\n### 2.13.0\\n\\n- Adjusted
-        to template metamodel version 15 (released in DSW 4.12.0)\\n- Fixed experts\\n-
-        Improved reply to value questions\\n- Improved resource pages\\n- Fixed check
-        icon ItemSelectQuestion\\n- Fixed text after img for resource pages\\n- Fix
-        newline in resource pages for PDF/HTML\\n\\n### 2.12.0\\n\\n- Adjusted to
-        template metamodel version 14 (released in DSW 4.10.0)\\n- Added support for
-        item select question\\n- Added support for resource collections and pages
-        (resource page references)\\n\\n### 2.11.1\\n\\n- Fixed nested bullet points
-        would display unwanted characters\\n\\n### 2.11.0\\n\\n- Adjusted to template
-        metamodel version 13 (released in DSW 4.3.0)\\n\\n### 2.10.1\\n\\n- Fixed
-        broken images in Word\\n\\n### 2.10.0\\n\\n- Adjusted to template metamodel
-        version 12 (released in DSW 4.1.0)\\n- Integrations should not have the link
-        inside the item template (item URL will not be generated)\\n\\n### 2.9.0\\n\\n-
-        Switched from `wkhtmltopdf` to `weasyprint` for PDF\\n- Improved styling for
-        PDF and HTML\\n\\n### 2.8.0\\n\\n- Adjusted to template metamodel version
-        11 (released in DSW 3.20.0)\\n- Added versions overview / change tracker table\\n\\n###
-        2.7.1\\n\\n- Fixed Markdown rendering for integration question reply\\n\\n###
-        2.7.0\\n\\n- Adjusted to template metamodel version 10 (released in DSW 3.12.0)\\n\\n###
-        2.6.0\\n\\n- Adjusted to template metamodel version 9 (released in DSW 3.10.0)\\n\\n###
-        2.5.0\\n\\n- Adjusted to template metamodel version 8 (released in DSW 3.8.0)\\n\\n###
-        2.4.0\\n\\n- Adjusted to template metamodel version 7 (released in DSW 3.7.0)\\n\\n###
-        2.3.0\\n\\n- Adjusted to template metamodel version 6 (released in DSW 3.6.0)\\n\\n###
-        2.2.0\\n\\n- Using new document context\\n\\n### 2.1.0\\n\\n- Adjusted to
-        template metamodel version 5 (released in DSW 3.5.0)\\n\\n### 2.0.0\\n\\n-
-        Improved template visual\\n\\n### 1.4.0\\n\\n- Adjusted to template metamodel
-        version 4 (released in DSW 3.2.0)\\n\\n### 1.3.0\\n\\n- Adjusted to template
-        metamodel version 3 (released in DSW 2.12.0)\\n\\n### 1.2.1\\n\\n- Fixed issue
-        with multiple tags on questions\\n\\n### 1.2.0\\n\\n- Added support for Multi-Choice
-        questions (released in DSW 2.11.0)\\n\\n### 1.1.0\\n\\n- Adjusted to template
-        metamodel version 2\\n\\n### 1.0.0\\n\\n- Initial version previously distributed
-        as files directly in DSW\\n\",\"updatedAt\":\"2026-02-24T06:15:04.734896Z\",\"uuid\":\"7e4da640-82ba-40cb-a072-288112911fba\",\"version\":\"2.17.0\"}"
+      string: '{"allowedPackages":[{"id":null,"maxVersion":null,"minVersion":null}],"createdAt":"2026-10-14T17:24:50.461061Z","description":"Minimal
+        template for trying the document worker against Wizard 5.0 (raw 19.0 context
+        only)","formatUuid":"5e1f0000-0000-4000-8000-000000000004","formats":[{"createdAt":"2026-10-14T17:24:50.461061Z","documentTemplateUuid":"882760cc-f9b2-4ab3-a49e-22ac7497ba05","icon":"far
+        fa-file-code","name":"Context JSON","steps":[{"createdAt":"2026-10-14T17:24:50.461061Z","documentTemplateUuid":"882760cc-f9b2-4ab3-a49e-22ac7497ba05","formatUuid":"5e1f0000-0000-4000-8000-000000000001","name":"json","options":{},"position":0,"tenantUuid":"bf9fa415-f2e1-43d2-82be-4b8241d14d7f","updatedAt":"2026-10-14T17:24:50.461061Z"}],"tenantUuid":"bf9fa415-f2e1-43d2-82be-4b8241d14d7f","updatedAt":"2026-10-14T17:24:50.461061Z","uuid":"5e1f0000-0000-4000-8000-000000000001"},{"createdAt":"2026-10-14T17:24:50.461061Z","documentTemplateUuid":"882760cc-f9b2-4ab3-a49e-22ac7497ba05","icon":"far
+        fa-file-code","name":"Extras JSON","steps":[{"createdAt":"2026-10-14T17:24:50.461061Z","documentTemplateUuid":"882760cc-f9b2-4ab3-a49e-22ac7497ba05","formatUuid":"5e1f0000-0000-4000-8000-000000000004","name":"json","options":{"extras":"project,submissions"},"position":0,"tenantUuid":"bf9fa415-f2e1-43d2-82be-4b8241d14d7f","updatedAt":"2026-10-14T17:24:50.461061Z"}],"tenantUuid":"bf9fa415-f2e1-43d2-82be-4b8241d14d7f","updatedAt":"2026-10-14T17:24:50.461061Z","uuid":"5e1f0000-0000-4000-8000-000000000004"},{"createdAt":"2026-10-14T17:24:50.461061Z","documentTemplateUuid":"882760cc-f9b2-4ab3-a49e-22ac7497ba05","icon":"far
+        fa-file-code","name":"Smoke HTML","steps":[{"createdAt":"2026-10-14T17:24:50.461061Z","documentTemplateUuid":"882760cc-f9b2-4ab3-a49e-22ac7497ba05","formatUuid":"5e1f0000-0000-4000-8000-000000000002","name":"jinja","options":{"content-type":"text/html","extension":"html","template":"src/smoke.html.j2"},"position":0,"tenantUuid":"bf9fa415-f2e1-43d2-82be-4b8241d14d7f","updatedAt":"2026-10-14T17:24:50.461061Z"}],"tenantUuid":"bf9fa415-f2e1-43d2-82be-4b8241d14d7f","updatedAt":"2026-10-14T17:24:50.461061Z","uuid":"5e1f0000-0000-4000-8000-000000000002"},{"createdAt":"2026-10-14T17:24:50.461061Z","documentTemplateUuid":"882760cc-f9b2-4ab3-a49e-22ac7497ba05","icon":"far
+        fa-file-pdf","name":"Smoke PDF","steps":[{"createdAt":"2026-10-14T17:24:50.461061Z","documentTemplateUuid":"882760cc-f9b2-4ab3-a49e-22ac7497ba05","formatUuid":"5e1f0000-0000-4000-8000-000000000003","name":"jinja","options":{"content-type":"text/html","extension":"html","template":"src/smoke.html.j2"},"position":0,"tenantUuid":"bf9fa415-f2e1-43d2-82be-4b8241d14d7f","updatedAt":"2026-10-14T17:24:50.461061Z"},{"createdAt":"2026-10-14T17:24:50.461061Z","documentTemplateUuid":"882760cc-f9b2-4ab3-a49e-22ac7497ba05","formatUuid":"5e1f0000-0000-4000-8000-000000000003","name":"weasyprint","options":{},"position":1,"tenantUuid":"bf9fa415-f2e1-43d2-82be-4b8241d14d7f","updatedAt":"2026-10-14T17:24:50.461061Z"}],"tenantUuid":"bf9fa415-f2e1-43d2-82be-4b8241d14d7f","updatedAt":"2026-10-14T17:24:50.461061Z","uuid":"5e1f0000-0000-4000-8000-000000000003"}],"id":"testbed.fw5-smoke","knowledgeModelEditor":{"name":"Testbed
+        editor","uuid":"4dbec435-71de-4915-a185-f3c8842f66c1"},"knowledgeModelEditorUuid":"4dbec435-71de-4915-a185-f3c8842f66c1","language":"en","license":"CC0-1.0","name":"Smoke
+        draft","project":null,"projectUuid":null,"readme":"# FW 5.0 Smoke Test\n\nMinimal
+        template for the local 5.0 testbed. It reads only the raw 19.0 document context.\n","updatedAt":"2026-10-14T17:24:50.464916Z","uuid":"882760cc-f9b2-4ab3-a49e-22ac7497ba05","version":"1.3.0","workspaceUuid":null}'
     headers:
       Access-Control-Allow-Credential:
       - 'true'
@@ -191,31 +144,33 @@ interactions:
       - OPTIONS, HEAD, GET, POST, PUT, DELETE
       Access-Control-Allow-Origin:
       - '*'
+      Access-Control-Expose-Headers:
+      - ETag, x-trace-uuid
       Content-Type:
       - application/json
       Date:
-      - Tue, 24 Feb 2026 06:26:50 GMT
+      - Wed, 14 Oct 2026 17:33:32 GMT
       Server:
-      - Warp/3.3.31
+      - Warp/3.4.9
       Transfer-Encoding:
       - chunked
       x-trace-uuid:
-      - c47dc254-f3b8-4bf2-856b-41dbd68ebf0d
+      - fe376b6e-30d9-4d43-ac2b-a3cc643ddf75
     status:
       code: 200
       message: OK
 - request:
     body: null
     headers:
-      Authorization:
-      - Bearer eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE3NzE5NzQwMDAsInRlbmFudFV1aWQiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJ0b2tlblV1aWQiOiIwNzU4MzIwOS0zMWM3LTQzNDAtYTNjNS0xNjE1MjJlOTEzOTIiLCJ1c2VyVXVpZCI6ImVjNmY4ZTkwLTJhOTEtNDllYy1hYTNmLTllYWIyMjY3ZmM2NiIsInZlcnNpb24iOjR9.bw-6wNcflwtewdeueOg6gAM9O93kgb3gtXhHWNXVFnM0p_FtlRsbW-ZR_pxjh3CCtLHJ2QQmaa7fXVCC1OsVgOwgtgO5rIGhT62UU4DfL1d2oNXq5huyHCxTzgung_YEI1Eg76RulfWb5wUPhHfaBJbPYLuPh5Q56U8RD-khTQeqcLuvNLWBKYTHqe7k7X41vJw__sL1GyC60bXXYUlqLZaiPkvc5JNWxxxTL2R4lw1zlpnJxFHhLq8TWPDehtBuYADWyxDdS3s-4Vr_axSuenE7ZCHU-AFF4Vr1mS-w_Kx69s_wpsgRxtZh3s5yIAQ45tikMXR5cijEEuJYO7VorTjclQvbh-Sk29Y7r8lZ2scZp8z8Zf8kiLpPKnJpItpKZLmjLYOJZRCBX6EW3fN92sbsOq3yPxFchl6DB-cmmGs9EoLvWLimNm8rqpO5pXyGiATah6R0fFRTNtfRcfhfkAIr_X6e3PVtnpOCFtACpUzHnl0p7tYbF-OvhdgAUVZCOZjnFQ5z5EFZjEKbaImqUZJQMz5J8wwsP-N7j8GHjrR5fHgotu-5Ps8WAm2ibYrM15MReorfhWUQmeh7wvNoJ4lj9mFByb0qgTwNgnnLpfFGbglZhyB1jvTiB4TxFoCsaEuyVOBQVAKS9_ufT5wymBcL_fa3PGeDTzPGjA1pv_Q
       User-Agent:
-      - dsw-tdk/4.27.0
+      - dsw-tdk/4.35.0
+      authorization:
+      - Bearer dummy-token
     method: GET
-    uri: http://localhost:3000/wizard-api/document-template-drafts/7e4da640-82ba-40cb-a072-288112911fba/files
+    uri: http://single.fair-wizard.localhost:3000/api/document-template-drafts/882760cc-f9b2-4ab3-a49e-22ac7497ba05/files
   response:
     body:
-      string: '[{"createdAt":"2026-02-24T06:15:04.723323Z","fileName":"src/default.tex.j2","updatedAt":"2026-02-24T06:15:04.723323Z","uuid":"06627590-7955-42fd-93d0-037e3344864f"},{"createdAt":"2026-02-24T06:15:04.726536Z","fileName":"src/default.md.j2","updatedAt":"2026-02-24T06:15:04.726536Z","uuid":"dfe607a6-ee53-4489-a7bc-2d3e16075ef1"},{"createdAt":"2026-02-24T06:15:04.728043Z","fileName":"src/for-word.html.j2","updatedAt":"2026-02-24T06:15:04.728043Z","uuid":"ba2f30d2-776f-4cc5-a38c-63c2dc0fa590"},{"createdAt":"2026-02-24T06:15:04.730415Z","fileName":"src/default.html.j2","updatedAt":"2026-02-24T06:15:04.730415Z","uuid":"6c8d0967-276e-4f9f-a71e-a2553d0ea8bd"},{"createdAt":"2026-02-24T06:15:04.732945Z","fileName":"src/default.css","updatedAt":"2026-02-24T06:15:04.732945Z","uuid":"67f69cc2-0c3a-4557-84b7-aade39de4b26"}]'
+      string: '[{"createdAt":"2026-10-14T17:24:50.464552Z","fileName":"src/smoke.html.j2","updatedAt":"2026-10-14T17:24:50.464552Z","uuid":"21dcdc80-3d82-4072-8f52-ab6c30011f1e"}]'
     headers:
       Access-Control-Allow-Credential:
       - 'true'
@@ -225,193 +180,58 @@ interactions:
       - OPTIONS, HEAD, GET, POST, PUT, DELETE
       Access-Control-Allow-Origin:
       - '*'
+      Access-Control-Expose-Headers:
+      - ETag, x-trace-uuid
       Content-Type:
       - application/json
       Date:
-      - Tue, 24 Feb 2026 06:26:50 GMT
+      - Wed, 14 Oct 2026 17:33:32 GMT
       Server:
-      - Warp/3.3.31
+      - Warp/3.4.9
       Transfer-Encoding:
       - chunked
       x-trace-uuid:
-      - 21906412-2896-4c80-ae36-0b6bd599f803
+      - 6e73326b-af9a-49af-ba66-968c8c2e1e80
     status:
       code: 200
       message: OK
 - request:
     body: null
     headers:
-      Authorization:
-      - Bearer eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE3NzE5NzQwMDAsInRlbmFudFV1aWQiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJ0b2tlblV1aWQiOiIwNzU4MzIwOS0zMWM3LTQzNDAtYTNjNS0xNjE1MjJlOTEzOTIiLCJ1c2VyVXVpZCI6ImVjNmY4ZTkwLTJhOTEtNDllYy1hYTNmLTllYWIyMjY3ZmM2NiIsInZlcnNpb24iOjR9.bw-6wNcflwtewdeueOg6gAM9O93kgb3gtXhHWNXVFnM0p_FtlRsbW-ZR_pxjh3CCtLHJ2QQmaa7fXVCC1OsVgOwgtgO5rIGhT62UU4DfL1d2oNXq5huyHCxTzgung_YEI1Eg76RulfWb5wUPhHfaBJbPYLuPh5Q56U8RD-khTQeqcLuvNLWBKYTHqe7k7X41vJw__sL1GyC60bXXYUlqLZaiPkvc5JNWxxxTL2R4lw1zlpnJxFHhLq8TWPDehtBuYADWyxDdS3s-4Vr_axSuenE7ZCHU-AFF4Vr1mS-w_Kx69s_wpsgRxtZh3s5yIAQ45tikMXR5cijEEuJYO7VorTjclQvbh-Sk29Y7r8lZ2scZp8z8Zf8kiLpPKnJpItpKZLmjLYOJZRCBX6EW3fN92sbsOq3yPxFchl6DB-cmmGs9EoLvWLimNm8rqpO5pXyGiATah6R0fFRTNtfRcfhfkAIr_X6e3PVtnpOCFtACpUzHnl0p7tYbF-OvhdgAUVZCOZjnFQ5z5EFZjEKbaImqUZJQMz5J8wwsP-N7j8GHjrR5fHgotu-5Ps8WAm2ibYrM15MReorfhWUQmeh7wvNoJ4lj9mFByb0qgTwNgnnLpfFGbglZhyB1jvTiB4TxFoCsaEuyVOBQVAKS9_ufT5wymBcL_fa3PGeDTzPGjA1pv_Q
       User-Agent:
-      - dsw-tdk/4.27.0
+      - dsw-tdk/4.35.0
+      authorization:
+      - Bearer dummy-token
     method: GET
-    uri: http://localhost:3000/wizard-api/document-template-drafts/7e4da640-82ba-40cb-a072-288112911fba/files/06627590-7955-42fd-93d0-037e3344864f
+    uri: http://single.fair-wizard.localhost:3000/api/document-template-drafts/882760cc-f9b2-4ab3-a49e-22ac7497ba05/files/21dcdc80-3d82-4072-8f52-ab6c30011f1e
   response:
     body:
-      string: '{"content":"{#- ------------------------------------------------------------------------------------
-        -#}\n{#-  VARIABLES                                                                           -#}\n{#-
-        ------------------------------------------------------------------------------------
-        -#}\n{%- set dc = ctx|to_context_obj -%}\n{#- ------------------------------------------------------------------------------------
-        -#}\n{#-  ANSWERS MACROS                                                                      -#}\n{#-
-        ------------------------------------------------------------------------------------
-        -#}\n{%- macro renderAnswerValue(question, reply, path, humanIdentifier) %}\n{%-
-        if reply is of_type(\"StringReply\") %}\n  {%- if question.value_type == \"UrlQuestionValueType\"
-        %}\n    \\begin{itemize}\n      \\item[\\CheckmarkBold] \\url{ {{ reply.value
-        }} }\n    \\end{itemize}\n  {%- else %}\n    \\begin{itemize}\n      \\item[\\CheckmarkBold]
-        {{ reply.value }}\n    \\end{itemize}\n  {%- endif %}\n{% else %}\n\\begin{itemize}\n  \\item[\\CheckmarkBold]
-        \n  \\begin{markdown}\n  {{ reply.value.split(\"![]\", 1)[0] }}\n  \\end{markdown}\n  {%
-        if reply.is_legacy_integration -%}\n  {%- set integration = question.integration
-        %}\n  \\href{{ \"{\" }}{{ integration.item(reply.item_id) }}{{ \"}\" }}{{
-        \"{\" }}({{ integration.name }}: {{ reply.item_id }}){{ \"}\" }}\n  {% endif
-        %}\n\\end{itemize}\n{% endif -%}\n{%- endmacro -%}\n{%- macro renderAnswerOption(question,
-        reply, path, humanIdentifier) -%}\n{%- set hi = question.answers.index(reply.answer)
-        -%}\n{%- set answer = reply.answer -%}\n{%- set path = path ~ \".\" ~ answer.uuid
-        -%}\n{%- set humanIdentifier = humanIdentifier ~ \".\" ~ hi|of_alphabet %}\n\\begin{itemize}\n  \\item[\\CheckmarkBold]
-        {{ hi|of_alphabet }}. {{ answer.label }}\n\\end{itemize}\n\n{% if answer.advice
-        -%}\n\\noindent\n\\begin{markdown}\n{{answer.advice}}\n\\end{markdown}\n{%-
-        endif %}\n\n{% if answer.followups|length > 0 -%}\n{%- set hiPrefix = humanIdentifier
-        ~ \".\" -%}\n{%- for question in answer.followups -%}\n{%- set x = loop.index
-        -%}\n{{ renderQuestion(question, path, hiPrefix ~ x, False) }}\n{%- endfor
-        -%}\n{%- endif -%}\n{%- endmacro -%}\n{%- macro renderAnswerList(question,
-        reply, path, humanIdentifier) -%}\n{%- set itemPathPrefix = path ~ \".\" -%}\n{%-
-        set hiPrefix = humanIdentifier ~ \".\" -%}\n\\begin{itemize}\n  \\item[\\ArrowBoldDownRight]
-        Answered with {{reply.items|length}} item{% if reply.items|length > 1 %}s{%
-        endif %} as follows.\n\\end{itemize}\n{%- for i in reply.items -%}\n{%- set
-        itemPath = itemPathPrefix ~ i -%}\n{%- set itemHumanIdentifier = hiPrefix
-        ~ (loop.index - 1)|of_alphabet -%}\n% Answer item: {{itemPath}}\n\n{%- for
-        question in question.followups -%}\n  {%- set x = loop.index -%}\n{{ renderQuestion(question,
-        itemPath, itemHumanIdentifier ~ \".\" ~ x, False) }}\n{% else -%}\n  \\textit{No
-        follow up questions}\n{% endfor %}\n{% endfor %}\n{%- endmacro -%}\n{%- macro
-        renderAnswerChoiceList(question, reply, path, humanIdentifier) -%}\n{%- if
-        question.choices|length > 0 -%}\n\\begin{itemize}\n{%- for choice in question.choices
-        -%}\n{%- if choice in reply.choices %}\n  \\item[\\CheckmarkBold] {{ choice.label
-        }}\n{%- else %}\n  \\item[\\XSolidBrush] {{ choice.label }}\n{%- endif -%}\n{%-
-        endfor %}\n\\end{itemize}\n{%- endif %}\n{%- endmacro -%}\n{%- macro renderAnswerItemSelect(question,
-        reply, path, humanIdentifier) -%}\n\\begin{itemize}\n  \\item[\\CheckmarkBold]
-        {{ reply.item_title }}\n\\end{itemize}\n{%- endmacro -%}\n{%- macro renderAnswerFile(question,
-        reply, path, humanIdentifier) -%}\n\\begin{itemize}\n{% if reply.file %}\n  \\item[\\CheckmarkBold]
-        \\href{{ \"{\" }}{{ reply.file.download_url }}{{ \"}\" }}{{ \"{\" }}{{ reply.file.name
-        }}{{ \"}\" }} ({{ reply.file.size|bytesize_format }})\n{% else %}\n  \\item[\\XSolidBrush]
-        \\textit{The file has been deleted}\n{% endif %}\n\\end{itemize}\n{%- endmacro
-        -%}\n{#- ------------------------------------------------------------------------------------
-        -#}\n{#-  QUESTION REPLY MACROS                                                               -#}\n{#-
-        ------------------------------------------------------------------------------------
-        -#}\n{%- macro renderQuestionReply(question, path, humanIdentifier) -%}\n  {%-
-        set isRequired = question.is_required -%}\n  {%- set reply = question.replies.get(path)
-        -%}\n  {%- if reply and reply.value -%}\n    {%- if question is of_type(\"ValueQuestion\")
-        and reply is of_type(\"StringReply\") -%}  {# odend8ni value.#}\n      {{
-        renderAnswerValue(question, reply, path, humanIdentifier) }}\n    {%- elif
-        question is of_type(\"OptionsQuestion\") and reply is of_type(\"AnswerReply\")
-        -%}\n      {{ renderAnswerOption(question, reply, path, humanIdentifier) }}\n    {%-
-        elif question is of_type(\"ListQuestion\") and reply is of_type(\"ItemListReply\")
-        -%}\n      {{ renderAnswerList(question, reply, path, humanIdentifier) }}\n    {%-
-        elif question is of_type(\"IntegrationQuestion\") and reply is of_type(\"IntegrationReply\")
-        -%}\n      {{ renderAnswerValue(question, reply, path, humanIdentifier) }}\n    {%-
-        elif question is of_type(\"MultiChoiceQuestion\") and reply is of_type(\"MultiChoiceReply\")
-        -%}\n      {{ renderAnswerChoiceList(question, reply, path, humanIdentifier)
-        }}\n    {% elif question is of_type(\"ItemSelectQuestion\") and reply is of_type(\"ItemSelectReply\")
-        %}\n      {{ renderAnswerItemSelect(question, reply, path, humanIdentifier)
-        }}\n    {% elif question is of_type(\"FileQuestion\") and reply is of_type(\"FileReply\")
-        %}\n      {{ renderAnswerFile(question, reply, path, humanIdentifier) }}\n    {%-
-        endif -%}\n  {% else %}\n\\begin{itemize}\n  \\item[{% if isRequired %}\\textcolor{colorReqQ}{%
-        endif %}\\XSolidBrush] \\textit{This question has not been answered yet!}\n\\end{itemize}\n  {%
-        endif -%}\n{%- endmacro -%}\n{#- ------------------------------------------------------------------------------------
-        -#}\n{#-  QUESTION EXTRAS MACRO                                                               -#}\n{#-
-        ------------------------------------------------------------------------------------
-        -#}\n{%- macro renderQuestionExtras(question) -%}\n  {%- set resourcePageReferences
-        = question.resource_page_references -%}\n  {%- set urlReferences = question.url_references
-        -%}\n  {%- set tags = question.tags -%}\n  {%- set experts = question.experts
-        -%}\n  {%- if resourcePageReferences|length > 0 or urlReferences|length >
-        0 or tags|length > 0 or experts|length > 0 %}\n\\begin{itemize}\n  {%- if
-        tags|length > 0 %}\n  \\item \\textit{Tags}: {% for tag in tags %}{% set color
-        = tag.color[1:] if tag.color[0] == \"#\" else tag.color %}\\setulcolor{{ \"{\"
-        }}{{color}}{{ \"}\" }}\\ul{{ \"{\" }}{{tag.name}}{{ \"}\" }}{% if not loop.last%},
-        {% endif %}{% endfor %}\n  {% endif %}\n  {%- if resourcePageReferences|length
-        > 0 %}\n  \\item \\textit{Resource Pages}: {% for reference in resourcePageReferences
-        -%}\n  {%- if reference.resource_page_uuid and reference.resource_page and
-        reference.resource_page.collection -%}\n    {%- set resourcePageLink = dc.config.client_url
-        ~ ''/knowledge-models/'' ~ dc.package.id ~ ''/resource-pages/'' ~ reference.resource_page.uuid
-        -%}\n    \\href{{ \"{\" }}{{ resourcePageLink }}{{ \"}\" }}{{ \"{\" }}{{ reference.resource_page.collection.title
-        }} - {{ reference.resource_page.title }}{{ \"}\" }}\n    {%- if not loop.last
-        -%}, {% endif -%}{%- endif -%}{%- endfor -%}\n  {%- endif -%}\n  {%- if urlReferences|length
-        > 0 %}\n  \\item \\textit{External Links}: {% for reference in urlReferences
-        -%}\n    \\href{{ \"{\" }}{{ reference.url }}{{ \"}\" }}{{ \"{\" }}{{ reference.label
-        }}{{ \"}\" }}\n    {%- if not loop.last -%}, {% endif -%}{%- endfor -%}\n  {%-
-        endif -%}\n  {% if experts|length > 0 %}\n  \\item \\textit{Experts}: {% for
-        expert in experts -%}\n    {{expert.name}} $\\langle$\\href{{ \"{\" }}mailto:{{
-        expert.email }}{{ \"}\" }}{{ \"{\" }}{{ expert.email }}{{ \"}\" }}$\\rangle$\n    {%-
-        if not loop.last -%}, {% endif -%}{%- endfor -%}\n  {%- endif -%}\n\\end{itemize}\n  {%-
-        endif -%}\n{%- endmacro -%}\n{#- ------------------------------------------------------------------------------------
-        -#}\n{#-  QUESTION MACROS                                                                     -#}\n{#-
-        ------------------------------------------------------------------------------------
-        -#}\n{%- macro renderQuestion(question, path, humanIdentifier, topLevel) -%}\n{%-
-        set path = path ~ \".\" ~ question.uuid -%}\n{% if topLevel %}\n\\section*{{
-        \"{\" }}\\protect\\textcolor{colorSecId}{{ \"{\" }}{{humanIdentifier}}{{ \"}\"
-        }} {{question.title}}{{ \"}\" }}\n{% else %}\n\\subsection*{{ \"{\" }}\\protect\\textcolor{colorSecId}{{
-        \"{\" }}{{humanIdentifier}}{{ \"}\" }} {{question.title}}{{ \"}\" }}\n{% endif
-        %}\n\\label{{ \"{\" }}{{path}}{{ \"}\" }}\n% uuid: {{question.uuid}}\n% path:
-        {{path}}\n\n{{ renderQuestionExtras(question) }}\n\n{% if question.text %}\n\\noindent\n\\begin{markdown}\n{{question.text}}\n\\end{markdown}\n{%
-        endif %}\n\n{{ renderQuestionReply(question, path, humanIdentifier) }}\n\n{%-
-        endmacro -%}\n{#- ------------------------------------------------------------------------------------
-        -#}\n{#-  REPORT MACROS                                                                       -#}\n{#-
-        ------------------------------------------------------------------------------------
-        -#}\n{%- macro progressBar(value) -%}\n{%- set color = \"colorBarAwful\" -%}\n{%-
-        if value > 0.95 -%}\n  {%- set color = \"colorBarAwesome\" -%}\n{%- elif value
-        > 0.8 -%}\n  {%- set color = \"colorBarNice\" -%}\n{%- elif value > 0.6 -%}\n  {%-
-        set color = \"colorBarGood\" -%}\n{%- elif value > 0.4 -%}\n  {%- set color
-        = \"colorBarAverage\" -%}\n{%- elif value > 0.2 -%}\n  {%- set color = \"colorBarBad\"
-        -%}\n{%- endif -%}\n\\progressbar[subdivisions=10,width=15em,heighta=10pt,filledcolor={{color}}]{{
-        \"{\" }}{{value}}{{ \"}\" }}\n{%- endmacro -%}\n{%- macro renderReport(report)
-        -%}\n\\begin{table}[h]\n  \\centering\n  \\begin{tabular}{ l c r }\n{%- for
-        item in report.indications %}\n    Answered {% if item.is_for_phase %}(current
-        phase){% endif %} & {{item.answered}} / {{item.total}} & {{ progressBar(item.percentage)
-        }} \\\\\n{%- endfor %}\n    & & \\\\ \\hline\n    & & \\\\\n{%- if report.metrics|length
-        > 0 %}\n{%- for item in report.metrics %}\n    {{item.metric.title}} & {{
-        \"%.2f\"|format(item.measure) }} & {{ progressBar(item.measure) }} \\\\\n{%-
-        endfor -%}\n{%- endif %}\n  \\end{tabular}\n\\end{table}\n{%- endmacro -%}\n{%-
-        macro renderVersions() -%}\n{% if dc.qtn.versions|length > 0 %}\n\\section*{History
-        of Versions}\n\n\\begin{table}[h]\n\t\\centering\n\t\\begin{tabular}{ c c
-        p{0.6\\linewidth} }\n\t\tVersion & Date & Description \\\\ \\hline\\hline\\Tstrut\n{%-
-        for version in dc.qtn.versions|reverse %}\n\t\t{{ version.name }}  & {{ version.created_at|datetime_format(\"%d
-        %b %Y\") }} & {{ version.description }} \\\\ \\hline\\Tstrut\n{%- endfor %}\n  \\end{tabular}\n\\end{table}\n{%
-        endif %}\n{%- endmacro -%}\n{#- ------------------------------------------------------------------------------------
-        -#}\n{#-  INTRODUCTION                                                                        -#}\n{#-
-        ------------------------------------------------------------------------------------
-        -#}\n\\documentclass[a4paper,12pt]{report}\n\\usepackage[utf8]{inputenc}\n\\usepackage[english]{babel}\n\n\\usepackage{geometry}\n\\geometry{\n\ta4paper,\n\tleft=20mm,\n\ttop=20mm,\n\tbottom=20mm,\n\tright=20mm,\n}\n\n\\usepackage{bbding}\n\\usepackage{color}\n\\usepackage{xcolor}\n\\usepackage{soul}\n\\usepackage{hyperref}\n\\usepackage[hashEnumerators,smartEllipses]{markdown}\n\\usepackage{progressbar}\n\\usepackage{xurl}\n\n\\renewcommand{\\thechapter}{\\Roman{chapter}}\n\n\\setul{0.3ex}{0.3ex}\n\n%
-        Custom colors\n\\definecolor{colorSecId}{HTML}{0060c7}\n\\definecolor{colorReqQ}{HTML}{FF0000}\n%
-        Progress bar colors\n\\definecolor{colorBarAwful}{HTML}{DC3545}\n\\definecolor{colorBarBad}{HTML}{EA6D2C}\n\\definecolor{colorBarAverage}{HTML}{D4BC13}\n\\definecolor{colorBarGood}{HTML}{A9B720}\n\\definecolor{colorBarNice}{HTML}{7EB12C}\n\\definecolor{colorBarAwesome}{HTML}{28A745}\n%
-        Colors for tags (underline)\n{%- for tag in dc.km.tags -%}\n{%- set color
-        = tag.color[1:] if tag.color[0] == \"#\" else tag.color %}\n\\definecolor{{
-        \"{\" }}{{color}}{{ \"}\" }}{HTML}{{ \"{\" }}{{color}}{{ \"}\" }}\n{%- endfor
-        %}\n\n% Strut for table\n\\newcommand\\Tstrut{\\rule{0pt}{2.6ex}}\n\n\\begin{document}\n\n\\begin{titlepage}\n    \\begin{center}\n        \\vspace*{1cm}\n            \n        \\Huge\n        \\textbf{{
-        \"{\" }}{{dc.qtn.name}}{{ \"}\" }}\n            \n        \\vspace{0.5cm}\n        \\LARGE\n        Questionnaire
-        Report \n            \n        \\vspace{1.5cm}\n            \n{%- if dc.qtn.created_by
-        %}\n        \\Large\n        \\textbf{{ \"{\" }}{{dc.qtn.created_by.first_name}}
-        {{dc.qtn.created_by.last_name}}{{ \"}\" }}\\\\\n        {{dc.qtn.created_by.email}}\n{%-
-        endif %}\n        \\vspace{1.5cm}\n\n        \\normalsize\n        Based on\\\\\n        {{dc.pkg.name}},
-        {{dc.pkg.version}}\\\\\n        \\texttt{{\"{\"}}{{dc.pkg.org_id}}:{{dc.pkg.km_id}}:{{dc.pkg.version}}{{\"}\"}}\\\\\n        {%-
-        for version in dc.qtn.versions if version.uuid == dc.qtn.version %}\n        \\vspace{0.5cm}\n        Version:
-        {{ version.name }} ({{ version.created_at|datetime_format(\"%d %b %Y %H:%M:%S\")
-        }} UTC)\\\\\n        {%- endfor %}\n        {%- if dc.current_phase %}\n        \\vspace{0.5cm}\n        Project
-        phase: {{dc.current_phase.title}}\\\\\n        {%- endif %}\n        {%- if
-        dc.qtn.project_tags|length > 0 %}\n        \\vspace{0.25cm}\n        Project
-        tags: {% for tag in dc.qtn.project_tags %}{{ tag }}{% if not loop.last %},
-        {% endif %}{% endfor %}\\\\\n        {%- endif %}\n        {%- if dc.qtn.description
-        %}\n        \\vspace{0.25cm}\n        Description: {{ dc.qtn.description }}\\\\\n        {%-
-        endif %}\n            \n        \\vfill\n            \n        \\Large\n        {{
-        \"{\" }}{{ dc.doc.created_at|datetime_format(\"%d %b %Y\") }}{{ \"}\" }}\n            \n        \\vspace{0.8cm}\n        \n        \\normalsize\n        Document
-        generated by \\href{{ \"{\" }}{{ dc.config.service_url }}{{ \"}\" }}{{ \"{\"
-        }}{{ dc.config.service_name }}{{ \"}\" }}\n    \\end{center}\n\\end{titlepage}\n\n\\chapter*{Report
-        Summary}\n\n{{ renderReport(dc.report.total_report) }}\n\n{{ renderVersions()
-        }}\n\n{% for chapter in dc.km.chapters %}\n{% set chapterId = loop.index|roman
-        %}\n\\chapter{{ \"{\" }}{{chapter.title}}{{ \"}\" }}\n\\label{{ \"{\" }}{{chapter.uuid}}{{
-        \"}\" }}\n% uuid: {{chapter.uuid}}\n% path: {{chapter.uuid}}\n\n{%- if chapter.text
-        %}\n\\begin{markdown}\n{{chapter.text}}\n\\end{markdown}\n{%- endif %}\n\n{%
-        for chapterReport in chapter.reports %}\n\\section*{Chapter Summary}\n{{ renderReport(chapterReport)
-        }}\n{% endfor %}\n\n{% for question in chapter.questions %}\n{{ renderQuestion(question,
-        chapter.uuid, chapterId ~ \".\" ~ loop.index, True) }}\n{% endfor %}\n\n{%
-        endfor %}\n\n\n\\end{document}\n","createdAt":"2026-02-24T06:15:04.723323Z","documentTemplateUuid":"7e4da640-82ba-40cb-a072-288112911fba","fileName":"src/default.tex.j2","tenantUuid":"00000000-0000-0000-0000-000000000000","updatedAt":"2026-02-24T06:15:04.723323Z","uuid":"06627590-7955-42fd-93d0-037e3344864f"}'
+      string: "{\"content\":\"{#- Reads the raw 19.0 document context only (ctx),
+        not ctx|to_context_obj, so it does not\\n    depend on the object model of
+        the worker under test. -#}\\n{%- set project = ctx.project -%}\\n{%- set editor
+        = ctx.knowledgeModelEditor -%}\\n{%- set doc = ctx.document -%}\\n<!DOCTYPE
+        html>\\n<html lang=\\\"{{ doc.language or 'en' }}\\\">\\n<head><meta charset=\\\"utf-8\\\"><title>{{
+        doc.name }}</title>\\n<style>body{font-family:sans-serif;margin:2rem}td,th{border:1px
+        solid #ccc;padding:.3rem .6rem;text-align:left}table{border-collapse:collapse}</style>\\n</head>\\n<body>\\n<h1>{{
+        doc.name }}</h1>\\n<p>{{ _('Smoke test of the document worker') }}</p>\\n<p>{%
+        trans count=ctx.questionnaire.replies|length %}One reply{% pluralize %}{{
+        count }} replies{% endtrans %}</p>\\n<table>\\n  <tr><th>Metamodel version</th><td>{{
+        ctx.metamodelVersion }}</td></tr>\\n  <tr><th>Context hash</th><td><code>{{
+        ctx.hash }}</code></td></tr>\\n  <tr><th>Workspace</th><td>{{ ctx.workspace.name
+        }} ({{ ctx.workspace.uuid }})</td></tr>\\n  <tr><th>Source</th><td>{% if project
+        %}project \u201C{{ project.name }}\u201D{% elif editor %}KM editor \u201C{{
+        editor.name }}\u201D{% else %}none{% endif %}</td></tr>\\n  <tr><th>Knowledge
+        model package</th><td>{% if ctx.knowledgeModelPackage %}{{ ctx.knowledgeModelPackage.id
+        }}:{{ ctx.knowledgeModelPackage.version }}{% else %}\u2013{% endif %}</td></tr>\\n
+        \ <tr><th>Template</th><td>{{ doc.documentTemplate.id }}:{{ doc.documentTemplate.version
+        }}, format {{ doc.format.name }}</td></tr>\\n  <tr><th>Preview</th><td>{{
+        doc.preview }}</td></tr>\\n  <tr><th>Replies</th><td>{{ ctx.questionnaire.replies
+        | length }}</td></tr>\\n  <tr><th>Chapters</th><td>{{ ctx.knowledgeModel.chapterUuids
+        | length }}</td></tr>\\n  <tr><th>App</th><td>{{ ctx.config.appTitle }} \u2013
+        {{ ctx.config.clientUrl }}</td></tr>\\n</table>\\n<h2>Replies</h2>\\n<ul>\\n{%-
+        for path, reply in ctx.questionnaire.replies.items() %}\\n  <li><code>{{ path
+        }}</code>: {{ reply.value.type }} {{ reply.value.value }}</li>\\n{%- endfor
+        %}\\n</ul>\\n</body>\\n</html>\\n\",\"createdAt\":\"2026-10-14T17:24:50.464552Z\",\"documentTemplateUuid\":\"882760cc-f9b2-4ab3-a49e-22ac7497ba05\",\"fileName\":\"src/smoke.html.j2\",\"tenantUuid\":\"bf9fa415-f2e1-43d2-82be-4b8241d14d7f\",\"updatedAt\":\"2026-10-14T17:24:50.464552Z\",\"uuid\":\"21dcdc80-3d82-4072-8f52-ab6c30011f1e\"}"
     headers:
       Access-Control-Allow-Credential:
       - 'true'
@@ -421,156 +241,33 @@ interactions:
       - OPTIONS, HEAD, GET, POST, PUT, DELETE
       Access-Control-Allow-Origin:
       - '*'
+      Access-Control-Expose-Headers:
+      - ETag, x-trace-uuid
       Content-Type:
       - application/json
       Date:
-      - Tue, 24 Feb 2026 06:26:50 GMT
+      - Wed, 14 Oct 2026 17:33:32 GMT
       Server:
-      - Warp/3.3.31
+      - Warp/3.4.9
       Transfer-Encoding:
       - chunked
       x-trace-uuid:
-      - 97cfa6c5-4d0a-4c25-bf02-fc3a81ff92d5
+      - ddfb3a83-7b2b-43d3-98b2-e15ab6205bf2
     status:
       code: 200
       message: OK
 - request:
     body: null
     headers:
-      Authorization:
-      - Bearer eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE3NzE5NzQwMDAsInRlbmFudFV1aWQiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJ0b2tlblV1aWQiOiIwNzU4MzIwOS0zMWM3LTQzNDAtYTNjNS0xNjE1MjJlOTEzOTIiLCJ1c2VyVXVpZCI6ImVjNmY4ZTkwLTJhOTEtNDllYy1hYTNmLTllYWIyMjY3ZmM2NiIsInZlcnNpb24iOjR9.bw-6wNcflwtewdeueOg6gAM9O93kgb3gtXhHWNXVFnM0p_FtlRsbW-ZR_pxjh3CCtLHJ2QQmaa7fXVCC1OsVgOwgtgO5rIGhT62UU4DfL1d2oNXq5huyHCxTzgung_YEI1Eg76RulfWb5wUPhHfaBJbPYLuPh5Q56U8RD-khTQeqcLuvNLWBKYTHqe7k7X41vJw__sL1GyC60bXXYUlqLZaiPkvc5JNWxxxTL2R4lw1zlpnJxFHhLq8TWPDehtBuYADWyxDdS3s-4Vr_axSuenE7ZCHU-AFF4Vr1mS-w_Kx69s_wpsgRxtZh3s5yIAQ45tikMXR5cijEEuJYO7VorTjclQvbh-Sk29Y7r8lZ2scZp8z8Zf8kiLpPKnJpItpKZLmjLYOJZRCBX6EW3fN92sbsOq3yPxFchl6DB-cmmGs9EoLvWLimNm8rqpO5pXyGiATah6R0fFRTNtfRcfhfkAIr_X6e3PVtnpOCFtACpUzHnl0p7tYbF-OvhdgAUVZCOZjnFQ5z5EFZjEKbaImqUZJQMz5J8wwsP-N7j8GHjrR5fHgotu-5Ps8WAm2ibYrM15MReorfhWUQmeh7wvNoJ4lj9mFByb0qgTwNgnnLpfFGbglZhyB1jvTiB4TxFoCsaEuyVOBQVAKS9_ufT5wymBcL_fa3PGeDTzPGjA1pv_Q
       User-Agent:
-      - dsw-tdk/4.27.0
+      - dsw-tdk/4.35.0
+      authorization:
+      - Bearer dummy-token
     method: GET
-    uri: http://localhost:3000/wizard-api/document-template-drafts/7e4da640-82ba-40cb-a072-288112911fba/files/dfe607a6-ee53-4489-a7bc-2d3e16075ef1
+    uri: http://single.fair-wizard.localhost:3000/api/document-template-drafts/882760cc-f9b2-4ab3-a49e-22ac7497ba05/assets
   response:
     body:
-      string: "{\"content\":\"{#- ------------------------------------------------------------------------------------
-        -#}\\n{#-  VARIABLES                                                                           -#}\\n{#-
-        ------------------------------------------------------------------------------------
-        -#}\\n{%- set dc = ctx|to_context_obj -%}\\n{#- ------------------------------------------------------------------------------------
-        -#}\\n{#-  TAGS, REFERENCES, and EXPERTS MACROS                                                 -#}\\n{#-
-        ------------------------------------------------------------------------------------
-        -#}\\n{%- macro renderTags(question) -%}\\n{%- if question.tags|length > 0
-        %}\\n* \U0001F3F7\uFE0F **Tags:** {% for tag in question.tags %}*{{tag.name}}*{%
-        if not loop.last %}, {% endif %}{% endfor %}\\n{%- endif %}\\n{%- endmacro
-        -%}\\n{%- macro renderResourcePageReferences(question) -%}\\n{% set refs =
-        [] %}\\n{% for ref in question.resource_page_references %}\\n{% if ref.resource_page_uuid
-        and ref.resource_page and ref.resource_page.collection %}\\n{% do refs.append({\\n
-        \   'ref_uuid': ref.uuid,\\n    'uuid': ref.resource_page_uuid,\\n    'collection_title':
-        ref.resource_page.collection.title,\\n    'title': ref.resource_page.title,\\n})
-        %}\\n{% endif %}\\n{% endfor %}\\n{% if refs|length > 0 %}\\n* \U0001F4D6
-        **Resource Pages:** {% for ref in refs %}{%- set resourcePageLink = dc.config.client_url
-        ~ '/knowledge-models/' ~ dc.package.id ~ '/resource-pages/' ~ ref.uuid -%}[{{
-        ref.collection_title }} - {{ ref.title }}]({{resourcePageLink}}){% if not
-        loop.last %}, {% endif %}{% endfor %}\\n{% endif %}\\n{%- endmacro -%}\\n{%-
-        macro renderURLReferences(question) -%}\\n{% set refs = [] %}\\n{% for ref
-        in question.url_references %}\\n{% if ref.label and ref.url %}\\n{% do refs.append({\\n
-        \   'uuid': ref.uuid,\\n    'label': ref.label,\\n    'url': ref.url,\\n})
-        %}\\n{% endif %}\\n{% endfor %}\\n{% if refs|length > 0 %}\\n* \U0001F517
-        **External links**: {% for reference in refs %}[{{reference.label}}]({{reference.url}}){%
-        if not loop.last %}, {% endif %}{% endfor %}\\n{%- endif -%}\\n{%- endmacro
-        -%}\\n{%- macro renderExperts(question) -%}\\n{% set experts = [] %}\\n{%
-        for expert in question.experts %}\\n{% if expert.name and expert.email %}\\n{%
-        do experts.append({\\n    'uuid': expert.uuid,\\n    'email': expert.email,\\n
-        \   'name': expert.name,\\n}) %}\\n{% endif %}\\n{% endfor %}\\n{% if experts|length
-        > 0 %}\\n* \U0001F64B **Experts:** {% for expert in experts %}*{{expert.name}}*
-        <{{expert.email}}>{% if not loop.last %}, {% endif %}{% endfor %}\\n{%- endif
-        -%}\\n{%- endmacro -%}\\n{#- ------------------------------------------------------------------------------------
-        -#}\\n{#-  ANSWERS MACROS                                                                      -#}\\n{#-
-        ------------------------------------------------------------------------------------
-        -#}\\n{%- macro renderAnswerValue(question, reply, path, humanIdentifier)
-        -%}\\n\u2714\uFE0F {{reply.value}}\\n{%- if reply.is_legacy_integration %}{%
-        set integration = question.integration -%}\\n ({{integration.name}}: [{{reply.item_id}}]({{integration.item(reply.item_id)}}})){%-
-        endif -%}\\n{%- endmacro -%}\\n{%- macro renderAnswerOption(question, reply,
-        path, humanIdentifier) -%}\\n{% set hi = question.answers.index(reply.answer)
-        %}\\n{%- set answer = reply.answer -%}\\n{%- set path = path ~ \\\".\\\" ~
-        answer.uuid -%}\\n{%- set humanIdentifier = humanIdentifier ~ \\\".\\\" ~
-        hi|of_alphabet -%}\\n\u2714\uFE0F {{ hi|of_alphabet }}. {{answer.label}}\\n{%
-        if answer.advice -%}\\n\U0001F4A1 {{answer.advice}}\\n{%- endif -%}\\n{%-
-        if answer.followups|length > 0 -%}\\n{%- set hiPrefix = humanIdentifier ~
-        \\\".\\\" -%}\\n{%- for question in answer.followups -%}\\n{%- set x = loop.index
-        -%}\\n{{ renderQuestion(question, path, hiPrefix ~ x) }}\\n{%- endfor -%}\\n{%-
-        endif -%}\\n{%- endmacro -%}\\n{%- macro renderAnswerList(question, reply,
-        path, humanIdentifier) -%}\\n{%- set itemPathPrefix = path ~ \\\".\\\" -%}\\n{%-
-        set hiPrefix = humanIdentifier ~ \\\".\\\" -%}\\n{%- for i in reply.items
-        -%}\\n{%- set itemPath = itemPathPrefix ~ i -%}\\n{%- set itemHumanIdentifier
-        = hiPrefix ~ (loop.index - 1)|of_alphabet -%}\\n{%- for question in question.followups
-        -%}\\n{%- set x = loop.index -%}\\n{{ renderQuestion(question, itemPath, itemHumanIdentifier
-        ~ \\\".\\\" ~ x) }}\\n{%- else -%}\\n*No follow up questions*\\n{%- endfor
-        -%}\\n{%- else %}\\n*No answer items*\\n{%- endfor -%}\\n{%- endmacro -%}\\n{%-
-        macro renderAnswerChoiceList(question, reply, path, humanIdentifier) -%}\\n{%-
-        for choice in question.choices -%}\\n{%- if choice in reply.choices %}\\n*
-        \u2714\uFE0F {{ choice.label }}\\n{%- else %}\\n* \u274C {{ choice.label }}\\n{%-
-        endif %}\\n{%- endfor -%}\\n{%- endmacro -%}\\n{%- macro renderAnswerItemSelect(question,
-        reply, path, humanIdentifier) -%}\\n\u2714\uFE0F {{ reply.item_title }}\\n{%-
-        endmacro -%}\\n{%- macro renderAnswerFile(question, reply, path, humanIdentifier)
-        -%}\\n{% if reply.file %}\\n\u2714\uFE0F [{{ reply.file.name }}]({{ reply.file.download_url
-        }}) ({{ reply.file.size|bytesize_format }})</p>\\n{% else %}\\n\u274C The
-        file has been deleted\\n{% endif %}\\n{%- endmacro -%}\\n{#- ------------------------------------------------------------------------------------
-        -#}\\n{#-  QUESTION MACROS                                                                     -#}\\n{#-
-        ------------------------------------------------------------------------------------
-        -#}\\n{%- macro renderQuestionExtras(question) -%}\\n{{- renderResourcePageReferences(question)
-        -}}\\n{{- renderURLReferences(question) -}}\\n{{- renderExperts(question)
-        -}}\\n{%- endmacro -%}\\n{%- macro renderQuestionReply(question, path, humanIdentifier)
-        -%}\\n{%- set reply = question.replies.get(path) -%}\\n{%- if reply and reply.value
-        -%}\\n{%- if question is of_type(\\\"ValueQuestion\\\") and reply is of_type(\\\"StringReply\\\")
-        -%}\\n{{ renderAnswerValue(question, reply, path, humanIdentifier) }}\\n{%-
-        elif question is of_type(\\\"OptionsQuestion\\\") and reply is of_type(\\\"AnswerReply\\\")
-        -%}\\n{{ renderAnswerOption(question, reply, path, humanIdentifier) }}\\n{%-
-        elif question is of_type(\\\"ListQuestion\\\") and reply is of_type(\\\"ItemListReply\\\")
-        -%}\\n{{ renderAnswerList(question, reply, path, humanIdentifier) }}\\n{%-
-        elif question is of_type(\\\"IntegrationQuestion\\\") and reply is of_type(\\\"IntegrationReply\\\")
-        -%}\\n{{ renderAnswerValue(question, reply, path, humanIdentifier) }}\\n{%-
-        elif question is of_type(\\\"MultiChoiceQuestion\\\") and reply is of_type(\\\"MultiChoiceReply\\\")
-        -%}\\n{{ renderAnswerChoiceList(question, reply, path, humanIdentifier) }}\\n{%
-        elif question is of_type(\\\"ItemSelectQuestion\\\") and reply is of_type(\\\"ItemSelectReply\\\")
-        %}\\n{{ renderAnswerItemSelect(question, reply, path, humanIdentifier) }}\\n{%
-        elif question is of_type(\\\"FileQuestion\\\") and reply is of_type(\\\"FileReply\\\")
-        %}\\n{{ renderAnswerFile(question, reply, path, humanIdentifier) }}\\n{%-
-        endif -%}\\n{%- else %}\\n\u2757 *This question has not been answered yet!*\\n{%-
-        endif -%}\\n{%- endmacro -%}\\n{%- macro renderQuestion(question, path, humanIdentifier)
-        -%}\\n{%- set path = path ~ \\\".\\\" ~ question.uuid %}\\n#### {{humanIdentifier}}
-        {{question.title}}\\n{{- renderTags(question) -}}\\n{{- renderQuestionExtras(question)
-        -}}\\n{%- if question.text %}\\n> {{ question.text.replace(\\\"\\\\n\\\",
-        \\\"\\\\n> \\\") }}\\n{%- endif %}\\n{{ renderQuestionReply(question, path,
-        humanIdentifier) }}\\n{%- endmacro -%}\\n{#- ------------------------------------------------------------------------------------
-        -#}\\n{#-  CHAPTER MACROS                                                                      -#}\\n{#-
-        ------------------------------------------------------------------------------------
-        -#}\\n{%- macro renderReport(report) -%}\\n{%- if report.indications|length
-        > 0 %}\\n### Summary\\n\\n{% for item in report.indications -%}\\n* Answered{%
-        if item.is_for_phase %} (current phase){% endif %}: **{{item.answered}} /
-        {{item.total}}** ({{\\\"%.2f\\\"|format(item.percentage)}} %)\\n{% endfor
-        %}\\n{% endif -%}\\n{%- if report.metrics|length > 0 %}\\n\\n### Metrics\\n{%
-        for item in report.metrics %}\\n* {{item.metric.title}}: {{ \\\"%.2f\\\"|format(item.measure)
-        }}\\n{%- endfor %}\\n{% endif -%}\\n{%- endmacro -%}\\n{%- macro renderChapter(chapter,
-        humanIdentifier) -%}\\n## {{humanIdentifier|roman}}. {{chapter.title}}\\n\\n{%-
-        if chapter.text %}\\n> {{chapter.text.replace(\\\"\\\\n\\\", \\\"\\\\n> \\\")}}\\n{%
-        endif -%}\\n\\n{% for chapterReport in chapter.reports %}\\n{{ renderReport(chapterReport)
-        }}\\n{% endfor %}\\n\\n### Questions\\n\\n{% for question in chapter.questions
-        %}\\n{{ renderQuestion(question, chapter.uuid, loop.index) }}\\n{%- else %}\\n*No
-        questions*\\n{%- endfor %}\\n{%- endmacro -%}\\n{#- ------------------------------------------------------------------------------------
-        -#}\\n{#-  INTRODUCTION                                                                        -#}\\n{#-
-        ------------------------------------------------------------------------------------
-        -#}\\n# {{ dc.qtn.name }}\\n\\n* Organization: **{{ dc.org.name }}**\\n{%-
-        if dc.qtn.created_by %}\\n* Created by: **{{ dc.qtn.created_by.first_name
-        }} {{ dc.qtn.created_by.last_name }}** <{{ dc.qtn.created_by.email }}>\\n{%-
-        endif %}\\n* Based on: **{{ dc.pkg.name }}, {{ dc.pkg.version }}** (`{{ dc.pkg.org_id
-        }}:{{ dc.pkg.km_id }}:{{ dc.pkg.version }}`)\\n{%- for version in dc.qtn.versions
-        if version.uuid == dc.qtn.version %}\\n* Version: **{{ version.name }}** ({{
-        version.created_at|datetime_format(\\\"%d %b %Y %H:%M:%S\\\") }} UTC)\\n{%-
-        endfor %}\\n{%- if dc.current_phase %}\\n* Project phase: **{{ dc.current_phase.title
-        }}**\\n{%- endif %}\\n{%- if dc.qtn.project_tags|length > 0 %}\\n* Project
-        tags: {% for tag in dc.qtn.project_tags %}**{{ tag }}**{% if not loop.last
-        %}, {% endif %}{% endfor %}\\n{%- endif %}\\n{%- if dc.qtn.description %}\\n*
-        Description: **{{ dc.qtn.description }}**\\n{%- endif %}\\n* Created at: **{{
-        dc.doc.created_at|datetime_format(\\\"%d %b %Y\\\") }}**\\n\\n## Report\\n\\n{{
-        renderReport(dc.report.total_report) }}\\n\\n{% if dc.qtn.versions|length
-        > 0 %}\\n## History of Versions\\n\\nThe named versions of this document:\\n\\n{%-
-        for version in dc.qtn.versions|reverse %}\\n* **{{ version.name }}** ({{ version.created_at|datetime_format(\\\"%d
-        %b %Y\\\") }}): {{ version.description }}\\n{%- endfor %}\\n{%- endif %}\\n\\n---\\n\\n{%
-        for chapter in dc.km.chapters %}\\n{{ renderChapter(chapter, loop.index) }}\\n{%
-        else %}\\n*No chapters*\\n{% endfor %}\\n\\n\",\"createdAt\":\"2026-02-24T06:15:04.726536Z\",\"documentTemplateUuid\":\"7e4da640-82ba-40cb-a072-288112911fba\",\"fileName\":\"src/default.md.j2\",\"tenantUuid\":\"00000000-0000-0000-0000-000000000000\",\"updatedAt\":\"2026-02-24T06:15:04.726536Z\",\"uuid\":\"dfe607a6-ee53-4489-a7bc-2d3e16075ef1\"}"
+      string: '[]'
     headers:
       Access-Control-Allow-Credential:
       - 'true'
@@ -580,1519 +277,18 @@ interactions:
       - OPTIONS, HEAD, GET, POST, PUT, DELETE
       Access-Control-Allow-Origin:
       - '*'
+      Access-Control-Expose-Headers:
+      - ETag, x-trace-uuid
       Content-Type:
       - application/json
       Date:
-      - Tue, 24 Feb 2026 06:26:50 GMT
+      - Wed, 14 Oct 2026 17:33:32 GMT
       Server:
-      - Warp/3.3.31
+      - Warp/3.4.9
       Transfer-Encoding:
       - chunked
       x-trace-uuid:
-      - f391fc17-f411-442c-a028-2569e3b65df6
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Authorization:
-      - Bearer eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE3NzE5NzQwMDAsInRlbmFudFV1aWQiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJ0b2tlblV1aWQiOiIwNzU4MzIwOS0zMWM3LTQzNDAtYTNjNS0xNjE1MjJlOTEzOTIiLCJ1c2VyVXVpZCI6ImVjNmY4ZTkwLTJhOTEtNDllYy1hYTNmLTllYWIyMjY3ZmM2NiIsInZlcnNpb24iOjR9.bw-6wNcflwtewdeueOg6gAM9O93kgb3gtXhHWNXVFnM0p_FtlRsbW-ZR_pxjh3CCtLHJ2QQmaa7fXVCC1OsVgOwgtgO5rIGhT62UU4DfL1d2oNXq5huyHCxTzgung_YEI1Eg76RulfWb5wUPhHfaBJbPYLuPh5Q56U8RD-khTQeqcLuvNLWBKYTHqe7k7X41vJw__sL1GyC60bXXYUlqLZaiPkvc5JNWxxxTL2R4lw1zlpnJxFHhLq8TWPDehtBuYADWyxDdS3s-4Vr_axSuenE7ZCHU-AFF4Vr1mS-w_Kx69s_wpsgRxtZh3s5yIAQ45tikMXR5cijEEuJYO7VorTjclQvbh-Sk29Y7r8lZ2scZp8z8Zf8kiLpPKnJpItpKZLmjLYOJZRCBX6EW3fN92sbsOq3yPxFchl6DB-cmmGs9EoLvWLimNm8rqpO5pXyGiATah6R0fFRTNtfRcfhfkAIr_X6e3PVtnpOCFtACpUzHnl0p7tYbF-OvhdgAUVZCOZjnFQ5z5EFZjEKbaImqUZJQMz5J8wwsP-N7j8GHjrR5fHgotu-5Ps8WAm2ibYrM15MReorfhWUQmeh7wvNoJ4lj9mFByb0qgTwNgnnLpfFGbglZhyB1jvTiB4TxFoCsaEuyVOBQVAKS9_ufT5wymBcL_fa3PGeDTzPGjA1pv_Q
-      User-Agent:
-      - dsw-tdk/4.27.0
-    method: GET
-    uri: http://localhost:3000/wizard-api/document-template-drafts/7e4da640-82ba-40cb-a072-288112911fba/files/ba2f30d2-776f-4cc5-a38c-63c2dc0fa590
-  response:
-    body:
-      string: "{\"content\":\"<!DOCTYPE HTML>\\n{# ------------------------------------------------------------------------------------
-        #}\\n{#  VARIABLES                                                                           #}\\n{#
-        ------------------------------------------------------------------------------------
-        #}\\n{%- set dc = ctx|to_context_obj -%}\\n{# ------------------------------------------------------------------------------------
-        #}\\n{#  TAGS, REFERENCES, and EXPERTS MACROS                                                 #}\\n{#
-        ------------------------------------------------------------------------------------
-        #}\\n{%- macro renderTags(question) -%}\\n  {% if question.tags|length > 0
-        %}\\n    <div>\\n      \U0001F3F7\uFE0F <b>Tags:</b> {% for tag in question.tags
-        %}<i>{{tag.name}}</i>{% if not loop.last %}, {% endif %}{% endfor %}\\n    </div>\\n
-        \ {% endif %}\\n{%- endmacro -%}\\n{%- macro renderResourcePageReferences(question)
-        -%}\\n  {% set refs = [] %}\\n  {% for ref in question.resource_page_references
-        %}\\n    {% if ref.resource_page_uuid and ref.resource_page and ref.resource_page.collection
-        %}\\n      {% do refs.append({\\n        'ref_uuid': ref.uuid,\\n        'uuid':
-        ref.resource_page_uuid,\\n        'collection_title': ref.resource_page.collection.title,\\n
-        \       'title': ref.resource_page.title,\\n      }) %}\\n    {% endif %}\\n
-        \ {% endfor %}\\n  {% if refs|length > 0 %}\\n    <div>\\n      \U0001F4D6
-        <b>Resource Pages:</b> {% for ref in refs %}{%- set resourcePageLink = dc.config.client_url
-        ~ '/knowledge-models/' ~ dc.package.id ~ '/resource-pages/' ~ ref.uuid -%}<a
-        id=\\\"{{ref.ref_uuid}}\\\" class=\\\"reference resourcepage-link\\\" href=\\\"{{
-        resourcePageLink }}\\\"><i>{{ ref.collection_title }} - {{ ref.title }}</i></a>{%
-        if not loop.last %}, {% endif %}{% endfor %}\\n    </div>\\n  {% endif %}\\n{%-
-        endmacro -%}\\n{%- macro renderURLReferences(question) -%}\\n  {% set refs
-        = [] %}\\n  {% for ref in question.url_references %}\\n    {% if ref.label
-        and ref.url %}\\n      {% do refs.append({\\n        'uuid': ref.uuid,\\n
-        \       'label': ref.label,\\n        'url': ref.url,\\n      }) %}\\n    {%
-        endif %}\\n  {% endfor %}\\n  {% if refs|length > 0 %}\\n    <div>\\n      \U0001F517
-        <b>External Links:</b> {% for ref in refs %}<a href=\\\"{{ref.url}}\\\" target=\\\"_blank\\\"><i>{{ref.label}}</i></a>{%
-        if not loop.last %}, {% endif %}{% endfor %}\\n    </div>\\n  {% endif %}\\n{%-
-        endmacro -%}\\n{%- macro renderExperts(question) -%}\\n  {% set experts =
-        [] %}\\n  {% for expert in question.experts %}\\n    {% if expert.name and
-        expert.email %}\\n      {% do experts.append({\\n        'uuid': expert.uuid,\\n
-        \       'email': expert.email,\\n        'name': expert.name,\\n      }) %}\\n
-        \   {% endif %}\\n  {% endfor %}\\n  {% if experts|length > 0 %}\\n    <div>\\n
-        \     \U0001F64B <b>Experts:</b> {% for expert in experts %}<i>{{expert.name}}
-        (<a href=\\\"mailto:{{expert.email}}\\\">{{expert.email}}</a>){% if not loop.last
-        %}, {% endif %}</i>{% endfor %}\\n    </div>\\n  {% endif %}\\n{%- endmacro
-        -%}\\n{# ------------------------------------------------------------------------------------
-        #}\\n{#  ANSWERS MACROS                                                                      #}\\n{#
-        ------------------------------------------------------------------------------------
-        #}\\n{%- macro renderAnswerValue(question, reply, path, humanIdentifier) -%}\\n
-        \ <div>\\n    <p>\\n      \u2714\uFE0F\\n      {% if reply is of_type(\\\"StringReply\\\")
-        %}\\n        <span>{{reply.value}}</span>\\n      {% else %}\\n        <span>{{reply.value.rsplit(\\\"
-        ![]\\\")[0]|markdown}}</span>\\n        {% if reply.is_legacy_integration
-        %}\\n          {# Integration #}\\n          {% set integration = question.integration
-        %}\\n          <span>\\n            ({{ integration.name }}: <a href=\\\"{{
-        integration.item(reply.item_id) }}\\\">{{ reply.item_id }}</a>)\\n          </span>\\n
-        \       {% endif %}\\n      {% endif %}\\n    </p>\\n  </div>\\n{%- endmacro
-        -%}\\n{%- macro renderAnswerOption(question, reply, path, humanIdentifier)
-        -%}\\n  {% set hi = question.answers.index(reply.answer) %}\\n  {% set answer
-        = reply.answer %}\\n  {% set path = path ~ \\\".\\\" ~ answer.uuid %}\\n  {%
-        set humanIdentifier = humanIdentifier ~ \\\".\\\" ~ hi|of_alphabet %}\\n  <div>\\n
-        \   <p>\\n      \u2714\uFE0F <span>{{ hi|of_alphabet }}. {{answer.label}}</span>\\n
-        \   </p>\\n    {% if answer.advice %}\\n    <p>\\n      <b>Advice:</b> {{answer.advice|markdown}}\\n
-        \   </p>\\n    {% endif %}\\n    {% if answer.followups|length > 0 %}\\n      <div>\\n
-        \       {% set hiPrefix = humanIdentifier ~ \\\".\\\" %}\\n        {% for
-        question in answer.followups %}\\n          {% set x = loop.index %}\\n          {{
-        renderQuestion(question, path, hiPrefix ~ x) }}\\n        {% endfor %}\\n
-        \     </div>\\n    {% endif %}\\n  </div>\\n{%- endmacro -%}\\n{%- macro renderAnswerList(question,
-        reply, path, humanIdentifier) -%}\\n  <div>\\n    <h4>Answers ({{reply.items|length}}
-        items)</h4>\\n    {% set itemPathPrefix = path ~ \\\".\\\" %}\\n    {% set
-        hiPrefix = humanIdentifier ~ \\\".\\\" %}\\n    {% for i in reply.items %}\\n
-        \     {% set itemPath = itemPathPrefix ~ i %}\\n      {% set itemHumanIdentifier
-        = hiPrefix ~ (loop.index - 1)|of_alphabet %}\\n      <div class=\\\"answer-item\\\"
-        id=\\\"{{itemPath}}\\\">\\n        <div class=\\\"followups\\\">\\n          {%
-        for question in question.followups %}\\n            {% set x = loop.index
-        %}\\n            {{ renderQuestion(question, itemPath, itemHumanIdentifier
-        ~ \\\".\\\" ~ x) }}\\n          {% else %}\\n            <i>No follow up questions</i>\\n
-        \         {% endfor %}\\n        </div>\\n      </div>\\n    {% else %}\\n
-        \     <i>No answer items</i>\\n    {% endfor %}\\n  </div>\\n{%- endmacro
-        -%}\\n{%- macro renderAnswerChoiceList(question, reply, path, humanIdentifier)
-        -%}\\n  <div>\\n    <ul>\\n    {% for choice in question.choices %}\\n      {%-
-        if choice in reply.choices %}\\n        <li>\u2714\uFE0F {{ choice.label }}</li>\\n
-        \     {%- else %}\\n        <li>\u274C {{ choice.label }}</li>\\n      {%-
-        endif %}\\n    {% endfor %}\\n    </ul>\\n  </div>\\n{%- endmacro -%}\\n{%-
-        macro renderAnswerItemSelect(question, reply, path, humanIdentifier) -%}\\n
-        \ <div>\\n    <p>\u2714\uFE0F {{ reply.item_title }}</p>\\n  </div>\\n{%-
-        endmacro -%}\\n{%- macro renderAnswerFile(question, reply, path, humanIdentifier)
-        -%}\\n  <div>\\n  {% if reply.file %}\\n    <p>\u2714\uFE0F <a href=\\\"{{
-        reply.file.download_url }}\\\" target=\\\"_blank\\\">{{ reply.file.name }}</a>
-        ({{ reply.file.size|bytesize_format }})</p>\\n  {% else %}\\n    <p>\u274C
-        The file has been deleted</p>\\n  {% endif %}\\n  </div>\\n{%- endmacro -%}\\n{#
-        ------------------------------------------------------------------------------------
-        #}\\n{#  QUESTION MACROS                                                                     #}\\n{#
-        ------------------------------------------------------------------------------------
-        #}\\n{%- macro renderQuestionExtras(question) -%}\\n  <div>\\n    {{ renderResourcePageReferences(question)
-        }}\\n    {{ renderURLReferences(question) }}\\n    {{ renderExperts(question)
-        }}\\n  </div>\\n{%- endmacro -%}\\n{%- macro renderQuestionReply(question,
-        path, humanIdentifier) -%}\\n  {# Question - Answers #}\\n  {% set reply =
-        question.replies.get(path) %}\\n  {% if reply and reply.value %}\\n    {%
-        if question is of_type(\\\"ValueQuestion\\\") and reply is of_type(\\\"StringReply\\\")
-        %}\\n      {{ renderAnswerValue(question, reply, path, humanIdentifier) }}\\n
-        \   {% elif question is of_type(\\\"OptionsQuestion\\\") and reply is of_type(\\\"AnswerReply\\\")
-        %}\\n      {{ renderAnswerOption(question, reply, path, humanIdentifier) }}\\n
-        \   {% elif question is of_type(\\\"ListQuestion\\\") and reply is of_type(\\\"ItemListReply\\\")
-        %}\\n      {{ renderAnswerList(question, reply, path, humanIdentifier) }}\\n
-        \   {% elif question is of_type(\\\"IntegrationQuestion\\\") and reply is
-        of_type(\\\"IntegrationReply\\\") %}\\n      {{ renderAnswerValue(question,
-        reply, path, humanIdentifier) }}\\n    {% elif question is of_type(\\\"MultiChoiceQuestion\\\")
-        and reply is of_type(\\\"MultiChoiceReply\\\") %}\\n      {{ renderAnswerChoiceList(question,
-        reply, path, humanIdentifier) }}\\n    {% elif question is of_type(\\\"ItemSelectQuestion\\\")
-        and reply is of_type(\\\"ItemSelectReply\\\") %}\\n      {{ renderAnswerItemSelect(question,
-        reply, path, humanIdentifier) }}\\n    {% elif question is of_type(\\\"FileQuestion\\\")
-        and reply is of_type(\\\"FileReply\\\") %}\\n      {{ renderAnswerFile(question,
-        reply, path, humanIdentifier) }}\\n    {% endif %}\\n  {% else %}\\n    <p>\u2757
-        <i>This question has not been answered yet!</i></p>\\n  {% endif %}\\n{%-
-        endmacro -%}\\n{%- macro renderQuestion(question, path, humanIdentifier) -%}\\n
-        \ {% set path = path ~ \\\".\\\" ~ question.uuid %}\\n  <div>\\n    <h2>{{humanIdentifier}}.
-        {{question.title}}</h2>\\n\\n    {{ renderTags(question) }}\\n\\n    {{ renderQuestionExtras(question)
-        }}\\n\\n    {{ question.text|markdown }}\\n\\n    {{ renderQuestionReply(question,
-        path, humanIdentifier) }}\\n  </div>\\n{%- endmacro -%}\\n{# ------------------------------------------------------------------------------------
-        #}\\n{#  CHAPTER MACROS                                                                      #}\\n{#
-        ------------------------------------------------------------------------------------
-        #}\\n{%- macro renderReport(report) -%}\\n  <section>\\n    <h2>Summary</h2>\\n
-        \   <h3>Answered indication</h3>\\n    <table>\\n      <tbody>\\n        {%
-        for item in report.indications %}\\n          <tr>\\n            <td>Answered
-        {% if item.is_for_phase %}(current phase){% endif %}</td>\\n              <td>{{item.answered}}
-        / {{item.total}} </td>\\n            <td>{{ \\\"%.2f\\\"|format(item.percentage)}}
-        %</td>\\n          </tr>\\n        {% endfor %}\\n      </tbody>\\n    </table>\\n
-        \   {% if report.metrics|length > 0 %}\\n    <h3>Metrics</h3>\\n    <table>\\n
-        \     <thead><tr><th>Metric</th><th>Score</th></tr></thead>\\n      <tbody>\\n
-        \       {% for item in report.metrics %}\\n          <tr>\\n            <td>{{
-        item.metric.title }}</td>\\n            <td>{{ \\\"%.2f\\\"|format(item.measure)
-        }}</td>\\n          </tr>\\n        {% endfor %}\\n      </tbody>\\n    </table>\\n
-        \   {% endif %}\\n  </section>\\n{%- endmacro -%}\\n{%- macro renderChapter(chapter,
-        humanIdentifier) -%}\\n      <section>\\n        <h1>{{humanIdentifier|roman}}.
-        {{chapter.title}}</h1>\\n        <p>{{chapter.text|markdown}}</p>\\n\\n        {%
-        for chapterReport in chapter.reports %}\\n          {{ renderReport(chapterReport)
-        }}\\n        {% endfor %}\\n\\n        <section>\\n          {% for question
-        in chapter.questions %}\\n            {{ renderQuestion(question, chapter.uuid,
-        loop.index) }}\\n          {% else %}\\n            <p><i>No questions</i></p>\\n
-        \         {% endfor %}\\n        </section>\\n      </section>\\n{%- endmacro
-        -%}\\n{# ------------------------------------------------------------------------------------
-        #}\\n{#  HTML LAYOUT                                                                         #}\\n{#
-        ------------------------------------------------------------------------------------
-        #}\\n{%- macro renderFrontPage() -%}\\n  <table>\\n    <tr>\\n      <th>Organization</th>\\n
-        \     <td>{{dc.org.name}}</td>\\n    </tr>\\n    {% if dc.qtn.created_by %}\\n
-        \   <tr>\\n      <th>Created by</th>\\n      <td>{{dc.qtn.created_by.first_name}}
-        {{dc.qtn.created_by.last_name}} (<a href=\\\"mailto:{{dc.qtn.created_by.email}}\\\">{{dc.qtn.created_by.email}}</a>)</td>\\n
-        \   </tr>\\n    {% endif %}\\n    <tr>\\n      <th>Based on</th>\\n      <td>{{dc.pkg.name}},
-        {{dc.pkg.version}} (<code>{{dc.pkg.org_id}}:{{dc.pkg.km_id}}:{{dc.pkg.version}}</code>)</td>\\n
-        \   </tr>\\n    {% for version in dc.qtn.versions if version.uuid == dc.qtn.version
-        %}\\n    <tr>\\n      <th>Version</th>\\n      <td>{{version.name}} ({{ version.created_at|datetime_format(\\\"%d
-        %b %Y %H:%M:%S\\\") }} UTC)</td>\\n    </tr>\\n    {% endfor %}\\n    {% if
-        dc.current_phase %}\\n    <tr>\\n      <th>Project Phase</th>\\n      <td>{{dc.current_phase.title}}</td>\\n
-        \   </tr>\\n    {% endif %}\\n    {% if dc.qtn.project_tags|length > 0 %}\\n
-        \   <tr>\\n      <th>Project Tags</th>\\n      <td class=\\\"tags-row\\\">{%
-        for tag in dc.qtn.project_tags %}<span class=\\\"tag project-tag\\\">{{ tag
-        }}</span> {% endfor %}</td>\\n    </tr>\\n    {% endif %}\\n    {% if dc.qtn.description
-        %}\\n    <tr>\\n      <th>Description</th>\\n      <td>{{ dc.qtn.description
-        }}</td>\\n    </tr>\\n    {% endif %}\\n    <tr>\\n      <th>Created at</th>\\n
-        \     <td>{{ dc.doc.created_at|datetime_format(\\\"%d %b %Y\\\") }}</td>\\n
-        \   </tr>\\n  </table>\\n\\n  \\\\newpage\\n{%- endmacro -%}\\n{%- macro renderVersionsOverview()
-        -%}\\n  <div>\\n    <h2>History of Versions</h2>\\n    <p>The named versions
-        of this document:</p>\\n    <ul>\\n      {% for version in dc.qtn.versions|reverse
-        %}\\n        <li>\\n          <strong>{{ version.name }}</strong> ({{ version.created_at|datetime_format(\\\"%d
-        %b %Y\\\") }})\\n          <p>{{ version.description }}</p>\\n        </li>\\n
-        \     {% endfor %}\\n    </ul>\\n  </div>\\n{%- endmacro -%}\\n{%- macro renderContent()
-        -%}\\n  <div>\\n    <div>\\n      {{ renderReport(dc.report.total_report)
-        }}\\n    </div>\\n    {% if dc.qtn.versions|length > 0 %}\\n      {{ renderVersionsOverview()
-        }}\\n    {% endif %}\\n    {% for chapter in dc.km.chapters %}\\n      \\\\newpage\\n
-        \     {{ renderChapter(chapter, loop.index) }}\\n    {% else %}\\n      <p><i>No
-        chapters</i></p>\\n    {% endfor %}\\n\\n  </div>\\n{%- endmacro -%}\\n{#
-        ------------------------------------------------------------------------------------
-        #}\\n{#  HTML TEMPLATE                                                                       #}\\n{#
-        ------------------------------------------------------------------------------------
-        #}\\n<html>\\n  <head>\\n    <title>{{dc.qtn.name}}</title>\\n    <meta charset=\\\"utf-8\\\">\\n
-        \ </head>\\n  <body>\\n      {{ renderFrontPage() }}\\n      {{ renderContent()
-        }}\\n  </body>\\n</html>\\n\",\"createdAt\":\"2026-02-24T06:15:04.728043Z\",\"documentTemplateUuid\":\"7e4da640-82ba-40cb-a072-288112911fba\",\"fileName\":\"src/for-word.html.j2\",\"tenantUuid\":\"00000000-0000-0000-0000-000000000000\",\"updatedAt\":\"2026-02-24T06:15:04.728043Z\",\"uuid\":\"ba2f30d2-776f-4cc5-a38c-63c2dc0fa590\"}"
-    headers:
-      Access-Control-Allow-Credential:
-      - 'true'
-      Access-Control-Allow-Headers:
-      - Origin, X-Requested-With, Content-Type, Accept, Authorization
-      Access-Control-Allow-Methods:
-      - OPTIONS, HEAD, GET, POST, PUT, DELETE
-      Access-Control-Allow-Origin:
-      - '*'
-      Content-Type:
-      - application/json
-      Date:
-      - Tue, 24 Feb 2026 06:26:50 GMT
-      Server:
-      - Warp/3.3.31
-      Transfer-Encoding:
-      - chunked
-      x-trace-uuid:
-      - 9fd5b057-7c6e-486c-8d6d-32b399d85a5a
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Authorization:
-      - Bearer eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE3NzE5NzQwMDAsInRlbmFudFV1aWQiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJ0b2tlblV1aWQiOiIwNzU4MzIwOS0zMWM3LTQzNDAtYTNjNS0xNjE1MjJlOTEzOTIiLCJ1c2VyVXVpZCI6ImVjNmY4ZTkwLTJhOTEtNDllYy1hYTNmLTllYWIyMjY3ZmM2NiIsInZlcnNpb24iOjR9.bw-6wNcflwtewdeueOg6gAM9O93kgb3gtXhHWNXVFnM0p_FtlRsbW-ZR_pxjh3CCtLHJ2QQmaa7fXVCC1OsVgOwgtgO5rIGhT62UU4DfL1d2oNXq5huyHCxTzgung_YEI1Eg76RulfWb5wUPhHfaBJbPYLuPh5Q56U8RD-khTQeqcLuvNLWBKYTHqe7k7X41vJw__sL1GyC60bXXYUlqLZaiPkvc5JNWxxxTL2R4lw1zlpnJxFHhLq8TWPDehtBuYADWyxDdS3s-4Vr_axSuenE7ZCHU-AFF4Vr1mS-w_Kx69s_wpsgRxtZh3s5yIAQ45tikMXR5cijEEuJYO7VorTjclQvbh-Sk29Y7r8lZ2scZp8z8Zf8kiLpPKnJpItpKZLmjLYOJZRCBX6EW3fN92sbsOq3yPxFchl6DB-cmmGs9EoLvWLimNm8rqpO5pXyGiATah6R0fFRTNtfRcfhfkAIr_X6e3PVtnpOCFtACpUzHnl0p7tYbF-OvhdgAUVZCOZjnFQ5z5EFZjEKbaImqUZJQMz5J8wwsP-N7j8GHjrR5fHgotu-5Ps8WAm2ibYrM15MReorfhWUQmeh7wvNoJ4lj9mFByb0qgTwNgnnLpfFGbglZhyB1jvTiB4TxFoCsaEuyVOBQVAKS9_ufT5wymBcL_fa3PGeDTzPGjA1pv_Q
-      User-Agent:
-      - dsw-tdk/4.27.0
-    method: GET
-    uri: http://localhost:3000/wizard-api/document-template-drafts/7e4da640-82ba-40cb-a072-288112911fba/files/6c8d0967-276e-4f9f-a71e-a2553d0ea8bd
-  response:
-    body:
-      string: '{"content":"<!DOCTYPE HTML>\n{# ------------------------------------------------------------------------------------
-        #}\n{#  VARIABLES                                                                           #}\n{#
-        ------------------------------------------------------------------------------------
-        #}\n{%- set dc = ctx|to_context_obj -%}\n{# ------------------------------------------------------------------------------------
-        #}\n{#  TAGS, REFERENCES, and EXPERTS MACROS                                                 #}\n{#
-        ------------------------------------------------------------------------------------
-        #}\n{%- macro renderResourcePageReferences(question) -%}\n  {% set refs =
-        [] %}\n  {% for ref in question.resource_page_references %}\n    {% if ref.resource_page_uuid
-        and ref.resource_page and ref.resource_page.collection %}\n      {% do refs.append({\n        ''ref_uuid'':
-        ref.uuid,\n        ''uuid'': ref.resource_page_uuid,\n        ''collection_title'':
-        ref.resource_page.collection.title,\n        ''title'': ref.resource_page.title,\n      })
-        %}\n    {% endif %}\n  {% endfor %}\n  {% if refs|length > 0 %}\n    <div
-        class=\"references references-resourcepage\">\n      <svg aria-hidden=\"true\"
-        data-prefix=\"fas\" data-icon=\"book\" role=\"img\" xmlns=\"http://www.w3.org/2000/svg\"
-        viewBox=\"0 0 448 512\" class=\"svg-inline--fa fa-book fa-w-14 fa-2x\"><path
-        fill=\"currentColor\" d=\"M448 360V24c0-13.3-10.7-24-24-24H96C43 0 0 43 0
-        96v320c0 53 43 96 96 96h328c13.3 0 24-10.7 24-24v-16c0-7.5-3.5-14.3-8.9-18.7-4.2-15.4-4.2-59.3
-        0-74.7 5.4-4.3 8.9-11.1 8.9-18.6zM128 134c0-3.3 2.7-6 6-6h212c3.3 0 6 2.7
-        6 6v20c0 3.3-2.7 6-6 6H134c-3.3 0-6-2.7-6-6v-20zm0 64c0-3.3 2.7-6 6-6h212c3.3
-        0 6 2.7 6 6v20c0 3.3-2.7 6-6 6H134c-3.3 0-6-2.7-6-6v-20zm253.4 250H96c-17.7
-        0-32-14.3-32-32 0-17.6 14.4-32 32-32h285.4c-1.9 17.1-1.9 46.9 0 64z\" class=\"\"></path></svg>\n      <span><b>Resource
-        Pages:</b></span>\n      {% for ref in refs %}\n        {%- set resourcePageLink
-        = dc.config.client_url ~ ''/knowledge-models/'' ~ dc.package.id ~ ''/resource-pages/''
-        ~ ref.uuid -%}\n        <a id=\"{{ref.ref_uuid}}\" class=\"reference resourcepage-link\"
-        href=\"{{ resourcePageLink }}\"><i>{{ ref.collection_title }} - {{ ref.title
-        }}</i></a>\n      {% endfor %}\n    </div>\n  {% endif %}\n{%- endmacro -%}\n{%-
-        macro renderURLReferences(question) -%}\n  {% set refs = [] %}\n  {% for ref
-        in question.url_references %}\n    {% if ref.label and ref.url %}\n      {%
-        do refs.append({\n        ''uuid'': ref.uuid,\n        ''label'': ref.label,\n        ''url'':
-        ref.url,\n      }) %}\n    {% endif %}\n  {% endfor %}\n  {% if refs|length
-        > 0 %}\n    <div class=\"references references-url\" >\n      <svg aria-hidden=\"true\"
-        data-prefix=\"far\" data-icon=\"external-link\" role=\"img\" xmlns=\"http://www.w3.org/2000/svg\"
-        viewBox=\"0 0 576 512\" class=\"svg-inline--fa fa-external-link fa-w-18 fa-2x\"><path
-        fill=\"currentColor\" d=\"M576 14.4l-.174 163.2c0 7.953-6.447 14.4-14.4 14.4H528.12c-8.067
-        0-14.56-6.626-14.397-14.691l2.717-73.627-2.062-2.062-278.863 278.865c-4.686
-        4.686-12.284 4.686-16.971 0l-23.029-23.029c-4.686-4.686-4.686-12.284 0-16.971L474.379
-        61.621l-2.062-2.062-73.626 2.717C390.626 62.44 384 55.946 384 47.879V14.574c0-7.953
-        6.447-14.4 14.4-14.4L561.6 0c7.953 0 14.4 6.447 14.4 14.4zM427.515 233.74l-24
-        24a12.002 12.002 0 0 0-3.515 8.485V458a6 6 0 0 1-6 6H54a6 6 0 0 1-6-6V118a6
-        6 0 0 1 6-6h301.976c10.691 0 16.045-12.926 8.485-20.485l-24-24A12.002 12.002
-        0 0 0 331.976 64H48C21.49 64 0 85.49 0 112v352c0 26.51 21.49 48 48 48h352c26.51
-        0 48-21.49 48-48V242.225c0-10.691-12.926-16.045-20.485-8.485z\" class=\"\"></path></svg>\n      <b>External
-        Links:</b>\n      {% for ref in refs %}\n        <a id=\"{{ref.uuid}}\" class=\"reference
-        url-link\" href=\"{{ref.url}}\" target=\"_blank\"><i>{{ref.label}}</i></a>\n      {%
-        endfor %}\n    </div>\n  {% endif %}\n{%- endmacro -%}\n{%- macro renderExperts(question)
-        -%}\n  {% set experts = [] %}\n  {% for expert in question.experts %}\n    {%
-        if expert.name and expert.email %}\n      {% do experts.append({\n        ''uuid'':
-        expert.uuid,\n        ''email'': expert.email,\n        ''name'': expert.name,\n      })
-        %}\n    {% endif %}\n  {% endfor %}\n  {% if experts|length > 0 %}\n    <div
-        class=\"experts\">\n      <svg aria-hidden=\"true\" data-prefix=\"far\" data-icon=\"address-book\"
-        role=\"img\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 448 512\"
-        class=\"svg-inline--fa fa-address-book fa-w-14 fa-2x\"><path fill=\"currentColor\"
-        d=\"M436 160c6.6 0 12-5.4 12-12v-40c0-6.6-5.4-12-12-12h-20V48c0-26.5-21.5-48-48-48H48C21.5
-        0 0 21.5 0 48v416c0 26.5 21.5 48 48 48h320c26.5 0 48-21.5 48-48v-48h20c6.6
-        0 12-5.4 12-12v-40c0-6.6-5.4-12-12-12h-20v-64h20c6.6 0 12-5.4 12-12v-40c0-6.6-5.4-12-12-12h-20v-64h20zm-68
-        304H48V48h320v416zM208 256c35.3 0 64-28.7 64-64s-28.7-64-64-64-64 28.7-64
-        64 28.7 64 64 64zm-89.6 128h179.2c12.4 0 22.4-8.6 22.4-19.2v-19.2c0-31.8-30.1-57.6-67.2-57.6-10.8
-        0-18.7 8-44.8 8-26.9 0-33.4-8-44.8-8-37.1 0-67.2 25.8-67.2 57.6v19.2c0 10.6
-        10 19.2 22.4 19.2z\" class=\"\"></path></svg>\n      <b>Experts:</b>\n      {%
-        for expert in experts %}\n        <i class=\"expert\" id=\"{{expert.uuid}}\">{{expert.name}}
-        (<a href=\"mailto:{{expert.email}}\">{{expert.email}}</a>)</i>\n      {% endfor
-        %}\n    </div>\n  {% endif %}\n{%- endmacro -%}\n{# ------------------------------------------------------------------------------------
-        #}\n{#  ANSWERS MACROS                                                                      #}\n{#
-        ------------------------------------------------------------------------------------
-        #}\n{%- macro renderAnswerValue(question, reply, path, humanIdentifier) -%}\n  <div
-        class=\"answer-block answer-simple\" id=\"{{path}}\" data-path=\"{{path}}\"
-        data-type=\"answer\">\n    <p class=\"answer\">\n      <svg aria-hidden=\"true\"
-        data-prefix=\"fas\" data-icon=\"check\" class=\"svg-inline--fa fa-check fa-w-16\"
-        role=\"img\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 512 512\"><path
-        fill=\"currentColor\" d=\"M173.898 439.404l-166.4-166.4c-9.997-9.997-9.997-26.206
-        0-36.204l36.203-36.204c9.997-9.998 26.207-9.998 36.204 0L192 312.69 432.095
-        72.596c9.997-9.997 26.207-9.997 36.204 0l36.203 36.204c9.997 9.997 9.997 26.206
-        0 36.204l-294.4 294.401c-9.998 9.997-26.207 9.997-36.204-.001z\"></path></svg>\n      {%
-        if reply is of_type(\"StringReply\") %}\n        <span>{{reply.value}}</span>\n      {%
-        elif reply.is_integration or reply.is_legacy_integration %}\n        <span>{{reply.value|markdown}}</span>\n      {%
-        else %}\n        <span>{{reply.value}}</span>\n      {% endif %}\n    </p>\n  </div>\n{%-
-        endmacro -%}\n{%- macro renderAnswerOption(question, reply, path, humanIdentifier)
-        -%}\n  {% set hi = question.answers.index(reply.answer) %}\n  {% set answer
-        = reply.answer %}\n  {% set path = path ~ \".\" ~ answer.uuid %}\n  {% set
-        humanIdentifier = humanIdentifier ~ \".\" ~ hi|of_alphabet %}\n  <div class=\"answer-block
-        answer-option\" id=\"{{path}}\" data-path=\"{{path}}\" data-uuid=\"{{answer.uuid}}\"
-        data-type=\"answer\">\n    <p class=\"answer\">\n      <svg aria-hidden=\"true\"
-        data-prefix=\"fas\" data-icon=\"check\" class=\"svg-inline--fa fa-check fa-w-16\"
-        role=\"img\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 512 512\"><path
-        fill=\"currentColor\" d=\"M173.898 439.404l-166.4-166.4c-9.997-9.997-9.997-26.206
-        0-36.204l36.203-36.204c9.997-9.998 26.207-9.998 36.204 0L192 312.69 432.095
-        72.596c9.997-9.997 26.207-9.997 36.204 0l36.203 36.204c9.997 9.997 9.997 26.206
-        0 36.204l-294.4 294.401c-9.998 9.997-26.207 9.997-36.204-.001z\"></path></svg>\n      <span>{{
-        hi|of_alphabet }}. {{answer.label}}</span>\n    </p>\n    {% if answer.advice
-        %}\n      <div class=\"advice\">\n        {{answer.advice|markdown}}\n      </div>\n    {%
-        endif %}\n    {% if answer.followups|length > 0 %}\n      <div class=\"followups\">\n        {%
-        set hiPrefix = humanIdentifier ~ \".\" %}\n        {% for question in answer.followups
-        %}\n          {% set x = loop.index %}\n          {{ renderQuestion(question,
-        path, hiPrefix ~ x) }}\n        {% endfor %}\n      </div>\n    {% endif %}\n  </div>\n{%-
-        endmacro -%}\n{%- macro renderAnswerList(question, reply, path, humanIdentifier)
-        -%}\n  <div class=\"answer-block answer-items\" id=\"{{path}}\" data-path=\"{{path}}\"
-        data-type=\"answer\">\n    <h4>Answers</h4>\n    {% set itemPathPrefix = path
-        ~ \".\" %}\n    {% set hiPrefix = humanIdentifier ~ \".\" %}\n    {% for itemUuid
-        in reply.items %}\n      {% set itemPath = itemPathPrefix ~ itemUuid %}\n      {%
-        set itemHumanIdentifier = hiPrefix ~ (loop.index - 1)|of_alphabet %}\n      <div
-        class=\"answer-item\" id=\"item-{{ question.uuid }}-{{itemUuid}}\" data-path=\"{{itemPath}}\">\n        <div
-        class=\"followups\">\n          {% for question in question.followups %}\n            {%
-        set x = loop.index %}\n            {{ renderQuestion(question, itemPath, itemHumanIdentifier
-        ~ \".\" ~ x) }}\n          {% else %}\n            No follow up questions\n          {%
-        endfor %}\n        </div>\n      </div>\n    {% else %}\n      No answer items\n    {%
-        endfor %}\n  </div>\n{%- endmacro -%}\n{%- macro renderAnswerChoiceList(question,
-        reply, path, humanIdentifier) -%}\n  <div class=\"answer-block answer-items\"
-        id=\"{{path}}\" data-path=\"{{path}}\" data-type=\"answer\">\n    <div class=\"choices-list\">\n    {%
-        for choice in question.choices %}\n      {%- if choice in reply.choices %}\n        <div
-        class=\"choice choice-selected\">\n          <svg aria-hidden=\"true\" focusable=\"false\"
-        data-prefix=\"far\" data-icon=\"check-square\" class=\"svg-inline--fa fa-check-square
-        fa-w-14\" role=\"img\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0
-        448 512\"><path fill=\"currentColor\" d=\"M400 32H48C21.49 32 0 53.49 0 80v352c0
-        26.51 21.49 48 48 48h352c26.51 0 48-21.49 48-48V80c0-26.51-21.49-48-48-48zm0
-        400H48V80h352v352zm-35.864-241.724L191.547 361.48c-4.705 4.667-12.303 4.637-16.97-.068l-90.781-91.516c-4.667-4.705-4.637-12.303.069-16.971l22.719-22.536c4.705-4.667
-        12.303-4.637 16.97.069l59.792 60.277 141.352-140.216c4.705-4.667 12.303-4.637
-        16.97.068l22.536 22.718c4.667 4.706 4.637 12.304-.068 16.971z\"></path></svg>\n          {{
-        choice.label }}\n        </div>\n      {%- else %}\n        <div class=\"choice
-        choice-unselected\">\n          <svg aria-hidden=\"true\" focusable=\"false\"
-        data-prefix=\"far\" data-icon=\"square\" class=\"svg-inline--fa fa-square
-        fa-w-14\" role=\"img\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0
-        448 512\"><path fill=\"currentColor\" d=\"M400 32H48C21.5 32 0 53.5 0 80v352c0
-        26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48V80c0-26.5-21.5-48-48-48zm-6 400H54c-3.3
-        0-6-2.7-6-6V86c0-3.3 2.7-6 6-6h340c3.3 0 6 2.7 6 6v340c0 3.3-2.7 6-6 6z\"></path></svg>\n          {{
-        choice.label }}\n        </div>\n      {%- endif %}\n    {% endfor %}\n    </div>\n  </div>\n{%-
-        endmacro -%}\n{%- macro renderAnswerItemSelect(question, reply, path, humanIdentifier)
-        -%}\n  <div class=\"answer-block answer-select\" id=\"{{path}}\" data-path=\"{{path}}\"
-        data-type=\"answer\">\n    <p class=\"answer\">\n      <svg aria-hidden=\"true\"
-        data-prefix=\"fas\" data-icon=\"check\" class=\"svg-inline--fa fa-check fa-w-16\"
-        role=\"img\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 512 512\"><path
-        fill=\"currentColor\" d=\"M173.898 439.404l-166.4-166.4c-9.997-9.997-9.997-26.206
-        0-36.204l36.203-36.204c9.997-9.998 26.207-9.998 36.204 0L192 312.69 432.095
-        72.596c9.997-9.997 26.207-9.997 36.204 0l36.203 36.204c9.997 9.997 9.997 26.206
-        0 36.204l-294.4 294.401c-9.998 9.997-26.207 9.997-36.204-.001z\"></path></svg>\n      <a
-        href=\"#item-{{ question.list_question_uuid }}-{{ reply.item_uuid }}\">{{
-        reply.item_title }}</a>\n    </p>\n  </div>\n{%- endmacro -%}\n{%- macro renderAnswerFile(question,
-        reply, path, humanIdentifier) -%}\n  <div class=\"answer-block answer-select\"
-        id=\"{{path}}\" data-path=\"{{path}}\" data-type=\"answer\">\n    <p class=\"answer\">\n      {%
-        if reply.file %}\n        <svg aria-hidden=\"true\" data-prefix=\"fas\" data-icon=\"check\"
-        class=\"svg-inline--fa fa-check fa-w-16\" role=\"img\" xmlns=\"http://www.w3.org/2000/svg\"
-        viewBox=\"0 0 512 512\"><path fill=\"currentColor\" d=\"M173.898 439.404l-166.4-166.4c-9.997-9.997-9.997-26.206
-        0-36.204l36.203-36.204c9.997-9.998 26.207-9.998 36.204 0L192 312.69 432.095
-        72.596c9.997-9.997 26.207-9.997 36.204 0l36.203 36.204c9.997 9.997 9.997 26.206
-        0 36.204l-294.4 294.401c-9.998 9.997-26.207 9.997-36.204-.001z\"></path></svg>\n        <span><a
-        href=\"{{ reply.file.download_url }}\" target=\"_blank\">{{ reply.file.name
-        }}</a> ({{ reply.file.size|bytesize_format }})</span>\n      {% else %}\n        <svg
-        aria-hidden=\"true\" data-prefix=\"fas\" data-icon=\"times\" class=\"svg-inline--fa
-        fa-times fa-w-11\" role=\"img\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0
-        0 352 512\"><path fill=\"currentColor\" d=\"M242.72 256l100.07-100.07c12.28-12.28
-        12.28-32.19 0-44.48l-22.24-22.24c-12.28-12.28-32.19-12.28-44.48 0L176 189.28
-        75.93 89.21c-12.28-12.28-32.19-12.28-44.48 0L9.21 111.45c-12.28 12.28-12.28
-        32.19 0 44.48L109.28 256 9.21 356.07c-12.28 12.28-12.28 32.19 0 44.48l22.24
-        22.24c12.28 12.28 32.2 12.28 44.48 0L176 322.72l100.07 100.07c12.28 12.28
-        32.2 12.28 44.48 0l22.24-22.24c12.28-12.28 12.28-32.19 0-44.48L242.72 256z\"></path></svg>\n        <span>The
-        file has been deleted</span>\n      {% endif %}\n    </p>\n  </div>\n{%- endmacro
-        -%}\n{# ------------------------------------------------------------------------------------
-        #}\n{#  QUESTION MACROS                                                                     #}\n{#
-        ------------------------------------------------------------------------------------
-        #}\n{%- macro questionClasses(question) -%}\n  \"question {{ \"required\"
-        if question.is_required else \"optional\"}} {{  (\"phase-\" ~ question.required_phase.order)
-        if question.required_phase else \"phase-none\" }}\"\n{%- endmacro -%}\n{%-
-        macro renderQuestionExtras(question) -%}\n  <div class=\"extra-data\">\n    {#
-        Question - References - Resource Page References #}\n    {{ renderResourcePageReferences(question)
-        }}\n    {# Question - References - URL References #}\n    {{ renderURLReferences(question)
-        }}\n    {# Question - Experts #}\n    {{ renderExperts(question) }}\n  </div>\n{%-
-        endmacro -%}\n{%- macro renderQuestionReply(question, path, humanIdentifier)
-        -%}\n  {# Question - Answers #}\n  {% set reply = question.replies.get(path)
-        %}\n  {% if reply and reply.value %}\n    {% if question is of_type(\"ValueQuestion\")
-        and reply is of_type(\"StringReply\") %}\n      {{ renderAnswerValue(question,
-        reply, path, humanIdentifier) }}\n    {% elif question is of_type(\"OptionsQuestion\")
-        and reply is of_type(\"AnswerReply\") %}\n      {{ renderAnswerOption(question,
-        reply, path, humanIdentifier) }}\n    {% elif question is of_type(\"ListQuestion\")
-        and reply is of_type(\"ItemListReply\") %}\n      {{ renderAnswerList(question,
-        reply, path, humanIdentifier) }}\n    {% elif question is of_type(\"IntegrationQuestion\")
-        and reply is of_type(\"IntegrationReply\") %}\n      {{ renderAnswerValue(question,
-        reply, path, humanIdentifier) }}\n    {% elif question is of_type(\"MultiChoiceQuestion\")
-        and reply is of_type(\"MultiChoiceReply\") %}\n      {{ renderAnswerChoiceList(question,
-        reply, path, humanIdentifier) }}\n    {% elif question is of_type(\"ItemSelectQuestion\")
-        and reply is of_type(\"ItemSelectReply\") %}\n      {{ renderAnswerItemSelect(question,
-        reply, path, humanIdentifier) }}\n    {% elif question is of_type(\"FileQuestion\")
-        and reply is of_type(\"FileReply\") %}\n      {{ renderAnswerFile(question,
-        reply, path, humanIdentifier) }}\n    {% endif %}\n  {% else %}\n    <div
-        class=\"answer-block not-answered\">\n      <p class=\"no-answer\">\n        <svg
-        aria-hidden=\"true\" data-prefix=\"fas\" data-icon=\"times\" class=\"svg-inline--fa
-        fa-times fa-w-11\" role=\"img\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0
-        0 352 512\"><path fill=\"currentColor\" d=\"M242.72 256l100.07-100.07c12.28-12.28
-        12.28-32.19 0-44.48l-22.24-22.24c-12.28-12.28-32.19-12.28-44.48 0L176 189.28
-        75.93 89.21c-12.28-12.28-32.19-12.28-44.48 0L9.21 111.45c-12.28 12.28-12.28
-        32.19 0 44.48L109.28 256 9.21 356.07c-12.28 12.28-12.28 32.19 0 44.48l22.24
-        22.24c12.28 12.28 32.2 12.28 44.48 0L176 322.72l100.07 100.07c12.28 12.28
-        32.2 12.28 44.48 0l22.24-22.24c12.28-12.28 12.28-32.19 0-44.48L242.72 256z\"></path></svg>\n        <span>This
-        question has not been answered yet!</span>\n      </p>\n    </div>\n  {% endif
-        %}\n{%- endmacro -%}\n{%- macro renderQuestion(question, path, humanIdentifier)
-        -%}\n  {% set path = path ~ \".\" ~ question.uuid %}\n  <div class={{questionClasses(question)}}
-        id=\"{{path}}\" data-uuid=\"{{question.uuid}}\" data-type=\"question\">\n    <div
-        class=\"question-header\">\n      <h4 class=\"title\">\n        <strong class=\"human-identifier\">{{humanIdentifier}}</strong>\n        {{question.title}}\n      </h4>\n      \n      {%
-        if question.tags|length > 0 %}\n      <div class=\"tags\">\n        {% for
-        tag in question.tags %}\n          <span class=\"tag\" style=\"background-color:{{tag.color}}\">{{tag.name}}</span>\n        {%
-        endfor %}\n      </div>\n      {% endif %}\n    </div>\n\n    <div class=\"text\">\n      {{question.text|markdown}}\n    </div>\n\n    {{
-        renderQuestionExtras(question) }}\n\n    {{ renderQuestionReply(question,
-        path, humanIdentifier) }}\n  </div>\n{%- endmacro -%}\n{# ------------------------------------------------------------------------------------
-        #}\n{#  CHAPTER MACROS                                                                      #}\n{#
-        ------------------------------------------------------------------------------------
-        #}\n{%- macro renderReport(report) -%}\n  <section class=\"report\">\n    <h3
-        class=\"title\">Summary</h3>\n    <div class=\"indications\">\n      <table>\n        <tbody>\n          {%
-        for item in report.indications %}\n            <tr>\n              <td class=\"table-label\">Answered
-        {% if item.is_for_phase %}(current phase){% endif %}</td>\n              <td>{{item.answered}}
-        / {{item.total}} </td>\n              <td class=\"progress-cell\">\n                <div
-        class=\"progress\">\n                  <div class=\"progress-fill\" style=\"width:{{100
-        * item.percentage}}%\">\n                  </div>\n                </div>\n              </td>\n            </tr>\n          {%
-        endfor %}\n        </tbody>\n      </table>\n    </div>\n    {% if report.metrics|length
-        > 0 %}\n    <div class=\"metrics\">\n        <table>\n          <thead><tr><th>Metric</th><th
-        colspan=\"2\">Score</th></tr></thead>\n          <tbody>\n            {% for
-        item in report.metrics %}\n              <tr>\n                <td class=\"table-label\">\n                  {{item.metric.title}}\n                </td>\n                <td>{{
-        \"%.2f\"|format(item.measure) }}</td>\n                <td class=\"progress-cell\">\n                  <div
-        class=\"progress\">\n                    <div class=\"progress-fill bg-value-{{(item.measure
-        * 10)|int}}0\" style=\"width:{{100 * item.measure}}%\">\n                    </div>\n                  </div>\n                </td>\n              </tr>\n            {%
-        endfor %}\n          </tbody>\n        </table>\n    </div>\n    {% endif
-        %}\n  </section>\n{%- endmacro -%}\n{%- macro renderChapter(chapter, humanIdentifier)
-        -%}\n      <section class=\"chapter\" id=\"{{chapter.uuid}}\" data-uuid=\"{{chapter.uuid}}\"
-        data-type=\"chapter\">\n        <h2 class=\"title\">{{humanIdentifier|roman}}.
-        {{chapter.title}}</h2>\n        <p class=\"text-light\">{{chapter.text|markdown}}</p>\n\n        {%
-        for chapterReport in chapter.reports %}\n          {{ renderReport(chapterReport)
-        }}\n        {% endfor %}\n\n        <section class=\"questions\">\n          <h3
-        class=\"title\">Questions</h3>\n          {% for question in chapter.questions
-        %}\n            {{ renderQuestion(question, chapter.uuid, loop.index) }}\n          {%
-        else %}\n            <p class=\"text-light\">No questions</p>\n          {%
-        endfor %}\n        </section>\n      </section>\n{%- endmacro -%}\n{# ------------------------------------------------------------------------------------
-        #}\n{#  HTML LAYOUT                                                                         #}\n{#
-        ------------------------------------------------------------------------------------
-        #}\n{%- macro renderFrontPage() -%}\n  <header>\n    <h1>{{dc.qtn.name}}</h1>\n\n    <table
-        class=\"dmp-data\">\n      <tr>\n        <th>Organization</th>\n        <td>{{dc.org.name}}</td>\n      </tr>\n      {%
-        if dc.qtn.created_by %}\n      <tr>\n        <th>Created by</th>\n        <td>{{dc.qtn.created_by.first_name}}
-        {{dc.qtn.created_by.last_name}} (<a href=\"mailto:{{dc.qtn.created_by.email}}\">{{dc.qtn.created_by.email}}</a>)</td>\n      </tr>\n      {%
-        endif %}\n      <tr>\n        <th>Based on</th>\n        <td>{{dc.pkg.name}},
-        {{dc.pkg.version}} (<span class=\"package-id\"><span class=\"organization-id\">{{dc.pkg.org_id}}</span>:<span
-        class=\"km-id\">{{dc.pkg.km_id}}</span>:<span class=\"version\">{{dc.pkg.version}}</span></span>)</td>\n      </tr>\n      {%
-        for version in dc.qtn.versions if version.uuid == dc.qtn.version %}\n      <tr>\n        <th>Version</th>\n        <td>{{version.name}}
-        ({{ version.created_at|datetime_format(\"%d %b %Y %H:%M:%S\") }} UTC)</td>\n      </tr>\n      {%
-        endfor %}\n      {% if dc.current_phase %}\n      <tr>\n        <th>Project
-        Phase</th>\n        <td>{{dc.current_phase.title}}</td>\n      </tr>\n      {%
-        endif %}\n      {% if dc.qtn.project_tags|length > 0 %}\n      <tr>\n        <th>Project
-        Tags</th>\n        <td class=\"tags-row\">{% for tag in dc.qtn.project_tags
-        %}<span class=\"tag project-tag\">{{ tag }}</span> {% endfor %}</td>\n      </tr>\n      {%
-        endif %}\n      {% if dc.qtn.description %}\n      <tr>\n        <th>Description</th>\n        <td>{{
-        dc.qtn.description }}</td>\n      </tr>\n      {% endif %}\n      <tr>\n        <th>Created
-        at</th>\n        <td>{{ dc.doc.created_at|datetime_format(\"%d %b %Y\") }}</td>\n      </tr>\n    </table>\n    <p
-        class=\"tool-info\">\n      Report generated by {{ dc.config.service_name
-        }} &lt;<a href=\"{{ dc.config.service_url }}\" target=\"_blank\">{{ dc.config.service_domain_name
-        }}</a>&gt;\n      <br/>\n      <br/>\n      <img\n        src=\"{{ dc.config.logo_url
-        }}\"\n        alt=\"Logo\"\n        style=\"height: 8mm; width: auto;\"\n      />\n    </p>\n  </header>\n{%-
-        endmacro -%}\n{%- macro renderVersionsOverview() -%}\n  <div id=\"versions\">\n    <table>\n      <thead>\n        <tr>\n          <th>Version</th>\n          <th>Date</th>\n          <th>Changes</th>\n        </tr>\n      <thead>\n      <tbody>\n        {%
-        for version in dc.qtn.versions|reverse %}\n          <tr>\n            <td
-        class=\"version-name\">{{ version.name }}</td>\n            <td class=\"version-date\">{{
-        version.created_at|datetime_format(\"%d %b %Y\") }}</td>\n            <td
-        class=\"version-changes\">{{ version.description }}</td>\n          </tr>\n        {%
-        else %}\n          <tr>\n            <td colspan=\"3\" class=\"no-versions\">There
-        are no named versions</tr>\n          </tr>\n        {% endfor %}\n      </tbody>\n    </table>\n  </div>\n{%-
-        endmacro -%}\n{%- macro renderContent() -%}\n  <main>\n    <section class=\"total-report\">\n      <h2>Summary
-        Report</h2>\n      {{ renderReport(dc.report.total_report) }}\n\n      {%
-        if dc.qtn.versions|length > 0 %}\n      <h2>History of Versions</h2>\n      {{
-        renderVersionsOverview() }}\n      {% endif %}\n    </section>\n    {% for
-        chapter in dc.km.chapters %}\n      {{ renderChapter(chapter, loop.index)
-        }}\n    {% else %}\n      <p class=\"text-light\">No chapters</p>\n    {%
-        endfor %}\n  </main>\n{%- endmacro -%}\n{# ------------------------------------------------------------------------------------
-        #}\n{#  HTML TEMPLATE                                                                       #}\n{#
-        ------------------------------------------------------------------------------------
-        #}\n<html>\n  <head>\n    <title>{{ dc.config.service_name_short }} Questionnaire
-        Report: {{dc.qtn.name}}</title>\n    <meta charset=\"utf-8\">\n    <link rel=\"preconnect\"
-        href=\"https://fonts.googleapis.com\">\n    <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\"
-        crossorigin>\n    <link href=\"https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap\"
-        rel=\"stylesheet\">\n    <style>{% include \"src/default.css\" %}</style>\n  </head>\n  <body>\n    <article
-        class=\"dmp\">\n      {{ renderFrontPage() }}\n      {{ renderContent() }}\n    </article>\n  </body>\n</html>\n","createdAt":"2026-02-24T06:15:04.730415Z","documentTemplateUuid":"7e4da640-82ba-40cb-a072-288112911fba","fileName":"src/default.html.j2","tenantUuid":"00000000-0000-0000-0000-000000000000","updatedAt":"2026-02-24T06:15:04.730415Z","uuid":"6c8d0967-276e-4f9f-a71e-a2553d0ea8bd"}'
-    headers:
-      Access-Control-Allow-Credential:
-      - 'true'
-      Access-Control-Allow-Headers:
-      - Origin, X-Requested-With, Content-Type, Accept, Authorization
-      Access-Control-Allow-Methods:
-      - OPTIONS, HEAD, GET, POST, PUT, DELETE
-      Access-Control-Allow-Origin:
-      - '*'
-      Content-Type:
-      - application/json
-      Date:
-      - Tue, 24 Feb 2026 06:26:50 GMT
-      Server:
-      - Warp/3.3.31
-      Transfer-Encoding:
-      - chunked
-      x-trace-uuid:
-      - 22dbc216-7c54-4861-8026-3f09a0da15e3
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Authorization:
-      - Bearer eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE3NzE5NzQwMDAsInRlbmFudFV1aWQiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJ0b2tlblV1aWQiOiIwNzU4MzIwOS0zMWM3LTQzNDAtYTNjNS0xNjE1MjJlOTEzOTIiLCJ1c2VyVXVpZCI6ImVjNmY4ZTkwLTJhOTEtNDllYy1hYTNmLTllYWIyMjY3ZmM2NiIsInZlcnNpb24iOjR9.bw-6wNcflwtewdeueOg6gAM9O93kgb3gtXhHWNXVFnM0p_FtlRsbW-ZR_pxjh3CCtLHJ2QQmaa7fXVCC1OsVgOwgtgO5rIGhT62UU4DfL1d2oNXq5huyHCxTzgung_YEI1Eg76RulfWb5wUPhHfaBJbPYLuPh5Q56U8RD-khTQeqcLuvNLWBKYTHqe7k7X41vJw__sL1GyC60bXXYUlqLZaiPkvc5JNWxxxTL2R4lw1zlpnJxFHhLq8TWPDehtBuYADWyxDdS3s-4Vr_axSuenE7ZCHU-AFF4Vr1mS-w_Kx69s_wpsgRxtZh3s5yIAQ45tikMXR5cijEEuJYO7VorTjclQvbh-Sk29Y7r8lZ2scZp8z8Zf8kiLpPKnJpItpKZLmjLYOJZRCBX6EW3fN92sbsOq3yPxFchl6DB-cmmGs9EoLvWLimNm8rqpO5pXyGiATah6R0fFRTNtfRcfhfkAIr_X6e3PVtnpOCFtACpUzHnl0p7tYbF-OvhdgAUVZCOZjnFQ5z5EFZjEKbaImqUZJQMz5J8wwsP-N7j8GHjrR5fHgotu-5Ps8WAm2ibYrM15MReorfhWUQmeh7wvNoJ4lj9mFByb0qgTwNgnnLpfFGbglZhyB1jvTiB4TxFoCsaEuyVOBQVAKS9_ufT5wymBcL_fa3PGeDTzPGjA1pv_Q
-      User-Agent:
-      - dsw-tdk/4.27.0
-    method: GET
-    uri: http://localhost:3000/wizard-api/document-template-drafts/7e4da640-82ba-40cb-a072-288112911fba/files/67f69cc2-0c3a-4557-84b7-aade39de4b26
-  response:
-    body:
-      string: '{"content":"/* General styles */\n@page {\n  size: A4;\n\n  @bottom-left
-        {\n    border-top: 1px solid black;\n    content: '''';\n    display: block;\n    width:
-        100%;\n    padding-top: 1rem;\n    vertical-align: top;\n    font-family:
-        \"Open Sans\", sans-serif;\n    font-size: 10pt;\n  }\n  @bottom-center {\n    border-top:
-        1px solid black;\n    content: '''';\n    display: block;\n    width: 100%;\n    padding-top:
-        1rem;\n    vertical-align: top;\n    font-family: \"Open Sans\", sans-serif;\n    font-size:
-        10pt;\n  }\n  @bottom-center {\n    border-top: 1px solid black;\n    content:
-        counter(page) \" / \" counter(pages);\n    display: block;\n    width: 100%;\n    padding-top:
-        1rem;\n    vertical-align: top;\n    font-family: \"Open Sans\", sans-serif;\n    font-size:
-        10pt;\n  }\n}\n@page :blank {\n  @top-center { content: none }\n  @bottom-left
-        { content: none }\n  @bottom-center { content: none }\n  @bottom-right { content:
-        none }\n}\n@page :first {\n  @top-center { content: none }\n  @bottom-left
-        { content: none }\n  @bottom-center { content: none }\n  @bottom-right { content:
-        none }\n}\n\nh1, h2, h3, h4, h5, h6 {\n  page-break-inside: avoid !important;\n  page-break-after:
-        avoid !important;\n}\n\nbody {\n  max-width: 21cm;\n  margin: auto;\n  font-family:
-        \"Open Sans\", sans-serif;\n  font-size: 10pt;\n  line-height: 1.5;\n}\n\nh1
-        {\n  font-size: 22pt;\n}\n\nh1, h2, h3, h4, h5, h6 {\n  color: #333;\n}\n\na
-        {\n  color: #049;\n}\n\n.text-light {\n  color: #868e96!important;\n}\n\n.text-muted
-        {\n  color: #AEA79F!important;\n}\n\ntable {\n  width: 100%;\n}\n\n\n/* Front
-        page */\n\nheader {\n  height: 25cm;\n  position: relative;\n}\n\nheader h1
-        {\n  padding: 7rem 0 4rem 0;\n}\n\nheader .dmp-data {\n  margin-top: 5rem;\n  width:
-        100%;\n}\n\nheader .dmp-data td, header .dmp-data th {\n  text-align: left;\n  padding:
-        0.5rem 0;\n}\n\nheader .dmp-data th {\n  min-width: 9em;\n}\n\nheader .dmp-data
-        .project-tag {\n  background-color: #6c757d;\n  margin-bottom: 0.25rem;\n}\n\nheader
-        .tool-info {\n  text-align: center;\n  margin: 0;\n  padding-top: 2rem;\n  color:
-        #868e96;\n  position: absolute;\n  bottom: 0;\n  width: 100%;\n}\n\nheader
-        .tool-info svg {\n  height: 3rem;\n  display: block;\n  margin: auto;\n}\n\n\n/*
-        Total report section */\n\n.total-report {\n  page-break-after: always;\n}\n\n/*
-        Metrics and indications report */\n\n.report {\n  margin-top: 1rem;\n  margin-bottom:
-        3rem;\n  background: #eee;\n  border-radius: .5rem;\n  padding: 1rem;\n}\n\n.report
-        h3 {\n  margin-top: 0;\n}\n\n.report table {\n  border-spacing: 0 .5rem;\n}\n\n.report
-        .metrics {\n  margin-top: 1rem;\n}\n\n.report .metrics table th {\n  text-align:
-        left;\n  padding: 0;\n}\n\n.report .table-label {\n  width: 40%;\n}\n\n.report
-        .progress-cell {\n  width: 50%;\n}\n\n.report .progress {\n  position: relative;\n  height:
-        .75rem;\n  background: #ddd;\n  border-radius: .25rem;\n}\n\n.report .progress-fill
-        {\n  position: absolute;\n  left: 0;\n  height: 100%;\n  background: #17a2b8;\n  border-radius:
-        .25rem;\n}\n\n.report .progress-fill.bg-value-100 {\n  background:#28a745;\n}\n\n.report
-        .progress-fill.bg-value-90 {\n  background:#53ac39;\n}\n\n.report .progress-fill.bg-value-80
-        {\n  background:#7eb12c;\n}\n\n.report .progress-fill.bg-value-70 {\n  background:#a9b720;\n}\n\n.report
-        .progress-fill.bg-value-60 {\n  background:#d4bc13;\n}\n\n.report .progress-fill.bg-value-50
-        {\n  background:#ffc107;\n}\n\n.report .progress-fill.bg-value-40 {\n  background:#f8a513;\n}\n  \n.report
-        .progress-fill.bg-value-30 {\n  background:#f18920;\n}\n\n.report .progress-fill.bg-value-20
-        {\n  background:#ea6d2c;\n}\n\n.report .progress-fill.bg-value-10 {\n  background:#e35139;\n}\n\n.report
-        .progress-fill.bg-value-0 {\n  background:#dc3545;\n}\n\n\n/* Chapter */\n\n.chapter
-        {\n  page-break-before: always;\n  margin-bottom: 5rem;\n}\n\n\n/* Question
-        */\n\n.question:not(:last-child) {\n  padding-bottom: 3rem;\n}\n\n.answer-item:not(:last-child)
-        {\n  margin-bottom: 3rem;\n}\n\n.question, .answer-item {\n  border-left:
-        5px solid #eee;\n  padding-left: 1rem\n}\n\n.followups {\n  margin-top: 2rem;\n}\n\n.answer-item
-        > .followups > .question, .questions > .question {\n  border: none;\n  padding-left:
-        0;\n}\n\n.question-header h4 {\n  margin-top: 0;\n  margin-bottom: 0.5rem;\n  font-weight:
-        bold;\n  background: #eee;\n  padding: 1rem;\n  border-radius: 0.5rem;\n}\n\n.question
-        .title .human-identifier {\n  display: block;\n  margin-bottom: 0.25rem;\n  font-size:
-        8pt;\n}\n\n.question .question-header {\n  page-break-inside: avoid;\n}\n\n.question
-        .tag,\n.dmp-data .tag {\n  padding: .125rem 0.5rem;\n  color: #fff;\n  font-size:
-        8pt;\n  font-weight: bold;\n  border-radius: 0.25rem;\n  margin-right: 0.25rem;\n}\n\n.question
-        .text {\n  margin-top: 0;\n  margin-bottom: 0.75rem;\n  color: #6c757d;\n  page-break-inside:
-        avoid !important;\n}\n\n.question > .extra-data {\n  margin-bottom: 0.75rem;\n  color:
-        #6c757d;\n}\n\n.question b {\n  font-weight: normal;\n}\n\n.advice {\n  background:
-        #d1ecf1;\n  padding: 1rem;\n  border-radius: 0.5rem;\n  color: #0c5460;\n  margin:
-        1rem 0;\n}\n\n.advice > *:first-child {\n  margin-top: 0;\n}\n\n.advice >
-        *:last-child {\n  margin-bottom: 0;\n}\n\n\n/* Experts and references */\n.experts,
-        .references {\n  color: #868e96;\n  line-height: 1.5;\n}\n\n.experts b, .reference
-        b,\n.experts a, .reference a {\n  vertical-align: middle;\n}\n\n.experts svg,
-        .references svg {\n  width: 13px;\n  height: 14px;\n  margin-right: 7px;\n  vertical-align:
-        middle;\n  color: #495057;\n}\n\n.expert::after, .reference::after {\n  content:
-        \",\";\n}\n\n.expert:last-of-type::after, .reference:last-of-type::after {\n  content:
-        \" \";\n}\n\n\n/* Answers */\n\n.choices-list {\n  list-style-type: none;\n}\n\n.choices-list
-        .choice {\n  display: flex;\n  align-items: center;\n}\n\n.choices-list .choice.choice-unselected
-        {\n  color: gray;\n}\n\n.answer p, .no-answer p {\n  margin: 0;\n}\n\n.answer-block
-        .answer span {\n  vertical-align: middle;\n}\n\n.answer-block .answer svg,\n.no-answer
-        svg,\n.choice svg {\n  height: 20px;\n  width: 20px;\n  margin-right: 0.3rem;\n  vertical-align:
-        middle;\n}\n\n.no-answer {\n  font-style: italic;\n}\n\n.no-answer span {\n  vertical-align:
-        middle;\n}\n\n.question.required .no-answer {\n  color: #D0021B;\n}\n\n.integration-link
-        {\n  display: flex;\n  align-items: center;\n}\n\n.integration-link img {\n  max-height:
-        2rem;\n  margin-right: .5rem;\n}\n\n.metrics > p {\n  font-style: italic;\n  margin-top:
-        0;\n}\n\n\n/* Versions */\ndiv#versions table {\n  width: 100%;\n  border-collapse:
-        collapse;\n}\n\ndiv#versions table,\ndiv#versions td,\ndiv#versions th {\n  border:
-        1px solid #868e96;\n}\n\ndiv#versions td,\ndiv#versions th {\n  padding: 0.2em;\n}\n\ndiv#versions
-        th.title {\n  text-transform: uppercase;\n}\n\ndiv#versions td.version-name
-        {\n  text-align: center;\n  word-wrap: break-word;\n}\n\ndiv#versions td.version-date
-        {\n  text-align: center;\n  width: 18ex;\n}\n\ndiv#versions td.version-changes
-        {\n  word-wrap: break-word;\n}\n\ndiv#versions td.no-versions {\n  font-style:
-        italic;\n  padding: 1em;\n  text-align: center;\n}\n\n/* Resource collections
-        and pages */\n.resource-collection {\n  margin-left: .5rem;\n}\n.resource-page
-        {\n  margin-left: .5rem;\n}\n.resource-page-content {\n  margin-top: 1rem;\n  margin-bottom:
-        3rem;\n  background: #eee;\n  border-radius: .5rem;\n  padding: 1rem;\n}\n.resource-page-content-book-ack
-        {\n  display: flex; /* Use flexbox for layout */\n  flex-wrap: wrap; /* Allow
-        items to wrap onto a new line */\n  align-items: center; /* Center items vertically
-        */\n}\n.resource-page-content img{\n  max-width: 100%;\n}\n.resource-page-content-book-ack
-        img{\n  max-width: 100%;\n  vertical-align: middle;\n  margin-right: 0.5rem;\n}","createdAt":"2026-02-24T06:15:04.732945Z","documentTemplateUuid":"7e4da640-82ba-40cb-a072-288112911fba","fileName":"src/default.css","tenantUuid":"00000000-0000-0000-0000-000000000000","updatedAt":"2026-02-24T06:15:04.732945Z","uuid":"67f69cc2-0c3a-4557-84b7-aade39de4b26"}'
-    headers:
-      Access-Control-Allow-Credential:
-      - 'true'
-      Access-Control-Allow-Headers:
-      - Origin, X-Requested-With, Content-Type, Accept, Authorization
-      Access-Control-Allow-Methods:
-      - OPTIONS, HEAD, GET, POST, PUT, DELETE
-      Access-Control-Allow-Origin:
-      - '*'
-      Content-Type:
-      - application/json
-      Date:
-      - Tue, 24 Feb 2026 06:26:50 GMT
-      Server:
-      - Warp/3.3.31
-      Transfer-Encoding:
-      - chunked
-      x-trace-uuid:
-      - 380b77de-4037-47c0-8d65-d6aeab899e3e
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Authorization:
-      - Bearer eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE3NzE5NzQwMDAsInRlbmFudFV1aWQiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJ0b2tlblV1aWQiOiIwNzU4MzIwOS0zMWM3LTQzNDAtYTNjNS0xNjE1MjJlOTEzOTIiLCJ1c2VyVXVpZCI6ImVjNmY4ZTkwLTJhOTEtNDllYy1hYTNmLTllYWIyMjY3ZmM2NiIsInZlcnNpb24iOjR9.bw-6wNcflwtewdeueOg6gAM9O93kgb3gtXhHWNXVFnM0p_FtlRsbW-ZR_pxjh3CCtLHJ2QQmaa7fXVCC1OsVgOwgtgO5rIGhT62UU4DfL1d2oNXq5huyHCxTzgung_YEI1Eg76RulfWb5wUPhHfaBJbPYLuPh5Q56U8RD-khTQeqcLuvNLWBKYTHqe7k7X41vJw__sL1GyC60bXXYUlqLZaiPkvc5JNWxxxTL2R4lw1zlpnJxFHhLq8TWPDehtBuYADWyxDdS3s-4Vr_axSuenE7ZCHU-AFF4Vr1mS-w_Kx69s_wpsgRxtZh3s5yIAQ45tikMXR5cijEEuJYO7VorTjclQvbh-Sk29Y7r8lZ2scZp8z8Zf8kiLpPKnJpItpKZLmjLYOJZRCBX6EW3fN92sbsOq3yPxFchl6DB-cmmGs9EoLvWLimNm8rqpO5pXyGiATah6R0fFRTNtfRcfhfkAIr_X6e3PVtnpOCFtACpUzHnl0p7tYbF-OvhdgAUVZCOZjnFQ5z5EFZjEKbaImqUZJQMz5J8wwsP-N7j8GHjrR5fHgotu-5Ps8WAm2ibYrM15MReorfhWUQmeh7wvNoJ4lj9mFByb0qgTwNgnnLpfFGbglZhyB1jvTiB4TxFoCsaEuyVOBQVAKS9_ufT5wymBcL_fa3PGeDTzPGjA1pv_Q
-      User-Agent:
-      - dsw-tdk/4.27.0
-    method: GET
-    uri: http://localhost:3000/wizard-api/document-template-drafts/7e4da640-82ba-40cb-a072-288112911fba/assets
-  response:
-    body:
-      string: '[{"contentType":"application/vnd.openxmlformats-officedocument.wordprocessingml.document","createdAt":"2026-02-24T06:15:04.708667Z","fileName":"src/reference.docx","fileSize":43902,"updatedAt":"2026-02-24T06:15:04.708667Z","url":"http://host.docker.internal:9000/engine-wizard/templates/7e4da640-82ba-40cb-a072-288112911fba/1d799b3b-2895-40bc-a4d4-dc08d96594ba?X-Amz-Signature=6ab650fd7f2ce54af1c296f3d5017f3802f610adcd14c2f10d74461c93bc5683&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=minio%2F20260224%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260224T062651Z&X-Amz-Expires=60&X-Amz-SignedHeaders=host","urlExpiration":"2026-02-24T06:27:51.010667304Z","uuid":"1d799b3b-2895-40bc-a4d4-dc08d96594ba"}]'
-    headers:
-      Access-Control-Allow-Credential:
-      - 'true'
-      Access-Control-Allow-Headers:
-      - Origin, X-Requested-With, Content-Type, Accept, Authorization
-      Access-Control-Allow-Methods:
-      - OPTIONS, HEAD, GET, POST, PUT, DELETE
-      Access-Control-Allow-Origin:
-      - '*'
-      Content-Type:
-      - application/json
-      Date:
-      - Tue, 24 Feb 2026 06:26:50 GMT
-      Server:
-      - Warp/3.3.31
-      Transfer-Encoding:
-      - chunked
-      x-trace-uuid:
-      - 39161bec-6b1f-4b0a-b97d-358df6250e6c
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Authorization:
-      - Bearer eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE3NzE5NzQwMDAsInRlbmFudFV1aWQiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJ0b2tlblV1aWQiOiIwNzU4MzIwOS0zMWM3LTQzNDAtYTNjNS0xNjE1MjJlOTEzOTIiLCJ1c2VyVXVpZCI6ImVjNmY4ZTkwLTJhOTEtNDllYy1hYTNmLTllYWIyMjY3ZmM2NiIsInZlcnNpb24iOjR9.bw-6wNcflwtewdeueOg6gAM9O93kgb3gtXhHWNXVFnM0p_FtlRsbW-ZR_pxjh3CCtLHJ2QQmaa7fXVCC1OsVgOwgtgO5rIGhT62UU4DfL1d2oNXq5huyHCxTzgung_YEI1Eg76RulfWb5wUPhHfaBJbPYLuPh5Q56U8RD-khTQeqcLuvNLWBKYTHqe7k7X41vJw__sL1GyC60bXXYUlqLZaiPkvc5JNWxxxTL2R4lw1zlpnJxFHhLq8TWPDehtBuYADWyxDdS3s-4Vr_axSuenE7ZCHU-AFF4Vr1mS-w_Kx69s_wpsgRxtZh3s5yIAQ45tikMXR5cijEEuJYO7VorTjclQvbh-Sk29Y7r8lZ2scZp8z8Zf8kiLpPKnJpItpKZLmjLYOJZRCBX6EW3fN92sbsOq3yPxFchl6DB-cmmGs9EoLvWLimNm8rqpO5pXyGiATah6R0fFRTNtfRcfhfkAIr_X6e3PVtnpOCFtACpUzHnl0p7tYbF-OvhdgAUVZCOZjnFQ5z5EFZjEKbaImqUZJQMz5J8wwsP-N7j8GHjrR5fHgotu-5Ps8WAm2ibYrM15MReorfhWUQmeh7wvNoJ4lj9mFByb0qgTwNgnnLpfFGbglZhyB1jvTiB4TxFoCsaEuyVOBQVAKS9_ufT5wymBcL_fa3PGeDTzPGjA1pv_Q
-      User-Agent:
-      - dsw-tdk/4.27.0
-    method: GET
-    uri: http://localhost:3000/wizard-api/document-template-drafts/7e4da640-82ba-40cb-a072-288112911fba/assets/1d799b3b-2895-40bc-a4d4-dc08d96594ba
-  response:
-    body:
-      string: '{"contentType":"application/vnd.openxmlformats-officedocument.wordprocessingml.document","createdAt":"2026-02-24T06:15:04.708667Z","fileName":"src/reference.docx","fileSize":43902,"updatedAt":"2026-02-24T06:15:04.708667Z","url":"http://host.docker.internal:9000/engine-wizard/templates/7e4da640-82ba-40cb-a072-288112911fba/1d799b3b-2895-40bc-a4d4-dc08d96594ba?X-Amz-Signature=6ab650fd7f2ce54af1c296f3d5017f3802f610adcd14c2f10d74461c93bc5683&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=minio%2F20260224%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260224T062651Z&X-Amz-Expires=60&X-Amz-SignedHeaders=host","urlExpiration":"2026-02-24T06:27:51.013983637Z","uuid":"1d799b3b-2895-40bc-a4d4-dc08d96594ba"}'
-    headers:
-      Access-Control-Allow-Credential:
-      - 'true'
-      Access-Control-Allow-Headers:
-      - Origin, X-Requested-With, Content-Type, Accept, Authorization
-      Access-Control-Allow-Methods:
-      - OPTIONS, HEAD, GET, POST, PUT, DELETE
-      Access-Control-Allow-Origin:
-      - '*'
-      Content-Type:
-      - application/json
-      Date:
-      - Tue, 24 Feb 2026 06:26:50 GMT
-      Server:
-      - Warp/3.3.31
-      Transfer-Encoding:
-      - chunked
-      x-trace-uuid:
-      - 4b61d3bf-33c9-4a0f-aa2a-94802d5dcdf3
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Authorization:
-      - Bearer eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE3NzE5NzQwMDAsInRlbmFudFV1aWQiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJ0b2tlblV1aWQiOiIwNzU4MzIwOS0zMWM3LTQzNDAtYTNjNS0xNjE1MjJlOTEzOTIiLCJ1c2VyVXVpZCI6ImVjNmY4ZTkwLTJhOTEtNDllYy1hYTNmLTllYWIyMjY3ZmM2NiIsInZlcnNpb24iOjR9.bw-6wNcflwtewdeueOg6gAM9O93kgb3gtXhHWNXVFnM0p_FtlRsbW-ZR_pxjh3CCtLHJ2QQmaa7fXVCC1OsVgOwgtgO5rIGhT62UU4DfL1d2oNXq5huyHCxTzgung_YEI1Eg76RulfWb5wUPhHfaBJbPYLuPh5Q56U8RD-khTQeqcLuvNLWBKYTHqe7k7X41vJw__sL1GyC60bXXYUlqLZaiPkvc5JNWxxxTL2R4lw1zlpnJxFHhLq8TWPDehtBuYADWyxDdS3s-4Vr_axSuenE7ZCHU-AFF4Vr1mS-w_Kx69s_wpsgRxtZh3s5yIAQ45tikMXR5cijEEuJYO7VorTjclQvbh-Sk29Y7r8lZ2scZp8z8Zf8kiLpPKnJpItpKZLmjLYOJZRCBX6EW3fN92sbsOq3yPxFchl6DB-cmmGs9EoLvWLimNm8rqpO5pXyGiATah6R0fFRTNtfRcfhfkAIr_X6e3PVtnpOCFtACpUzHnl0p7tYbF-OvhdgAUVZCOZjnFQ5z5EFZjEKbaImqUZJQMz5J8wwsP-N7j8GHjrR5fHgotu-5Ps8WAm2ibYrM15MReorfhWUQmeh7wvNoJ4lj9mFByb0qgTwNgnnLpfFGbglZhyB1jvTiB4TxFoCsaEuyVOBQVAKS9_ufT5wymBcL_fa3PGeDTzPGjA1pv_Q
-      User-Agent:
-      - dsw-tdk/4.27.0
-    method: GET
-    uri: http://localhost:3000/wizard-api/document-template-drafts/7e4da640-82ba-40cb-a072-288112911fba/assets/1d799b3b-2895-40bc-a4d4-dc08d96594ba/content
-  response:
-    body:
-      string: !!binary |
-        UEsDBBQABgAIAAAAIQCpovyqyQEAAPoKAAATAAgCW0NvbnRlbnRfVHlwZXNdLnhtbCCiBAIooAAC
-        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADM
-        lk1v2zAMhu8D9h8MXYdYaQ/DMMTpYWuPXYF1wK6KRCfC9AWRaZt/PzpOtGFL62Cp114M2CTf9xFl
-        CZxdPHhX3UFGG0MjzuqpqCDoaGxYNuLb7dXkg6iQVDDKxQCN2ACKi/nbN7PbTQKsuDpgI1ZE6aOU
-        qFfgFdYxQeBIG7NXxK95KZPSP9QS5Pl0+l7qGAgCTajTEPPZZ2jV2lF1+cCfe5IMDkX1qU/svBqh
-        UnJWK+K4vAvmD5fJzqHmym0OrmzCd5wg5EGHLvK4wa7uC7cmWwPVjcp0rTxnyfuYjTRRrz1X1k/L
-        HOCMbWs1lPpOLeWoAZF77l1dIl7ZsOc/xKHXSNF/905aAn+TY8Kzk3GKaKcHmSyUHj7ai7D2C8hM
-        //zNKNKDEEgbB/j8BL3usD0QccEYADvlQYR7WHwdjeI38UGQNkYKkcbYjSI9CAHBjMSwVx5EWIEy
-        kE8/k38R9MJH7cMo/r3wEf7spxYOxiDYSQ9CLF1EVHnzP27svdfxUC98a/3iePnrq7C8mnusEL2K
-        H5l4toL+efqR3so8ZcmZ24mCZ7X8D8veD2Nd9SQdNUoUR5Y+eX3QzXkGzAFvuZ1c5z8BAAD//wMA
-        UEsDBBQABgAIAAAAIQAekRq37wAAAE4CAAALAAgCX3JlbHMvLnJlbHMgogQCKKAAAgAAAAAAAAAA
-        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAArJLBasMwDEDv
-        g/2D0b1R2sEYo04vY9DbGNkHCFtJTBPb2GrX/v082NgCXelhR8vS05PQenOcRnXglF3wGpZVDYq9
-        Cdb5XsNb+7x4AJWFvKUxeNZw4gyb5vZm/cojSSnKg4tZFYrPGgaR+IiYzcAT5SpE9uWnC2kiKc/U
-        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
-        RmYrEDZw33hsBZ4EenB+Hn0ysJ3m2xtOAaGvO1qEUzehr1tCrZrhGBpjqGhuwlD13IShMroJKD2d
-        GLywbhRaYTfKT2poM6zU/kZ1E7BSQ4KX1ADjLzVEeUsNUX5Sw4ERKzUkYKX2H5zdBC+pAcZfaojy
-        lhqi/KSGUxlWakjASg0JWKlHTshOjL/UEOUtNUT5SQ0Xd1ipIQErNSRgpYYEL6kBxl9qiPKWGqL8
-        pAZZMlpqSMBKDQlYqSHBS2qA8Zcaorylhqg+qc1ZlJbUKIWtcNwizArETchWIG5wtgI9siUr2jNb
-        sgie2RLUqtEcly3ZorkJQ9VzE4bK6Cag9HRi8MK6UWiF3Sg/qXHZUpfU/kZ1E7BS47Ilp9S4bKlX
-        aly21Cs1LltyS43LlrqkxmVLXVL7D85ugpfUuGypV2pcttQrNS5bckuNy5a6pMZlS11S47KlLqlH
-        TshOjL/UuGypV2pctuSWGpctdUmNy5a6pMZlS11S47Ilp9S4bKlXaly21Cs1LltyS43LlrqkxmVL
-        XVLjsqUuqXHZklNqXLbUKzUuW+qVGpct3agQQfCdUIuEZUVA9wVyVyxfF2z8txV+TzOey/gXjwLa
-        qn5G1XL60Po9LM02Py+o9i9Um+mvRLceV4qqr4StgWbH62j7u1U6WJckqH8hrN5sClxfrjWvs1zl
-        1PU+BwcXJyezWd0Tnv8CWpifTe5EwvPgC38IvsmEpdWOu58rmx2d1k63f7Cs2Wr98pgpLaxfuFYV
-        DOtv0HLUr/4m3O2TW+Z7cJ/X1vF1uaZou17f7F3ruBOp2q8lUVV+R7kL7bKeMhsX9gpTGdVVwLf1
-        yLOvhKo8y7iSTb24TrWyD/WPllUljR5ZhVKfX/I4vmHV3nLj3jXmq6L69PDAfHHCs8+X1XcAOuMz
-        Mzc4AdN2Yaq3/f2k+lWA+qYFpw/0ANjR3OYOmrEtPbAPb0tjPe9tHvd+XizwPHjVskwd7aseVOxe
-        3e76XcXda+pQTwfNHm8O9L9uhzav8vf/AwAA//8DAFBLAwQUAAYACAAAACEAJt76SG8BAAAtBAAA
-        HQAAAHdvcmQvZ2xvc3Nhcnkvd2ViU2V0dGluZ3MueG1snNPdbsIgFADg+yV7h4Z7pTo1S2M1WRaX
-        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
-        AAAAAAAAkVsAAHdvcmQvdGhlbWUvdGhlbWUxLnhtbFBLAQItABQABgAIAAAAIQCWLGJnrgUAANsP
-        AAARAAAAAAAAAAAAAAAAABdiAAB3b3JkL3NldHRpbmdzLnhtbFBLAQItABQABgAIAAAAIQBcqp9z
-        VAMAAIMMAAAaAAAAAAAAAAAAAAAAAPRnAAB3b3JkL2dsb3NzYXJ5L2RvY3VtZW50LnhtbFBLAQIt
-        ABQABgAIAAAAIQAAlhdx3QMAAOoLAAAaAAAAAAAAAAAAAAAAAIBrAAB3b3JkL2dsb3NzYXJ5L3Nl
-        dHRpbmdzLnhtbFBLAQItABQABgAIAAAAIQCD0LXl5gAAAK0CAAAlAAAAAAAAAAAAAAAAAJVvAAB3
-        b3JkL2dsb3NzYXJ5L19yZWxzL2RvY3VtZW50LnhtbC5yZWxzUEsBAi0AFAAGAAgAAAAhAMtQ0BIv
-        EQAAAKwAAA8AAAAAAAAAAAAAAAAAvnAAAHdvcmQvc3R5bGVzLnhtbFBLAQItABQABgAIAAAAIQAu
-        91C5agEAACQEAAAUAAAAAAAAAAAAAAAAABqCAAB3b3JkL3dlYlNldHRpbmdzLnhtbFBLAQItABQA
-        BgAIAAAAIQDsM3pYeAIAAD0JAAASAAAAAAAAAAAAAAAAALaDAAB3b3JkL2ZvbnRUYWJsZS54bWxQ
-        SwECLQAUAAYACAAAACEAEGtP6A0MAAAldQAAGAAAAAAAAAAAAAAAAABehgAAd29yZC9nbG9zc2Fy
-        eS9zdHlsZXMueG1sUEsBAi0AFAAGAAgAAAAhACbe+khvAQAALQQAAB0AAAAAAAAAAAAAAAAAoZIA
-        AHdvcmQvZ2xvc3Nhcnkvd2ViU2V0dGluZ3MueG1sUEsBAi0AFAAGAAgAAAAhADdN/CuhAgAAVQsA
-        ABsAAAAAAAAAAAAAAAAAS5QAAHdvcmQvZ2xvc3NhcnkvZm9udFRhYmxlLnhtbFBLAQItABQABgAI
-        AAAAIQD5lthFeQEAAMACAAARAAAAAAAAAAAAAAAAACWXAABkb2NQcm9wcy9jb3JlLnhtbFBLAQIt
-        ABQABgAIAAAAIQDnh7ICBQIAAHwEAAAQAAAAAAAAAAAAAAAAANWZAABkb2NQcm9wcy9hcHAueG1s
-        UEsBAi0AFAAGAAgAAAAhABqYjSDiAAAAVQEAABgAAAAAAAAAAAAAAAAAEJ0AAGN1c3RvbVhtbC9p
-        dGVtUHJvcHMxLnhtbFBLAQItABQABgAIAAAAIQDBJ8sItgAAACEBAAATAAAAAAAAAAAAAAAAAFCe
-        AABjdXN0b21YbWwvaXRlbTEueG1sUEsBAi0AFAAGAAgAAAAhAHQ/OXrCAAAAKAEAAB4AAAAAAAAA
-        AAAAAAAAX58AAGN1c3RvbVhtbC9fcmVscy9pdGVtMS54bWwucmVsc1BLAQItABQABgAIAAAAIQCW
-        PFx8RwMAAJcQAAASAAAAAAAAAAAAAAAAAGWhAAB3b3JkL251bWJlcmluZy54bWxQSwUGAAAAABkA
-        GQCMBgAA3KQAAAAA
-    headers:
-      Access-Control-Allow-Credential:
-      - 'true'
-      Access-Control-Allow-Headers:
-      - Origin, X-Requested-With, Content-Type, Accept, Authorization
-      Access-Control-Allow-Methods:
-      - OPTIONS, HEAD, GET, POST, PUT, DELETE
-      Access-Control-Allow-Origin:
-      - '*'
-      Content-Type:
-      - application/vnd.openxmlformats-officedocument.wordprocessingml.document
-      Date:
-      - Tue, 24 Feb 2026 06:26:50 GMT
-      Server:
-      - Warp/3.3.31
-      Transfer-Encoding:
-      - chunked
-      x-trace-uuid:
-      - 2bc4c28b-3286-4506-a70d-a0111cb71c3e
+      - 030d1e70-451f-4fcd-ac36-021371199bfb
     status:
       code: 200
       message: OK

@@ -102,10 +102,12 @@ The `service*` values are always set; the `default*` ones apply only where the c
 
 You can use the following environment variables to avoid repeating CLI options.
 
-- `DSW_API_URL` = URL of DSW API you want to use, e.g., https://api.demo.ds-wizard.org (notice that it is **not** the URL of client, you can find it out by clicking Help > About in DSW)
+- `DSW_API_URL` = URL of the API you want to use; since Wizard 5.0 it is the address of the instance followed by `/api`, e.g., `https://my.fair-wizard.com/api` (not the address of the client itself)
     - Used when `--api-url` not specified
 - `DSW_API_KEY` = API Key of the user authorized to manage document templates
     - Used when `--api-key` not specified
+- `DSW_WORKSPACE` = UUID of the workspace `put` creates a new draft in; without it the draft is created for the whole organization (in a multi-workspace instance)
+    - Used when `--workspace` not specified
   
  You can also use them in `.env` file which is automatically loaded from current directory or specify it using `--dot-env` option:
  

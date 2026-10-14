@@ -404,10 +404,13 @@ def get_template(ctx, template_id, template_dir, api_url, api_key, force):
               help='Delete template if already exists.')
 @click.option('-w', '--watch', is_flag=True,
               help='Enter watch mode to continually upload changes.')
+@click.option('--workspace', metavar='UUID', envvar='DSW_WORKSPACE',
+              help='Create a new draft in this workspace (default: for the whole organization).')
 @click.pass_context
-def put_template(ctx, template_dir, api_url, api_key, force, watch):
+def put_template(ctx, template_dir, api_url, api_key, force, watch, workspace):
     ensure_api_config(api_url, api_key)
     tdk = TDKCore(logger=ctx.obj.logger)
+    tdk.remote_workspace_uuid = workspace
     stop_event = asyncio.Event()
 
     async def watch_callback(changes):

@@ -84,7 +84,7 @@ def test_package_matches_document_template_bundle(fixtures_path, tmp_path):
     assert descriptor['id'] == 'test.example01'
     assert 'organizationId' not in descriptor
     assert bundle.reference == 'test.example01:1.0.0'
-    assert bundle.metamodel_version == '17.1'
+    assert bundle.metamodel_version == '19.0'
     assert [f.file_name for f in bundle.files] == [f['fileName'] for f in descriptor['files']]
 
 
