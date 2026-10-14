@@ -213,7 +213,7 @@ class Job:
                     project_uuid=self.safe_doc.project_uuid,
                     tenant_uuid=self.tenant_uuid,
                 )
-                extras['questionnaire'] = questionnaire.to_dict()
+                extras['questionnaire'] = None if questionnaire is None else questionnaire.to_dict()
         if self.safe_format.requires_via_extras('project'):
             if self.safe_doc.project_uuid is None:
                 extras['project'] = None
@@ -222,7 +222,7 @@ class Job:
                     project_uuid=self.safe_doc.project_uuid,
                     tenant_uuid=self.tenant_uuid,
                 )
-                extras['project'] = project.to_dict()
+                extras['project'] = None if project is None else project.to_dict()
         self.doc_context['extras'] = extras
         self._enrich_context_config()
 

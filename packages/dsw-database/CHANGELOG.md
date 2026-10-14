@@ -14,6 +14,24 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Changed
 
 - Read the `project` table column `knowledge_model_package_uuid` (renamed in the backend)
+- Wizard 5.0 schema: `document` drops `project_replies_hash` and gains `context_hash`,
+  `knowledge_model_editor_uuid` and `workspace_uuid`; `document_template` has the single `id`
+  (instead of `organization_id` + `template_id`, `coordinates` is `<id>:<version>`), the
+  `{id, minVersion, maxVersion}` package patterns and `workspace_uuid`, and its
+  `metamodel_version` is read as `"major.minor"`; `project` gains `workspace_uuid`
+- `fetch_tenant_limits` returns `None` (no limit) when there is no `tenant_limit_bundle` table,
+  as in FAIR Wizard 5.0, which computes limits from tenant plans
+- `fetch_project_simple` returns `None` for a missing project
+
+### Fixed
+
+- Every query attempt runs in its own savepoint: a failed query no longer leaves the transaction
+  aborted, so retries can succeed, the job's transaction and command lock survive, and the
+  original error is reported instead of `InFailedSqlTransaction`
+- `DocumentTemplatePhase` values match the backend and `is_draft` / `is_released` /
+  `is_deprecated` compare them correctly (they were always false)
+- Nullable references (`created_by`, a project's `format_uuid` and `document_template_uuid`) are
+  `None` instead of the string `'None'`
 
 
 ## [4.34.0]

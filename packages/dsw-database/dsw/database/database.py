@@ -1,12 +1,15 @@
 from __future__ import annotations
 
+import contextlib
 import datetime
+import functools
 import logging
 import typing
 
 import psycopg
 import psycopg.conninfo
 import psycopg.rows
+import psycopg.sql
 import psycopg.types.json
 import tenacity
 
@@ -28,6 +31,19 @@ RETRY_CONNECT_TRIES = 10
 
 def wrap_json_data(data: dict):
     return psycopg.types.json.Json(data)
+
+
+def _in_savepoint[**P, R](method: typing.Callable[P, R]) -> typing.Callable[P, R]:
+    """Run one attempt of a query method in its own savepoint (see PostgresConnection.savepoint).
+
+    Applied below the retry decorator, so each retry starts from a usable transaction.
+    """
+    @functools.wraps(method)
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
+        database = typing.cast('Database', args[0])
+        with database.conn_query.savepoint():
+            return method(*args, **kwargs)
+    return wrapper
 
 
 class Database:
@@ -126,6 +142,7 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
+    @_in_savepoint
     def _check_table_exists(self, table_name: str) -> bool:
         with self.conn_query.new_cursor() as cursor:
             try:
@@ -134,7 +151,7 @@ class Database:
                     params={'table_name': table_name},
                 )
                 return cursor.fetchone()[0]
-            except Exception:
+            except psycopg.Error:
                 return False
 
     @tenacity.retry(
@@ -144,6 +161,7 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
+    @_in_savepoint
     def fetch_document(self, document_uuid: str, tenant_uuid: str) -> model.DBDocument | None:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
@@ -162,7 +180,12 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
+    @_in_savepoint
     def fetch_tenant_limits(self, tenant_uuid: str) -> model.DBTenantLimits | None:
+        # FAIR Wizard 5.0 computes limits from tenant plans and has no such table;
+        # the backend enforces them, so the worker has no storage limit of its own then
+        if not self._check_table_exists(table_name='tenant_limit_bundle'):
+            return None
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
                 query=self.SELECT_TENANT_LIMIT,
@@ -180,6 +203,7 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
+    @_in_savepoint
     def fetch_template(
             self, template_uuid: str, tenant_uuid: str,
     ) -> model.DBDocumentTemplate | None:
@@ -232,6 +256,7 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
+    @_in_savepoint
     def fetch_template_files(
             self, template_uuid: str, tenant_uuid: str,
     ) -> list[model.DBDocumentTemplateFile]:
@@ -249,6 +274,7 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
+    @_in_savepoint
     def fetch_template_assets(
             self, template_uuid: str, tenant_uuid: str,
     ) -> list[model.DBDocumentTemplateAsset]:
@@ -266,6 +292,7 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
+    @_in_savepoint
     def fetch_project_documents(self, project_uuid: str,
                                 tenant_uuid: str) -> list[model.DBDocument]:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
@@ -282,6 +309,7 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
+    @_in_savepoint
     def fetch_document_submissions(self, document_uuid: str,
                                    tenant_uuid: str) -> list[model.DBSubmission]:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
@@ -298,6 +326,7 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
+    @_in_savepoint
     def fetch_project_submissions(self, project_uuid: str,
                                   tenant_uuid: str) -> list[model.DBSubmission]:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
@@ -314,14 +343,18 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
+    @_in_savepoint
     def fetch_project_simple(self, project_uuid: str,
-                             tenant_uuid: str) -> model.DBProjectSimple:
+                             tenant_uuid: str) -> model.DBProjectSimple | None:
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(
                 query=self.SELECT_PROJECT_SIMPLE,
                 params=(project_uuid, tenant_uuid),
             )
-            return model.DBProjectSimple.from_dict_row(cursor.fetchone())
+            result = cursor.fetchone()
+            if result is None:
+                return None
+            return model.DBProjectSimple.from_dict_row(result)
 
     @tenacity.retry(
         reraise=True,
@@ -330,6 +363,7 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
+    @_in_savepoint
     def update_document_state(self, document_uuid: str, worker_log: str, state: str) -> bool:
         with self.conn_query.new_cursor() as cursor:
             cursor.execute(
@@ -345,6 +379,7 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
+    @_in_savepoint
     def update_document_retrieved(self, retrieved_at: datetime.datetime,
                                   document_uuid: str) -> bool:
         with self.conn_query.new_cursor() as cursor:
@@ -365,6 +400,7 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
+    @_in_savepoint
     def update_document_finished(
             self, *, finished_at: datetime.datetime, file_name: str, file_size: int,
             content_type: str, worker_log: str, document_uuid: str,
@@ -391,6 +427,7 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
+    @_in_savepoint
     def update_document_template_pot_file_ready(self, *, template_uuid: str,
                                                 tenant_uuid: str, ready: bool) -> bool:
         with self.conn_query.new_cursor() as cursor:
@@ -407,6 +444,7 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
+    @_in_savepoint
     def get_currently_used_size(self, tenant_uuid: str):
         with self.conn_query.new_cursor() as cursor:
             cursor.execute(
@@ -423,6 +461,7 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
+    @_in_savepoint
     def get_mail_config(self, mail_config_uuid: str) -> model.DBInstanceConfigMail | None:
         # Note: mail configs are instance-wide and may be shared across tenants,
         #       so there is intentionally no tenant_uuid predicate here.
@@ -445,6 +484,7 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
+    @_in_savepoint
     def get_user(self, user_uuid: str, tenant_uuid: str) -> model.DBUserEntity | None:
         if not self._check_table_exists(table_name='user_entity'):
             return None
@@ -470,6 +510,7 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
+    @_in_savepoint
     def get_default_locale(self, tenant_uuid: str) -> model.DBLocale | None:
         if not self._check_table_exists(table_name='locale'):
             return None
@@ -495,6 +536,7 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
+    @_in_savepoint
     def get_locale(self, locale_uuid: str, tenant_uuid: str) -> model.DBLocale | None:
         if not self._check_table_exists(table_name='locale'):
             return None
@@ -520,6 +562,7 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
+    @_in_savepoint
     def update_component_info(self, name: str, version: str, built_at: datetime.datetime):
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             if not self._check_table_exists(table_name='component'):
@@ -547,6 +590,7 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
+    @_in_savepoint
     def get_component_info(self, name: str) -> model.DBComponent | None:
         if not self._check_table_exists(table_name='component'):
             return None
@@ -571,6 +615,7 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
+    @_in_savepoint
     def execute_queries(self, queries: typing.Iterable[str]):
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             for query in queries:
@@ -583,6 +628,7 @@ class Database:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
+    @_in_savepoint
     def execute_query(self, query: str, **kwargs):
         with self.conn_query.new_cursor(use_dict=True) as cursor:
             cursor.execute(query=query, params=kwargs)
@@ -640,6 +686,38 @@ class PostgresConnection:
         if not self._connection:
             raise RuntimeError('Connection is not established')
         return self._connection
+
+    @contextlib.contextmanager
+    def savepoint(self, name: str = 'dsw_query'):
+        """Undo only this block when it fails, keeping the transaction around it usable.
+
+        A failed statement aborts the whole transaction: everything after it fails with
+        InFailedSqlTransaction, so a retry could never succeed and the real error was lost.
+        Within a job that transaction also holds the command lock and the job's work,
+        which must not be rolled back or committed here. A block that catches the error
+        itself still leaves the transaction aborted, so the state is checked too.
+        """
+        if self.autocommit:
+            yield
+            return
+        savepoint = psycopg.sql.Identifier(name)
+        cursor = self.connection.cursor()
+        cursor.execute(psycopg.sql.SQL('SAVEPOINT {};').format(savepoint))
+        failed = True
+        try:
+            yield
+            failed = False
+        finally:
+            status = self.connection.info.transaction_status
+            try:
+                if failed or status == psycopg.pq.TransactionStatus.INERROR:
+                    cursor.execute(psycopg.sql.SQL('ROLLBACK TO SAVEPOINT {};').format(savepoint))
+                cursor.execute(psycopg.sql.SQL('RELEASE SAVEPOINT {};').format(savepoint))
+            except psycopg.Error as e:
+                # the connection itself is broken; the original error matters more
+                LOG.warning('Could not roll back to savepoint %s: %s', name, e)
+            finally:
+                cursor.close()
 
     def new_cursor(self, use_dict: bool = False):
         return self.connection.cursor(
