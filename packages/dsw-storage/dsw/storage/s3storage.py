@@ -163,21 +163,6 @@ class S3Storage:
         before=tenacity.before_log(LOG, logging.DEBUG),
         after=tenacity.after_log(LOG, logging.DEBUG),
     )
-    def download_locale(self, *, tenant_uuid: str, locale_uuid: str,
-                        file_name: str, target_path: Path) -> bool:
-        return self._download_file(
-            tenant_uuid=tenant_uuid,
-            file_name=f'locales/{locale_uuid}/{file_name}',
-            target_path=target_path,
-        )
-
-    @tenacity.retry(
-        reraise=True,
-        wait=tenacity.wait_exponential(multiplier=RETRY_S3_MULTIPLIER),
-        stop=tenacity.stop_after_attempt(RETRY_S3_TRIES),
-        before=tenacity.before_log(LOG, logging.DEBUG),
-        after=tenacity.after_log(LOG, logging.DEBUG),
-    )
     def download_document_template_locale(self, *, tenant_uuid: str, locale_uuid: str,
                                           file_name: str, target_path: Path) -> bool:
         return self._download_file(

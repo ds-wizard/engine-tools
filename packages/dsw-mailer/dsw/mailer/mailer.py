@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import copy
 import datetime
+import gettext
 import logging
 import math
 import pathlib
@@ -20,6 +22,7 @@ from . import consts
 from .build_info import BUILD_INFO
 from .config import MailConfig, MailerConfig, merge_mail_configs
 from .context import Context
+from .locales import LocaleLoader, resolve_mail_locale
 from .model import MailMessage, MessageRecipient, MessageRequest
 from .sender import send
 from .templates import TemplateRegistry
@@ -37,6 +40,8 @@ class Mailer(CommandWorker):
     def __init__(self, cfg: MailerConfig, workdir: pathlib.Path):
         self.cfg = cfg
         self.workdir = workdir
+        #: compiled mail template locales; the templates directory may be read-only (Lambda)
+        self.cache_dir = pathlib.Path(tempfile.gettempdir()) / 'dsw-mailer'
         self.rate_limiter = RateLimiter(
             window=cfg.mail.rate_limit_window,
             count=cfg.mail.rate_limit_count,
@@ -100,29 +105,46 @@ class Mailer(CommandWorker):
         queue = self._run_preparation()
         queue.run_once()
 
-    def _get_locale_uuid(self, recipient_uuid: str, tenant_uuid: str) -> str | None:
-        app_ctx = Context.get().app
-        user = app_ctx.db.get_user(
-            user_uuid=recipient_uuid,
-            tenant_uuid=tenant_uuid,
-        )
+    def _ui_locale_code(self, recipient: MessageRecipient, tenant_uuid: str) -> str | None:
+        """Code of the recipient's enabled UI locale, if the recipient is a user with one."""
+        if recipient.uuid is None:
+            return None
+        db = Context.get().app.db
+        user = db.get_user(user_uuid=recipient.uuid, tenant_uuid=tenant_uuid)
         if user is None:
-            raise RuntimeError(f'Cannot find user: {recipient_uuid}')
-        return user.locale
+            LOG.warning('Recipient %s is not a user, using the default mail locale',
+                        recipient.uuid)
+            return None
+        if user.locale is None:
+            return None
+        locale = db.get_locale(locale_uuid=user.locale, tenant_uuid=tenant_uuid)
+        if locale is None or not locale.enabled:
+            return None
+        return locale.code
 
-    def _get_msg_request(self, command: PersistentCommand) -> MessageRequest:
-        mc = MailerCommand.load(command)
+    def _get_msg_requests(self, mc: MailerCommand) -> list[MessageRequest]:
+        """One request per recipient in their language, or one in English for all."""
         if len(mc.recipients) == 0:
             raise RuntimeError('No recipients specified')
-        first_recipient = mc.recipients[0]
-        locale_uuid = None
-        if first_recipient.uuid is not None:
-            locale_uuid = self._get_locale_uuid(first_recipient.uuid, command.tenant_uuid)
-        return mc.to_request(
-            msg_id=command.uuid,
-            trigger='PersistentComment',
-            locale_uuid=locale_uuid,
+        if mc.send_as_one or mc.mode == consts.REGISTRY_MODE:
+            return [mc.to_request(msg_id=mc.cmd_uuid, trigger=consts.TRIGGER,
+                                  locale_uuid=None, recipients=mc.recipients)]
+        locales = Context.get().app.db.get_enabled_mail_template_locales(
+            tenant_uuid=mc.tenant_uuid,
         )
+        requests = []
+        for recipient in mc.recipients:
+            ui_code = self._ui_locale_code(recipient, mc.tenant_uuid)
+            locale = resolve_mail_locale(ui_code, locales)
+            LOG.debug('Recipient %s (UI locale %s) gets mail locale %s',
+                      recipient.uuid, ui_code, None if locale is None else locale.code)
+            requests.append(mc.to_request(
+                msg_id=mc.cmd_uuid,
+                trigger=consts.TRIGGER,
+                locale_uuid=None if locale is None else locale.uuid,
+                recipients=[recipient],
+            ))
+        return requests
 
     def _get_mail_config(self, command: PersistentCommand) -> MailConfig:
         app_ctx = Context.get().app
@@ -170,12 +192,12 @@ class Mailer(CommandWorker):
         )
         Context.get().update_trace_id(command.uuid)
         # prepare
-        rq = self._get_msg_request(command)
+        requests = self._get_msg_requests(MailerCommand.load(command))
         mail_cfg = self._get_mail_config(command)
-        # update Sentry info
-        SentryReporter.set_tags(template=rq.template_name)
-        # send the message
-        self.send(rq, mail_cfg)
+        # send the messages
+        for rq in requests:
+            SentryReporter.set_tags(template=rq.template_name)
+            self.send(rq, mail_cfg)
         # reset Sentry info
         SentryReporter.set_tags(
             template='-',
@@ -192,16 +214,44 @@ class Mailer(CommandWorker):
         LOG.info('Failed with unexpected error', exc_info=e)
         SentryReporter.capture_exception(e)
 
-    def _render_builtin(self, rq: MessageRequest, cfg: MailConfig) -> MailMessage:
+    def _render_builtin(self, rq: MessageRequest, cfg: MailConfig,
+                        translations: gettext.NullTranslations) -> MailMessage:
         if not self.ctx.templates.has_template_for(rq):
             raise RuntimeError(f'Template not found: {rq.template_name}')
-        return self.ctx.templates.render(rq, cfg, Context.get().app)
+        return self.ctx.templates.render(rq, cfg, translations)
+
+    def _translations(self, rq: MessageRequest) -> gettext.NullTranslations:
+        """Translations of the request's mail template locale; English if it cannot be used."""
+        if rq.locale_uuid is None:
+            return gettext.NullTranslations()
+        app_ctx = Context.get().app
+        try:
+            locale = app_ctx.db.get_mail_template_locale(
+                locale_uuid=rq.locale_uuid,
+                tenant_uuid=rq.tenant_uuid,
+            )
+            if locale is None or not locale.enabled:
+                LOG.warning('Mail template locale %s is not available, rendering in English',
+                            rq.locale_uuid)
+                return gettext.NullTranslations()
+            LOG.info('Rendering with mail template locale %s (%s)', locale.code, locale.uuid)
+            loader = LocaleLoader(
+                s3=app_ctx.s3,
+                cache_dir=self.cache_dir / 'mail-template-locales',
+                tenant_uuid=rq.tenant_uuid,
+            )
+            return loader.load(locale)
+        except Exception as e:
+            LOG.warning('Cannot load mail template locale %s, rendering in English: %s',
+                        rq.locale_uuid, str(e))
+            SentryReporter.capture_exception(e)
+            return gettext.NullTranslations()
 
     def send(self, rq: MessageRequest, cfg: MailConfig):
         LOG.info('Sending request: %s (%s)', rq.template_name, rq.id)
+        translations = self._translations(rq)
         # render
         LOG.info('Rendering message: %s', rq.template_name)
-        LOG.warning('Should send with locale: %s', rq.locale_uuid)
         if cfg.custom_templates:
             with tempfile.TemporaryDirectory() as tmpdir:
                 templates_dir = pathlib.Path(tmpdir) / 'templates'
@@ -214,13 +264,13 @@ class Mailer(CommandWorker):
                     workdir=templates_dir,
                 )
                 if templates.has_template_for(rq):
-                    msg = templates.render(rq, cfg, Context.get().app)
+                    msg = templates.render(rq, cfg, translations)
                 else:
                     LOG.info('Template "%s" not customized - using the built-in one',
                              rq.template_name)
-                    msg = self._render_builtin(rq, cfg)
+                    msg = self._render_builtin(rq, cfg, translations)
         else:
-            msg = self._render_builtin(rq, cfg)
+            msg = self._render_builtin(rq, cfg, translations)
         # send
         LOG.info('Sending message: %s', rq.template_name)
         send(msg, cfg)
@@ -255,36 +305,40 @@ class RateLimiter:
 class MailerCommand:
 
     def __init__(self, *, recipients: list[MessageRecipient], mode: str,
-                 template: str, ctx: dict, tenant_uuid: str, cmd_uuid: str):
+                 template: str, ctx: dict, tenant_uuid: str, cmd_uuid: str,
+                 send_as_one: bool = False):
         self.mode = mode
         self.template = template
         self.recipients = recipients
         self.ctx = ctx
         self.tenant_uuid = tenant_uuid
         self.cmd_uuid = cmd_uuid
-        self._enrich_context()
+        #: one mail to all recipients in English, instead of one per recipient
+        self.send_as_one = send_as_one
+        self.now = datetime.datetime.now(tz=datetime.UTC)
 
-    def to_request(self, msg_id: str, locale_uuid: str | None, trigger: str) -> MessageRequest:
+    def to_request(self, msg_id: str, locale_uuid: str | None, trigger: str,
+                   recipients: list[MessageRecipient]) -> MessageRequest:
+        # rendering changes the context, so each request has its own copy
+        ctx = copy.deepcopy(self.ctx)
+        ctx['_meta'] = {
+            'cmd_uuid': self.cmd_uuid,
+            'recipients': recipients,
+            'mode': self.mode,
+            'template': self.template,
+            'now': self.now,
+        }
         rq = MessageRequest(
             message_id=msg_id,
             template_name=f'{self.mode}:{self.template}',
             tenant_uuid=self.tenant_uuid,
             locale_uuid=locale_uuid,
             trigger=trigger,
-            ctx=self.ctx,
-            recipients=self.recipients,
+            ctx=ctx,
+            recipients=recipients,
         )
-        rq.style.from_dict(self.ctx)
+        rq.style.from_dict(ctx)
         return rq
-
-    def _enrich_context(self):
-        self.ctx['_meta'] = {
-            'cmd_uuid': self.cmd_uuid,
-            'recipients': self.recipients,
-            'mode': self.mode,
-            'template': self.template,
-            'now': datetime.datetime.now(tz=datetime.UTC),
-        }
 
     @staticmethod
     def load(command: PersistentCommand) -> MailerCommand:
@@ -301,6 +355,8 @@ class MailerCommand:
                 ctx=command.body['parameters'],
                 tenant_uuid=command.tenant_uuid,
                 cmd_uuid=command.uuid,
+                # missing in commands queued before Wizard 5.0
+                send_as_one=command.body.get('sendAsOne', False),
             )
         except KeyError as e:
             raise RuntimeError(f'Cannot parse command: {str(e)}') from e
