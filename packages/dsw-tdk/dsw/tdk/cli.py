@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import datetime
+import json
 import logging
 import mimetypes
 import pathlib
@@ -13,6 +14,9 @@ import click
 import humanize
 import slugify
 import watchfiles
+
+from dsw.models.document_context.hash import compute_context_hash
+from dsw.models.document_context.validation import validate_context
 
 from . import consts
 from .api_client import WizardCommunicationError
@@ -553,6 +557,91 @@ def list_templates(ctx, api_url, api_key, output_format: str,
             sys.exit(1)
 
     asyncio.run(main_routine())
+
+
+@main.command(help='Download the document context of a project or a KM editor.',
+              name='get-context')
+@click.option('-u', '--api-url', metavar='API-URL', envvar='DSW_API_URL',
+              help='URL of Wizard server API.')
+@click.option('-k', '--api-key', metavar='API-KEY', envvar='DSW_API_KEY',
+              help='API key for Wizard instance.')
+@click.option('--project', metavar='UUID', help='Project to get the context of.')
+@click.option('--event', metavar='UUID', help='Project event to get the content as of.')
+@click.option('--km-editor', metavar='UUID', help='Knowledge model editor to get the context of.')
+@click.option('-o', '--output', default='context.json', show_default=True,
+              type=click.Path(dir_okay=False, writable=True), help='Target file.')
+@click.option('-f', '--force', is_flag=True, help='Overwrite an existing file.')
+@click.pass_context
+def get_context(ctx, api_url, api_key, project, event, km_editor, output, force):
+    if (project is None) == (km_editor is None):
+        raise click.UsageError('Use exactly one of --project and --km-editor.')
+    if event is not None and project is None:
+        raise click.UsageError('--event works only with --project.')
+    output_path = pathlib.Path(output)
+    if output_path.exists() and not force:
+        ClickPrinter.failure(f'File {output} already exists (use --force to overwrite)')
+        sys.exit(1)
+    ensure_api_config(api_url, api_key)
+
+    async def main_routine():
+        tdk = TDKCore(logger=ctx.obj.logger)
+        try:
+            await tdk.init_client(api_url=CONFIG.env.api_url, api_key=CONFIG.env.api_key)
+            body, etag = await tdk.fetch_document_context(
+                project_uuid=project, event_uuid=event, km_editor_uuid=km_editor)
+            await tdk.safe_client.safe_close()
+        except TDKProcessingError as e:
+            ClickPrinter.failure('Could not get the document context')
+            ClickPrinter.error(f'> {e.message}\n> {e.hint}')
+            await tdk.safe_client.safe_close()
+            sys.exit(1)
+        except WizardCommunicationError as e:
+            ClickPrinter.failure('Could not get the document context')
+            ClickPrinter.error(f'> {e.reason}\n> {e.message}')
+            await tdk.safe_client.safe_close()
+            sys.exit(1)
+        output_path.write_bytes(body)  # unchanged, as the server sent it
+        if etag is not None and json.loads(body).get('hash') != etag:
+            ClickPrinter.warning(f'The hash of the context differs from the ETag {etag}')
+        ClickPrinter.success(f'Document context saved to {output} (ETag {etag})')
+
+    asyncio.run(main_routine())
+
+
+@main.command(help='Check document context files against the schema and their KM.',
+              name='validate-context')
+@click.argument('FILES', nargs=-1, required=True, type=FILE_READ_TYPE)
+@click.option('--fix-hash', is_flag=True, help='Rewrite a hash that does not match the content.')
+def validate_context_files(files, fix_hash):
+    failed = False
+    for file_name in files:
+        path = pathlib.Path(file_name)
+        try:
+            data = json.loads(path.read_text(encoding=consts.DEFAULT_ENCODING))
+        except (OSError, ValueError) as e:
+            ClickPrinter.failure(f'{path}: cannot read JSON ({e})')
+            failed = True
+            continue
+        issues = validate_context(data)
+        if fix_hash and any(i.path == '/hash' and i.severity == 'error' for i in issues):
+            data['hash'] = compute_context_hash(data)
+            path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + '\n',
+                            encoding=consts.DEFAULT_ENCODING)
+            ClickPrinter.warning(f'{path}: hash rewritten to {data["hash"]}')
+            issues = validate_context(data)
+        for issue in issues:
+            message = f'{path}: {issue.path or "/"}: {issue.message}'
+            if issue.severity == 'error':
+                ClickPrinter.error(f'ERROR: {message}')
+            else:
+                ClickPrinter.warning(message)
+        errors = sum(issue.severity == 'error' for issue in issues)
+        if errors:
+            ClickPrinter.failure(f'{path}: {errors} error(s), {len(issues) - errors} warning(s)')
+            failed = True
+        else:
+            ClickPrinter.success(f'{path}: valid ({len(issues)} warning(s))')
+    sys.exit(1 if failed else 0)
 
 
 @main.command(help='Verify a template project.', name='verify')

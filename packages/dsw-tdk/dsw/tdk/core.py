@@ -16,7 +16,7 @@ import watchfiles
 from dsw.models.document_template.metadata import DocumentTemplateBundle
 from dsw.models.errors import MetamodelVersionError
 from dsw.models.strictness import load as load_model
-from dsw.models.versions import MetamodelVersion
+from dsw.models.versions import DOCUMENT_TEMPLATE_METAMODEL_VERSION, MetamodelVersion
 from dsw.templating import ContextDefaults, RenderContext, RenderSettings
 
 from . import consts
@@ -149,6 +149,28 @@ class TDKCore:
         self.logger.info('Successfully authenticated as %s %s (%s)',
                          user['firstName'], user['lastName'], user['email'])
         self.logger.debug('Connected to API version %s', self.remote_version)
+
+    async def fetch_document_context(self, *, project_uuid: str | None = None,
+                                     event_uuid: str | None = None,
+                                     km_editor_uuid: str | None = None) -> tuple[bytes, str | None]:
+        """The document context of a project or a KM editor, as the server sends it."""
+        remote = self.remote_metamodel_version
+        try:
+            matches = remote is not None and \
+                MetamodelVersion.parse(remote) == DOCUMENT_TEMPLATE_METAMODEL_VERSION
+        except MetamodelVersionError:
+            matches = False
+        if not matches:
+            raise TDKProcessingError(
+                f'The server serves document context metamodel {remote}, '
+                f'this TDK supports {DOCUMENT_TEMPLATE_METAMODEL_VERSION}',
+                'Use the TDK of the same version as the server',
+            )
+        if km_editor_uuid is not None:
+            return await self.safe_client.get_km_editor_document_context(km_editor_uuid)
+        if project_uuid is None:
+            raise RuntimeError('A project or a KM editor is required')
+        return await self.safe_client.get_project_document_context(project_uuid, event_uuid)
 
     def prepare_local(self, template_dir):
         self.logger.debug('Preparing local template project')

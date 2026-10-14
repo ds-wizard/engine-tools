@@ -60,6 +60,8 @@ For further information, visit our [documentation](https://docs.ds-wizard.org).
 -  `verify` = check the metadata of local template project
 -  `package` = create a distribution ZIP package that is importable to DSW via web interface
 -  `pot` = create a POT file with translatable strings of the local template project
+-  `get-context` = download the document context of a project (`--project UUID`, optionally `--event UUID`) or a knowledge model editor (`--km-editor UUID`), as the server sends it; it prints the ETag, which is the context's `hash`
+-  `validate-context` = check document context files against the 19.0 schema and their own knowledge model (reply paths and values, files, labels, phase, version, hash); it prints errors and warnings and exits with `1` on any error, and `--fix-hash` rewrites a hash that does not match the content
 -  `render` = render a document from the local template project and a document context (no DSW instance needed)
 
 ### Rendering documents locally

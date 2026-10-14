@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `all` extra (`pip install 'dsw-tdk[all]'`) with the optional dependencies of rendering steps (PDF, Excel, RDF, HTTP)
 - `language` field in `template.json` (prompted by `dsw-tdk new`, defaults to `en`)
 - `put --workspace UUID` (or `DSW_WORKSPACE`) creates a new draft in a workspace; by default it is created for the whole organization
+- New `get-context` command downloading the document context of a project (as of an event) or a knowledge model editor; it fails when the server's document context metamodel is not the TDK's
+- New `validate-context` command checking document contexts (`--fix-hash` rewrites a wrong hash)
 
 ### Changed
 

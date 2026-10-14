@@ -34,6 +34,9 @@ The package was rewritten; its previous, experimental API is not kept.
   upgrades them (it no longer takes `kind`)
 - Document context hash (`dsw.models.document_context.hash`): `compute_context_hash` and the
   canonical JSON (RFC 8785) it hashes, identical to the server's
+- Document context validation (`dsw.models.document_context.validation.validate_context`): the
+  19.0 schema, the version and the hash, and replies, labels, phase and version resolved in the
+  context's own knowledge model, with warnings for list order and questions required now
 
 ### Changed
 
