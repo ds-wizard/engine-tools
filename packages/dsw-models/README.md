@@ -29,7 +29,7 @@ pip install 'dsw-models[rendering]'  # Markdown helpers of the document context
 | `knowledge_model.builder`, `.validation` | Fluent building and semantic validation |
 | `knowledge_model.migrations` | Upgrading bundles from older metamodel versions |
 | `document_template.metadata`, `.migrations` | `template.json` (local and packaged) |
-| `document_context.wire`, `.graph` | Document context and its object model for templates |
+| `document_context.wire`, `.graph`, `.hash` | Document context, its object model for templates and its hash |
 | `project.*` | Project events, replies, content, squashing and reports |
 | `schemas` | JSON Schemas of the models |
 
@@ -163,7 +163,8 @@ metadata = load(DocumentTemplateMetadata, result.data)
 
 `document_context.wire.DocumentContext` validates the document context sent to the document
 worker; `document_context.graph.DocumentContext` is the object model templates get from
-`ctx|to_context_obj`.
+`ctx|to_context_obj`. `document_context.hash.compute_context_hash(ctx)` computes the context's
+`hash` exactly as the server does (SHA-256 of its canonical JSON, RFC 8785).
 
 ## JSON Schemas
 
