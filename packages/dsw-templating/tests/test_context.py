@@ -13,27 +13,30 @@ def test_defaults_fill_missing_branding():
         'serviceUrl': 'https://ds-wizard.org',
         'serviceDomainName': 'ds-wizard.org',
         'appTitle': 'DS Wizard',
-        'appTitleShort': 'DS Wizard',
         'primaryColor': '#0033aa',
-        'illustrationsColor': '#0033aa',
         'logoUrl': 'https://fw.example.org/assets/logo.svg',
     }
 
 
 def test_branding_is_kept_and_service_is_set():
     context = {'config': {
-        'clientUrl': '', 'appTitle': 'My Wizard', 'appTitleShort': 'MW',
-        'primaryColor': '#ff0000', 'illustrationsColor': '#00ff00',
+        'clientUrl': '', 'appTitle': 'My Wizard',
+        'primaryColor': '#ff0000',
         'logoUrl': 'https://cdn.example.org/logo.png', 'serviceName': 'Stale',
     }}
     enrich_context_config(context, ContextDefaults(service_name='FAIR Wizard'))
     config = context['config']
     assert config['appTitle'] == 'My Wizard'
-    assert config['appTitleShort'] == 'MW'
     assert config['primaryColor'] == '#ff0000'
-    assert config['illustrationsColor'] == '#00ff00'
     assert config['logoUrl'] == 'https://cdn.example.org/logo.png'
     assert config['serviceName'] == 'FAIR Wizard'
+
+
+def test_keys_removed_in_5_0_are_not_added():
+    # appTitleShort and illustrationsColor are gone from document context 19.0 (WEP 29)
+    context = {'config': {'clientUrl': '', 'appTitle': None}}
+    enrich_context_config(context, ContextDefaults())
+    assert not {'appTitleShort', 'illustrationsColor'} & context['config'].keys()
 
 
 def test_context_without_config_is_rejected():
