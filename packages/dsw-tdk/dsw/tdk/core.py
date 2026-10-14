@@ -99,15 +99,29 @@ class TDKCore:
         self.changes_processor = ChangesProcessor(self)
         self.remote_id = 'unknown'
         self.remote_uuid = None
+        #: the workspace a new draft is created in, None for the whole organization
+        self.remote_workspace_uuid: str | None = None
 
     async def close(self):
         await self.safe_client.close()
 
-    @property
-    def remote_editor_url(self) -> str:
+    async def remote_editor_url(self) -> str | None:
+        """The editor of the draft in the client, or None when its workspace is ambiguous.
+
+        Editors are workspace pages (/w/<workspace>/...). A draft shared by the organization
+        opens in any workspace; a tenant with exactly one has an unambiguous link.
+        """
         if self.remote_uuid is None:
             raise RuntimeError('Remote template draft is not linked (yet)')
-        return f'{self.safe_client.client_url}/document-template-editors/{self.remote_uuid}'
+        draft = await self.safe_client.get_template_draft(remote_uuid=self.remote_uuid)
+        workspace_uuid = draft.workspace_uuid
+        if workspace_uuid is None:
+            workspaces = await self.safe_client.get_workspace_uuids()
+            if len(workspaces) != 1:
+                return None
+            workspace_uuid = workspaces[0]
+        return (f'{self.safe_client.client_url}/w/{workspace_uuid}'
+                f'/document-template-editors/{self.remote_uuid}')
 
     @property
     def safe_template(self) -> Template:
@@ -250,12 +264,18 @@ class TDKCore:
             result = await self.safe_client.create_new_template_draft(
                 template=self.safe_template,
                 remote_id=self.remote_id,
+                workspace_uuid=self.remote_workspace_uuid,
             )
             self.remote_uuid = result.uuid
             if result is None:
                 raise RuntimeError('Failed to create document template draft')
             self.logger.info('Using new editor with UUID: %s', self.remote_uuid)
-        self.logger.info('==> URL: %s', self.remote_editor_url)
+        editor_url = await self.remote_editor_url()
+        if editor_url is None:
+            self.logger.info('==> Open the editor %s from a workspace of the instance',
+                             self.remote_uuid)
+        else:
+            self.logger.info('==> URL: %s', editor_url)
         await self.store_remote_files()
 
     async def _update_template_file(self, remote_file: TemplateFile, local_file: TemplateFile,

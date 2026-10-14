@@ -145,6 +145,7 @@ Kazuki
 Yamamoto
 
 # Things appearing in VCR cassettes
+automations
 stylesheet
 flexbox
 Vtnp

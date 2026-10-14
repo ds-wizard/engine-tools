@@ -93,14 +93,12 @@ class WizardAPIClient:
             session (aiohttp.ClientSession): Optional custom session for HTTP communication.
         """
         self.api_url = api_url.rstrip('/')
-        self.client_url = self.api_url.replace('/wizard-api', '/wizard')
+        # Wizard 5.0 serves the API under /api of the client's origin
+        self.client_url = self.api_url.removesuffix('/api')
         self.token = api_key
         self.session = session or aiohttp.ClientSession(
             connector=aiohttp.TCPConnector(ssl=False),
         )
-
-    def template_editor_url(self, template_uuid: str) -> str:
-        return f'{self.client_url}/editor/{template_uuid}'
 
     @property
     def templates_endpoint(self):
@@ -120,11 +118,12 @@ class WizardAPIClient:
         except Exception:
             return False
 
-    async def _post_json(self, endpoint: str, json) -> dict:
+    async def _post_json(self, endpoint: str, json, params=None) -> dict:
         async with self.session.post(
             url=f'{self.api_url}{endpoint}',
             json=json,
             headers=self._headers(),
+            params=params,
         ) as r:
             self._check_status(r, expected_status=201)
             return await r.json()
@@ -257,6 +256,12 @@ class WizardAPIClient:
         )
 
     @handle_client_errors
+    async def get_workspace_uuids(self, limit: int = 2) -> list[str]:
+        """Workspaces of the tenant the user can see (at most ``limit``)."""
+        body = await self._get_json('/workspaces', params={'size': limit, 'page': 0})
+        return [w['uuid'] for w in body.get('_embedded', {}).get('workspaces', [])]
+
+    @handle_client_errors
     async def get_template_draft(self, remote_uuid: str) -> Template:
         body = await self._get_json(f'/document-template-drafts/{remote_uuid}')
         return _load_remote_template(body)
@@ -295,10 +300,15 @@ class WizardAPIClient:
         return _load_remote_asset(body, content)
 
     @handle_client_errors
-    async def create_new_template_draft(self, template: Template, remote_id: str) -> Template:
+    async def create_new_template_draft(self, template: Template, remote_id: str,
+                                        workspace_uuid: str | None = None) -> Template:
+        # a multi-workspace tenant needs the scope: a workspace, or the whole organization
+        # (which a single-workspace tenant accepts as well)
+        scope = {'tenant': 'true'} if workspace_uuid is None else {'w': workspace_uuid}
         result = await self._post_json(
             endpoint='/document-template-drafts',
             json=template.serialize_for_create(),
+            params=scope,
         )
         remote_uuid = result.get('uuid', '')
         new_draft = await self.get_template_draft(remote_uuid)
