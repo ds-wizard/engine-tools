@@ -1,0 +1,125 @@
+interactions:
+- request:
+    body: null
+    headers:
+      User-Agent:
+      - dsw-tdk/4.35.0
+      authorization:
+      - Bearer dummy-token
+    method: GET
+    uri: http://single.fair-wizard.localhost:3000/api/
+  response:
+    body:
+      string: '{"builtAt":"2026-10-14T14:11:04Z","components":[{"builtAt":"2026-10-14T18:24:20Z","createdAt":"2026-10-14T16:58:40.476791Z","name":"Document
+        Worker","updatedAt":"2026-10-14T17:25:03.455715Z","version":"update/fw5~87566ae"}],"metamodelVersions":[{"name":"Knowledge
+        Model","version":"20"},{"name":"Document Template","version":"19.0"}],"name":"Admin
+        Server","version":"main~4e7d05995"}'
+    headers:
+      Access-Control-Allow-Credential:
+      - 'true'
+      Access-Control-Allow-Headers:
+      - Origin, X-Requested-With, Content-Type, Accept, Authorization
+      Access-Control-Allow-Methods:
+      - OPTIONS, HEAD, GET, POST, PUT, DELETE
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - ETag, x-trace-uuid
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 14 Oct 2026 17:39:49 GMT
+      Server:
+      - Warp/3.4.9
+      Transfer-Encoding:
+      - chunked
+      x-trace-uuid:
+      - e7c5b667-2499-40ec-bc3c-1be1cf08bb35
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      User-Agent:
+      - dsw-tdk/4.35.0
+      authorization:
+      - Bearer dummy-token
+    method: GET
+    uri: http://single.fair-wizard.localhost:3000/api/users/current
+  response:
+    body:
+      string: '{"active":true,"affiliation":null,"createdAt":"2026-10-14T15:02:55.871273Z","email":"admin@fair-wizard.localhost","emailPending":"admin@fair-wizard.localhost","emailVerifiedAt":null,"firstName":"Admin","imageUrl":null,"lastName":"User","role":{"name":"Admin","permissions":["projects.view","projects.comment","projects.edit","projects.manage","projects.create","projects.manageTemplates","knowledgeModels.useEditor","knowledgeModels.manage","documentTemplates.useEditor","documentTemplates.manage","members.manage","roles.manage","userGroups.manage","userGroups.create","settings.manage","users.manage","workspaces.manage","organizationLibrary.manage","organizationSettings.manage","analytics.use","auditLog.use","automations.manage","mcp.connect"],"uuid":"25631728-9873-43a6-b1ca-0012c272f3ba"},"updatedAt":"2026-10-14T15:02:55.871273Z","uuid":"f79351e0-3d26-4710-ab9e-36db954ea6ae"}'
+    headers:
+      Access-Control-Allow-Credential:
+      - 'true'
+      Access-Control-Allow-Headers:
+      - Origin, X-Requested-With, Content-Type, Accept, Authorization
+      Access-Control-Allow-Methods:
+      - OPTIONS, HEAD, GET, POST, PUT, DELETE
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - ETag, x-trace-uuid
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 14 Oct 2026 17:39:49 GMT
+      Server:
+      - Warp/3.4.9
+      Transfer-Encoding:
+      - chunked
+      x-trace-uuid:
+      - 8d891e8f-f586-48f3-af93-c66b09639f55
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      User-Agent:
+      - dsw-tdk/4.35.0
+      authorization:
+      - Bearer dummy-token
+    method: GET
+    uri: http://single.fair-wizard.localhost:3000/api/knowledge-model-editors/4dbec435-71de-4915-a185-f3c8842f66c1/document-context
+  response:
+    body:
+      string: '{"config":{"appTitle":"single","clientUrl":"http://single.fair-wizard.localhost","logoUrl":null,"primaryColor":null},"document":null,"hash":"sha256:e761df071b5f54f7f3df61acbfe79cb064d68585eb24f07b2d0e3efa8d3a944c","knowledgeModel":{"annotations":[],"chapterUuids":["fa34a580-6485-4b0d-8167-927c921c461b"],"entities":{"answers":{},"chapters":{"fa34a580-6485-4b0d-8167-927c921c461b":{"annotations":[],"questionUuids":["2a98fa12-a2dd-4f7b-9546-c0065bbbfa95"],"text":null,"title":"Chapter
+        1","uuid":"fa34a580-6485-4b0d-8167-927c921c461b"}},"choices":{},"experts":{},"integrations":{},"metrics":{},"phases":{},"questions":{"2a98fa12-a2dd-4f7b-9546-c0065bbbfa95":{"annotations":[],"expertUuids":[],"questionType":"ValueQuestion","referenceUuids":[],"requiredPhaseUuid":null,"tagUuids":[],"text":null,"title":"Project
+        Name","uuid":"2a98fa12-a2dd-4f7b-9546-c0065bbbfa95","validations":[],"valueType":"StringQuestionValueType"}},"references":{},"resourceCollections":{},"resourcePages":{},"tags":{}},"integrationUuids":[],"metricUuids":[],"phaseUuids":[],"resourceCollectionUuids":[],"tagUuids":[],"uuid":"ae80eae1-5a41-4f28-a4b4-2f352ba9ca79"},"knowledgeModelEditor":{"createdAt":"2026-10-14T15:38:40.296753Z","createdBy":{"active":true,"affiliation":null,"createdAt":"2026-10-14T15:02:55.871273Z","email":"admin@fair-wizard.localhost","firstName":"Admin","imageUrl":null,"lastName":"User","updatedAt":"2026-10-14T15:02:55.871273Z","uuid":"f79351e0-3d26-4710-ab9e-36db954ea6ae"},"description":"This
+        is very basic KM for tests","id":"testbed.editor","knowledgeModelMetamodelVersion":20,"license":"MIT","name":"Testbed
+        editor","previousPackageId":"myorg.basic-km","previousPackageUuid":"03d21bb0-8fa0-4453-8f7b-d9c33c29c5ae","previousPackageVersion":"1.0.0","readme":"#
+        Basic KM\n\nThis is very basic KM for tests.","updatedAt":"2026-10-14T15:38:40.296753Z","uuid":"4dbec435-71de-4915-a185-f3c8842f66c1","version":"1.0.0"},"knowledgeModelPackage":{"createdAt":"2024-04-24T09:23:24.094854Z","description":"This
+        is very basic KM for tests","id":"myorg.basic-km","language":"en","name":"Basic
+        KM","uuid":"03d21bb0-8fa0-4453-8f7b-d9c33c29c5ae","version":"1.0.0","workspaceUuid":null},"metamodelVersion":"19.0","project":null,"questionnaire":{"files":[],"labels":{},"language":"en","phaseUuid":null,"replies":{},"report":{"chapterReports":[{"chapterUuid":"fa34a580-6485-4b0d-8167-927c921c461b","indications":[{"answeredQuestions":0,"indicationType":"PhasesAnsweredIndication","unansweredQuestions":1},{"answeredQuestions":0,"indicationType":"AnsweredIndication","unansweredQuestions":1}],"metrics":[]}],"chapters":[{"annotations":[],"questionUuids":["2a98fa12-a2dd-4f7b-9546-c0065bbbfa95"],"text":null,"title":"Chapter
+        1","uuid":"fa34a580-6485-4b0d-8167-927c921c461b"}],"metrics":[],"totalReport":{"indications":[{"answeredQuestions":0,"indicationType":"PhasesAnsweredIndication","unansweredQuestions":1},{"answeredQuestions":0,"indicationType":"AnsweredIndication","unansweredQuestions":1}],"metrics":[]}},"versionUuid":null,"versions":[]},"workspace":{"description":null,"name":"single","uuid":"80e21d14-2ae1-4eff-8e94-f37a4aaff5d5"}}'
+    headers:
+      Access-Control-Allow-Credential:
+      - 'true'
+      Access-Control-Allow-Headers:
+      - Origin, X-Requested-With, Content-Type, Accept, Authorization
+      Access-Control-Allow-Methods:
+      - OPTIONS, HEAD, GET, POST, PUT, DELETE
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - ETag, x-trace-uuid
+      Cache-Control:
+      - private, no-cache
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 14 Oct 2026 17:39:49 GMT
+      Etag:
+      - '"sha256:e761df071b5f54f7f3df61acbfe79cb064d68585eb24f07b2d0e3efa8d3a944c"'
+      Server:
+      - Warp/3.4.9
+      Transfer-Encoding:
+      - chunked
+      x-trace-uuid:
+      - 0e964a1b-3412-4aff-880d-ca95617f76bf
+    status:
+      code: 200
+      message: OK
+version: 1

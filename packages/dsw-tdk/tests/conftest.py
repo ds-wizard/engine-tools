@@ -4,6 +4,8 @@ import pathlib
 import pytest
 import vcr
 
+from dsw.tdk.config import CONFIG
+
 TESTS_DIR = pathlib.Path(__file__).parent
 FIXTURES_DIR = TESTS_DIR / 'fixtures'
 CASSETTES_DIR = TESTS_DIR / 'cassettes'
@@ -67,3 +69,9 @@ def dsw_env(dsw_api_url: str, dsw_api_key: str):
 @pytest.fixture(scope='session')
 def fixtures_path():
     return FIXTURES_DIR
+
+
+@pytest.fixture(autouse=True)
+def fresh_config():
+    """CONFIG is a module-level singleton the commands fill in; every test starts from scratch."""
+    CONFIG.__init__()
