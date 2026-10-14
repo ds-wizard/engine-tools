@@ -38,6 +38,27 @@ The package was rewritten; its previous, experimental API is not kept.
 ### Changed
 
 - Supports Python 3.12 and newer
+- Document context metamodel 19.0 (WEP 24), `DOCUMENT_TEMPLATE_METAMODEL_VERSION` is `19.0`:
+  - wire model: new `hash`, `workspace`, `knowledgeModelEditor` and `questionnaire` (replies,
+    labels, phase, versions, files, report and language moved there from `project`); `project`
+    (now metadata with `users` and `groups`), `knowledgeModelPackage` and `document` may be
+    `null`, exactly one of `project` and `knowledgeModelEditor` is set; the report has no `uuid`
+    and timestamps; `document` has `documentTemplate`, `format`, `preview` and `eventUuid`;
+    removed `organization`, top-level `users` / `groups` / `report`, the package's
+    `organizationId`, `kmId`, `versions`, `remoteLatestVersion` and `organization`, and
+    `config.appTitleShort` / `config.illustrationsColor`; group `users` renamed to `members`
+  - object model (`graph`): new `workspace`, `km_editor`, `questionnaire` and `hash`, and the
+    `Workspace`, `KnowledgeModelEditor`, `Questionnaire`, `DocumentDocumentTemplate` and
+    `DocumentFormat` classes; removed the root shortcuts `e`, `cfg`, `org`, `pkg`, `doc`,
+    `replies` and `current_phase`, `organization`, `report`, `users`, `groups` and the
+    `Organization` class (`km.e` and the `.a` shortcuts stay); `project.replies`, `phase`,
+    `phase_uuid`, `version`, `versions`, `files`, `language` and `todos` moved to `questionnaire`,
+    `report` to `questionnaire.report` (without `uuid` / `created_at` / `updated_at`), `users` /
+    `groups` to `project`; `km_package.id` is the id without the version, `org_id` /
+    `organization_id` / `km_id` / `versions` are removed and `uuid` / `workspace_uuid` added;
+    `document.document_template_uuid` / `format_uuid` became `document.document_template` /
+    `format`; `config.app_title_short` and `config.illustrations_color` are removed
+  - `check_metamodel_version` requires major version 19
 
 
 ## [4.34.0]

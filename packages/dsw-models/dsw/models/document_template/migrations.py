@@ -2,7 +2,7 @@
 
 The backend has no template migrations: it only accepts the same major version with a lower or
 equal minor version. The steps below are derived from the published ``template.json`` schemas
-(``ds-wizard/dsw-schemas``, versions 1–18.0) and the backend descriptor for 18.3:
+(``ds-wizard/dsw-schemas``, versions 1–18.0) and the backend descriptors for 18.3 and 19.0:
 
 ========  =============================================================================
 Version   Change
@@ -10,6 +10,7 @@ Version   Change
 11        ``formats[].color``, ``formats[].shortName`` and ``recommendedPackageId`` removed
 17.0      ``metamodelVersion`` became a ``"major.minor"`` string
 18.3      ``language`` added (default ``"en"``)
+19.0      no descriptor change (single ``id``, see below); the document context was restructured
 ========  =============================================================================
 
 Whatever the version, the identity is upgraded to the single ``id`` of Wizard 5.0, as the

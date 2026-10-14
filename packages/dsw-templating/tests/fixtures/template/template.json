@@ -4,7 +4,7 @@
   "name": "Golden Fixture",
   "description": "Small template exercising the built-in steps",
   "license": "Apache-2.0",
-  "metamodelVersion": "18.3",
+  "metamodelVersion": "19.0",
   "allowedPackages": [],
   "formats": [
     {
