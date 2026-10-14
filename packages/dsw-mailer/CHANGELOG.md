@@ -10,6 +10,16 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Added
 
 - Lambda handler reads its configuration from AWS AppConfig when `AWS_APP_CONFIG` is set (see `dsw-config`)
+- Tests
+
+### Changed
+
+- Mails are translated with the tenant's mail template locales (Wizard 5.0): one mail is sent per recipient, in the mail template locale whose code matches the recipient's UI locale (exact code, then the base language), otherwise the tenant's default one, otherwise `en`, otherwise built-in English; disabled locales are skipped and a recipient who is not a user gets the default
+- A command with `sendAsOne` sends a single mail to all its recipients in English (the analytics mails); a command without the field, queued before the upgrade, is sent per recipient
+- The compiled `mail.mo` of a mail template locale is stored back to S3 next to its `mail.po` and cached locally until the locale's `updated_at` changes, instead of compiling the PO for every mail
+- A mail template locale that cannot be loaded is reported and the mail is sent in English
+- The `registry` mode is unchanged: English, without locales
+- `send` from a file: `localeUuid` is an optional mail template locale, and `recipients` can be plain email addresses (as in the examples)
 
 ### Removed
 

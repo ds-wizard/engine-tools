@@ -1,12 +1,9 @@
 from __future__ import annotations
 
 import datetime
-import gettext
 import json
 import logging
-import pathlib
 import re
-import tempfile
 import typing
 
 import dateutil.parser
@@ -15,7 +12,6 @@ import jinja2.sandbox
 import markdown
 import markdown.preprocessors
 import markupsafe
-import polib
 
 from . import consts
 from .model import (
@@ -28,6 +24,9 @@ from .model import (
 
 
 if typing.TYPE_CHECKING:
+    import gettext
+    import pathlib
+
     from .config import MailConfig, MailerConfig
 
 
@@ -202,79 +201,24 @@ class TemplateRegistry:
         if callable(fn):
             fn('default')
 
-    def _install_null_translations(self):
-        fn = getattr(self.j2_env, 'install_null_translations', None)
-        if callable(fn):
-            fn()
-
-    def _install_translations(self, translations: gettext.GNUTranslations):
+    def _install_translations(self, translations: gettext.NullTranslations):
         fn = getattr(self.j2_env, 'install_gettext_translations', None)
         if callable(fn):
             fn(translations)
 
-    def _load_locale(self, tenant_uuid: str, locale_uuid: str | None, app_ctx,
-                     locale_root_dir: pathlib.Path):
-        LOG.info('Loading locale: %s (for tenant %s)', locale_uuid, tenant_uuid)
-        self._uninstall_translations()
-        if locale_uuid is None:
-            LOG.info('No locale specified - using null translations')
-            self._install_null_translations()
-        else:
-            # fetch locale from DB
-            locale = app_ctx.db.get_locale(
-                tenant_uuid=tenant_uuid,
-                locale_uuid=locale_uuid,
-            )
-            if locale is None:
-                LOG.error('Could not find locale for tenant %s', tenant_uuid)
-                raise RuntimeError(f'Locale not found in DB: {locale_uuid}')
-            # fetch locale from S3
-            locale_dir = locale_root_dir / locale.code / 'LC_MESSAGES'
-            locale_dir.mkdir(parents=True, exist_ok=True)
-            locale_po_path = locale_dir / 'default.po'
-            locale_mo_path = locale_dir / 'default.mo'
-            downloaded = app_ctx.s3.download_locale(
-                tenant_uuid=tenant_uuid,
-                locale_uuid=locale_uuid,
-                file_name='mail.po',
-                target_path=locale_po_path,
-            )
-            if not downloaded:
-                LOG.error('Cannot download locale file (mail.po) from %s to %s',
-                          locale_uuid, locale_po_path)
-                raise RuntimeError(f'Failed to download locale file (mail.po) from {locale_uuid}')
-            LOG.debug('Saved PO file to %s', locale_po_path)
-            # convert po to mo
-            po = polib.pofile(locale_po_path.absolute().as_posix())
-            po.save_as_mofile(locale_mo_path.absolute().as_posix())
-            LOG.debug('Converted PO file to MO file: %s', locale_mo_path)
-            # load translations
-            translations = gettext.translation(
-                domain='default',
-                localedir=locale_root_dir,
-                languages=[locale.code],
-            )
-            self._install_translations(translations)
-
     def has_template_for(self, rq: MessageRequest) -> bool:
         return rq.template_name in self.templates
 
-    def render(self, rq: MessageRequest, cfg: MailConfig, app_ctx) -> MailMessage:
+    def render(self, rq: MessageRequest, cfg: MailConfig,
+               translations: gettext.NullTranslations) -> MailMessage:
         used_cfg = cfg or self.cfg.mail
-        with tempfile.TemporaryDirectory() as tmpdir:
-            try:
-                locale_root_dir = pathlib.Path(tmpdir) / 'locale'
-                self._load_locale(rq.tenant_uuid, rq.locale_uuid, app_ctx, locale_root_dir)
-            except Exception as e:
-                LOG.warning('Cannot load locale for tenant %s: %s', rq.tenant_uuid, str(e))
-                LOG.warning('Rendering without locale')
-                self._uninstall_translations()
-                self._install_null_translations()
-            return self.templates[rq.template_name].render(
-                rq=rq,
-                mail_name=used_cfg.name,
-                mail_from=used_cfg.email,
-            )
+        self._uninstall_translations()
+        self._install_translations(translations)
+        return self.templates[rq.template_name].render(
+            rq=rq,
+            mail_name=used_cfg.name,
+            mail_from=used_cfg.email,
+        )
 
 
 def datetime_format(iso_timestamp: None | datetime.datetime | str, fmt: str):

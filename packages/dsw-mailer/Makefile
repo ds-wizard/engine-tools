@@ -13,7 +13,7 @@ docker-image-name:
 
 .PHONY: test
 test:
-	@echo "No tests for this package"
+	pytest -s tests
 
 .PHONY: lambda-deps
 lambda-deps:

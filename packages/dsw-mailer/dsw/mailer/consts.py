@@ -11,6 +11,9 @@ DEFAULT_ENCODING = 'utf-8'
 NULL_UUID = '00000000-0000-0000-0000-000000000000'
 PROG_NAME = 'dsw-mailer'
 PACKAGE_NAME = 'dsw-mailer'
+#: the Registry server's mails: English, no locales, no custom templates
+REGISTRY_MODE = 'registry'
+TRIGGER = 'PersistentCommand'
 
 try:
     __version__ = version(PACKAGE_NAME)
