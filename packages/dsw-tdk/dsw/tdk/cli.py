@@ -22,8 +22,10 @@ from dsw.models.document_context.validation import validate_context
 from . import consts
 from .api_client import WizardCommunicationError
 from .config import CONFIG
+from .context import anonymize as context_anonymize
 from .context import generate as context_generation
 from .context import inputs as context_inputs
+from .context import mutate as context_mutate
 from .context.profiles import PROFILE_BY_NAME, PROFILES
 from .core import TDKCore, TDKProcessingError
 from .render import context_defaults, render_settings
@@ -660,6 +662,22 @@ def _parse_config_overrides(values: tuple[str, ...]) -> dict[str, str]:
     return overrides
 
 
+def _generate_one(source_input, profile, variant, seed, reference, source, overrides, *,
+                  mutate: bool, anonymize: bool) -> context_generation.Generated:
+    if anonymize and not mutate:
+        return context_anonymize.anonymize_source(source_input, seed)
+    options = context_generation.Options(
+        profile=PROFILE_BY_NAME[profile], variant=variant, seed=seed, now=reference,
+        source=source, config=overrides)
+    if not mutate:
+        return context_generation.generate_context(source_input, options)
+    generated = context_mutate.mutate_context(source_input, options)
+    if anonymize:
+        anonymized = context_anonymize.anonymize_context(generated.context, seed)
+        return context_generation.Generated(anonymized.context, generated.warnings)
+    return generated
+
+
 def _generation_input(ctx, from_file, km_package, km_bundle, sample, seed):
     if from_file is not None:
         return context_generation.input_from_context(
@@ -702,14 +720,21 @@ def _generation_input(ctx, from_file, km_package, km_bundle, sample, seed):
               help='URL of Wizard server API (for --km-package).')
 @click.option('-k', '--api-key', metavar='API-KEY', envvar='DSW_API_KEY',
               help='API key for Wizard instance (for --km-package).')
+@click.option('--mutate', is_flag=True,
+              help='Perturb the --from context at the rate of each profile.')
+@click.option('--anonymize', is_flag=True,
+              help='Replace personal data and free text of the --from context (after --mutate).')
 @click.option('-o', '--output', default='contexts', show_default=True,
               type=click.Path(writable=True), help='Directory, or a file for a single context.')
 @click.pass_context
 def generate_context_files(ctx, from_file, km_package, km_bundle, sample, source, profiles,
-                           count, seed, now, config_values, api_url, api_key, output):
+                           count, seed, now, config_values, api_url, api_key, mutate, anonymize,
+                           output):
     inputs = (from_file, km_package, km_bundle, sample or None)
     if sum(value is not None for value in inputs) != 1:
         raise click.UsageError('Use exactly one of --from, --km-package, --km-bundle and --sample.')
+    if (mutate or anonymize) and from_file is None:
+        raise click.UsageError('--mutate and --anonymize need --from.')
     overrides = _parse_config_overrides(config_values)
     if seed is None:
         seed = random.SystemRandom().randrange(2 ** 31)
@@ -724,15 +749,16 @@ def generate_context_files(ctx, from_file, km_package, km_bundle, sample, source
         sys.exit(1)
     reference = (now.replace(tzinfo=datetime.UTC) if now is not None
                  else context_generation.DEFAULT_NOW)
-    jobs = [(profile, variant) for profile in profiles for variant in range(count)]
+    # --from with only --anonymize: one anonymized copy, no profiles
+    jobs = [('anonymized', 0)] if anonymize and not mutate else \
+        [(profile, variant) for profile in profiles for variant in range(count)]
     output_path = pathlib.Path(output)
     single_file = len(jobs) == 1 and output_path.suffix == '.json'
     if not single_file:
         output_path.mkdir(parents=True, exist_ok=True)
     for profile, variant in jobs:
-        generated = context_generation.generate_context(source_input, context_generation.Options(
-            profile=PROFILE_BY_NAME[profile], variant=variant, seed=seed, now=reference,
-            source=source, config=overrides))
+        generated = _generate_one(source_input, profile, variant, seed, reference, source,
+                                  overrides, mutate=mutate, anonymize=anonymize)
         target = output_path if single_file else output_path / f'{profile}-{seed}-{variant}.json'
         target.write_text(context_generation.dumps(generated.context),
                           encoding=consts.DEFAULT_ENCODING)
