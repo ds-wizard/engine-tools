@@ -214,12 +214,7 @@ class TDKCore:
     async def store_remote(self, force: bool):
         self.template = self.safe_project.template
         self._check_metamodel_version()
-        org_id = await self.safe_client.get_organization_id()
-        if org_id != self.safe_template.organization_id:
-            self.logger.warning('There is different organization ID set in the DSW instance'
-                                ' (local: %s, remote: %s)',
-                                self.safe_template.organization_id, org_id)
-        self.remote_id = self.safe_template.id_with_org(org_id)
+        self.remote_id = self.safe_template.coordinates
         self.remote_uuid = await self.safe_client.find_template_draft_uuid_by_id(
             template_id=self.remote_id,
         )
@@ -411,7 +406,7 @@ class TDKCore:
                 settings=settings,
             )
         if output is None:
-            output = pathlib.Path.cwd() / document.filename(template.template_id or 'document')
+            output = pathlib.Path.cwd() / document.filename(template.id or 'document')
         if output.exists() and not force:
             raise RuntimeError(f'File {output} already exists (not forced)')
         self.logger.debug('Writing document: %s', output.as_posix())

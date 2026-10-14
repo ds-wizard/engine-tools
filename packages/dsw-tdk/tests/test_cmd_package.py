@@ -81,7 +81,9 @@ def test_package_matches_document_template_bundle(fixtures_path, tmp_path):
     exit_code, _, descriptor = _packaged_descriptor(fixtures_path, tmp_path, 'test_example01')
     assert exit_code == 0
     bundle = load(DocumentTemplateBundle, descriptor)
-    assert bundle.coordinate == descriptor['id']
+    assert descriptor['id'] == 'test.example01'
+    assert 'organizationId' not in descriptor
+    assert bundle.reference == 'test.example01:1.0.0'
     assert bundle.metamodel_version == '17.1'
     assert [f.file_name for f in bundle.files] == [f['fileName'] for f in descriptor['files']]
 
@@ -90,7 +92,7 @@ def test_package_keeps_allowed_package_options(fixtures_path, tmp_path):
     """`options` is optional on a package pattern: present when set, absent otherwise."""
     _, _, descriptor = _packaged_descriptor(fixtures_path, tmp_path, 'test_example01')
     for pattern in descriptor['allowedPackages']:
-        assert set(pattern) >= {'orgId', 'kmId', 'minVersion', 'maxVersion'}
+        assert set(pattern) >= {'id', 'minVersion', 'maxVersion'}
         assert 'options' not in pattern or isinstance(pattern['options'], dict)
 
 

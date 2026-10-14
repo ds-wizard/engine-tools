@@ -249,8 +249,8 @@ def test_reference_bundles_compile(name):
 def test_package_chain():
     bundle = load(KnowledgeModelBundle, load_reference('dsw_smp_1.2.4.km.gz'))
     chain = package_chain(bundle)
-    assert [p.id for p in chain][-2:] == ['dsw:smp:1.2.3', 'dsw:smp:1.2.4']
-    assert package_chain(bundle, 'dsw:smp:1.1.0')[-1].id == 'dsw:smp:1.1.0'
+    assert [p.reference for p in chain][-2:] == ['dsw.smp:1.2.3', 'dsw.smp:1.2.4']
+    assert package_chain(bundle, 'dsw.smp:1.1.0')[-1].reference == 'dsw.smp:1.1.0'
     assert len(events_of_chain(bundle)) == sum(len(p.events) for p in bundle.packages)
     bundle.packages = bundle.packages[1:]
     with pytest.raises(PackageChainError, match='not in the bundle'):

@@ -237,8 +237,7 @@ def interact_formats() -> dict[str, FormatSpec]:
 
 def interact_builder(builder: TemplateBuilder):
     prompt_fill('Template name', obj=builder, attr='name')
-    prompt_fill('Organization ID', obj=builder, attr='organization_id')
-    prompt_fill('Template ID', obj=builder, attr='template_id',
+    prompt_fill('Template ID', obj=builder, attr='id',
                 default=slugify.slugify(builder.name))
     prompt_fill('Version', obj=builder, attr='version',
                 default='0.1.0')

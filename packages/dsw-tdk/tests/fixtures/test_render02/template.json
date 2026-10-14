@@ -1,6 +1,5 @@
 {
-  "organizationId": "test",
-  "templateId": "render02",
+  "id": "test.render02",
   "version": "1.0.0",
   "name": "Test template for rendering options",
   "description": "Dummy document template for secrets, requests and pandoc",

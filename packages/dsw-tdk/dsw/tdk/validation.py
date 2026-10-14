@@ -44,7 +44,7 @@ def _validate_content_type(field_name: str, value) -> list[ValidationError]:
 
 
 def _validate_extension(field_name: str, value) -> list[ValidationError]:
-    if value is not None and re.match(consts.REGEX_ORGANIZATION_ID, value) is None:
+    if value is not None and re.match(consts.REGEX_WIZARD_ID, value) is None:
         return [ValidationError(
             field_name=field_name,
             message='File extension should contain only letters, numbers, '
@@ -53,31 +53,11 @@ def _validate_extension(field_name: str, value) -> list[ValidationError]:
     return []
 
 
-def _validate_organization_id(field_name: str, value) -> list[ValidationError]:
-    if value is not None and re.match(consts.REGEX_ORGANIZATION_ID, value) is None:
+def _validate_wizard_id(field_name: str, value) -> list[ValidationError]:
+    if value is not None and re.match(consts.REGEX_WIZARD_ID, value) is None:
         return [ValidationError(
             field_name=field_name,
-            message='Organization ID may contain only letters, numbers, '
-                    'periods, dashes, and underscores',
-        )]
-    return []
-
-
-def _validate_template_id(field_name: str, value) -> list[ValidationError]:
-    if value is not None and re.match(consts.REGEX_TEMPLATE_ID, value) is None:
-        return [ValidationError(
-            field_name=field_name,
-            message='Template ID may contain only letters, numbers, '
-                    'periods, dashes, and underscores',
-        )]
-    return []
-
-
-def _validate_km_id(field_name: str, value) -> list[ValidationError]:
-    if value is not None and re.match(consts.REGEX_KM_ID, value) is None:
-        return [ValidationError(
-            field_name=field_name,
-            message='KM ID may contain only letters, numbers, '
+            message='ID may contain only letters, numbers, '
                     'periods, dashes, and underscores',
         )]
     return []
@@ -133,39 +113,6 @@ def _validate_metamodel_version(field_name: str, value) -> list[ValidationError]
         field_name=field_name,
         message='It must be a positive integer or in format <MAJOR>.<MINOR>',
     )]
-
-
-def _validate_package_id(field_name: str, value: str) -> list[ValidationError]:
-    res = []
-    if value is None:
-        return res
-    if not isinstance(value, str):
-        return [ValidationError(
-            field_name=field_name,
-            message='Package ID is not a string',
-        )]
-    parts = value.split(':')
-    if len(parts) != 3:
-        res.append(ValidationError(
-            field_name=field_name,
-            message=f'Package ID is not valid (only {len(parts)} parts)',
-        ))
-    if re.match(consts.REGEX_ORGANIZATION_ID, parts[0]) is None:
-        res.append(ValidationError(
-            field_name=field_name,
-            message='Package ID contains invalid organization id',
-        ))
-    if re.match(consts.REGEX_KM_ID, parts[1]) is None:
-        res.append(ValidationError(
-            field_name=field_name,
-            message='Package ID contains invalid KM id',
-        ))
-    if re.match(consts.REGEX_SEMVER, parts[2]) is None:
-        res.append(ValidationError(
-            field_name=field_name,
-            message='Package ID contains invalid version',
-        ))
-    return res
 
 
 def _validate_jinja_options(field_name: str, value: dict[str, str]) -> list[ValidationError]:
@@ -231,8 +178,7 @@ class GenericValidator:
 
 
 PackageFilterValidator = GenericValidator({
-    'organization_id': [_validate_organization_id],
-    'km_id': [_validate_km_id],
+    'id': [_validate_wizard_id],
     'min_version': [_validate_version],
     'max_version': [_validate_version],
 })
@@ -285,8 +231,7 @@ def _validate_formats(field_name: str, value: list[Format]) -> list[ValidationEr
 
 
 TemplateValidator = GenericValidator({
-    'template_id': [_validate_required, _validate_template_id],
-    'organization_id': [_validate_required, _validate_organization_id],
+    'id': [_validate_required, _validate_wizard_id],
     'version': [_validate_required, _validate_version],
     'name': [_validate_required, _validate_non_empty],
     'description': [_validate_required, _validate_non_empty],

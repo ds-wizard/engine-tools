@@ -6,8 +6,7 @@ from dsw.tdk.validation import TemplateValidator
 
 def load(**extra) -> Template:
     data = collections.OrderedDict({
-        'organizationId': 'test',
-        'templateId': 'example',
+        'id': 'test.example',
         'version': '1.0.0',
         'name': 'Test template',
         'description': 'Testing',

@@ -18,7 +18,7 @@ def template_dir(tmp_path: pathlib.Path) -> pathlib.Path:
 
 
 def make_step(template_dir: pathlib.Path, **options) -> Jinja2Step:
-    template = Template(template_dir=template_dir, formats=[], coordinates='org:tid:1.0.0')
+    template = Template(template_dir=template_dir, formats=[], coordinates='org.tid:1.0.0')
     return Jinja2Step(template, {'template': ROOT_FILE, **options})
 
 

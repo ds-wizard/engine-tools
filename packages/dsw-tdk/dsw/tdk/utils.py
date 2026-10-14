@@ -115,22 +115,13 @@ class TemplateBuilder:
         self._validate_field('name')
 
     @property
-    def template_id(self):
-        return self.template.template_id
+    def id(self):
+        return self.template.id
 
-    @template_id.setter
-    def template_id(self, value: str):
-        self.template.template_id = value
-        self._validate_field('template_id')
-
-    @property
-    def organization_id(self):
-        return self.template.organization_id
-
-    @organization_id.setter
-    def organization_id(self, value: str):
-        self.template.organization_id = value
-        self._validate_field('organization_id')
+    @id.setter
+    def id(self, value: str):
+        self.template.id = value
+        self._validate_field('id')
 
     @property
     def version(self):

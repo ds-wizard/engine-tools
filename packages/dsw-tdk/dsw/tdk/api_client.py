@@ -7,6 +7,8 @@ import urllib.parse
 import aiohttp
 import aiohttp.client_exceptions
 
+from dsw.models.coordinate import parse_legacy_reference
+
 from . import consts
 from .model import Template, TemplateFile, TemplateFileType
 
@@ -222,26 +224,21 @@ class WizardAPIClient:
             return await r.content.read()
 
     async def _find_by_id(self, template_id: str, endpoint: str, key: str) -> str | None:
-        org_id, t_id, version = template_id.split(':')
+        coordinate = parse_legacy_reference(template_id)
+        if coordinate is None:
+            raise ValueError(f'Template reference {template_id} is not <id>:<version>')
         body = await self._get_json(
             endpoint=endpoint,
             params={
                 'size': 10000,
                 'page': 0,
-                'q': t_id,
+                'q': coordinate[0],
             },
         )
-        drafts = body.get('_embedded', {}).get(key, [])
-        partial_match = None
-        for draft in drafts:
-            v_match = draft.get('version') == version
-            o_match = draft.get('organizationId') == org_id
-            t_match = draft.get('templateId') == t_id
-            if o_match and t_match and v_match:
-                return draft.get('uuid')
-            if t_match and v_match:
-                partial_match = draft.get('uuid')
-        return partial_match
+        for item in body.get('_embedded', {}).get(key, []):
+            if Template.load_remote(item).coordinates == f'{coordinate[0]}:{coordinate[1]}':
+                return item.get('uuid')
+        return None
 
     @handle_client_errors
     async def find_template_uuid_by_id(self, template_id: str) -> str | None:
@@ -305,8 +302,7 @@ class WizardAPIClient:
         )
         remote_uuid = result.get('uuid', '')
         new_draft = await self.get_template_draft(remote_uuid)
-        parts = remote_id.split(':')
-        if new_draft.template_id != parts[1] or new_draft.version != parts[2]:
+        if new_draft.coordinates != remote_id:
             raise WizardCommunicationError(
                 reason='Invalid response',
                 message='Server did not return a draft with expected template ID and version',
@@ -424,11 +420,6 @@ class WizardAPIClient:
                 message='Server did not return valid API version information (incompatible TDK?)',
             )
         return version, metamodel_version
-
-    @handle_client_errors
-    async def get_organization_id(self) -> str:
-        body = await self._get_json('/configs/bootstrap')
-        return body['organization']['organizationId']
 
 
 def _load_remote_file(data: dict) -> TemplateFile:

@@ -157,7 +157,7 @@ def test_decompile_reference_bundles(name):
 
 def test_diff_between_reference_versions():
     bundle = load(KnowledgeModelBundle, load_reference('dmp.eosc.cz_czech-nrp-km_1.0.2.km.gz'))
-    versions = [compile_bundle(bundle, package.id) for package in package_chain(bundle)]
+    versions = [compile_bundle(bundle, package.reference) for package in package_chain(bundle)]
     for old, new in zip(versions, versions[1:], strict=False):
         events = diff(old, new)  # verifies the result itself
         assert prune_unreachable(compile_events(events, old)) == prune_unreachable(new)

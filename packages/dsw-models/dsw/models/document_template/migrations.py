@@ -12,6 +12,12 @@ Version   Change
 18.3      ``language`` added (default ``"en"``)
 ========  =============================================================================
 
+Whatever the version, the identity is upgraded to the single ``id`` of Wizard 5.0, as the
+backend's import does: ``organizationId`` + ``templateId`` (or the composed
+``organizationId:templateId:version`` of the oldest descriptors) become ``id`` =
+``<organizationId>.<templateId>``, and ``allowedPackages`` patterns ``orgId`` + ``kmId`` become
+``id`` (``None`` when only the organization was named).
+
 Only the descriptor is upgraded. Jinja templates and step options were written for the document
 context of their version and are not touched, so every major version crossed adds a warning.
 """
@@ -21,11 +27,10 @@ import copy
 import dataclasses
 import typing
 
+from ..coordinate import join_legacy_id, parse_legacy_reference
 from ..errors import MetamodelVersionError, MigrationError
 from ..versions import DOCUMENT_TEMPLATE_METAMODEL_VERSION, MetamodelVersion
-
-
-Kind = typing.Literal['local', 'bundle']
+from .metadata import upgrade_legacy_package_pattern
 
 
 @dataclasses.dataclass(frozen=True, slots=True)
@@ -37,8 +42,8 @@ class MigrationResult:
     changed: bool
 
 
-def migrate_template_json(data: dict[str, typing.Any], *, kind: Kind = 'local') -> MigrationResult:
-    """Upgrade a parsed ``template.json``; ``kind`` is the local descriptor or a package's one.
+def migrate_template_json(data: dict[str, typing.Any]) -> MigrationResult:
+    """Upgrade a parsed ``template.json``, the local descriptor or a package's one.
 
     Validate the result with :class:`.metadata.DocumentTemplateMetadata` (local) or
     :class:`.metadata.DocumentTemplateBundle` (bundle).
@@ -57,7 +62,7 @@ def migrate_template_json(data: dict[str, typing.Any], *, kind: Kind = 'local') 
 
     result = copy.deepcopy(data)
     warnings: list[str] = []
-    _split_legacy_id(result, kind, warnings)
+    _upgrade_legacy_identity(result, warnings)
     if source.major < 11:  # noqa: PLR2004
         _drop_pre_11_fields(result, warnings)
     result.setdefault('language', 'en')
@@ -71,20 +76,28 @@ def migrate_template_json(data: dict[str, typing.Any], *, kind: Kind = 'local') 
                            changed=result != data or bool(warnings))
 
 
-def _split_legacy_id(data: dict[str, typing.Any], kind: Kind, warnings: list[str]) -> None:
-    legacy_id = data.get('id')
-    if isinstance(legacy_id, str) and legacy_id.count(':') == 2:  # noqa: PLR2004
-        organization_id, template_id, version = legacy_id.split(':')
-        for key, value in (('organizationId', organization_id), ('templateId', template_id),
-                           ('version', version)):
-            if key not in data:
-                data[key] = value
-            elif data[key] != value:
-                warnings.append(f"id '{legacy_id}' disagrees with {key} '{data[key]}'; kept {key}.")
-    if kind == 'local':
-        data.pop('id', None)
-    elif all(key in data for key in ('organizationId', 'templateId', 'version')):
-        data['id'] = f"{data['organizationId']}:{data['templateId']}:{data['version']}"
+def _upgrade_legacy_identity(data: dict[str, typing.Any], warnings: list[str]) -> None:
+    organization_id = data.pop('organizationId', None)
+    template_id = data.pop('templateId', None)
+    composed = data.get('id')
+    legacy = (parse_legacy_reference(composed)
+              if isinstance(composed, str) and composed.count(':') == 2 else None)  # noqa: PLR2004
+    if organization_id is not None and template_id is not None:
+        data['id'] = join_legacy_id(organization_id, template_id)
+        if legacy is not None and legacy[0] != data['id']:
+            warnings.append(f"id '{composed}' disagrees with organizationId and templateId; "
+                            f"kept '{data['id']}'.")
+    elif legacy is not None:
+        data['id'] = legacy[0]
+    if legacy is not None:
+        if 'version' not in data:
+            data['version'] = legacy[1]
+        elif data['version'] != legacy[1]:
+            warnings.append(f"id '{composed}' disagrees with version '{data['version']}'; "
+                            'kept version.')
+    if isinstance(data.get('allowedPackages'), list):
+        data['allowedPackages'] = [upgrade_legacy_package_pattern(pattern)
+                                   for pattern in data['allowedPackages']]
 
 
 def _drop_pre_11_fields(data: dict[str, typing.Any], warnings: list[str]) -> None:

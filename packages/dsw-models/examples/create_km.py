@@ -51,8 +51,7 @@ def build_knowledge_model() -> KnowledgeModelBuilder:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument('-o', '--output', type=pathlib.Path, help='output .km file')
-    parser.add_argument('--organization-id', default='example')
-    parser.add_argument('--km-id', default='example-km')
+    parser.add_argument('--id', default='example-km')
     parser.add_argument('--version', default='1.0.0')
     args = parser.parse_args()
 
@@ -65,11 +64,11 @@ def main() -> int:
         return 1
 
     bundle = builder.to_bundle(
-        organization_id=args.organization_id, km_id=args.km_id, version=args.version,
+        id=args.id, version=args.version,
         name='Example knowledge model', description='Built with dsw-models',
         readme='# Example knowledge model\n\nBuilt with `dsw-models`.', license='CC0',
     )
-    output = args.output or pathlib.Path(f'{args.km_id}-{args.version}.km')
+    output = args.output or pathlib.Path(f'{args.id}-{args.version}.km')
     output.write_text(json.dumps(bundle.to_json_data(), indent=2), encoding='utf-8')
 
     # sanity check: the file loads strictly and compiles back to the same knowledge model

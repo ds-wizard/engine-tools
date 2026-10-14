@@ -380,20 +380,19 @@ class KnowledgeModelBuilder:
             kwargs['clock'] = clock
         return decompile(self.build(), **kwargs)
 
-    def to_bundle(self, *, organization_id: str, km_id: str, version: str, name: str,
+    def to_bundle(self, *, id: str, version: str, name: str,  # noqa: A002
                   description: str = '', readme: str = '', license: str = '',
                   language: str = 'en', previous_package_id: str | None = None,
+                  previous_package_version: str | None = None,
                   clock: Callable[[], datetime] | None = None) -> KnowledgeModelBundle:
         """A ``.km`` bundle with a single package holding :meth:`to_events`."""
         events = self.to_events(clock=clock)
-        package_id = f'{organization_id}:{km_id}:{version}'
         package = KnowledgeModelBundlePackage(
-            id=package_id, name=name, organization_id=organization_id, km_id=km_id,
-            version=version, metamodel_version=KM_METAMODEL_VERSION, description=description,
-            readme=readme, license=license, language=language,
-            previous_package_id=previous_package_id, events=events,
+            id=id, name=name, version=version, metamodel_version=KM_METAMODEL_VERSION,
+            description=description, readme=readme, license=license, language=language,
+            previous_package_id=previous_package_id,
+            previous_package_version=previous_package_version, events=events,
             created_at=events[0].created_at,
         )
-        return KnowledgeModelBundle(id=package_id, name=name, organization_id=organization_id,
-                                    km_id=km_id, version=version,
+        return KnowledgeModelBundle(id=id, name=name, version=version,
                                     metamodel_version=KM_METAMODEL_VERSION, packages=[package])
