@@ -19,6 +19,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Changed
 
 - Update to DT metamodel 19.0 (WEP 24): only document contexts of major version 19 are accepted
+- Template references are `<id>:<version>` (Wizard 5.0), so `templates[].ids` prefixes in the configuration change from e.g. `dsw:` to `dsw.`
+- Without a `tenant_limit_bundle` table (FAIR Wizard 5.0) the worker applies no storage limit of its own; the backend enforces the plan
 - The `jinja2.ext.i18n` extension is always enabled for Jinja-powered steps
 - `extras.project` (and the deprecated `extras.questionnaire`) provide `knowledge_model_package_uuid` instead of `knowledge_package_uuid`
 - The template-facing document context object model (`ctx|to_context_obj`) comes from `dsw-models` (`dsw.models.document_context.graph`) instead of a copy inside the worker; the object model, its attributes and its Markdown rendering are unchanged

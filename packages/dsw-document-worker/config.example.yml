@@ -16,8 +16,10 @@ logging:
   globalLevel: WARNING
 
 templates:
+  # ids are prefixes of the template reference "<id>:<version>", e.g. "dsw.questionnaire-report:2.4.0"
+  # (before Wizard 5.0 the reference was "<organizationId>:<templateId>:<version>")
   - ids:
-      - "dsw:"
+      - "dsw."
     requests:
       enabled:
       limit:

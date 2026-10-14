@@ -88,6 +88,11 @@ openxml
 vcrpy
 strikethrough
 
+# PostgreSQL / psycopg
+INERROR
+regclass
+savepoint
+
 # Software Engineering terms
 bytesize
 timestamptz
