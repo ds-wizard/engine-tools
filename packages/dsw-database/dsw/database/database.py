@@ -714,7 +714,8 @@ class PostgresConnection:
         InFailedSqlTransaction, so a retry could never succeed and the real error was lost.
         Within a job that transaction also holds the command lock and the job's work,
         which must not be rolled back or committed here. A block that catches the error
-        itself still leaves the transaction aborted, so the state is checked too.
+        itself still leaves the transaction aborted, so the state is checked too. A block
+        that commits (or rolls back) the transaction itself ends the savepoint with it.
         """
         if self.autocommit:
             yield
@@ -729,6 +730,10 @@ class PostgresConnection:
         finally:
             status = self.connection.info.transaction_status
             try:
+                if status == psycopg.pq.TransactionStatus.IDLE:
+                    # the block ended the transaction, and the savepoint with it; a
+                    # statement now would open a new transaction only to abort it
+                    return
                 if failed or status == psycopg.pq.TransactionStatus.INERROR:
                     cursor.execute(psycopg.sql.SQL('ROLLBACK TO SAVEPOINT {};').format(savepoint))
                 cursor.execute(psycopg.sql.SQL('RELEASE SAVEPOINT {};').format(savepoint))
