@@ -13,6 +13,18 @@ if typing.TYPE_CHECKING:
 NULL_UUID = '00000000-0000-0000-0000-000000000000'
 
 
+def _str_or_none(value) -> str | None:
+    return None if value is None else str(value)
+
+
+def _metamodel_version(value) -> str:
+    # a SemVer2Tuple column is read as its text form, e.g. "(19,0)"
+    if isinstance(value, str) and value.startswith('('):
+        major, minor = value.strip('()').split(',')
+        return f'{major.strip()}.{minor.strip()}'
+    return str(value)
+
+
 class DocumentState(enum.Enum):
     QUEUED = 'QueuedDocumentState'
     PROCESSING = 'InProgressDocumentState'
@@ -21,9 +33,9 @@ class DocumentState(enum.Enum):
 
 
 class DocumentTemplatePhase(enum.Enum):
-    RELEASED = 'ReleasedTemplatePhase'
-    DEPRECATED = 'DeprecatedTemplatePhase'
-    DRAFT = 'DraftTemplatePhase'
+    RELEASED = 'ReleasedDocumentTemplatePhase'
+    DEPRECATED = 'DeprecatedDocumentTemplatePhase'
+    DRAFT = 'DraftDocumentTemplatePhase'
 
 
 @dataclasses.dataclass
@@ -53,34 +65,35 @@ class DBDocument:
     durability: str
     project_uuid: str | None
     project_event_uuid: str | None
-    project_replies_hash: str
     document_template_uuid: str
     format_uuid: str
     file_name: str
     content_type: str
     worker_log: str
-    created_by: str
+    created_by: str | None
     retrieved_at: datetime | None
     finished_at: datetime | None
     created_at: datetime
     tenant_uuid: str
     file_size: int
+    workspace_uuid: str | None = None
+    #: hash of the document context the document was generated from
+    context_hash: str | None = None
+    #: set (instead of project_uuid) for a preview of a KM editor
+    knowledge_model_editor_uuid: str | None = None
 
     @staticmethod
     def from_dict_row(data: dict):
-        project_uuid = data['project_uuid']
-        event_uuid = data['project_event_uuid']
         return DBDocument(
             uuid=str(data['uuid']),
             name=data['name'],
             state=data['state'],
             durability=data['durability'],
-            project_uuid=str(project_uuid) if project_uuid else None,
-            project_event_uuid=str(event_uuid) if event_uuid else None,
-            project_replies_hash=data['project_replies_hash'],
+            project_uuid=_str_or_none(data['project_uuid']),
+            project_event_uuid=_str_or_none(data['project_event_uuid']),
             document_template_uuid=data['document_template_uuid'],
             format_uuid=str(data['format_uuid']),
-            created_by=str(data['created_by']),
+            created_by=_str_or_none(data['created_by']),
             retrieved_at=data['retrieved_at'],
             finished_at=data['finished_at'],
             created_at=data['created_at'],
@@ -89,6 +102,9 @@ class DBDocument:
             worker_log=data['worker_log'],
             tenant_uuid=str(data.get('tenant_uuid', NULL_UUID)),
             file_size=data['file_size'],
+            workspace_uuid=_str_or_none(data.get('workspace_uuid')),
+            context_hash=data.get('context_hash'),
+            knowledge_model_editor_uuid=_str_or_none(data.get('knowledge_model_editor_uuid')),
         )
 
 
@@ -96,14 +112,16 @@ class DBDocument:
 class DBDocumentTemplate:
     uuid: str
     name: str
-    organization_id: str
-    template_id: str
+    #: the single id of Wizard 5.0, e.g. dsw.questionnaire-report
+    id: str
     version: str
-    metamodel_version: int
+    #: "major.minor", e.g. "19.0"
+    metamodel_version: str
     description: str
     readme: str
     license: str
-    allowed_packages: dict
+    #: [{id, minVersion, maxVersion}]
+    allowed_packages: list[dict]
     formats: list
     phase: str
     created_at: datetime
@@ -111,32 +129,34 @@ class DBDocumentTemplate:
     tenant_uuid: str
     language: str = 'en'
     pot_file_ready: bool = False
+    #: None for a template shared by the whole organization (tenant)
+    workspace_uuid: str | None = None
 
     @property
     def is_draft(self):
-        return self.phase == DocumentTemplatePhase.DRAFT
+        return self.phase == DocumentTemplatePhase.DRAFT.value
 
     @property
     def is_released(self):
-        return self.phase == DocumentTemplatePhase.RELEASED
+        return self.phase == DocumentTemplatePhase.RELEASED.value
 
     @property
     def is_deprecated(self):
-        return self.phase == DocumentTemplatePhase.DEPRECATED
+        return self.phase == DocumentTemplatePhase.DEPRECATED.value
 
     @property
     def coordinates(self) -> str:
-        return f'{self.organization_id}:{self.template_id}:{self.version}'
+        """The reference ``<id>:<version>``."""
+        return f'{self.id}:{self.version}'
 
     @staticmethod
     def from_dict_row(data: dict) -> DBDocumentTemplate:
         return DBDocumentTemplate(
             uuid=data['uuid'],
             name=data['name'],
-            organization_id=data['organization_id'],
-            template_id=data['template_id'],
+            id=data['id'],
             version=data['version'],
-            metamodel_version=data['metamodel_version'],
+            metamodel_version=_metamodel_version(data['metamodel_version']),
             description=data['description'],
             readme=data['readme'],
             license=data['license'],
@@ -148,6 +168,7 @@ class DBDocumentTemplate:
             tenant_uuid=str(data.get('tenant_uuid', NULL_UUID)),
             language=data.get('language', 'en'),
             pot_file_ready=data.get('pot_file_ready', False),
+            workspace_uuid=_str_or_none(data.get('workspace_uuid')),
         )
 
 
@@ -349,15 +370,16 @@ class DBProjectSimple:
     visibility: str
     sharing: str
     knowledge_model_package_uuid: str
-    document_template_uuid: str
-    format_uuid: str
-    created_by: str
+    document_template_uuid: str | None
+    format_uuid: str | None
+    created_by: str | None
     created_at: datetime
     updated_at: datetime
     description: str
     is_template: bool
     project_tags: list[str]
     tenant_uuid: str
+    workspace_uuid: str | None = None
 
     @staticmethod
     def from_dict_row(data: dict):
@@ -367,15 +389,16 @@ class DBProjectSimple:
             visibility=data['visibility'],
             sharing=data['sharing'],
             knowledge_model_package_uuid=data['knowledge_model_package_uuid'],
-            document_template_uuid=data['document_template_uuid'],
-            format_uuid=str(data['format_uuid']),
-            created_by=str(data['created_by']),
+            document_template_uuid=_str_or_none(data['document_template_uuid']),
+            format_uuid=_str_or_none(data['format_uuid']),
+            created_by=_str_or_none(data['created_by']),
             created_at=data['created_at'],
             updated_at=data['updated_at'],
             description=data['description'],
             is_template=data['is_template'],
             project_tags=data['project_tags'],
             tenant_uuid=str(data.get('tenant_uuid', NULL_UUID)),
+            workspace_uuid=_str_or_none(data.get('workspace_uuid')),
         )
 
     def to_dict(self) -> dict:
@@ -394,6 +417,7 @@ class DBProjectSimple:
             'is_template': self.is_template,
             'project_tags': self.project_tags,
             'tenant_uuid': self.tenant_uuid,
+            'workspace_uuid': self.workspace_uuid,
         }
 
 
