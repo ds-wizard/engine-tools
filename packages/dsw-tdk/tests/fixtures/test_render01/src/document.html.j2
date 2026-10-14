@@ -1,5 +1,5 @@
 {%- set logo = assets('assets/logo.png') -%}
-{%- set attachment = assets(ctx.files[0]) -%}
+{%- set attachment = assets(ctx.questionnaire.files | selectattr('fileName', 'equalto', 'notes.txt') | first) -%}
 <h1>{% trans %}Data Management Plan{% endtrans %}</h1>
 <p lang="{{ ctx.document.language }}">{{ ctx.document.name }}</p>
 <img src="{{ logo.src_value if logo else 'missing' }}">

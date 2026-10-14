@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "name": "Test template for rendering",
   "description": "Dummy document template for rendering locally",
-  "metamodelVersion": "18.3",
+  "metamodelVersion": "19.0",
   "language": "en",
   "license": "Apache-2.0",
   "allowedPackages": [],

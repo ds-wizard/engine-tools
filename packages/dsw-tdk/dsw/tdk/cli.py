@@ -5,6 +5,7 @@ import datetime
 import json
 import logging
 import mimetypes
+import os
 import pathlib
 import random
 import signal
@@ -26,9 +27,10 @@ from .context import anonymize as context_anonymize
 from .context import generate as context_generation
 from .context import inputs as context_inputs
 from .context import mutate as context_mutate
+from .context.document import DocumentOptions
 from .context.profiles import PROFILE_BY_NAME, PROFILES
-from .core import TDKCore, TDKProcessingError
-from .render import context_defaults, render_settings
+from .core import RenderOptions, TDKCore, TDKProcessingError
+from .render import context_defaults, find_format, render_settings
 from .utils import FormatSpec, TemplateBuilder, create_dot_env, safe_utf8
 from .validation import ValidationError
 
@@ -850,19 +852,56 @@ def _parse_context_defaults(ctx, param, values: tuple[str, ...]) -> ContextDefau
         raise click.BadParameter(str(e)) from e
 
 
-@main.command(help='Render a document from the local template and a document context.',
+def _context_files(ctx, param, values: tuple[str, ...]) -> list[pathlib.Path]:
+    files: list[pathlib.Path] = []
+    for value in values:
+        path = pathlib.Path(value)
+        if path.is_dir():
+            found = sorted(p for p in path.glob('*.json') if p.is_file())
+            if not found:
+                raise click.BadParameter(f'No *.json file in directory {value}')
+            files.extend(found)
+        else:
+            files.append(path)
+    return files
+
+
+def _print_render_failure(message: str):
+    ClickPrinter.failure('Failed to render the document')
+    ClickPrinter.error(f'> {message}')
+
+
+@main.command(help='Render documents from the local template and document contexts (metamodel '
+                   '19.0). With more than one context or format, every combination is rendered '
+                   'into the output directory, with a summary.json.',
               name='render')
 @click.argument('TEMPLATE-DIR', type=DIR_TYPE, default=CURRENT_DIR, required=False)
-@click.option('-c', '--context', 'context_file', required=True, type=FILE_READ_TYPE,
-              help='JSON file with the document context.')
-@click.option('-F', '--format', 'format_ref', default=None,
-              help='UUID or name of the format (can be omitted if there is only one).')
-@click.option('-o', '--output', default=None, type=click.Path(dir_okay=False, writable=True),
-              help='Target file [default: <template-id>.<extension>].')
+@click.option('-c', '--context', 'context_files', required=True, multiple=True,
+              type=click.Path(exists=True, readable=True), callback=_context_files,
+              help='JSON file with a document context, or a directory with them (*.json); '
+                   'can be repeated.')
+@click.option('-F', '--format', 'format_refs', multiple=True,
+              help='UUID or name of the format (can be omitted if there is only one); '
+                   'can be repeated.')
+@click.option('--all-formats', is_flag=True, help='Render every format of the template.')
+@click.option('-o', '--output', default=None, type=click.Path(writable=True),
+              help='Target file [default: <template-id>.<extension>], or the target directory '
+                   'when rendering more than one document [default: output].')
 @click.option('-p', '--po', 'po_file', default=None, type=FILE_READ_TYPE,
               help='PO file with translations to render with.')
 @click.option('-l', '--language', default=None,
-              help='Language of the document [default: document.language of the context].')
+              help='Set document.language (and document.locale, with --po) '
+                   '[default: from the context].')
+@click.option('--preview/--final', default=None,
+              help='Set document.preview [default: from the context, or a preview].')
+@click.option('--event', 'event_uuid', default=None, type=click.UUID,
+              help='Set document.eventUuid (the project version the document is for).')
+@click.option('--document-name', default=None,
+              help='Set document.name [default: from the context, or the project name].')
+@click.option('--write-context', default=None, is_flag=False, flag_value='', metavar='[FILE]',
+              help='Save the rendered context (with document filled, without what the worker '
+                   'adds) to FILE [default: <output-name>.context.json]; no FILE when '
+                   'rendering more than one document.')
 @click.option('--project-files', default=None,
               type=click.Path(exists=True, file_okay=False, resolve_path=True),
               help='Directory with project files, named by their UUID or file name.')
@@ -886,37 +925,99 @@ def _parse_context_defaults(ctx, param, values: tuple[str, ...]) -> ContextDefau
               help='Directory with Pandoc templates (the template option of the pandoc step).')
 @click.option('-f', '--force', is_flag=True, help='Overwrite the output file if already exists.')
 @click.pass_context
-def render_document(ctx, template_dir, context_file, format_ref, output, po_file, language,
+def render_document(ctx, template_dir, context_files: list[pathlib.Path],
+                    format_refs: tuple[str, ...], all_formats: bool, output, po_file, language,
+                    preview: bool | None, event_uuid, document_name, write_context: str | None,
                     project_files, context_default: ContextDefaults, secrets: dict[str, str],
                     allow_requests: bool, pandoc_filters, pandoc_templates, force: bool):
+    if all_formats and format_refs:
+        raise click.UsageError('Use either --format or --all-formats.')
     tdk = TDKCore(logger=ctx.obj.logger)
     load_local(tdk, template_dir)
     _forward_templating_logs(ctx.obj.logger)
+    template = tdk.safe_project.safe_template
+    try:
+        formats = template.formats if all_formats else \
+            [find_format(template, ref) for ref in format_refs or (None,)]
+    except RuntimeError as e:
+        _print_render_failure(str(e))
+        sys.exit(1)
+    options = RenderOptions(
+        force=force,
+        po_file=None if po_file is None else pathlib.Path(po_file),
+        project_files_dir=None if project_files is None else pathlib.Path(project_files),
+        context_defaults=context_default,
+        settings=render_settings(
+            pandoc_filters_dir=None if pandoc_filters is None else pathlib.Path(pandoc_filters),
+            pandoc_templates_dir=(None if pandoc_templates is None
+                                  else pathlib.Path(pandoc_templates)),
+            secrets=secrets,
+            allow_requests=allow_requests,
+        ),
+        document=DocumentOptions(
+            language=language,
+            with_locale=po_file is not None,
+            preview=preview,
+            event_uuid=None if event_uuid is None else str(event_uuid),
+            name=document_name,
+        ),
+    )
+    if len(context_files) * len(formats) > 1:
+        if write_context:
+            raise click.UsageError('--write-context takes no FILE when rendering more '
+                                   'than one document.')
+        _render_batch(tdk, context_files, formats, pathlib.Path(output or 'output'), options,
+                      write_context=write_context is not None)
+        return
     try:
         output_path, document = tdk.render(
-            context_file=pathlib.Path(context_file),
-            format_ref=format_ref,
+            context_file=context_files[0],
+            format_ref=formats[0].uuid,
             output=None if output is None else pathlib.Path(output),
-            force=force,
-            po_file=None if po_file is None else pathlib.Path(po_file),
-            language=language,
-            project_files_dir=None if project_files is None else pathlib.Path(project_files),
-            context_defaults=context_default,
-            settings=render_settings(
-                pandoc_filters_dir=None if pandoc_filters is None else pathlib.Path(pandoc_filters),
-                pandoc_templates_dir=(None if pandoc_templates is None
-                                      else pathlib.Path(pandoc_templates)),
-                secrets=secrets,
-                allow_requests=allow_requests,
-            ),
+            options=options,
+            write_context=(None if write_context is None
+                           else pathlib.Path(write_context) if write_context else True),
         )
     except Exception as e:
-        ClickPrinter.failure('Failed to render the document')
-        ClickPrinter.error(f'> {e}')
+        _print_render_failure(str(e))
         sys.exit(1)
     filename = click.style(output_path.as_posix(), bold=True)
     size = humanize.naturalsize(document.byte_size)
     ClickPrinter.success(f'Document {filename} rendered ({document.content_type}, {size})')
+
+
+def _render_batch(tdk: TDKCore, context_files: list[pathlib.Path], formats: list,
+                  output_dir: pathlib.Path, options: RenderOptions, *, write_context: bool):
+    summary = []
+    for result in tdk.render_batch(context_files=context_files, formats=formats,
+                                   output_dir=output_dir, options=options,
+                                   write_context=write_context):
+        context = os.path.relpath(result.context_file)
+        if result.output is None or result.document is None:
+            ClickPrinter.failure(f'{context} / {result.format_spec.name}: {result.error}')
+        else:
+            size = humanize.naturalsize(result.document.byte_size)
+            ClickPrinter.success(f'{context} / {result.format_spec.name}: '
+                                 f'{click.style(result.output.as_posix(), bold=True)} ({size})')
+        summary.append({
+            'context': context,
+            'format': result.format_spec.name,
+            'status': 'error' if result.error else 'ok',
+            'durationMs': result.duration_ms,
+            'output': None if result.output is None
+            else result.output.relative_to(output_dir).as_posix(),
+            'error': result.error,
+        })
+    summary_file = output_dir / 'summary.json'
+    summary_file.write_text(json.dumps(summary, indent=2, ensure_ascii=False) + '\n',
+                            encoding=consts.DEFAULT_ENCODING)
+    failed = sum(1 for entry in summary if entry['status'] == 'error')
+    message = f'{len(summary) - failed} of {len(summary)} documents rendered, ' \
+              f'summary in {summary_file.as_posix()}'
+    if failed:
+        ClickPrinter.failure(message)
+        sys.exit(1)
+    ClickPrinter.success(message)
 
 
 @main.group(help='Manage shared user configuration (~/.dsw-tdk).', name='config')

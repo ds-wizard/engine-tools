@@ -172,3 +172,7 @@ Svete
 denormal
 fullwidth
 surrogatepass
+
+# Generated document contexts (TDK render fixtures)
+Ravi
+zenodo

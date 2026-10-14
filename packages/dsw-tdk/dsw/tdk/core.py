@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import copy
+import dataclasses
 import datetime
 import io
 import json
@@ -7,12 +9,15 @@ import logging
 import pathlib
 import shutil
 import tempfile
+import time
 import typing
 import zipfile
 
 import pydantic
+import slugify
 import watchfiles
 
+from dsw.models.document_context.hash import compute_context_hash
 from dsw.models.document_template.metadata import DocumentTemplateBundle
 from dsw.models.errors import MetamodelVersionError
 from dsw.models.strictness import load as load_model
@@ -21,7 +26,8 @@ from dsw.templating import ContextDefaults, RenderContext, RenderSettings
 
 from . import consts
 from .api_client import WizardAPIClient, WizardCommunicationError
-from .model import Template, TemplateFile, TemplateFileType, TemplateProject
+from .context.document import DocumentOptions, fill_document, load_context
+from .model import Format, Template, TemplateFile, TemplateFileType, TemplateProject
 from .pot import PotFile, create_pot_file
 from .render import (
     DirectoryProjectFiles,
@@ -53,6 +59,39 @@ class TDKProcessingError(RuntimeError):
     def __init__(self, message: str, hint: str):
         self.message = message
         self.hint = hint
+
+
+@dataclasses.dataclass(frozen=True)
+class RenderOptions:
+    """What `render` does with every context, besides the template and format."""
+
+    force: bool = False
+    po_file: pathlib.Path | None = None
+    project_files_dir: pathlib.Path | None = None
+    context_defaults: ContextDefaults | None = None
+    settings: RenderSettings | None = None
+    document: DocumentOptions = dataclasses.field(default_factory=DocumentOptions)
+
+
+@dataclasses.dataclass(frozen=True)
+class RenderResult:
+    """One context in one format of a batch render."""
+
+    context_file: pathlib.Path
+    format_spec: Format
+    #: None on failure
+    output: pathlib.Path | None
+    document: DocumentFile | None
+    error: str | None
+    duration_ms: int
+
+
+def dumps_context(context: dict) -> str:
+    return json.dumps(context, indent=2, ensure_ascii=False) + '\n'
+
+
+def _context_path(output: pathlib.Path) -> pathlib.Path:
+    return output.with_name(f'{output.stem}.context.json')
 
 
 class TDKCore:
@@ -413,47 +452,123 @@ class TDKCore:
         return pot_file
 
     def render(self, *, context_file: pathlib.Path, format_ref: str | None,
-               output: pathlib.Path | None, force: bool, po_file: pathlib.Path | None = None,
-               language: str | None = None,
-               project_files_dir: pathlib.Path | None = None,
-               context_defaults: ContextDefaults | None = None,
-               settings: RenderSettings | None = None,
+               output: pathlib.Path | None, options: RenderOptions,
+               write_context: pathlib.Path | typing.Literal[True] | None = None,
                ) -> tuple[pathlib.Path, DocumentFile]:
+        """Render one context in one format.
+
+        ``write_context`` saves the rendered context: to the path, or next to the
+        output as ``<name>.context.json`` when ``True``.
+        """
         template = self.safe_project.safe_template
         format_spec = find_format(template, format_ref)
+        context = self._prepare_context(context_file, format_spec, options.document)
+        rendered_context = copy.deepcopy(context)
+        document = self._render_context(context, format_spec, options,
+                                        self._translations(options.po_file))
+        name = document.filename(template.id or 'document')
+        if output is None:
+            output = pathlib.Path.cwd() / name
+        elif output.is_dir():
+            output = output / name
+        if write_context is not None:
+            path = _context_path(output) if write_context is True else write_context
+            self._write(path, dumps_context(rendered_context), force=options.force)
+        self._write(output, document.content, force=options.force)
+        return output, document
+
+    def render_batch(self, *, context_files: list[pathlib.Path], formats: list[Format],
+                     output_dir: pathlib.Path, options: RenderOptions,
+                     write_context: bool = False) -> typing.Iterator[RenderResult]:
+        """Render every context in every format into ``output_dir``, one result each.
+
+        Outputs are named ``<context-stem>[.<format-slug>].<ext>``, the format part
+        only with more than one format. A failure is a result, not an exception.
+        """
+        translations = self._translations(options.po_file)
+        output_dir.mkdir(parents=True, exist_ok=True)
+        for context_file in context_files:
+            for format_spec in formats:
+                stem = context_file.stem
+                if len(formats) > 1:
+                    stem += f'.{slugify.slugify(format_spec.name or str(format_spec.uuid))}'
+                start = time.monotonic()
+                output = None
+                try:
+                    context = self._prepare_context(context_file, format_spec, options.document)
+                    rendered_context = copy.deepcopy(context)
+                    document = self._render_context(context, format_spec, options,
+                                                    translations)
+                    output = output_dir / document.filename(stem)
+                    if write_context:
+                        self._write(_context_path(output), dumps_context(rendered_context),
+                                    force=options.force)
+                    self._write(output, document.content, force=options.force)
+                    error = None
+                except Exception as e:  # noqa: BLE001
+                    output, document, error = None, None, str(e)
+                yield RenderResult(
+                    context_file=context_file,
+                    format_spec=format_spec,
+                    output=output,
+                    document=document,
+                    error=error,
+                    duration_ms=round((time.monotonic() - start) * 1000),
+                )
+
+    def _prepare_context(self, context_file: pathlib.Path, format_spec: Format,
+                         options: DocumentOptions) -> dict:
+        """The valid 19.0 context of the file, with its ``document`` filled."""
         self.logger.debug('Loading document context: %s', context_file.as_posix())
-        context = json.loads(context_file.read_text(encoding=consts.DEFAULT_ENCODING))
-        for name in enrich_context(context, format_spec, context_defaults):
+        context = load_context(context_file)
+        expected = compute_context_hash(context)
+        if context['hash'] != expected:
+            self.logger.warning('%s: hash does not match the content (edited by hand?), '
+                                'the content gives %s', context_file.name, expected)
+        template = self.safe_project.safe_template
+        for warning in fill_document(context, template, format_spec, options):
+            self.logger.warning('%s: %s', context_file.name, warning)
+        return context
+
+    def _translations(self, po_file: pathlib.Path | None):
+        if po_file is None:
+            return None
+        self.logger.debug('Loading translations: %s', po_file.as_posix())
+        return load_translations(po_file)
+
+    def _render_context(self, context: dict, format_spec: Format, options: RenderOptions,
+                        translations) -> DocumentFile:
+        template = self.safe_project.safe_template
+        for name in enrich_context(context, format_spec, options.context_defaults):
             self.logger.warning('Extra "%s" is not in the context, rendering as '
                                 'for a document without a project', name)
-        if language is None:
-            language = (context.get('document') or {}).get('language')
-        if po_file is None:
+        language = context['document']['language']
+        if translations is None:
             render_ctx = RenderContext.null(language=language)
         else:
-            self.logger.debug('Loading translations: %s', po_file.as_posix())
-            render_ctx = RenderContext(translations=load_translations(po_file), language=language)
+            render_ctx = RenderContext(translations=translations, language=language)
         project_files = None
-        if project_files_dir is not None:
-            project_files = DirectoryProjectFiles(project_files_dir)
+        if options.project_files_dir is not None:
+            project_files = DirectoryProjectFiles(options.project_files_dir)
         self.logger.info('Rendering format "%s" of %s', format_spec.name, template.coordinates)
         with tempfile.TemporaryDirectory() as workdir, filtered_native_stderr():
-            document = render_document(
+            return render_document(
                 template,
                 workdir=pathlib.Path(workdir),
                 format_uuid=str(format_spec.uuid),
                 context=context,
                 render_ctx=render_ctx,
                 project_files=project_files,
-                settings=settings,
+                settings=options.settings,
             )
-        if output is None:
-            output = pathlib.Path.cwd() / document.filename(template.id or 'document')
-        if output.exists() and not force:
-            raise RuntimeError(f'File {output} already exists (not forced)')
-        self.logger.debug('Writing document: %s', output.as_posix())
-        output.write_bytes(document.content)
-        return output, document
+
+    def _write(self, path: pathlib.Path, content: bytes | str, *, force: bool):
+        if path.exists() and not force:
+            raise RuntimeError(f'File {path} already exists (not forced)')
+        self.logger.debug('Writing: %s', path.as_posix())
+        if isinstance(content, str):
+            content = content.encode(consts.DEFAULT_ENCODING)
+        path.write_bytes(content)
 
     def _package_descriptor(self, descriptor: dict) -> dict:
         """Normalize the package descriptor through the shared DocumentTemplateBundle.
