@@ -32,6 +32,8 @@ The package was rewritten; its previous, experimental API is not kept.
   `templateId`, `allowedPackages` patterns with `id` instead of `orgId` + `kmId`, and `reference`
   instead of `coordinate`; pre-5.0 descriptors are still read, and `migrate_template_json`
   upgrades them (it no longer takes `kind`)
+- Document context hash (`dsw.models.document_context.hash`): `compute_context_hash` and the
+  canonical JSON (RFC 8785) it hashes, identical to the server's
 
 ### Changed
 

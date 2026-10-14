@@ -160,3 +160,8 @@ IPPROTO
 Ahoj
 Nazdar
 Svete
+
+# Document context hash (canonical JSON, fixtures shared with the backend)
+denormal
+fullwidth
+surrogatepass
