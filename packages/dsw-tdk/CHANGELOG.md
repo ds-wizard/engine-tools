@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New `validate-context` command checking document contexts (`--fix-hash` rewrites a wrong hash)
 - New `generate-context` command generating valid, reproducible document contexts by profile from the bundled sample knowledge model, a bundle file, a package on the server or an existing context
 - `generate-context --mutate` (perturbs an existing context at the profile's rate) and `--anonymize` (replaces its personal data and free text with deterministic placeholders)
+- Batch `render`: `-c` (files or directories of contexts) and `-F` can be repeated, `--all-formats` renders every format, the documents go into a directory with a `summary.json`, and the exit code is 1 if any of them failed
+- `render` options `--preview/--final`, `--event`, `--document-name` and `--write-context` (saves the rendered context)
 
 ### Changed
 
@@ -27,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The `template.json` written into a package is built and validated as the shared `DocumentTemplateBundle` from `dsw-models`, so the package shape has one definition; a template that does not match it is reported as a warning and still packaged, as before
 - Works with the Wizard 5.0 API: the API URL is the instance address followed by `/api` (the client address is derived by dropping it), new drafts are created with the scope a multi-workspace instance requires, and the editor link printed by `put` is the workspace page `/w/<workspace>/document-template-editors/<uuid>` (printed only when the workspace is unambiguous)
 - Templates are identified by a single `id` and `version` (Wizard 5.0): `template.json` has `id` instead of `organizationId` + `templateId`, `allowedPackages` patterns have `id` instead of `orgId` + `kmId`, and commands take references `<id>:<version>` (e.g. `dsw-tdk get dsw.questionnaire-report:2.17.0`); a pre-5.0 `template.json` is still read and is rewritten in the new shape (`<organizationId>.<templateId>`), `dsw-tdk new` no longer asks for an organization ID, and `put` no longer reads the organization ID of the instance
+- `render` requires a complete document context of metamodel 19.0 (rejecting a partial one with the file, JSON path and problem), warns when its hash does not match, and fills `document` itself as the document worker does (template and format being rendered, a preview for `document: null`); `-l/--language` now sets `document.language`
 - The default `list` format prints the reference `{template.coordinates}` (`<id>:<version>`); `{template.id}` is now the id alone
 
 ### Fixed
