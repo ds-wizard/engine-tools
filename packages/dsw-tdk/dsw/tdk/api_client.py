@@ -283,6 +283,14 @@ class WizardAPIClient:
         )
 
     @handle_client_errors
+    async def get_km_package_bundle(self, package_uuid: str) -> bytes:
+        """The bundle of a knowledge model package (JSON), from the presigned URL it gets."""
+        descriptor = await self._get_json(f'/knowledge-model-packages/{package_uuid}/bundle')
+        async with self.session.get(url=descriptor['url']) as r:  # presigned, no auth headers
+            self._check_status(r, expected_status=200)
+            return await r.content.read()
+
+    @handle_client_errors
     async def get_workspace_uuids(self, limit: int = 2) -> list[str]:
         """Workspaces of the tenant the user can see (at most ``limit``)."""
         body = await self._get_json('/workspaces', params={'size': limit, 'page': 0})

@@ -6,6 +6,7 @@ import json
 import logging
 import mimetypes
 import pathlib
+import random
 import signal
 import sys
 import typing
@@ -21,6 +22,9 @@ from dsw.models.document_context.validation import validate_context
 from . import consts
 from .api_client import WizardCommunicationError
 from .config import CONFIG
+from .context import generate as context_generation
+from .context import inputs as context_inputs
+from .context.profiles import PROFILE_BY_NAME, PROFILES
 from .core import TDKCore, TDKProcessingError
 from .render import context_defaults, render_settings
 from .utils import FormatSpec, TemplateBuilder, create_dot_env, safe_utf8
@@ -642,6 +646,100 @@ def validate_context_files(files, fix_hash):
         else:
             ClickPrinter.success(f'{path}: valid ({len(issues)} warning(s))')
     sys.exit(1 if failed else 0)
+
+
+def _parse_config_overrides(values: tuple[str, ...]) -> dict[str, str]:
+    overrides = {}
+    for value in values:
+        key, separator, content = value.partition('=')
+        if not separator or key not in context_generation.CONFIG_KEYS:
+            raise click.BadParameter(
+                f'{value!r}: use KEY=VALUE with one of {", ".join(context_generation.CONFIG_KEYS)}',
+                param_hint='-D')
+        overrides[key] = content
+    return overrides
+
+
+def _generation_input(ctx, from_file, km_package, km_bundle, sample, seed):
+    if from_file is not None:
+        return context_generation.input_from_context(
+            json.loads(pathlib.Path(from_file).read_text(encoding=consts.DEFAULT_ENCODING)))
+    if km_bundle is not None:
+        return context_inputs.input_from_bundle_data(
+            context_inputs.read_bundle_file(pathlib.Path(km_bundle)), seed)
+    if sample:
+        return context_inputs.sample_input(seed)
+
+    async def download():
+        tdk = TDKCore(logger=ctx.obj.logger)
+        try:
+            await tdk.init_client(api_url=CONFIG.env.api_url, api_key=CONFIG.env.api_key)
+            return await tdk.safe_client.get_km_package_bundle(km_package)
+        finally:
+            await tdk.safe_client.safe_close()
+
+    bundle = context_inputs.parse_bundle(json.loads(asyncio.run(download())))
+    return context_inputs.input_from_bundle_data(bundle, seed, package_uuid=km_package)
+
+
+@main.command(help='Generate document contexts for a knowledge model.', name='generate-context')
+@click.option('--from', 'from_file', type=FILE_READ_TYPE, help='Start from this context.')
+@click.option('--km-package', metavar='UUID', help='Knowledge model package on the server.')
+@click.option('--km-bundle', type=FILE_READ_TYPE, help='Knowledge model bundle (.km, .km.gz).')
+@click.option('--sample', is_flag=True, help='The sample knowledge model shipped with the TDK.')
+@click.option('--source', type=click.Choice(['project', 'km-editor']), default='project',
+              show_default=True, help='Context of a project or of a KM editor.')
+@click.option('--profile', 'profiles', multiple=True, default=('typical',), show_default=True,
+              type=click.Choice(PROFILES), help='How much to generate (repeatable).')
+@click.option('--count', default=1, show_default=True, type=click.IntRange(min=1),
+              help='Variants per profile.')
+@click.option('--seed', type=int, help='Seed for reproducible output (random by default).')
+@click.option('--now', type=click.DateTime(formats=['%Y-%m-%dT%H:%M:%SZ', '%Y-%m-%dT%H:%M:%S']),
+              help='Reference time of the generated timestamps (default 2025-01-01T00:00:00Z).')
+@click.option('-D', 'config_values', multiple=True, metavar='KEY=VALUE',
+              help='A value of `config` (clientUrl, appTitle, primaryColor, logoUrl).')
+@click.option('-u', '--api-url', metavar='API-URL', envvar='DSW_API_URL',
+              help='URL of Wizard server API (for --km-package).')
+@click.option('-k', '--api-key', metavar='API-KEY', envvar='DSW_API_KEY',
+              help='API key for Wizard instance (for --km-package).')
+@click.option('-o', '--output', default='contexts', show_default=True,
+              type=click.Path(writable=True), help='Directory, or a file for a single context.')
+@click.pass_context
+def generate_context_files(ctx, from_file, km_package, km_bundle, sample, source, profiles,
+                           count, seed, now, config_values, api_url, api_key, output):
+    inputs = (from_file, km_package, km_bundle, sample or None)
+    if sum(value is not None for value in inputs) != 1:
+        raise click.UsageError('Use exactly one of --from, --km-package, --km-bundle and --sample.')
+    overrides = _parse_config_overrides(config_values)
+    if seed is None:
+        seed = random.SystemRandom().randrange(2 ** 31)
+        ClickPrinter.warning(f'No --seed given, using {seed}')
+    if km_package is not None:
+        ensure_api_config(api_url, api_key)
+    try:
+        source_input = _generation_input(ctx, from_file, km_package, km_bundle, sample, seed)
+    except Exception as e:
+        ClickPrinter.failure('Could not load the knowledge model')
+        ClickPrinter.error(f'> {e}')
+        sys.exit(1)
+    reference = (now.replace(tzinfo=datetime.UTC) if now is not None
+                 else context_generation.DEFAULT_NOW)
+    jobs = [(profile, variant) for profile in profiles for variant in range(count)]
+    output_path = pathlib.Path(output)
+    single_file = len(jobs) == 1 and output_path.suffix == '.json'
+    if not single_file:
+        output_path.mkdir(parents=True, exist_ok=True)
+    for profile, variant in jobs:
+        generated = context_generation.generate_context(source_input, context_generation.Options(
+            profile=PROFILE_BY_NAME[profile], variant=variant, seed=seed, now=reference,
+            source=source, config=overrides))
+        target = output_path if single_file else output_path / f'{profile}-{seed}-{variant}.json'
+        target.write_text(context_generation.dumps(generated.context),
+                          encoding=consts.DEFAULT_ENCODING)
+        for warning in generated.warnings:
+            ClickPrinter.warning(f'{target}: {warning}')
+        ClickPrinter.success(f'{target}: {len(generated.context["questionnaire"]["replies"])} '
+                             f'replies, hash {generated.context["hash"]}')
 
 
 @main.command(help='Verify a template project.', name='verify')
