@@ -11,6 +11,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - Lambda handler reads its configuration from AWS AppConfig when `AWS_APP_CONFIG` is set (see `dsw-config`)
 - Tests
+- The default mail POT (Wizard 5.0): `dsw-mailer make-pot` builds one `mail.pot` of all the templates into `templates/locale/mail.pot` (the image has it), and the mailer keeps it current in S3 at `mail-templates/mail.pot`, with its version as object metadata, at startup and with `dsw-mailer sync-default-pot [--force]` or the Lambda event `{"syncDefaultPot": {...}}`; it never downgrades it unless forced and never blocks mail; `mail.syncDefaultPot` (`MAIL_SYNC_DEFAULT_POT`) turns it off
 
 ### Changed
 
@@ -19,10 +20,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - The compiled `mail.mo` of a mail template locale is stored back to S3 next to its `mail.po` and cached locally until the locale's `updated_at` changes, instead of compiling the PO for every mail
 - A mail template locale that cannot be loaded is reported and the mail is sent in English
 - The `registry` mode is unchanged: English, without locales
+- Commands that need no configuration (`make-pot`) no longer load it
 - `send` from a file: `localeUuid` is an optional mail template locale, and `recipients` can be plain email addresses (as in the examples)
 
 ### Removed
 
+- The three POT files (`default`, `wizard` and `registry`, built with `pybabel` and `make-header.sh`): `make pot` builds the one `mail.pot`
 - The illustrations color (`style.illustrations_color` in templates, `illustrationsColor` and `styleIllustrationsColor` in the input, the `DEFAULT_ILLUSTRATIONS_COLOR` variable): Wizard 5.0 removed it
 
 ## [4.34.0]

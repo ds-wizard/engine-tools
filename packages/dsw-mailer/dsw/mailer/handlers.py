@@ -17,7 +17,12 @@ def lambda_handler(event, context):
     config = load_config_str(read_config(config_path, encoding=consts.DEFAULT_ENCODING))
     try:
         mailer = Mailer(config, workdir_path)
+        # invoked by CI/CD after a deployment: {"syncDefaultPot": {"force": false}}
+        if isinstance(event, dict) and 'syncDefaultPot' in event:
+            force = bool((event['syncDefaultPot'] or {}).get('force', False))
+            return {'syncDefaultPot': mailer.sync_default_pot(force=force).name}
         mailer.run_once()
     except Exception as e:
         SentryReporter.capture_exception(e)
         raise e
+    return None

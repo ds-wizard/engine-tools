@@ -1,6 +1,4 @@
 PIP = uv pip
-# Derived from the git tag - there is no version number stored in the repo.
-VERSION = $(shell git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//')
 
 .PHONY: verify
 verify:
@@ -65,15 +63,10 @@ clean:
 	rm -rf package
 	rm mailer-lambda.zip || true
 
+# The default mail POT, as packaged into the image: templates/locale/mail.pot.
+# POT_KIND=fw-mail-templates for FAIR Wizard; the version is the mailer's.
+POT_KIND = dsw-mail-templates
+
 .PHONY: pot
 pot:
-	pybabel extract --no-wrap --omit-header --ignore-dirs=.* \
-		 --mapping templates/babel.registry.cfg --output-file=templates/locale/registry.plain.pot .
-	pybabel extract --no-wrap --omit-header --ignore-dirs=.* \
-		--mapping templates/babel.wizard.cfg --output-file=templates/locale/wizard.plain.pot .
-	pybabel extract --no-wrap --omit-header --ignore-dirs=.* \
-		--mapping templates/babel.cfg --output-file=templates/locale/default.plain.pot .
-	cd templates/locale && \
-		./make-header.sh "wizard-mail-templates:${VERSION}" wizard.plain.pot > wizard.pot && rm wizard.plain.pot && \
-		./make-header.sh "registry-mail-templates:${VERSION}" registry.plain.pot > registry.pot && rm registry.plain.pot && \
-		./make-header.sh "mail-templates:${VERSION}" default.plain.pot > default.pot && rm default.plain.pot
+	dsw-mailer make-pot templates --kind $(POT_KIND)

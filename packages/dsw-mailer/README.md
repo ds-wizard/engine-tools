@@ -38,6 +38,32 @@ $ docker build . -t mailer:local
 
 A template must always contain the `message.json` descriptor, having both HTML and Plain text part is recommended.
 
+## Translations
+
+Mails are translated with the tenant's **mail template locales**: PO files uploaded in the
+Wizard's mail settings, stored at `mail-template-locales/<uuid>/mail.po`. Each recipient gets one
+mail, in the enabled mail template locale whose code matches the code of their UI locale (exact,
+then the base language: `de-AT` matches `de`), otherwise in the tenant's default one, otherwise in
+`en`, otherwise in the built-in English. A recipient who is not a user gets the default. A command
+with `sendAsOne` is sent as a single mail to all recipients, in English. The mailer compiles a PO
+once and stores `mail.mo` next to it.
+
+Translators work from the **default mail POT**, the strings of the built-in templates:
+
+- It is built with the templates and shipped in the image as `templates/locale/mail.pot`:
+  `dsw-mailer make-pot TEMPLATES-DIR [--kind KIND] [--version VERSION]` (or `make pot`). Its
+  `Project-Id-Version` is `<kind>:<version>`, `dsw-mail-templates:<mailer version>` by default.
+  Run it again whenever you replace the templates.
+- The mailer keeps it current in S3 at `mail-templates/mail.pot` (never tenant-prefixed), where
+  the Wizard serves it: at startup, and with `dsw-mailer sync-default-pot [--force]` (in Lambda,
+  the event `{"syncDefaultPot": {"force": false}}`), meant to run after each deployment. It is
+  uploaded when it is missing, older or of the same version but other content; a newer one is
+  kept (an older mailer never downgrades it) unless `--force` is given. A failed sync is
+  reported, but never stops mail from being sent.
+- The mailer therefore needs write access to `mail-templates/` and `mail-template-locales/` in
+  the bucket. Set `mail.syncDefaultPot: false` (`MAIL_SYNC_DEFAULT_POT`) to turn the sync off, as
+  for the Registry server, whose mails are in English only.
+
 ## License
 
 This project is licensed under the Apache License v2.0 - see the
