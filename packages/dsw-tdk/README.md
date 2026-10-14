@@ -63,19 +63,23 @@ For further information, visit our [documentation](https://docs.ds-wizard.org).
 -  `get-context` = download the document context of a project (`--project UUID`, optionally `--event UUID`) or a knowledge model editor (`--km-editor UUID`), as the server sends it; it prints the ETag, which is the context's `hash`
 -  `generate-context` = generate plausible document contexts from a knowledge model: `--sample` (shipped with the TDK), `--km-bundle FILE`, `--km-package UUID` (from the server) or `--from FILE` (keeps its knowledge model, package, config and workspace); `--profile empty|minimal|typical|full|edge` (repeatable) sets how much is filled in, `--count N` the variants per profile, `--source project|km-editor` the kind of context, `--seed` makes the output reproducible and `-D KEY=VALUE` sets `config` values. With `--from`, `--mutate` perturbs the context at the rate of each profile and `--anonymize` replaces its personal data and free text with deterministic placeholders (both can be combined). Every generated context passes `validate-context`
 -  `validate-context` = check document context files against the 19.0 schema and their own knowledge model (reply paths and values, files, labels, phase, version, hash); it prints errors and warnings and exits with `1` on any error, and `--fix-hash` rewrites a hash that does not match the content
--  `render` = render a document from the local template project and a document context (no DSW instance needed)
+-  `render` = render documents from the local template project and document contexts (no DSW instance needed)
 
 ### Rendering documents locally
 
-`render` uses the same engine as the DSW document worker ([dsw-templating](../dsw-templating)). You need a document context as a JSON file:
+`render` uses the same engine as the DSW document worker ([dsw-templating](../dsw-templating)). You need a document context (metamodel 19.0) as a JSON file, from `get-context` or `generate-context`:
 
 ```shell script
 $ dsw-tdk render --context context.json --format "HTML Document" --output document.html
-$ dsw-tdk render -c context.json -F "PDF Document" --po cs.po --project-files ./files
+$ dsw-tdk render -c context.json -F "PDF Document" --po cs.po -l cs --project-files ./files
 ```
 
 - `--format` accepts the UUID or name of a format (it can be omitted if the template has only one)
-- `--po` renders with translations from a PO file (e.g. a translated `dsw-tdk pot` output); the language is taken from `document.language` of the context unless `--language` is given
+- The context must be a complete, valid 19.0 context; otherwise `render` fails with the file, the JSON path and the problem. A context whose `hash` does not match its content (edited by hand) is rendered with a warning
+- `render` fills `document` as the document worker would: `documentTemplate` (`id` and `version` from `template.json`) and `format` are always those being rendered (with a warning if the context names others); the rest is kept from the context, or, for `document: null`, is a preview named after the project or KM editor, without a language, created now
+- `-l/--language`, `--preview/--final`, `--event UUID` and `--document-name NAME` set `document.language` (and resets `document.locale`), `preview`, `eventUuid` and `name`
+- `--po` renders with translations from a PO file (e.g. a translated `dsw-tdk pot` output), in `document.language`; with `-l`, `document.locale` is filled for that language
+- `--write-context [FILE]` saves the context that was rendered (with `document` filled, but without what the worker adds below) to `FILE`, or to `<output-name>.context.json`; it passes `validate-context`
 - `--project-files` is a directory with files uploaded to the project, named by their UUID or file name
 - Only files selected by `_tdk.files` are available to the rendering, as on the server
 - The context is completed as the document worker does it with its default configuration: `config` gets the service name and URL of the Data Stewardship Wizard and fallbacks for missing branding (app title, colors, logo), and `extras` requested by the format but missing in the context are rendered as for a document without a project (with a warning)
@@ -100,6 +104,17 @@ The `service*` values are always set; the `default*` ones apply only where the c
 - Steps `weasyprint`, `excel` and `rdflib-convert`, the `requests` global and the `pandoc-docx-pagebreakpy` Pandoc filter need optional dependencies: `pip install 'dsw-tdk[all]'`; WeasyPrint also needs [Pango](https://doc.courtbouillon.org/weasyprint/stable/first_steps.html#installation) and the `pandoc` step needs [pandoc](https://pandoc.org) installed
 - The `docx-*.lua` Pandoc filters of the document worker are always available; `--pandoc-filters DIR` adds more (searched first) and `--pandoc-templates DIR` provides templates for the `template` option of the `pandoc` step (or `PANDOC_FILTERS` / `PANDOC_TEMPLATES`, as for the worker)
 - The `secrets` and `requests` globals exist only when configured for the template on the server; locally, `--secret NAME=VALUE` (repeatable) provides `secrets` and `--allow-requests` provides `requests`
+
+#### Rendering many documents
+
+`-c` can be repeated and accepts directories (every `*.json` in it, sorted, not recursive); `-F` can be repeated, or `--all-formats` renders every format of the template. With more than one context × format combination, `--output` is a directory (default `output`) and each document is written as `<context-name>[.<format-name>].<extension>` (the format part only with more than one format):
+
+```shell script
+$ dsw-tdk generate-context --sample --profile minimal --profile edge -o contexts
+$ dsw-tdk render -c contexts --all-formats -o output
+```
+
+`output/summary.json` lists every combination in the order it was rendered, with `context`, `format`, `status` (`ok` or `error`), `durationMs`, `output` (relative to the directory) and `error`. The exit code is 1 if any combination failed. `--write-context` takes no file name here and writes `<document-name>.context.json` next to each document.
 
 ### Environment variables
 

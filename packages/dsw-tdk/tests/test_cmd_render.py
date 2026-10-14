@@ -54,7 +54,7 @@ def test_render_html_by_uuid_with_translations_and_project_files(
     result = render(
         fixtures_path, tmp_path,
         '--format', 'a9293d08-59a4-4e6b-ae62-7a6a570b031c',
-        '--po', (template_path / 'cs.po').as_posix(),
+        '--po', (template_path / 'cs.po').as_posix(), '-l', 'cs',
         '--project-files', (template_path / 'project-files').as_posix(),
         '-o', output.as_posix(),
     )
