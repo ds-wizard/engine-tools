@@ -20,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Metamodel version handling is shared with `dsw-models` (now a dependency)
 - The `pot` command extracts messages with `dsw-templating` (now a dependency), the same code as the document worker, instead of a copy of it
 - The `template.json` written into a package is built and validated as the shared `DocumentTemplateBundle` from `dsw-models`, so the package shape has one definition; a template that does not match it is reported as a warning and still packaged, as before
+- Templates are identified by a single `id` and `version` (Wizard 5.0): `template.json` has `id` instead of `organizationId` + `templateId`, `allowedPackages` patterns have `id` instead of `orgId` + `kmId`, and commands take references `<id>:<version>` (e.g. `dsw-tdk get dsw.questionnaire-report:2.17.0`); a pre-5.0 `template.json` is still read and is rewritten in the new shape (`<organizationId>.<templateId>`), `dsw-tdk new` no longer asks for an organization ID, and `put` no longer reads the organization ID of the instance
+- The default `list` format prints the reference `{template.coordinates}` (`<id>:<version>`); `{template.id}` is now the id alone
 
 ### Fixed
 

@@ -25,6 +25,13 @@ The package was rewritten; its previous, experimental API is not kept.
 - JSON Schema generation (`dsw.models.schemas`)
 - Example scripts (`examples/`): validating, building and diffing knowledge models, generating schemas
 - `language` field of `DocumentTemplateMetadata`
+- Single `id` of Wizard 5.0 for knowledge model bundles: packages are `id` + `version` with
+  split `*PackageId` / `*PackageVersion` links, and pre-5.0 bundles are still read
+  (`dsw.models.coordinate`)
+- Single `id` of Wizard 5.0 for `template.json`: `id` + `version` instead of `organizationId` +
+  `templateId`, `allowedPackages` patterns with `id` instead of `orgId` + `kmId`, and `reference`
+  instead of `coordinate`; pre-5.0 descriptors are still read, and `migrate_template_json`
+  upgrades them (it no longer takes `kind`)
 
 ### Changed
 

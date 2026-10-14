@@ -1,16 +1,14 @@
 {
-  "id": "example:my-template:1.0.0",
+  "id": "example.my-template",
   "name": "My Template",
-  "organizationId": "example",
-  "templateId": "my-template",
   "version": "1.0.0",
   "metamodelVersion": "18.3",
   "description": "Synthetic template",
   "readme": "# My Template",
   "license": "Apache-2.0",
   "allowedPackages": [
-    {"orgId": "dsw", "kmId": "root", "minVersion": "2.0.0", "maxVersion": null},
-    {"orgId": null, "kmId": null, "minVersion": null, "maxVersion": null}
+    {"id": "dsw.root", "minVersion": "2.0.0", "maxVersion": null},
+    {"id": null, "minVersion": null, "maxVersion": null}
   ],
   "language": "cs",
   "formats": [

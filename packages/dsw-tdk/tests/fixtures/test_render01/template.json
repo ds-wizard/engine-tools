@@ -1,6 +1,5 @@
 {
-  "organizationId": "test",
-  "templateId": "render01",
+  "id": "test.render01",
   "version": "1.0.0",
   "name": "Test template for rendering",
   "description": "Dummy document template for rendering locally",

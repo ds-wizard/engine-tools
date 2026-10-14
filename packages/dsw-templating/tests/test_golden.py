@@ -91,7 +91,7 @@ def render_ctx(tmp_path: pathlib.Path) -> RenderContext:
 
 
 def test_template_from_directory(template):
-    assert template.coordinates == 'dsw:golden:1.0.0'
+    assert template.coordinates == 'dsw.golden:1.0.0'
     assert template.has_format(FORMAT_HTML)
     asset = template.fetch_asset('assets/logo.png')
     assert asset is not None

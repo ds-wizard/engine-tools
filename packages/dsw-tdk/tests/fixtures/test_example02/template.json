@@ -1,6 +1,5 @@
 {
-  "organizationId": "organization",
-  "templateId": "test-template-y",
+  "id": "organization.test-template-y",
   "version": "0.1.0",
   "name": "Test template 01",
   "description": "Dummy document template 01 for testing purposes",
@@ -8,8 +7,7 @@
   "license": "Apache-2.0",
   "allowedPackages": [
     {
-      "orgId": null,
-      "kmId": null,
+      "id": null,
       "minVersion": null,
       "maxVersion": null
     }

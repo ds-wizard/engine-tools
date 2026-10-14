@@ -82,7 +82,7 @@ def test_render_default_output_name(fixtures_path: pathlib.Path, tmp_path: pathl
     monkeypatch.chdir(tmp_path)
     result = render(fixtures_path, tmp_path, '--format', 'JSON Data')
     assert result.exit_code == 0, result.output
-    assert (tmp_path / 'render01.json').is_file()
+    assert (tmp_path / 'test.render01.json').is_file()
 
 
 def test_render_existing_output_without_force(fixtures_path: pathlib.Path,

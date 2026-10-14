@@ -108,7 +108,7 @@ question.answer('Yes', metric_measures=[(findability, 1.0, 1.0)]).value_question
 question.answer('No')
 
 km = builder.build()
-bundle = builder.to_bundle(organization_id='example', km_id='data', version='1.0.0', name='Data')
+bundle = builder.to_bundle(id='example.data', version='1.0.0', name='Data')
 ```
 
 To change an existing knowledge model, edit a copy of the flat model and let `diff` produce the

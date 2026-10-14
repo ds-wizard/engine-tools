@@ -6,6 +6,7 @@ import pytest
 from conftest import REFERENCE_DIR, load_reference, load_synthetic
 
 from dsw.models import schemas
+from dsw.models.document_template.metadata import DocumentTemplateMetadata
 from dsw.models.knowledge_model import convert, flat
 from dsw.models.knowledge_model.bundle import compile_bundle
 from dsw.models.knowledge_model.package import KnowledgeModelBundle
@@ -63,7 +64,9 @@ def test_fixtures_validate():
         ('document-context', load_synthetic('document_context.json')),
         ('project-events', load_synthetic('project_events.json')),
     ]
-    cases += [('template-local', json.loads(path.read_text(encoding='utf-8')))
+    # the reference descriptors predate 5.0; the schema describes what the model writes
+    cases += [('template-local', load(DocumentTemplateMetadata,
+                                      json.loads(path.read_text(encoding='utf-8'))).to_json_data())
               for path in sorted((REFERENCE_DIR / 'templates').glob('*.json'))]
     for name, data in cases:
         validator(ALL_SCHEMAS[name]()).validate(data)
@@ -77,17 +80,18 @@ def test_model_output_validates_in_serialization_mode():
 
 
 def test_reference_bundle_and_compiled_model_validate():
-    data = load_reference('dsw_smp_1.2.4.km.gz')
+    bundle = load(KnowledgeModelBundle, load_reference('dsw_smp_1.2.4.km.gz'))
     started = time.perf_counter()
-    validator(ALL_SCHEMAS['bundle']()).validate(data)
-    km = compile_bundle(load(KnowledgeModelBundle, data))
+    validator(ALL_SCHEMAS['bundle']()).validate(bundle.to_json_data())
+    km = compile_bundle(bundle)
     validator(ALL_SCHEMAS['flat']()).validate(km.to_json_data())
     assert time.perf_counter() - started < 30
 
 
 def test_schema_rejects_what_models_reject():
     bundle_validator = validator(ALL_SCHEMAS['bundle']())
-    data = load_reference('dsw_smp_1.2.4.km.gz')
+    data = load(KnowledgeModelBundle, load_reference('dsw_smp_1.2.4.km.gz')).to_json_data()
+    assert bundle_validator.is_valid(data)
     event = data['packages'][0]['events'][0]
     event['content']['unknown'] = 1
     assert not bundle_validator.is_valid({**data, 'packages': [{**data['packages'][0], 'events': [event]}]})

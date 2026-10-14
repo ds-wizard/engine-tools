@@ -1,8 +1,8 @@
 """Print the events that change one knowledge model into another.
 
     python diff_kms.py                                        # two small built-in versions
-    python diff_kms.py bundle.km --from dsw:root:2.7.0        # a package vs the bundle's one
-    python diff_kms.py bundle.km --from dsw:root:2.7.0 --to dsw:root:2.8.0 --json
+    python diff_kms.py bundle.km --from dsw.root:2.7.0        # a package vs the bundle's one
+    python diff_kms.py bundle.km --from dsw.root:2.7.0 --to dsw.root:2.8.0 --json
 
 Entities are matched by UUID, so both knowledge models must descend from the same one.
 """
@@ -48,15 +48,15 @@ def built_in_versions() -> tuple[flat.KnowledgeModel, flat.KnowledgeModel]:
     return old, new
 
 
-def bundle_versions(path: pathlib.Path, old_id: str,
-                    new_id: str | None) -> tuple[flat.KnowledgeModel, flat.KnowledgeModel]:
+def bundle_versions(path: pathlib.Path, old_reference: str,
+                    new_reference: str | None) -> tuple[flat.KnowledgeModel, flat.KnowledgeModel]:
     opener = gzip.open if path.suffix == '.gz' else open
     with opener(path, 'rt', encoding='utf-8') as file:
         bundle = load(KnowledgeModelBundle, json.load(file), unknown_keys=UnknownKeys.IGNORE)
     # compiled knowledge models keep entities orphaned by deletions, as the server does; they
     # are not part of either version, so leave them out rather than diff them away
-    return (prune_unreachable(compile_bundle(bundle, old_id)),
-            prune_unreachable(compile_bundle(bundle, new_id)))
+    return (prune_unreachable(compile_bundle(bundle, old_reference)),
+            prune_unreachable(compile_bundle(bundle, new_reference)))
 
 
 def changes(event: Event) -> dict[str, object]:
@@ -94,8 +94,8 @@ def show(value: object, graphs: tuple[graph.KnowledgeModel, ...], limit: int = 7
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument('bundle', nargs='?', type=pathlib.Path, help='.km file with both versions')
-    parser.add_argument('--from', dest='old', help='package ID of the old version')
-    parser.add_argument('--to', dest='new', help='package ID of the new version (default: bundle)')
+    parser.add_argument('--from', dest='old', help='package reference (id:version) of the old version')
+    parser.add_argument('--to', dest='new', help='package reference (id:version) of the new version (default: bundle)')
     parser.add_argument('--no-squash', action='store_true', help='keep the raw diff events')
     parser.add_argument('--json', action='store_true', help='print the events as JSON')
     args = parser.parse_args()

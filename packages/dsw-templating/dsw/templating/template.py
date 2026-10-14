@@ -139,7 +139,7 @@ class Template:
                 content_type=mimetypes.guess_type(file_name)[0] or 'application/octet-stream',
             ))
         kwargs.setdefault('assets', assets)
-        kwargs.setdefault('coordinates', metadata.coordinate)
+        kwargs.setdefault('coordinates', metadata.reference)
         return cls(
             template_dir=template_dir,
             formats=[f.model_dump(mode='json', by_alias=True) for f in metadata.formats],

@@ -30,7 +30,7 @@ def read_json(path: pathlib.Path):
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument('bundle', type=pathlib.Path, help='.km file (optionally gzipped)')
-    parser.add_argument('--package', help='package ID to compile (default: the bundle one)')
+    parser.add_argument('--package', help='package reference (id:version) to compile (default: the bundle one)')
     parser.add_argument('--lenient', action='store_true', help='drop unknown keys')
     parser.add_argument('-v', '--verbose', action='store_true',
                         help='list ignored events and info-level issues too')
@@ -45,7 +45,7 @@ def main() -> int:
     unknown_keys = UnknownKeys.IGNORE if args.lenient else UnknownKeys.FORBID
     bundle = load(KnowledgeModelBundle, data, unknown_keys=unknown_keys)
     events = sum(len(package.events) for package in bundle.packages)
-    print(f'{bundle.id}: {len(bundle.packages)} package(s), {events} event(s)')
+    print(f'{bundle.reference}: {len(bundle.packages)} package(s), {events} event(s)')
 
     ignored = []
     km = compile_bundle(bundle, args.package,
