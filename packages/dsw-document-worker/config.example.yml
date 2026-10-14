@@ -34,11 +34,15 @@ templates:
 #  allowedPaths: [] # extra directories readable when rendering (e.g. shared fonts)
 #  maxRedirects: 3
 
-#context:
+#documentContext:
 #  serviceName: Data Stewardship Wizard
 #  serviceNameShort: DSW
 #  serviceUrl: https://ds-wizard.org
 #  serviceDomainName: ds-wizard.org
+#  # fallbacks where the workspace has no value of its own
+#  defaultPrimaryColor: "#0033aa"
+#  defaultLogoUrl: "{{clientUrl}}/assets/logo.svg"
+#  defaultAppTitle: DS Wizard
 
 #sentry:
 #  enabled:

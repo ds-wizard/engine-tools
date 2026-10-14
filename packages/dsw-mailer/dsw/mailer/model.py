@@ -8,7 +8,6 @@ import urllib.parse
 
 class Color:
     DEFAULT_PRIMARY_HEX = os.getenv('DEFAULT_PRIMARY_COLOR', '#0033aa')
-    DEFAULT_ILLUSTRATIONS_HEX = os.getenv('DEFAULT_ILLUSTRATIONS_COLOR', '#4285f4')
 
     @staticmethod
     def contrast_ratio(color1: Color, color2: Color) -> float:
@@ -75,11 +74,9 @@ class Color:
 
 
 class StyleConfig:
-    def __init__(self, logo_url: str | None, primary_color: str,
-                 illustrations_color: str):
+    def __init__(self, logo_url: str | None, primary_color: str):
         self.logo_url = logo_url
         self.primary_color = Color(primary_color, Color.DEFAULT_PRIMARY_HEX)
-        self.illustrations_color = Color(illustrations_color, Color.DEFAULT_ILLUSTRATIONS_HEX)
 
     def from_dict(self, data: dict | None):
         data = data or {}
@@ -90,18 +87,12 @@ class StyleConfig:
                 'primaryColor',
                 self.default().primary_color.hex,
             ), Color.DEFAULT_PRIMARY_HEX)
-        if data.get('illustrationsColor') is not None:
-            self.illustrations_color = Color(data.get(
-                'illustrationsColor',
-                self.default().illustrations_color.hex,
-            ), Color.DEFAULT_ILLUSTRATIONS_HEX)
 
     @classmethod
     def default(cls):
         return StyleConfig(
             logo_url=None,
             primary_color=Color.DEFAULT_PRIMARY_HEX,
-            illustrations_color=Color.DEFAULT_ILLUSTRATIONS_HEX,
         )
 
 
@@ -242,8 +233,6 @@ class MessageRequest:
                 logo_url=data.get('styleLogoUrl'),
                 primary_color=data.get('stylePrimaryColor',
                                        Color.DEFAULT_PRIMARY_HEX),
-                illustrations_color=data.get('styleIllustrationsColor',
-                                             Color.DEFAULT_ILLUSTRATIONS_HEX),
             ),
         )
 

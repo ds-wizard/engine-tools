@@ -125,12 +125,6 @@ class _DocumentContextKeys(ConfigKeysContainer):
         default='#0033aa',
         cast=cast_str,
     )
-    default_illustrations_color = ConfigKey(
-        yaml_path=['documentContext', 'defaultIllustrationsColor'],
-        var_names=['DOCUMENT_CONTEXT_DEFAULT_ILLUSTRATIONS_COLOR'],
-        default='#0033aa',
-        cast=cast_str,
-    )
     default_logo_url = ConfigKey(
         yaml_path=['documentContext', 'defaultLogoUrl'],
         var_names=['DOCUMENT_CONTEXT_DEFAULT_LOGO_URL'],
@@ -140,12 +134,6 @@ class _DocumentContextKeys(ConfigKeysContainer):
     default_app_title = ConfigKey(
         yaml_path=['documentContext', 'defaultAppTitle'],
         var_names=['DOCUMENT_CONTEXT_DEFAULT_APP_TITLE'],
-        default='DS Wizard',
-        cast=cast_str,
-    )
-    default_app_title_short = ConfigKey(
-        yaml_path=['documentContext', 'defaultAppTitleShort'],
-        var_names=['DOCUMENT_CONTEXT_DEFAULT_APP_TITLE_SHORT'],
         default='DS Wizard',
         cast=cast_str,
     )
@@ -210,10 +198,8 @@ class DocumentContextConfig(ConfigModel):
     service_url: str
     service_domain_name: str
     default_primary_color: str
-    default_illustrations_color: str
     default_logo_url: str
     default_app_title: str
-    default_app_title_short: str
 
 
 @dataclasses.dataclass
@@ -349,10 +335,8 @@ class DocumentWorkerConfigParser(DSWConfigParser):
             service_url=self.get(self.keys.context.service_url),
             service_domain_name=self.get(self.keys.context.service_domain_name),
             default_primary_color=self.get(self.keys.context.default_primary_color),
-            default_illustrations_color=self.get(self.keys.context.default_illustrations_color),
             default_logo_url=self.get(self.keys.context.default_logo_url),
             default_app_title=self.get(self.keys.context.default_app_title),
-            default_app_title_short=self.get(self.keys.context.default_app_title_short),
         )
 
     @property

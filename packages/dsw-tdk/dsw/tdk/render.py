@@ -144,12 +144,8 @@ CONTEXT_DEFAULTS_KEYS: dict[str, tuple[str, str]] = {
     'serviceUrl': ('service_url', 'DOCUMENT_CONTEXT_SERVICE_URL'),
     'serviceDomainName': ('service_domain_name', 'DOCUMENT_CONTEXT_SERVICE_DOMAIN_NAME'),
     'defaultPrimaryColor': ('default_primary_color', 'DOCUMENT_CONTEXT_DEFAULT_PRIMARY_COLOR'),
-    'defaultIllustrationsColor': ('default_illustrations_color',
-                                  'DOCUMENT_CONTEXT_DEFAULT_ILLUSTRATIONS_COLOR'),
     'defaultLogoUrl': ('default_logo_url', 'DOCUMENT_CONTEXT_DEFAULT_LOGO_URL'),
     'defaultAppTitle': ('default_app_title', 'DOCUMENT_CONTEXT_DEFAULT_APP_TITLE'),
-    'defaultAppTitleShort': ('default_app_title_short',
-                             'DOCUMENT_CONTEXT_DEFAULT_APP_TITLE_SHORT'),
 }
 
 
