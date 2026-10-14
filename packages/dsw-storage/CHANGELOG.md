@@ -14,6 +14,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `head_instance_object` and `store_instance_object` for instance-level objects, which are never prefixed with the tenant (e.g. the default mail POT `mail-templates/mail.pot`); `head_instance_object` returns an `ObjectInfo` with the user metadata and the ETag
 
 
+### Removed
+
+- `download_locale`: Wizard 5.0 has no `locales/<uuid>/mail.po`; mail translations are mail template locales
+
 ## [4.34.0]
 
 Released for version consistency with other DSW tools.

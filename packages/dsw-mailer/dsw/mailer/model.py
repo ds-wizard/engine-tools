@@ -225,10 +225,13 @@ class MessageRequest:
             message_id=data['id'],
             template_name=data['type'],
             tenant_uuid=data['tenantUuid'],
-            locale_uuid=data['localeUuid'],
+            # a mail template locale
+            locale_uuid=data.get('localeUuid'),
             trigger=data.get('trigger', 'input_file'),
             ctx=data.get('ctx', {}),
-            recipients=data.get('recipients', []),
+            recipients=[MessageRecipient(uuid=None, email=r) if isinstance(r, str)
+                        else MessageRecipient.from_dict(r)
+                        for r in data.get('recipients', [])],
             style=StyleConfig(
                 logo_url=data.get('styleLogoUrl'),
                 primary_color=data.get('stylePrimaryColor',
