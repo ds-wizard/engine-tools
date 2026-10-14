@@ -730,13 +730,13 @@ class PostgresConnection:
         finally:
             status = self.connection.info.transaction_status
             try:
-                if status == psycopg.pq.TransactionStatus.IDLE:
-                    # the block ended the transaction, and the savepoint with it; a
-                    # statement now would open a new transaction only to abort it
-                    return
-                if failed or status == psycopg.pq.TransactionStatus.INERROR:
-                    cursor.execute(psycopg.sql.SQL('ROLLBACK TO SAVEPOINT {};').format(savepoint))
-                cursor.execute(psycopg.sql.SQL('RELEASE SAVEPOINT {};').format(savepoint))
+                # a block that ended the transaction ended the savepoint with it; a
+                # statement now would open a new transaction only to abort it
+                if status != psycopg.pq.TransactionStatus.IDLE:
+                    if failed or status == psycopg.pq.TransactionStatus.INERROR:
+                        cursor.execute(
+                            psycopg.sql.SQL('ROLLBACK TO SAVEPOINT {};').format(savepoint))
+                    cursor.execute(psycopg.sql.SQL('RELEASE SAVEPOINT {};').format(savepoint))
             except psycopg.Error as e:
                 # the connection itself is broken; the original error matters more
                 LOG.warning('Could not roll back to savepoint %s: %s', name, e)
