@@ -100,10 +100,12 @@ def test_squash_groups_by_utc_day():
 # report
 def test_report_of_synthetic_context_matches_fixture():
     context = load(DocumentContext, load_synthetic('document_context.json'))
-    report = generate_report(context.knowledge_model, context.project.replies,
-                             context.project.phase_uuid, uuid=context.report.uuid,
-                             now=context.report.created_at)
-    assert report == context.report
+    questionnaire = context.questionnaire
+    report = generate_report(context.knowledge_model, questionnaire.replies, questionnaire.phase_uuid)
+    # the context's report has no uuid and timestamps (19.0), the rest is the same
+    expected = questionnaire.report
+    assert (report.total_report, report.chapter_reports, report.chapters, report.metrics) == (
+        expected.total_report, expected.chapter_reports, expected.chapters, expected.metrics)
 
 
 def _reply(value) -> replies.Reply:

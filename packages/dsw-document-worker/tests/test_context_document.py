@@ -4,8 +4,15 @@ from dsw.models.document_context.graph import Document
 BASE_DATA = {
     'uuid': '55555555-5555-5555-5555-555555555555',
     'name': 'My Document',
-    'documentTemplateUuid': '33333333-3333-3333-3333-333333333333',
-    'formatUuid': '66666666-6666-6666-6666-666666666666',
+    'documentTemplate': {
+        'uuid': '33333333-3333-3333-3333-333333333333',
+        'id': 'dsw.questionnaire-report',
+        'version': '2.4.0',
+        'workspaceUuid': None,
+    },
+    'format': {'uuid': '66666666-6666-6666-6666-666666666666', 'name': 'PDF'},
+    'preview': False,
+    'eventUuid': None,
     'createdBy': None,
     'createdAt': '2026-01-01T00:00:00Z',
 }
@@ -15,6 +22,10 @@ def test_load_without_language_and_locale():
     doc = Document.load(dict(BASE_DATA))
     assert doc.language is None
     assert doc.locale is None
+    assert (doc.document_template.id, doc.document_template.version) == (
+        'dsw.questionnaire-report', '2.4.0')
+    assert doc.format.name == 'PDF'
+    assert doc.preview is False
 
 
 def test_load_with_null_locale():

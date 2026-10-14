@@ -42,9 +42,11 @@ def test_current_descriptors_gain_language_and_single_id(path):
     data = json.loads(path.read_text(encoding='utf-8'))
     result = migrate_template_json(data)
     assert result.source_version == MetamodelVersion(18, 0)
-    assert result.warnings == []
+    # crossing 18 -> 19: the descriptor is upgraded, the Jinja templates need porting by hand
+    assert len(result.warnings) == 1
+    assert 'written for the document context of 18.x' in result.warnings[0]
     assert result.changed
-    assert result.data == {**as_5_0_identity(data), 'metamodelVersion': '18.3', 'language': 'en'}
+    assert result.data == {**as_5_0_identity(data), 'metamodelVersion': '19.0', 'language': 'en'}
     metadata = load(DocumentTemplateMetadata, result.data)
     assert metadata.reference == f"{data['organizationId']}.{data['templateId']}:{data['version']}"
 
@@ -53,7 +55,7 @@ def test_v1_local_descriptor():
     result = migrate_template_json(V1_DESCRIPTOR)
     metadata = load(DocumentTemplateMetadata, result.data)
     assert metadata.reference == 'dsw.questionnaire-report:1.0.0'
-    assert metadata.metamodel_version == '18.3'
+    assert metadata.metamodel_version == '19.0'
     assert result.data['formats'][0] == {
         'uuid': 'd3e98eb6-344d-481f-8e37-6a67b6cd1ad2', 'name': 'HTML', 'icon': 'far fa-file-code',
         'steps': [{'name': 'jinja', 'options': {'template': 'src/default.html.j2'}}]}
@@ -73,7 +75,7 @@ def test_legacy_bundle_descriptor_gets_single_id():
                                   {'orgId': None, 'kmId': None, 'minVersion': None,
                                    'maxVersion': None}]}
     result = migrate_template_json(legacy)
-    assert result.data == {**data, 'metamodelVersion': '18.3'}
+    assert result.data == data
     assert load(DocumentTemplateBundle, result.data).reference == 'example.my-template:1.0.0'
     assert len(result.warnings) == 1
 
@@ -90,8 +92,8 @@ def test_legacy_id_conflict_is_reported(extra, warning):
 
 
 @pytest.mark.parametrize(('version', 'message'), [
-    ('19.0', 'newer than supported'),
-    ('18.4', 'newer than supported'),
+    ('19.1', 'newer than supported'),
+    ('20.0', 'newer than supported'),
     ('x', 'Invalid metamodel version'),
 ])
 def test_unsupported_versions(version, message):

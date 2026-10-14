@@ -189,25 +189,6 @@ class User:
         )
 
 
-class Organization:
-
-    def __init__(self, *, org_id: str, name: str, description: str | None,
-                 affiliations: list[str]):
-        self.id = org_id
-        self.name = name
-        self.description = description
-        self.affiliations = affiliations
-
-    @staticmethod
-    def load(data: dict, **options):
-        return Organization(
-            org_id=data['organizationId'],
-            name=data['name'],
-            description=data['description'],
-            affiliations=data['affiliations'],
-        )
-
-
 class Tag:
 
     def __init__(self, *, uuid: str, name: str, description: str | None,
@@ -249,9 +230,9 @@ class ResourceCollection:
         self.pages: list[ResourcePage] = []
 
     def resolve_links(self, ctx):
-        self.pages = [ctx.e.resource_pages[key]
+        self.pages = [ctx.km.entities.resource_pages[key]
                       for key in self.page_uuids
-                      if key in ctx.e.resource_pages]
+                      if key in ctx.km.entities.resource_pages]
         for page in self.pages:
             page.collection = self
 
@@ -486,8 +467,8 @@ class MetricMeasure:
         self.metric: Metric | None = None
 
     def resolve_links(self, ctx):
-        if self.metric_uuid in ctx.e.metrics:
-            self.metric = ctx.e.metrics[self.metric_uuid]
+        if self.metric_uuid in ctx.km.entities.metrics:
+            self.metric = ctx.km.entities.metrics[self.metric_uuid]
 
     @staticmethod
     def load(data: dict, **options):
@@ -588,8 +569,8 @@ class ResourcePageReference(Reference):
         self.resource_page: ResourcePage | None = None
 
     def resolve_links(self, ctx):
-        if self.resource_page_uuid in ctx.e.resource_pages:
-            self.resource_page = ctx.e.resource_pages[self.resource_page_uuid]
+        if self.resource_page_uuid in ctx.km.entities.resource_pages:
+            self.resource_page = ctx.km.entities.resource_pages[self.resource_page_uuid]
 
     @staticmethod
     def load(data: dict, **options):
@@ -642,8 +623,8 @@ class Reply(abc.ABC):
 
     def resolve_links_parent(self, ctx):
         question_uuid = self.fragments[-1]
-        if question_uuid in ctx.e.questions:
-            self.question = ctx.e.questions.get(question_uuid)
+        if question_uuid in ctx.km.entities.questions:
+            self.question = ctx.km.entities.questions.get(question_uuid)
             if self.question is not None:
                 self.question.replies[self.path] = self
 
@@ -686,7 +667,7 @@ class AnswerReply(Reply):
 
     def resolve_links(self, ctx):
         super().resolve_links_parent(ctx)
-        self.answer = ctx.e.answers.get(self.answer_uuid)
+        self.answer = ctx.km.entities.answers.get(self.answer_uuid)
 
     @property
     def item_title(self) -> str:
@@ -820,9 +801,9 @@ class MultiChoiceReply(Reply):
 
     def resolve_links(self, ctx):
         super().resolve_links_parent(ctx)
-        self.choices = [ctx.e.choices[key]
+        self.choices = [ctx.km.entities.choices[key]
                         for key in self.choice_uuids
-                        if key in ctx.e.choices]
+                        if key in ctx.km.entities.choices]
 
     @property
     def item_title(self) -> str:
@@ -947,7 +928,7 @@ class FileReply(Reply):
 
     def resolve_links(self, ctx):
         super().resolve_links_parent(ctx)
-        self.file = ctx.project.files.get(self.file_uuid)
+        self.file = ctx.questionnaire.files.get(self.file_uuid)
         if self.file is not None:
             self.file.reply = self
 
@@ -992,9 +973,9 @@ class Answer:
         return other.uuid == self.uuid
 
     def resolve_links(self, ctx):
-        self.followups = [ctx.e.questions[key]
+        self.followups = [ctx.km.entities.questions[key]
                           for key in self.followup_uuids
-                          if key in ctx.e.questions]
+                          if key in ctx.km.entities.questions]
         for followup in self.followups:
             followup.parent = self
             followup.resolve_links(ctx)
@@ -1076,22 +1057,22 @@ class Question(abc.ABC):
         return other.uuid == self.uuid
 
     def resolve_links_parent(self, ctx):
-        self.tags = [ctx.e.tags[key]
+        self.tags = [ctx.km.entities.tags[key]
                      for key in self.tag_uuids
-                     if key in ctx.e.tags]
-        self.experts = [ctx.e.experts[key]
+                     if key in ctx.km.entities.tags]
+        self.experts = [ctx.km.entities.experts[key]
                         for key in self.expert_uuids
-                        if key in ctx.e.experts]
-        self.references = [ctx.e.references[key]
+                        if key in ctx.km.entities.experts]
+        self.references = [ctx.km.entities.references[key]
                            for key in self.reference_uuids
-                           if key in ctx.e.references]
+                           if key in ctx.km.entities.references]
         for ref in self.references:
             ref.resolve_links(ctx)
-        if self.required_phase_uuid is None or ctx.current_phase is None:
+        if self.required_phase_uuid is None or ctx.questionnaire.phase is None:
             self.is_required = False
         else:
-            self.required_phase = ctx.e.phases.get(self.required_phase_uuid, PHASE_NEVER)
-            self.is_required = ctx.current_phase.order >= self.required_phase.order
+            self.required_phase = ctx.km.entities.phases.get(self.required_phase_uuid, PHASE_NEVER)
+            self.is_required = ctx.questionnaire.phase.order >= self.required_phase.order
 
     @abc.abstractmethod
     def resolve_links(self, ctx):
@@ -1266,9 +1247,9 @@ class OptionsQuestion(Question):
 
     def resolve_links(self, ctx):
         super().resolve_links_parent(ctx)
-        self.answers = [ctx.e.answers[key]
+        self.answers = [ctx.km.entities.answers[key]
                         for key in self.answer_uuids
-                        if key in ctx.e.answers]
+                        if key in ctx.km.entities.answers]
         for answer in self.answers:
             answer.parent = self
             answer.resolve_links(ctx)
@@ -1311,9 +1292,9 @@ class MultiChoiceQuestion(Question):
 
     def resolve_links(self, ctx):
         super().resolve_links_parent(ctx)
-        self.choices = [ctx.e.choices[key]
+        self.choices = [ctx.km.entities.choices[key]
                         for key in self.choice_uuids
-                        if key in ctx.e.choices]
+                        if key in ctx.km.entities.choices]
         for choice in self.choices:
             choice.parent = self
 
@@ -1355,9 +1336,9 @@ class ListQuestion(Question):
 
     def resolve_links(self, ctx):
         super().resolve_links_parent(ctx)
-        self.followups = [ctx.e.questions[key]
+        self.followups = [ctx.km.entities.questions[key]
                           for key in self.followup_uuids
-                          if key in ctx.e.questions]
+                          if key in ctx.km.entities.questions]
         for followup in self.followups:
             followup.parent = self
             followup.resolve_links(ctx)
@@ -1402,7 +1383,7 @@ class IntegrationQuestion(Question):
 
     def resolve_links(self, ctx):
         super().resolve_links_parent(ctx)
-        self.integration = ctx.e.integrations.get(
+        self.integration = ctx.km.entities.integrations.get(
             self.integration_uuid,
             None,
         )
@@ -1445,7 +1426,7 @@ class ItemSelectQuestion(Question):
 
     def resolve_links(self, ctx):
         super().resolve_links_parent(ctx)
-        self.list_question = ctx.e.questions.get(self.list_question_uuid)
+        self.list_question = ctx.km.entities.questions.get(self.list_question_uuid)
 
     @staticmethod
     def load(data: dict, **options):
@@ -1523,9 +1504,9 @@ class Chapter:
         return other.uuid == self.uuid
 
     def resolve_links(self, ctx):
-        self.questions = [ctx.e.questions[key]
+        self.questions = [ctx.km.entities.questions[key]
                           for key in self.question_uuids
-                          if key in ctx.e.questions]
+                          if key in ctx.km.entities.questions]
         for question in self.questions:
             question.parent = self
             question.resolve_links(ctx)
@@ -1686,24 +1667,24 @@ class KnowledgeModel:
         return self.entities
 
     def resolve_links(self, ctx):
-        self.chapters = [ctx.e.chapters[key]
+        self.chapters = [ctx.km.entities.chapters[key]
                          for key in self.chapter_uuids
-                         if key in ctx.e.chapters]
-        self.tags = [ctx.e.tags[key]
+                         if key in ctx.km.entities.chapters]
+        self.tags = [ctx.km.entities.tags[key]
                      for key in self.tag_uuids
-                     if key in ctx.e.tags]
-        self.metrics = [ctx.e.metrics[key]
+                     if key in ctx.km.entities.tags]
+        self.metrics = [ctx.km.entities.metrics[key]
                         for key in self.metric_uuids
-                        if key in ctx.e.metrics]
-        self.phases = [ctx.e.phases[key]
+                        if key in ctx.km.entities.metrics]
+        self.phases = [ctx.km.entities.phases[key]
                        for key in self.phase_uuids
-                       if key in ctx.e.phases]
-        self.resource_collections = [ctx.e.resource_collections[key]
+                       if key in ctx.km.entities.phases]
+        self.resource_collections = [ctx.km.entities.resource_collections[key]
                                      for key in self.resource_collection_uuids
-                                     if key in ctx.e.resource_collections]
-        self.integrations = [ctx.e.integrations[key]
+                                     if key in ctx.km.entities.resource_collections]
+        self.integrations = [ctx.km.entities.integrations[key]
                              for key in self.integration_uuids
-                             if key in ctx.e.integrations]
+                             if key in ctx.km.entities.integrations]
         for index, phase in enumerate(self.phases, start=1):
             phase.order = index
         for chapter in self.chapters:
@@ -1727,16 +1708,14 @@ class KnowledgeModel:
 
 
 class ContextConfig:
+    """Effective look and feel of the workspace, plus the service values the worker adds."""
 
-    def __init__(self, *, app_title: str, app_title_short: str, client_url: str,
-                 primary_color: str, illustrations_color: str, logo_url: str,
+    def __init__(self, *, app_title: str, client_url: str, primary_color: str, logo_url: str,
                  service_name: str, service_name_short: str, service_url: str,
                  service_domain_name: str):
         self.app_title = app_title
-        self.app_title_short = app_title_short
         self.client_url = client_url.rstrip('/')
         self.primary_color = Color(primary_color)
-        self.illustrations_color = Color(illustrations_color)
         self.logo_url = logo_url
         self.service_name = service_name
         self.service_name_short = service_name_short
@@ -1746,16 +1725,30 @@ class ContextConfig:
     @staticmethod
     def load(data: dict, **options):
         return ContextConfig(
-            app_title=data.get('appTitle', ''),
-            app_title_short=data.get('appTitleShort', ''),
-            client_url=data.get('clientUrl', ''),
-            primary_color=data.get('primaryColor', DEFAULT_COLOR),
-            illustrations_color=data.get('illustrationsColor', DEFAULT_COLOR),
-            logo_url=data.get('logoUrl', ''),
+            app_title=data.get('appTitle') or '',
+            client_url=data.get('clientUrl') or '',
+            primary_color=data.get('primaryColor') or DEFAULT_COLOR,
+            logo_url=data.get('logoUrl') or '',
             service_name=data.get('serviceName', ''),
             service_name_short=data.get('serviceNameShort', ''),
             service_url=data.get('serviceUrl', ''),
             service_domain_name=data.get('serviceDomainName', ''),
+        )
+
+
+class Workspace:
+
+    def __init__(self, *, uuid: str, name: str, description: str | None):
+        self.uuid = uuid
+        self.name = name
+        self.description = description
+
+    @staticmethod
+    def load(data: dict, **options):
+        return Workspace(
+            uuid=data['uuid'],
+            name=data['name'],
+            description=data['description'],
         )
 
 
@@ -1780,19 +1773,54 @@ class DocumentTemplateLocale:
         )
 
 
-class Document:
+class DocumentDocumentTemplate:
 
-    def __init__(self, *, uuid: str, name: str, document_template_uuid: str, format_uuid: str,
-                 created_by: User | None, created_at: datetime, language: str | None,
-                 locale: DocumentTemplateLocale | None):
+    def __init__(self, *, uuid: str, template_id: str, version: str, workspace_uuid: str | None):
+        self.uuid = uuid
+        self.id = template_id
+        self.version = version
+        self.workspace_uuid = workspace_uuid
+
+    @staticmethod
+    def load(data: dict, **options):
+        return DocumentDocumentTemplate(
+            uuid=data['uuid'],
+            template_id=data['id'],
+            version=data['version'],
+            workspace_uuid=data.get('workspaceUuid'),
+        )
+
+
+class DocumentFormat:
+
+    def __init__(self, *, uuid: str, name: str):
         self.uuid = uuid
         self.name = name
-        self.document_template_uuid = document_template_uuid
-        self.format_uuid = format_uuid
+
+    @staticmethod
+    def load(data: dict, **options):
+        return DocumentFormat(
+            uuid=data['uuid'],
+            name=data['name'],
+        )
+
+
+class Document:
+
+    def __init__(self, *, uuid: str, name: str, document_template: DocumentDocumentTemplate,
+                 format_: DocumentFormat, created_by: User | None, created_at: datetime,
+                 language: str | None, locale: DocumentTemplateLocale | None, preview: bool,
+                 event_uuid: str | None):
+        self.uuid = uuid
+        self.name = name
+        self.document_template = document_template
+        self.format = format_
         self.created_by = created_by
         self.created_at = created_at
         self.language = language
         self.locale = locale
+        self.preview = preview
+        self.event_uuid = event_uuid
 
     @staticmethod
     def load(data: dict, **options):
@@ -1800,13 +1828,15 @@ class Document:
         return Document(
             uuid=data['uuid'],
             name=data['name'],
-            document_template_uuid=data['documentTemplateUuid'],
-            format_uuid=data['formatUuid'],
+            document_template=DocumentDocumentTemplate.load(data['documentTemplate'], **options),
+            format_=DocumentFormat.load(data['format'], **options),
             created_by=User.load(data['createdBy'], **options),
             created_at=_datetime(data['createdAt']),
             language=data.get('language'),
             locale=(DocumentTemplateLocale.load(locale_data, **options)
                     if locale_data is not None else None),
+            preview=data.get('preview', False),
+            event_uuid=data.get('eventUuid'),
         )
 
 
@@ -1880,7 +1910,9 @@ class ProjectFile:
         self.project_uuid: str | None = None
 
     def resolve_links(self, ctx):
-        self.project_uuid = ctx.project.uuid
+        # the project, or the KM editor whose preview questionnaire holds the file
+        source = ctx.project if ctx.project is not None else ctx.km_editor
+        self.project_uuid = source.uuid if source is not None else None
         client_url = ctx.config.client_url
         self.download_url = (f'{client_url}/projects/{self.project_uuid}'
                              f'/files/{self.uuid}/download')
@@ -1896,29 +1928,118 @@ class ProjectFile:
 
 
 class Project:
+    """Metadata of the project; its content is in :class:`Questionnaire`."""
 
     def __init__(self, *, uuid: str, name: str, description: str | None,
-                 created_by: User, phase_uuid: str | None, language: str | None,
-                 created_at: datetime, updated_at: datetime):
+                 created_by: User | None, created_at: datetime, updated_at: datetime,
+                 visibility: str, sharing: str, is_template: bool,
+                 knowledge_model_package_uuid: str, selected_question_tag_uuids: list[str],
+                 project_tags: list[str], document_template_uuid: str | None,
+                 format_uuid: str | None):
         self.uuid = uuid
         self.name = name
         self.description = description
         self.created_by = created_by
-        self.phase_uuid = phase_uuid
-        self.language: str | None = language
         self.created_at = created_at
         self.updated_at = updated_at
+        self.visibility = visibility
+        self.sharing = sharing
+        self.is_template = is_template
+        self.knowledge_model_package_uuid = knowledge_model_package_uuid
+        self.selected_question_tag_uuids = selected_question_tag_uuids
+        self.project_tags = project_tags
+        self.document_template_uuid = document_template_uuid
+        self.format_uuid = format_uuid
 
+        self.users: list[DocumentContextUserPermission] = []
+        self.groups: list[DocumentContextUserGroupPermission] = []
+
+    @staticmethod
+    def load(data: dict, **options):
+        entity = Project(
+            uuid=data['uuid'],
+            name=data['name'],
+            description=data['description'] or '',
+            created_by=User.load(data['createdBy'], **options),
+            created_at=_datetime(data['createdAt']),
+            updated_at=_datetime(data['updatedAt']),
+            visibility=data['visibility'],
+            sharing=data['sharing'],
+            is_template=data['isTemplate'],
+            knowledge_model_package_uuid=data['knowledgeModelPackageUuid'],
+            selected_question_tag_uuids=data['selectedQuestionTagUuids'],
+            project_tags=data['projectTags'],
+            document_template_uuid=data['documentTemplateUuid'],
+            format_uuid=data['formatUuid'],
+        )
+        entity.users = [DocumentContextUserPermission.load(d, **options)
+                        for d in data['users']]
+        entity.groups = [DocumentContextUserGroupPermission.load(d, **options)
+                         for d in data['groups']]
+        return entity
+
+
+class KnowledgeModelEditor:
+    """The KM editor whose preview is rendered (instead of a project)."""
+
+    def __init__(self, *, uuid: str, name: str, description: str, created_by: User | None,
+                 created_at: datetime, updated_at: datetime, km_id: str, version: str,
+                 license_: str, readme: str, previous_package_uuid: str | None,
+                 previous_package_id: str | None, previous_package_version: str | None,
+                 knowledge_model_metamodel_version: int):
+        self.uuid = uuid
+        self.name = name
+        self.description = description
+        self.created_by = created_by
+        self.created_at = created_at
+        self.updated_at = updated_at
+        self.id = km_id
+        self.version = version
+        self.license = license_
+        self.readme = readme
+        self.previous_package_uuid = previous_package_uuid
+        self.previous_package_id = previous_package_id
+        self.previous_package_version = previous_package_version
+        self.knowledge_model_metamodel_version = knowledge_model_metamodel_version
+
+    @staticmethod
+    def load(data: dict, **options):
+        return KnowledgeModelEditor(
+            uuid=data['uuid'],
+            name=data['name'],
+            description=data['description'] or '',
+            created_by=User.load(data['createdBy'], **options),
+            created_at=_datetime(data['createdAt']),
+            updated_at=_datetime(data['updatedAt']),
+            km_id=data['id'],
+            version=data['version'],
+            license_=data['license'],
+            readme=data['readme'],
+            previous_package_uuid=data['previousPackageUuid'],
+            previous_package_id=data['previousPackageId'],
+            previous_package_version=data['previousPackageVersion'],
+            knowledge_model_metamodel_version=data['knowledgeModelMetamodelVersion'],
+        )
+
+
+class Questionnaire:
+    """Content of the project, or of the preview questionnaire of a KM editor."""
+
+    def __init__(self, *, phase_uuid: str | None, language: str | None, report: Report):
+        self.phase_uuid = phase_uuid
+        self.language: str | None = language
+        self.report = report
+
+        self.phase: Phase = PHASE_NEVER
         self.version: ProjectVersion | None = None
         self.versions: list[ProjectVersion] = []
         self.files: dict[str, ProjectFile] = {}
+        self.labels: dict[str, list[str]] = {}
         self.todos: list[str] = []
-        self.project_tags: list[str] = []
-        self.phase: Phase = PHASE_NEVER
-
         self.replies: RepliesContainer = RepliesContainer(replies={})
 
     def resolve_links(self, ctx):
+        self.report.resolve_links(ctx)
         for reply in self.replies.values():
             reply.resolve_links(ctx)
         for file in self.files.values():
@@ -1926,66 +2047,50 @@ class Project:
 
     @staticmethod
     def load(data: dict, **options):
-        entity_uuid = data['uuid']
         versions = [ProjectVersion.load(d, **options)
                     for d in data['versions']]
-        version = None
-        replies = {p: _load_reply(p, d, **options)
-                   for p, d in data['replies'].items()}
-        files = {d['uuid']: ProjectFile.load(d, **options)
-                 for d in data.get('files', [])}
-        for v in versions:
-            if v.uuid == data['versionUuid']:
-                version = v
-        entity = Project(
-            uuid=entity_uuid,
-            name=data['name'],
-            description=data['description'] or '',
-            created_by=User.load(data['createdBy'], **options),
+        entity = Questionnaire(
             phase_uuid=data['phaseUuid'],
             language=data.get('language'),
-            created_at=_datetime(data['createdAt']),
-            updated_at=_datetime(data['updatedAt']),
+            report=Report.load(data['report'], **options),
         )
-        entity.version = version
         entity.versions = versions
-        entity.files = files
-        entity.project_tags = data.get('projectTags', [])
-        entity.replies.replies = replies
-        entity.todos = [k for k, v in data.get('labels', {}).items() if TODO_LABEL_UUID in v]
+        entity.version = next((v for v in versions if v.uuid == data['versionUuid']), None)
+        entity.files = {d['uuid']: ProjectFile.load(d, **options)
+                        for d in data['files']}
+        entity.labels = data['labels']
+        entity.todos = [k for k, v in data['labels'].items() if TODO_LABEL_UUID in v]
+        entity.replies.replies = {p: _load_reply(p, d, **options)
+                                  for p, d in data['replies'].items()}
         return entity
 
 
 class KnowledgeModelPackage:
 
-    def __init__(self, *, org_id: str, km_id: str, version: str, versions: list[str],
-                 name: str, description: str, language: str, created_at: datetime):
-        self.organization_id = org_id
-        self.km_id = km_id
+    def __init__(self, *, uuid: str, package_id: str, version: str, name: str,
+                 description: str, language: str, created_at: datetime,
+                 workspace_uuid: str | None):
+        self.uuid = uuid
+        #: the single id of Wizard 5.0, without the version (it used to be org:km:version)
+        self.id = package_id
         self.version = version
-        self.versions = versions
         self.name = name
         self.description = description
         self.language = language
         self.created_at = created_at
-
-        self.id: str = f'{org_id}:{km_id}:{version}'
-
-    @property
-    def org_id(self):
-        return self.organization_id
+        self.workspace_uuid = workspace_uuid
 
     @staticmethod
     def load(data: dict, **options):
         return KnowledgeModelPackage(
-            org_id=data['organizationId'],
-            km_id=data['kmId'],
+            uuid=data['uuid'],
+            package_id=data['id'],
             version=data['version'],
-            versions=data['versions'],
             name=data['name'],
             description=data.get('description', ''),
             language=data.get('language', 'en'),
             created_at=_datetime(data['createdAt']),
+            workspace_uuid=data.get('workspaceUuid'),
         )
 
 
@@ -2032,8 +2137,8 @@ class ReportMetric:
         self.metric: Metric | None = None
 
     def resolve_links(self, ctx):
-        if self.metric_uuid in ctx.e.metrics:
-            self.metric = ctx.e.metrics[self.metric_uuid]
+        if self.metric_uuid in ctx.km.entities.metrics:
+            self.metric = ctx.km.entities.metrics[self.metric_uuid]
 
     @staticmethod
     def load(data: dict, **options):
@@ -2058,8 +2163,8 @@ class ReportItem:
     def resolve_links(self, ctx):
         for m in self.metrics:
             m.resolve_links(ctx)
-        if self.chapter_uuid is not None and self.chapter_uuid in ctx.e.chapters:
-            self.chapter = ctx.e.chapters[self.chapter_uuid]
+        if self.chapter_uuid is not None and self.chapter_uuid in ctx.km.entities.chapters:
+            self.chapter = ctx.km.entities.chapters[self.chapter_uuid]
             if self.chapter is not None:
                 self.chapter.reports.append(self)
 
@@ -2076,12 +2181,7 @@ class ReportItem:
 
 class Report:
 
-    def __init__(self, *, uuid: str, created_at: datetime,
-                 updated_at: datetime, chapter_reports: list[ReportItem],
-                 total_report: ReportItem):
-        self.uuid = uuid
-        self.created_at = created_at
-        self.updated_at = updated_at
+    def __init__(self, *, chapter_reports: list[ReportItem], total_report: ReportItem):
         self.total_report = total_report
         self.chapter_reports = chapter_reports
 
@@ -2093,9 +2193,6 @@ class Report:
     @staticmethod
     def load(data: dict, **options):
         return Report(
-            uuid=data['uuid'],
-            created_at=_datetime(data['createdAt']),
-            updated_at=_datetime(data['updatedAt']),
             total_report=ReportItem.load(data['totalReport'], **options),
             chapter_reports=[ReportItem.load(d, **options)
                              for d in data['chapterReports']],
@@ -2126,7 +2223,7 @@ class UserGroup:
             updated_at=_datetime(data['updatedAt']),
         )
         ug.members = [UserGroupMember.load(d, **options)
-                      for d in data.get('users', [])]
+                      for d in data['members']]
         return ug
 
 
@@ -2223,58 +2320,35 @@ class DocumentContext:
         check_metamodel_version(
             metamodel_version=str(ctx.get('metamodelVersion', '0')),
         )
+        self.hash: str = ctx['hash']
         self.config = ContextConfig.load(ctx['config'], **options)
+        self.workspace = Workspace.load(ctx['workspace'], **options)
+        self.project = _load_optional(Project, ctx['project'], **options)
+        self.km_editor = _load_optional(KnowledgeModelEditor, ctx['knowledgeModelEditor'],
+                                        **options)
+        self.questionnaire = Questionnaire.load(ctx['questionnaire'], **options)
         self.km = KnowledgeModel.load(ctx['knowledgeModel'], **options)
-        self.project = Project.load(ctx['project'], **options)
-        self.report = Report.load(ctx['report'], **options)
-        self.document = Document.load(ctx['document'], **options)
-        self.km_package = KnowledgeModelPackage.load(ctx['knowledgeModelPackage'], **options)
-        self.organization = Organization.load(ctx['organization'], **options)
-        self.current_phase: Phase = PHASE_NEVER
-
-        self.users = [DocumentContextUserPermission.load(d, **options)
-                      for d in ctx['users']]
-        self.groups = [DocumentContextUserGroupPermission.load(d, **options)
-                       for d in ctx['groups']]
-
-    @property
-    def e(self) -> KnowledgeModelEntities:
-        return self.km.entities
-
-    @property
-    def cfg(self) -> ContextConfig:
-        return self.config
-
-    @property
-    def org(self) -> Organization:
-        return self.organization
-
-    @property
-    def pkg(self) -> KnowledgeModelPackage:
-        return self.km_package
-
-    @property
-    def doc(self) -> Document:
-        return self.document
-
-    @property
-    def replies(self) -> RepliesContainer:
-        return self.project.replies
+        self.km_package = _load_optional(KnowledgeModelPackage, ctx['knowledgeModelPackage'],
+                                         **options)
+        self.document = _load_optional(Document, ctx.get('document'), **options)
 
     def resolve_links(self):
-        phase_uuid = self.project.phase_uuid
-        if phase_uuid is not None and phase_uuid in self.e.phases:
-            self.current_phase = self.e.phases[phase_uuid]
-        self.project.phase = self.current_phase
+        # the phase is resolved first, questions read it when they are resolved
+        phase_uuid = self.questionnaire.phase_uuid
+        if phase_uuid is not None and phase_uuid in self.km.entities.phases:
+            self.questionnaire.phase = self.km.entities.phases[phase_uuid]
         self.km.resolve_links(self)
-        self.report.resolve_links(self)
-        self.project.resolve_links(self)
+        self.questionnaire.resolve_links(self)
 
         rv = ReplyVisitor(context=self)
         rv.visit()
-        for reply in self.replies.values():
+        for reply in self.questionnaire.replies.values():
             if isinstance(reply, ItemSelectReply):
                 reply.item_title = rv.item_titles.get(reply.item_uuid, 'Item')
+
+
+def _load_optional(cls, data: dict | None, **options):
+    return None if data is None else cls.load(data, **options)
 
 
 class ReplyVisitor:
@@ -2302,7 +2376,7 @@ class ReplyVisitor:
             self._visit_options_question(new_path)
 
     def _visit_list_question(self, question: ListQuestion, path: str):
-        reply = self.context.replies.get(path)
+        reply = self.context.questionnaire.replies.get(path)
         if reply is None or not isinstance(reply, ItemListReply):
             return
         for n, item_uuid in enumerate(reply.items, start=1):
@@ -2314,7 +2388,7 @@ class ReplyVisitor:
                 self._visit_question(followup, path=item_path)
 
     def _visit_options_question(self, path: str):
-        reply = self.context.replies.get(path)
+        reply = self.context.questionnaire.replies.get(path)
         if reply is None or not isinstance(reply, AnswerReply) or reply.answer is None:
             return
 
@@ -2328,7 +2402,7 @@ class ReplyVisitor:
         followup = question.followups[0]
         followup_path = f'{item_path}.{followup.uuid}'
 
-        reply = self.context.replies.get(followup_path)
+        reply = self.context.questionnaire.replies.get(followup_path)
         if reply is None:
             return
 
