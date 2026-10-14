@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - `render` options `-D defaultAppTitleShort` and `-D defaultIllustrationsColor` (and their `DOCUMENT_CONTEXT_*` variables): Wizard 5.0 removed those context keys
+- `render` no longer fills `extras.questionnaire`, which the document worker no longer provides
 
 
 ## [4.34.0]

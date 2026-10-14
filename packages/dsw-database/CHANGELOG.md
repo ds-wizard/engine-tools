@@ -32,6 +32,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `is_deprecated` compare them correctly (they were always false)
 - Nullable references (`created_by`, a project's `format_uuid` and `document_template_uuid`) are
   `None` instead of the string `'None'`
+- `DBProjectSimple.to_dict` (`extras.project` in document contexts) gives
+  `knowledge_model_package_uuid` as a string; it was a UUID object, which made every step that
+  serializes the context, such as `json`, fail
+- `DBSubmission` tolerates the nullable `created_at`, `document_uuid` and `created_by` of the
+  `submission` table: `to_dict` (`extras.submissions`) failed on a submission without
+  `created_at`, and missing references became the string `'None'`
 
 
 ## [4.34.0]
