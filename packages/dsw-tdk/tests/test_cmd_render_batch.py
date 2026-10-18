@@ -27,7 +27,8 @@ def template_and_format() -> tuple[Template, Format]:
 
 
 def fixture_context(fixtures_path: pathlib.Path) -> dict:
-    return json.loads((fixtures_path / 'test_render01' / 'context.json').read_text())
+    context = fixtures_path / 'test_render01' / 'context.json'
+    return json.loads(context.read_text(encoding='utf-8'))
 
 
 def errors(context: dict) -> list[str]:
@@ -103,7 +104,8 @@ def render(fixtures_path: pathlib.Path, *args: str, template: str = 'test_render
 
 def test_render_rejects_partial_context(fixtures_path: pathlib.Path, tmp_path: pathlib.Path):
     context = tmp_path / 'partial.json'
-    context.write_text('{"config": {"clientUrl": ""}, "document": {"name": "Doc"}}')
+    context.write_text('{"config": {"clientUrl": ""}, "document": {"name": "Doc"}}',
+                       encoding='utf-8')
     result = render(fixtures_path, '-c', str(context), '-F', 'JSON Data',
                     '-o', str(tmp_path / 'out.json'))
     assert result.exit_code == 1
@@ -116,7 +118,7 @@ def test_render_warns_about_hash(fixtures_path: pathlib.Path, tmp_path: pathlib.
     context = fixture_context(fixtures_path)
     context['project']['name'] = 'Edited by hand'
     path = tmp_path / 'edited.json'
-    path.write_text(json.dumps(context))
+    path.write_text(json.dumps(context), encoding='utf-8')
     result = render(fixtures_path, '-c', str(path), '-F', 'JSON Data',
                     '-o', str(tmp_path / 'out.json'))
     assert result.exit_code == 0, result.output
@@ -130,7 +132,7 @@ def test_render_fills_document(fixtures_path: pathlib.Path, tmp_path: pathlib.Pa
                     '--event', '44444444-0000-0000-0000-000000000001',
                     '--document-name', 'Final plan')
     assert result.exit_code == 0, result.output
-    document = json.loads(output.read_text())['document']
+    document = json.loads(output.read_text(encoding='utf-8'))['document']
     assert (document['name'], document['language'], document['preview'],
             document['eventUuid']) == \
         ('Final plan', 'de', False, '44444444-0000-0000-0000-000000000001')
@@ -145,8 +147,8 @@ def test_write_context(fixtures_path: pathlib.Path, tmp_path: pathlib.Path, targ
     result = render(fixtures_path, '-c', str(fixtures_path / 'test_render01' / 'context.json'),
                     '-F', 'JSON Data', '-o', str(output), *args)
     assert result.exit_code == 0, result.output
-    saved = json.loads((tmp_path / (target or 'out.context.json')).read_text())
-    rendered = json.loads(output.read_text())
+    saved = json.loads((tmp_path / (target or 'out.context.json')).read_text(encoding='utf-8'))
+    rendered = json.loads(output.read_text(encoding='utf-8'))
     assert errors(saved) == []  # including the hash
     assert 'extras' not in saved
     assert set(saved['config']) == set(generate.CONFIG_KEYS)
@@ -157,11 +159,11 @@ def test_write_context(fixtures_path: pathlib.Path, tmp_path: pathlib.Path, targ
 def batch_input(fixtures_path: pathlib.Path, tmp_path: pathlib.Path) -> pathlib.Path:
     contexts = tmp_path / 'contexts'
     contexts.mkdir()
-    valid = (fixtures_path / 'test_render01' / 'context.json').read_text()
-    (contexts / 'a.json').write_text(valid)
-    (contexts / 'b-broken.json').write_text('{"document": null}')
-    (contexts / 'c.json').write_text(valid)
-    (contexts / 'ignored.txt').write_text('not a context')
+    valid = (fixtures_path / 'test_render01' / 'context.json').read_text(encoding='utf-8')
+    (contexts / 'a.json').write_text(valid, encoding='utf-8')
+    (contexts / 'b-broken.json').write_text('{"document": null}', encoding='utf-8')
+    (contexts / 'c.json').write_text(valid, encoding='utf-8')
+    (contexts / 'ignored.txt').write_text('not a context', encoding='utf-8')
     return contexts
 
 
@@ -174,7 +176,7 @@ def test_batch_with_broken_context(fixtures_path: pathlib.Path, tmp_path: pathli
     assert result.exit_code == 1, result.output
     assert '4 of 6 documents rendered' in result.output
     out = tmp_path / 'out'
-    summary = json.loads((out / 'summary.json').read_text())
+    summary = json.loads((out / 'summary.json').read_text(encoding='utf-8'))
     assert [(e['context'], e['format'], e['status'], e['output']) for e in summary] == [
         ('contexts/a.json', 'JSON Data', 'ok', 'a.json-data.json'),
         ('contexts/a.json', 'HTML Document', 'ok', 'a.html-document.html'),
@@ -186,8 +188,9 @@ def test_batch_with_broken_context(fixtures_path: pathlib.Path, tmp_path: pathli
     assert all(isinstance(e['durationMs'], int) for e in summary)
     assert summary[0]['error'] is None
     assert 'not a valid document context' in summary[2]['error']
-    assert errors(json.loads((out / 'a.json-data.context.json').read_text())) == []
-    assert (contexts / 'a.json').read_text() == (contexts / 'c.json').read_text()
+    assert errors(json.loads((out / 'a.json-data.context.json').read_text(encoding='utf-8'))) == []
+    assert (contexts / 'a.json').read_text(encoding='utf-8') == \
+        (contexts / 'c.json').read_text(encoding='utf-8')
 
 
 def test_batch_all_formats_into_default_directory(fixtures_path: pathlib.Path,
@@ -196,7 +199,7 @@ def test_batch_all_formats_into_default_directory(fixtures_path: pathlib.Path,
     context = fixtures_path / 'test_render02' / 'context.json'
     result = render(fixtures_path, '-c', str(context), '--all-formats',
                     template='test_render02')
-    summary = json.loads((tmp_path / 'output' / 'summary.json').read_text())
+    summary = json.loads((tmp_path / 'output' / 'summary.json').read_text(encoding='utf-8'))
     assert len(summary) > 1
     assert result.exit_code == (1 if any(e['status'] == 'error' for e in summary) else 0)
 
@@ -237,10 +240,11 @@ def test_smoke_render_every_profile(fixtures_path: pathlib.Path, tmp_path: pathl
         for source in ('project', 'km-editor'):
             context = generate.generate_context(sample_input(1), generate.Options(
                 profile=PROFILE_BY_NAME[profile], seed=1, source=source)).context
-            (contexts / f'{profile}-{source}.json').write_text(generate.dumps(context))
+            (contexts / f'{profile}-{source}.json').write_text(generate.dumps(context),
+                                                               encoding='utf-8')
     result = render(fixtures_path, '-c', str(contexts), '-F', 'JSON Data',
                     '-F', 'Project JSON', '-o', str(tmp_path / 'out'))
     assert result.exit_code == 0, result.output
-    summary = json.loads((tmp_path / 'out' / 'summary.json').read_text())
+    summary = json.loads((tmp_path / 'out' / 'summary.json').read_text(encoding='utf-8'))
     assert len(summary) == 2 * 2 * len(PROFILES)
     assert {e['status'] for e in summary} == {'ok'}

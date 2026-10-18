@@ -986,13 +986,22 @@ def render_document(ctx, template_dir, context_files: list[pathlib.Path],
     ClickPrinter.success(f'Document {filename} rendered ({document.content_type}, {size})')
 
 
+def _display_path(path: pathlib.Path) -> str:
+    # On Windows, a path on another drive than the working directory has no
+    # relative form, so it is shown absolute.
+    try:
+        return pathlib.Path(os.path.relpath(path)).as_posix()
+    except ValueError:
+        return path.as_posix()
+
+
 def _render_batch(tdk: TDKCore, context_files: list[pathlib.Path], formats: list,
                   output_dir: pathlib.Path, options: RenderOptions, *, write_context: bool):
     summary = []
     for result in tdk.render_batch(context_files=context_files, formats=formats,
                                    output_dir=output_dir, options=options,
                                    write_context=write_context):
-        context = os.path.relpath(result.context_file)
+        context = _display_path(result.context_file)
         if result.output is None or result.document is None:
             ClickPrinter.failure(f'{context} / {result.format_spec.name}: {result.error}')
         else:

@@ -39,6 +39,11 @@ jobs:
         enable-cache: true
         python-version: '3.14'
 
+    # `make pot` imports dsw.mailer, which needs the generated build_info.py.
+    - name: Create build info
+      run: |
+        bash scripts/build-info.sh
+
     - name: Install dependencies
       run: |
         uv sync --locked --all-packages --group translations
