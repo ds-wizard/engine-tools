@@ -150,7 +150,7 @@ def run(*args: str):
 
 def test_cli_anonymize_only_gives_one_copy(tmp_path: pathlib.Path):
     base = tmp_path / 'base.json'
-    base.write_text(generate.dumps(base_context('full')))
+    base.write_text(generate.dumps(base_context('full')), encoding='utf-8')
     out = tmp_path / 'out'
     result = run('--from', str(base), '--anonymize', '--seed', '3', '-o', str(out))
     assert result.exit_code == 0, result.output
@@ -159,14 +159,14 @@ def test_cli_anonymize_only_gives_one_copy(tmp_path: pathlib.Path):
 
 def test_cli_mutate_then_anonymize(tmp_path: pathlib.Path):
     base = tmp_path / 'base.json'
-    base.write_text(generate.dumps(base_context('full')))
+    base.write_text(generate.dumps(base_context('full')), encoding='utf-8')
     out = tmp_path / 'out'
     result = run('--from', str(base), '--mutate', '--anonymize', '--profile', 'typical',
                  '--count', '2', '--seed', '3', '-o', str(out))
     assert result.exit_code == 0, result.output
     assert sorted(p.name for p in out.iterdir()) == ['typical-3-0.json', 'typical-3-1.json']
     for path in out.iterdir():
-        assert errors(json.loads(path.read_text())) == []
+        assert errors(json.loads(path.read_text(encoding='utf-8'))) == []
 
 
 @pytest.mark.parametrize('flag', ['--mutate', '--anonymize'])
