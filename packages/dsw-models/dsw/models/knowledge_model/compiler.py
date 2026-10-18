@@ -3,14 +3,15 @@
 A faithful port of the backend compiler (``Wizard.Service.KnowledgeModel.Compiler``), including
 its quirks, so the result equals what the backend would produce:
 
-* an event whose entity or parent does not exist is ignored (an added question is still
-  stored, just not linked); an added question, answer or choice whose parent cannot contain it
-  is stored unlinked,
+* an event whose entity or parent does not exist is ignored, and so is an add or move whose
+  parent or target cannot contain the entity (an answer under a non-options question, a choice
+  under a non-multi-choice question, a question under a non-list question),
 * removing a UUID from a parent list removes its first occurrence only, except for moves,
 * editing a question, reference or integration with a different type converts the entity and
-  resets type-specific fields,
-* deletes cascade to contained entities; a deleted integration turns its questions into value
-  questions, a deleted tag, metric or phase is removed from where it is used,
+  resets type-specific fields; the answers, choices and item template questions the new
+  question type cannot contain are deleted with everything under them,
+* deletes cascade to contained entities, choices included; a deleted integration turns its
+  questions into value questions, a deleted tag, metric or phase is removed from where it is used,
 * dangling cross-references, item-select list questions and resource page references are kept.
 
 Pass ``on_ignored`` to learn about events that had no or only partial effect.
@@ -237,8 +238,10 @@ class Compiler:
             else:
                 target_type = _ENTITY_TYPES.get(type(content))
                 if target_type is not None and type(entity) is not target_type:
-                    entity = convert_entity(entity, target_type)
-                    entities[event.entity_uuid] = entity
+                    converted = convert_entity(entity, target_type)
+                    if collection == 'questions':
+                        self._cascade_unfitting_children(entity, converted)
+                    entity = entities[event.entity_uuid] = converted
                 self._apply_changes(entity, content)
             # the backend updates questions even when the integration itself is missing
             if isinstance(content, ev.EditApiIntegrationEventContent) and content.variables.changed:
@@ -262,8 +265,9 @@ class Compiler:
             event.parent_uuid, lambda items: items.append(event.entity_uuid))
         if not linked:
             in_question = event.parent_uuid in self.entities.questions
-            problem = 'parent cannot contain questions' if in_question else 'parent not found'
-            self._ignored(event, f'{problem}, question stored unlinked')
+            self._ignored(event, 'parent cannot contain questions' if in_question
+                          else 'parent not found')
+            return
         self.entities.questions[event.entity_uuid] = self._create(event, content)
 
     def _delete_question(self, event: ev.Event, content: typing.Any) -> None:
@@ -299,9 +303,9 @@ class Compiler:
                 return
             children = _question_children(parent, kind)
             if children is None:
-                self._ignored(event, f'parent cannot contain {kind}, stored unlinked')
-            else:
-                children.append(event.entity_uuid)
+                self._ignored(event, f'parent cannot contain {kind}')
+                return
+            children.append(event.entity_uuid)
             getattr(self.entities, collection)[event.entity_uuid] = self._create(event, content)
         return handler
 
@@ -340,10 +344,24 @@ class Compiler:
             self.entities.references.pop(reference_uuid, None)
         for answer_uuid in list(_question_children(question, 'answers') or []):
             self._cascade_answer(answer_uuid)
+        for choice_uuid in _question_children(question, 'choices') or []:
+            self.entities.choices.pop(choice_uuid, None)
         for item_uuid in list(_question_children(question, 'questions') or []):
             self._cascade_question(item_uuid)
         self.entities.questions.pop(uuid, None)
         return True
+
+    def _cascade_unfitting_children(self, question: typing.Any, converted: typing.Any) -> None:
+        """Delete the children of ``question`` that its ``converted`` type cannot contain."""
+        if _question_children(converted, 'answers') is None:
+            for answer_uuid in _question_children(question, 'answers') or []:
+                self._cascade_answer(answer_uuid)
+        if _question_children(converted, 'choices') is None:
+            for choice_uuid in _question_children(question, 'choices') or []:
+                self.entities.choices.pop(choice_uuid, None)
+        if _question_children(converted, 'questions') is None:
+            for item_uuid in _question_children(question, 'questions') or []:
+                self._cascade_question(item_uuid)
 
     def _cascade_answer(self, uuid: UUID) -> bool:
         answer = self.entities.answers.get(uuid)
@@ -409,7 +427,8 @@ class Compiler:
         if not found:
             self._ignored(event, 'entity not found')
 
-    # moves: remove every occurrence from the old parent, then append to the new one
+    # moves: remove every occurrence from the old parent, then append to the new one,
+    # unless the target cannot contain the entity
     def _move_question(self, event: ev.Event, content: ev.MoveEventContent) -> None:
         lists: list[tuple[UUID, list[UUID]]] = []
         lists.extend((c.uuid, c.question_uuids) for c in self.entities.chapters.values())
@@ -432,15 +451,16 @@ class Compiler:
 
     def _move(self, event: ev.Event, content: ev.MoveEventContent,
               lists: list[tuple[UUID, list[UUID]]]) -> None:
-        moved = False
+        if all(owner_uuid != content.target_uuid for owner_uuid, _ in lists):
+            in_question = content.target_uuid in self.entities.questions
+            self._ignored(event, 'target cannot contain the entity' if in_question
+                          else 'target not found')
+            return
         for owner_uuid, items in lists:
             if owner_uuid == event.parent_uuid:
                 items[:] = [uuid for uuid in items if uuid != event.entity_uuid]
             if owner_uuid == content.target_uuid:
                 items.append(event.entity_uuid)
-                moved = True
-        if not moved:
-            self._ignored(event, 'target not found')
 
 
 def convert_entity(entity: typing.Any, target_type: type) -> typing.Any:

@@ -1,8 +1,10 @@
 """Events that turn one knowledge model into another.
 
-Entities are matched by UUID. :func:`diff` produces, in replay order: additions (parents before
-children), moves (an existing entity under a different parent), deletions (the backend cascades
-to contained entities) and edits (only changed fields; a type change converts the entity).
+Entities are matched by UUID. :func:`diff` produces, in replay order: question type changes
+(the backend accepts only children that fit a question's type, and deletes the rest when the
+type changes), additions (parents before children), moves (an existing entity under a different
+parent), deletions (the backend cascades to contained entities) and edits (only changed fields;
+a type change of a reference or integration converts the entity).
 
 Every produced event is applied to a working copy with :class:`.compiler.Compiler`, so later
 events are computed against the real intermediate state, backend quirks included. The result
@@ -179,6 +181,7 @@ class _Differ:
         return self.compiler.km
 
     def run(self) -> list[ev.Event]:
+        self._convert_questions()
         self._add_and_move()
         self._delete()
         self._add_and_move()  # re-add what deletes cascaded away from elsewhere
@@ -207,6 +210,15 @@ class _Differ:
                 for child_uuid in getattr(parent, field, ()):
                     parents.setdefault(child_uuid, parent.uuid)
         return parents
+
+    # question type changes
+    def _convert_questions(self) -> None:
+        parents = self._current_parents()
+        for uuid, entity in self.target.entities.questions.items():
+            current = self._current_entity('questions', uuid)
+            if current is not None and type(current) is not type(entity):
+                content = self._type_change_content(_KINDS[type(entity)][2])
+                self._emit(parents.get(uuid, self.current.uuid), uuid, content)
 
     # additions and moves
     def _add_and_move(self) -> None:
@@ -283,6 +295,16 @@ class _Differ:
                     node = self.target_graph.get(uuid)
                     parent = node.parent if node is not None else None
                     self._emit(parent.uuid if parent else self.target.uuid, uuid, content)
+
+    @staticmethod
+    def _type_change_content(content_type: typing.Any) -> typing.Any:
+        """An edit of ``content_type`` that changes nothing but the type."""
+        data = {}
+        for name, field in content_type.model_fields.items():
+            annotation = field.annotation
+            if isinstance(annotation, type) and issubclass(annotation, ev.EditEventField):
+                data[name] = annotation.no_change()
+        return content_type.model_validate(data)
 
     @staticmethod
     def _edit_content(content_type: typing.Any, current: typing.Any, target: typing.Any, *,

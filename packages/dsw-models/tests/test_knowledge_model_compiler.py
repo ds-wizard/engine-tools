@@ -68,42 +68,40 @@ def test_basic_structure():
     assert km.entities.questions[u(30)].answer_uuids == [u(40)]
 
 
-def test_add_question_with_missing_parent_is_stored_unlinked():
+def test_add_question_with_missing_parent_is_dropped():
     km, ignored = compile_with_ignored([
         *base_events(),
         event(ev.AddValueQuestionEventContent(title='V', annotations=[], tag_uuids=[],
                                              value_type='StringQuestionValueType', validations=[]), 32, 99),
     ])
-    assert u(32) in km.entities.questions
-    assert ignored == [(u(32), 'parent not found, question stored unlinked')]
+    assert u(32) not in km.entities.questions
+    assert ignored == [(u(32), 'parent not found')]
 
 
-def test_add_question_under_non_list_question_is_stored_unlinked():
+def test_add_question_under_non_list_question_is_dropped():
     km, ignored = compile_with_ignored([
         *base_events(),
         event(ev.AddListQuestionEventContent(title='Item', annotations=[], tag_uuids=[]), 32, 30),
         event(ev.AddListQuestionEventContent(title='Item', annotations=[], tag_uuids=[]), 33, 31),
     ])
-    assert ignored == [(u(32), 'parent cannot contain questions, question stored unlinked')]
-    assert u(32) in km.entities.questions
+    assert ignored == [(u(32), 'parent cannot contain questions')]
+    assert u(32) not in km.entities.questions
     assert km.entities.questions[u(31)].item_template_question_uuids == [u(33)]
-    km_graph = graph.KnowledgeModel(km)
-    assert km_graph.unreachable == [km_graph[u(32)]]
+    assert graph.KnowledgeModel(km).unreachable == []
 
 
-def test_add_answer_and_choice_under_wrong_question_type_are_stored_unlinked():
+def test_add_answer_and_choice_under_wrong_question_type_are_dropped():
     km, ignored = compile_with_ignored([
         *base_events(),
         event(ev.AddAnswerEventContent(label='No', annotations=[], metric_measures=[]), 41, 31),
         event(ev.AddChoiceEventContent(label='A', annotations=[]), 50, 30),
     ])
-    assert ignored == [(u(41), 'parent cannot contain answers, stored unlinked'),
-                       (u(50), 'parent cannot contain choices, stored unlinked')]
-    assert u(41) in km.entities.answers
-    assert u(50) in km.entities.choices
+    assert ignored == [(u(41), 'parent cannot contain answers'),
+                       (u(50), 'parent cannot contain choices')]
+    assert u(41) not in km.entities.answers
+    assert u(50) not in km.entities.choices
     assert km.entities.questions[u(30)].answer_uuids == [u(40)]
-    km_graph = graph.KnowledgeModel(km)
-    assert set(km_graph.unreachable) == {km_graph[u(41)], km_graph[u(50)]}
+    assert graph.KnowledgeModel(km).unreachable == []
 
 
 def test_add_answer_with_missing_parent_is_dropped():
@@ -125,7 +123,37 @@ def test_edit_with_type_change_converts_question():
     assert question.title == 'Now value'
     assert question.tag_uuids == [u(20), u(21)]
     assert question.value_type == 'StringQuestionValueType'
-    assert u(40) in km.entities.answers  # the answer stays, unreachable
+    assert km.entities.answers == {}
+
+
+def test_edit_with_type_change_deletes_children_that_do_not_fit():
+    km, _ = compile_with_ignored([
+        *base_events(),
+        event(ev.AddValueQuestionEventContent(title='F', annotations=[], tag_uuids=[],
+                                             value_type='StringQuestionValueType', validations=[]), 32, 40),
+        event(ev.AddValueQuestionEventContent(title='Item', annotations=[], tag_uuids=[],
+                                             value_type='StringQuestionValueType', validations=[]), 33, 31),
+        event(ev.AddMultiChoiceQuestionEventContent(title='M', annotations=[], tag_uuids=[]), 34, 10),
+        event(ev.AddChoiceEventContent(label='C', annotations=[]), 50, 34),
+        event(ev.AddExpertEventContent(name='E', email='e@example.com', annotations=[]), 60, 30),
+        event(unchanged(ev.EditMultiChoiceQuestionEventContent), 30, 10),
+        event(unchanged(ev.EditOptionsQuestionEventContent), 31, 10),
+        event(unchanged(ev.EditListQuestionEventContent), 34, 10),
+    ])
+    assert set(km.entities.questions) == {u(30), u(31), u(34)}
+    assert km.entities.answers == {}
+    assert km.entities.choices == {}
+    assert set(km.entities.experts) == {u(60)}
+    assert graph.KnowledgeModel(km).unreachable == []
+
+
+def test_edit_without_type_change_keeps_children():
+    km, _ = compile_with_ignored([
+        *base_events(),
+        event(unchanged(ev.EditOptionsQuestionEventContent, title='Same type'), 30, 10),
+    ])
+    assert km.entities.questions[u(30)].answer_uuids == [u(40)]
+    assert u(40) in km.entities.answers
 
 
 def test_edit_missing_entity_is_ignored():
@@ -147,7 +175,7 @@ def test_delete_tag_removes_first_occurrence_only():
     assert km.entities.questions[u(31)].tag_uuids == []
 
 
-def test_delete_question_cascades_but_keeps_choices():
+def test_delete_question_cascades_to_choices():
     km, _ = compile_with_ignored([
         *base_events(),
         event(ev.AddMultiChoiceQuestionEventContent(title='M', annotations=[], tag_uuids=[]), 32, 10),
@@ -159,8 +187,20 @@ def test_delete_question_cascades_but_keeps_choices():
     ])
     assert set(km.entities.questions) == {u(31)}
     assert km.entities.answers == {}
-    assert set(km.entities.choices) == {u(50)}
+    assert km.entities.choices == {}
     assert km.entities.chapters[u(10)].question_uuids == [u(31)]
+
+
+def test_delete_chapter_cascades_to_choices():
+    km, _ = compile_with_ignored([
+        *base_events(),
+        event(ev.AddMultiChoiceQuestionEventContent(title='M', annotations=[], tag_uuids=[]), 32, 40),
+        event(ev.AddChoiceEventContent(label='C', annotations=[]), 50, 32),
+        event(ev.DeleteChapterEventContent(), 10),
+    ])
+    assert km.entities.questions == {}
+    assert km.entities.answers == {}
+    assert km.entities.choices == {}
 
 
 def test_move_question():
@@ -172,6 +212,28 @@ def test_move_question():
     assert ignored == []
     assert km.entities.chapters[u(10)].question_uuids == [u(31)]
     assert km.entities.questions[u(31)].item_template_question_uuids == [u(30)]
+
+
+@pytest.mark.parametrize(('content', 'entity', 'parent', 'target', 'reason'), [
+    (ev.MoveQuestionEventContent, 30, 10, 99, 'target not found'),
+    (ev.MoveQuestionEventContent, 31, 10, 30, 'target cannot contain the entity'),
+    (ev.MoveAnswerEventContent, 40, 30, 31, 'target cannot contain the entity'),
+    (ev.MoveAnswerEventContent, 40, 30, 99, 'target not found'),
+    (ev.MoveChoiceEventContent, 50, 32, 30, 'target cannot contain the entity'),
+    (ev.MoveExpertEventContent, 60, 30, 99, 'target not found'),
+])
+def test_move_to_target_that_cannot_contain_the_entity_is_ignored(content, entity, parent, target,
+                                                                   reason):
+    events = [
+        *base_events(),
+        event(ev.AddMultiChoiceQuestionEventContent(title='M', annotations=[], tag_uuids=[]), 32, 10),
+        event(ev.AddChoiceEventContent(label='C', annotations=[]), 50, 32),
+        event(ev.AddExpertEventContent(name='E', email='e@example.com', annotations=[]), 60, 30),
+    ]
+    before, _ = compile_with_ignored(events)
+    km, ignored = compile_with_ignored([*events, event(content(target_uuid=u(target)), entity, parent)])
+    assert ignored == [(u(entity), reason)]
+    assert km == before
 
 
 def test_integration_variables_and_delete():
@@ -226,10 +288,13 @@ def test_compile_does_not_mutate_base():
     assert base == snapshot
 
 
+#: entities, ignored events, unreachable entities, dangling references
 REFERENCE_COUNTS = {
-    'dmp.eosc.cz_czech-nrp-km_1.0.2.km.gz': (1469, 10, 105),
-    'dsw_root_2.8.1.km.gz': (2010, 21, 113),
-    'dsw_smp_1.2.4.km.gz': (412, 0, 53),
+    'dmp.eosc.cz_czech-nrp-km_1.0.2.km.gz': (1364, 55, 0, 0),
+    # chapter edits that leave questions out of questionUuids; an item template question added
+    # before its parent became a list question is dropped, but the list question's edit names it
+    'dsw_root_2.8.1.km.gz': (1944, 37, 48, 1),
+    'dsw_smp_1.2.4.km.gz': (359, 0, 0, 0),
 }
 
 
@@ -239,11 +304,11 @@ def test_reference_bundles_compile(name):
     ignored = collections.Counter()
     km = compile_bundle(bundle, on_ignored=lambda e, reason: ignored.update([reason]))
     km_graph = graph.KnowledgeModel(km)
-    entities, expected_ignored, unreachable = REFERENCE_COUNTS[name]
+    entities, expected_ignored, unreachable, dangling = REFERENCE_COUNTS[name]
     assert len(km_graph) == entities
     assert sum(ignored.values()) == expected_ignored
     assert len(km_graph.unreachable) == unreachable
-    assert km_graph.dangling == []
+    assert len(km_graph.dangling) == dangling
 
 
 def test_package_chain():
