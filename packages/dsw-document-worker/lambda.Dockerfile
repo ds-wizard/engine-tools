@@ -1,6 +1,6 @@
 # Base image version, un-pinned so a release does not need a Dockerfile edit.
 # The default keeps a plain `docker build` working outside CI.
-ARG PYTHON_BASE_VERSION=4.35.0
+ARG PYTHON_BASE_VERSION=4.35.1
 
 # The dsw-* distributions are pure Python - every one of them builds to a
 # py3-none-any wheel - so they are built once on the build platform and reused
