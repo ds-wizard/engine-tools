@@ -4,8 +4,8 @@ from importlib.metadata import PackageNotFoundError, version
 
 
 COMPONENT_NAME = 'Data Seeder'
-CMD_COMPONENT = 'data_seeder'
-CMD_CHANNEL = 'data_seeder'
+CMD_COMPONENT = 'DataSeeder'
+CMD_CHANNEL = 'DataSeeder'
 DEFAULT_ENCODING = 'utf-8'
 DEFAULT_MIMETYPE = 'application/octet-stream'
 DEFAULT_PLACEHOLDER = '<<|TENANT-ID|>>'

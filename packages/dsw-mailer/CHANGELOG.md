@@ -15,6 +15,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- Persistent command component (and its notification channel) renamed `mailer` → `Mailer` (PascalCase), to match the backend; commands still stored as `mailer` are no longer picked up
 - Mails are translated with the tenant's mail template locales (Wizard 5.0): one mail is sent per recipient, in the mail template locale whose code matches the recipient's UI locale (exact code, then the base language), otherwise the tenant's default one, otherwise `en`, otherwise built-in English; disabled locales are skipped and a recipient who is not a user gets the default
 - A command with `sendAsOne` sends a single mail to all its recipients in English (the analytics mails); a command without the field, queued before the upgrade, is sent per recipient
 - The compiled `mail.mo` of a mail template locale is stored back to S3 next to its `mail.po` and cached locally until the locale's `updated_at` changes, instead of compiling the PO for every mail

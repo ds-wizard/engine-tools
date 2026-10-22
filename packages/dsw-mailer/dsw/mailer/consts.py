@@ -4,8 +4,8 @@ from importlib.metadata import PackageNotFoundError, version
 
 
 COMPONENT_NAME = 'Mailer'
-CMD_CHANNEL = 'mailer'
-CMD_COMPONENT = 'mailer'
+CMD_CHANNEL = 'Mailer'
+CMD_COMPONENT = 'Mailer'
 CMD_FUNCTION = 'sendMail'
 DEFAULT_ENCODING = 'utf-8'
 NULL_UUID = '00000000-0000-0000-0000-000000000000'
