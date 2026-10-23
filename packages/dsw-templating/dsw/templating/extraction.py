@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import abc
+import copy
 
 from dsw.models.document_context import graph as dc
 
@@ -18,17 +19,12 @@ DEFAULT_CONFIG = {
 }
 
 
-def _merge_config(a: dict, b: dict, path=None) -> dict:
-    if path is None:
-        path = []
+def _merge_config(a: dict, b: dict) -> dict:
     for key in b:
-        if key in a:
-            if isinstance(a[key], dict) and isinstance(b[key], dict):
-                _merge_config(a[key], b[key], path + [str(key)])
-            elif a[key] != b[key]:
-                a[key] = b[key]
+        if isinstance(a.get(key), dict) and isinstance(b[key], dict):
+            _merge_config(a[key], b[key])
         else:
-            a[key] = b[key]
+            a[key] = copy.deepcopy(b[key])
     return a
 
 
@@ -201,7 +197,8 @@ class SimpleExtractor(ContextExtractor):
                             '_path': path,
                         })
                 if self._include_reply:
-                    self._objects[key][a_key]['_reply'] = reply
+                    for choice_obj in self._objects[key][a_key]:
+                        choice_obj['_reply'] = reply
 
     def _visit_list_question(self, key: str, question: dc.ListQuestion, path: str):
         a_key = _get_annotation(question.a, self._a_key)
@@ -216,11 +213,11 @@ class SimpleExtractor(ContextExtractor):
                         '_uuid': item_uuid,
                         '_path': path,
                     }
+                    if self._include_reply:
+                        self._objects[item_path]['_reply'] = reply
                     for followup in question.followups:
                         self._visit_question(item_path, followup, item_path)
                     self._objects[key][a_key].append(self._objects[item_path])
-                if self._include_reply:
-                    self._objects[key][a_key]['_reply'] = reply
 
     def _visit_item_select_question(self, key: str, question: dc.ItemSelectQuestion, path: str):
         a_key = _get_annotation(question.a, self._a_key)
@@ -269,7 +266,7 @@ EXTRACTORS: dict[str, type[ContextExtractor]] = {
 
 
 def extract_replies(ctx: dc.DocumentContext, config: dict | None = None):
-    cfg = DEFAULT_CONFIG if config is None else _merge_config(config, DEFAULT_CONFIG)
+    cfg = _merge_config(copy.deepcopy(DEFAULT_CONFIG), config or {})
     extractor_key = f'{cfg["variant"]}:{cfg["version"]}'
     extractor_class = EXTRACTORS.get(extractor_key)
     if extractor_class is None:
