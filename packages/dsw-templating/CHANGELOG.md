@@ -23,3 +23,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `enrich_context_config` and `ContextDefaults`: the service information and branding fallbacks the document worker adds to `ctx.config`
 - Plugins use the `dsw-templating` pluggy project and the `dsw_templating_plugins` entry point
 - The `pandoc-docx-pagebreakpy` Pandoc filter is a command of this package (`docx` extra) instead of a separate addon installed only in the document worker image
+
+### Fixed
+
+- `extract_replies` applies the configuration it is given: the defaults no longer overwrite it,
+  and neither the caller's dictionary nor `DEFAULT_CONFIG` is modified
+- `include_reply_objects` no longer fails on list and multi-choice questions; the reply is on
+  each item and each choice object instead
