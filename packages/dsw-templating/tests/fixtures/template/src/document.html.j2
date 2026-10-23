@@ -14,6 +14,6 @@
 </ol>
 {{ ctx.summary|markdown }}
 {% if attachment %}<p>{{ attachment.name }}: {{ attachment.data.decode('utf-8') }} ({{ attachment.content_type }})</p>{% endif %}
-<p class="newpage-before">{{ ctx.extras.plugin }}</p>
+<div class="newpage-before"><p>{{ ctx.extras.plugin }}</p></div>
 </body>
 </html>
