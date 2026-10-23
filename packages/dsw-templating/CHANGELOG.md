@@ -23,6 +23,13 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `enrich_context_config` and `ContextDefaults`: the service information and branding fallbacks the document worker adds to `ctx.config`
 - Plugins use the `dsw-templating` pluggy project and the `dsw_templating_plugins` entry point
 - The `pandoc-docx-pagebreakpy` Pandoc filter is a command of this package (`docx` extra) instead of a separate addon installed only in the document worker image
+- `extract_replies` version `2` (`{'version': '2'}`): every annotated question is present also
+  when unanswered or under an unselected answer, `json.value` is converted only for `true`, `false`
+  and plain integers, number questions give numbers, and every object has `_value`; list items
+  have their own `_path` and a `_label`
+- `extract_replies` logs a warning when two questions write the same key into one object and when
+  a list question without a key leaves out annotated item questions
+- `extract_replies` is documented in `support/JinjaFilters.md`
 
 ### Fixed
 
