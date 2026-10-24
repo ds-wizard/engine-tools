@@ -3,18 +3,27 @@
 A faithful port of the backend compiler (``Wizard.Service.KnowledgeModel.Compiler``), including
 its quirks, so the result equals what the backend would produce:
 
-* an event whose entity or parent does not exist is ignored, and so is an add or move whose
-  parent or target cannot contain the entity (an answer under a non-options question, a choice
-  under a non-multi-choice question, a question under a non-list question),
+* an event whose entity or parent does not exist is ignored, except that an added question is
+  stored even without a parent; an added question, answer or choice whose parent cannot contain
+  it (an answer under a non-options question, a choice under a non-multi-choice question, a
+  question under a non-list question) is stored unlinked, and later events can still edit it or
+  link it (e.g. the parent becomes a list question listing it in its item template),
+* a move whose target cannot contain the entity is ignored,
 * removing a UUID from a parent list removes its first occurrence only, except for moves,
 * editing a question, reference or integration with a different type converts the entity and
   resets type-specific fields; the answers, choices and item template questions the new
-  question type cannot contain are deleted with everything under them,
-* deletes cascade to contained entities, choices included; a deleted integration turns its
-  questions into value questions, a deleted tag, metric or phase is removed from where it is used,
+  question type cannot contain are unlinked, not deleted,
+* deletes cascade to contained entities except choices, which are unlinked; a deleted
+  integration turns its questions into value questions, a deleted tag, metric or phase is
+  removed from where it is used,
 * dangling cross-references, item-select list questions and resource page references are kept.
 
-Pass ``on_ignored`` to learn about events that had no or only partial effect.
+The backend keeps the unlinked entities. :func:`compile_events` deletes those still unreachable
+at the end, with everything unreachable under them (:meth:`Compiler.finish`); other unreachable
+entities, such as questions a chapter edit left out of its list, are kept like in the backend.
+
+Pass ``on_ignored`` to learn about events that had no or only partial effect; an added entity
+stored unlinked is reported at the end, and only if it is still unreachable then.
 """
 from __future__ import annotations
 
@@ -23,7 +32,7 @@ import typing
 
 from ..common import NULL_UUID
 from . import events as ev
-from . import flat
+from . import flat, graph
 
 
 if typing.TYPE_CHECKING:
@@ -46,6 +55,7 @@ def compile_events(
     compiler = Compiler(km, on_ignored=on_ignored)
     for event in events:
         compiler.apply(event)
+    compiler.finish()
     return compiler.km
 
 
@@ -86,6 +96,8 @@ _ENTITY_TYPES: dict[type, type] = {
 }
 
 _CONTENT_ONLY_FIELDS = frozenset({'event_type'})
+#: collections of the entities the compiler can leave unlinked (and their contents)
+_UNLINKED_COLLECTIONS = ('questions', 'answers', 'choices', 'experts', 'references')
 _QUESTION_SHARED_FIELDS = ('title', 'text', 'required_phase_uuid', 'tag_uuids', 'reference_uuids',
                            'expert_uuids', 'annotations')
 
@@ -116,6 +128,10 @@ class Compiler:
     def __init__(self, km: flat.KnowledgeModel, *, on_ignored: OnIgnored | None = None):
         self.km = km
         self.on_ignored = on_ignored
+        #: entities the backend keeps unlinked: :meth:`finish` deletes the unreachable ones
+        self.unlinked: set[UUID] = set()
+        #: events adding an entity that was not linked to its parent, with the reason
+        self.unlinked_adds: dict[UUID, tuple[ev.Event, str]] = {}
         self.handlers: dict[type, _Handler] = {
             ev.AddKnowledgeModelEventContent: self._add_knowledge_model,
             ev.EditKnowledgeModelEventContent: self._edit_knowledge_model,
@@ -201,6 +217,30 @@ class Compiler:
         if self.on_ignored is not None:
             self.on_ignored(event, reason)
 
+    def finish(self) -> None:
+        """Delete the unlinked entities still unreachable, with the unreachable ones under them."""
+        km_graph = graph.KnowledgeModel(self.km)
+        reachable = km_graph.reachable
+        for uuid, (event, reason) in self.unlinked_adds.items():
+            if uuid not in reachable:
+                self._ignored(event, reason)
+        stack = [km_graph[uuid] for uuid in self.unlinked if uuid in km_graph]
+        while stack:
+            node = stack.pop()
+            if node.uuid not in reachable:
+                # only from its own collection: another may hold a reachable entity with its UUID
+                for collection in _UNLINKED_COLLECTIONS:
+                    entities = getattr(self.entities, collection)
+                    if entities.get(node.uuid) is node.entity:
+                        del entities[node.uuid]
+                stack.extend(node.children)
+        self.unlinked = set()
+        self.unlinked_adds = {}
+
+    def _unlink(self, event: ev.Event, reason: str) -> None:
+        self.unlinked.add(event.entity_uuid)
+        self.unlinked_adds[event.entity_uuid] = (event, reason)
+
     @staticmethod
     def _create(event: ev.Event, content: typing.Any) -> typing.Any:
         data = {name: copy.deepcopy(getattr(content, name))
@@ -240,7 +280,9 @@ class Compiler:
                 if target_type is not None and type(entity) is not target_type:
                     converted = convert_entity(entity, target_type)
                     if collection == 'questions':
-                        self._cascade_unfitting_children(entity, converted)
+                        for kind in ('answers', 'choices', 'questions'):
+                            if _question_children(converted, kind) is None:
+                                self.unlinked.update(_question_children(entity, kind) or [])
                     entity = entities[event.entity_uuid] = converted
                 self._apply_changes(entity, content)
             # the backend updates questions even when the integration itself is missing
@@ -265,9 +307,8 @@ class Compiler:
             event.parent_uuid, lambda items: items.append(event.entity_uuid))
         if not linked:
             in_question = event.parent_uuid in self.entities.questions
-            self._ignored(event, 'parent cannot contain questions' if in_question
-                          else 'parent not found')
-            return
+            self._unlink(event, 'parent cannot contain questions' if in_question
+                         else 'parent not found')
         self.entities.questions[event.entity_uuid] = self._create(event, content)
 
     def _delete_question(self, event: ev.Event, content: typing.Any) -> None:
@@ -303,9 +344,9 @@ class Compiler:
                 return
             children = _question_children(parent, kind)
             if children is None:
-                self._ignored(event, f'parent cannot contain {kind}')
-                return
-            children.append(event.entity_uuid)
+                self._unlink(event, f'parent cannot contain {kind}')
+            else:
+                children.append(event.entity_uuid)
             getattr(self.entities, collection)[event.entity_uuid] = self._create(event, content)
         return handler
 
@@ -344,24 +385,11 @@ class Compiler:
             self.entities.references.pop(reference_uuid, None)
         for answer_uuid in list(_question_children(question, 'answers') or []):
             self._cascade_answer(answer_uuid)
-        for choice_uuid in _question_children(question, 'choices') or []:
-            self.entities.choices.pop(choice_uuid, None)
+        self.unlinked.update(_question_children(question, 'choices') or [])
         for item_uuid in list(_question_children(question, 'questions') or []):
             self._cascade_question(item_uuid)
         self.entities.questions.pop(uuid, None)
         return True
-
-    def _cascade_unfitting_children(self, question: typing.Any, converted: typing.Any) -> None:
-        """Delete the children of ``question`` that its ``converted`` type cannot contain."""
-        if _question_children(converted, 'answers') is None:
-            for answer_uuid in _question_children(question, 'answers') or []:
-                self._cascade_answer(answer_uuid)
-        if _question_children(converted, 'choices') is None:
-            for choice_uuid in _question_children(question, 'choices') or []:
-                self.entities.choices.pop(choice_uuid, None)
-        if _question_children(converted, 'questions') is None:
-            for item_uuid in _question_children(question, 'questions') or []:
-                self._cascade_question(item_uuid)
 
     def _cascade_answer(self, uuid: UUID) -> bool:
         answer = self.entities.answers.get(uuid)
