@@ -159,8 +159,7 @@ def test_validate_uuid_shared_by_two_collections():
 
 @pytest.mark.parametrize(('name', 'errors', 'warnings'), [
     ('dsw_smp_1.2.4.km.gz', 0, 0),
-    # an item template question added before its parent became a list question is dropped
-    ('dsw_root_2.8.1.km.gz', 1, 14),
+    ('dsw_root_2.8.1.km.gz', 0, 14),
     ('dmp.eosc.cz_czech-nrp-km_1.0.2.km.gz', 0, 9),
 ])
 def test_validate_reference_bundles(name, errors, warnings):

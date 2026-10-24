@@ -90,6 +90,62 @@ def test_add_question_under_non_list_question_is_dropped():
     assert graph.KnowledgeModel(km).unreachable == []
 
 
+def test_add_question_under_non_list_question_is_linked_when_parent_becomes_list():
+    # dsw:root:2.6.6 adds "Title" under the options question "Costs", edits it, and only then
+    # turns "Costs" into a list question with "Title" in its item template (like the backend)
+    km, ignored = compile_with_ignored([
+        *base_events(),
+        event(ev.AddValueQuestionEventContent(title='T', annotations=[], tag_uuids=[],
+                                             value_type='StringQuestionValueType', validations=[]), 32, 30),
+        event(ev.AddAnswerEventContent(label='No', annotations=[], metric_measures=[]), 41, 32),
+        event(unchanged(ev.EditValueQuestionEventContent, title='Title'), 32, 30),
+        event(unchanged(ev.EditListQuestionEventContent, item_template_question_uuids=[u(32)]), 30, 10),
+    ])
+    assert ignored == [(u(41), 'parent cannot contain answers')]
+    assert km.entities.questions[u(30)].item_template_question_uuids == [u(32)]
+    assert km.entities.questions[u(32)].title == 'Title'
+    assert u(40) not in km.entities.answers  # unlinked by the type change, never linked again
+    assert u(41) not in km.entities.answers
+    assert graph.KnowledgeModel(km).unreachable == []
+
+
+def test_unlinked_question_is_dropped_with_its_children():
+    km, ignored = compile_with_ignored([
+        *base_events(),
+        event(ev.AddOptionsQuestionEventContent(title='O', annotations=[], tag_uuids=[]), 32, 30),
+        event(ev.AddAnswerEventContent(label='A', annotations=[], metric_measures=[]), 41, 32),
+        event(ev.AddValueQuestionEventContent(title='F', annotations=[], tag_uuids=[],
+                                             value_type='StringQuestionValueType', validations=[]), 33, 41),
+        event(unchanged(ev.EditOptionsQuestionEventContent, title='Edited'), 32, 30),
+    ])
+    assert ignored == [(u(32), 'parent cannot contain questions')]
+    assert set(km.entities.questions) == {u(30), u(31)}
+    assert set(km.entities.answers) == {u(40)}
+
+
+def test_unlinked_entity_dropped_without_entity_sharing_its_uuid():
+    km, ignored = compile_with_ignored([
+        *base_events(),
+        event(ev.AddMultiChoiceQuestionEventContent(title='M', annotations=[], tag_uuids=[]), 34, 10),
+        event(ev.AddChoiceEventContent(label='C', annotations=[]), 50, 34),
+        event(ev.AddAnswerEventContent(label='A', annotations=[], metric_measures=[]), 50, 31),
+    ])
+    assert ignored == [(u(50), 'parent cannot contain answers')]
+    assert u(50) not in km.entities.answers
+    assert km.entities.choices[u(50)].label == 'C'
+
+
+def test_children_unlinked_by_type_change_can_be_linked_again():
+    km, ignored = compile_with_ignored([
+        *base_events(),
+        event(unchanged(ev.EditValueQuestionEventContent), 30, 10),
+        event(unchanged(ev.EditOptionsQuestionEventContent, answer_uuids=[u(40)]), 30, 10),
+    ])
+    assert ignored == []
+    assert km.entities.questions[u(30)].answer_uuids == [u(40)]
+    assert u(40) in km.entities.answers
+
+
 def test_add_answer_and_choice_under_wrong_question_type_are_dropped():
     km, ignored = compile_with_ignored([
         *base_events(),
@@ -290,10 +346,9 @@ def test_compile_does_not_mutate_base():
 
 #: entities, ignored events, unreachable entities, dangling references
 REFERENCE_COUNTS = {
-    'dmp.eosc.cz_czech-nrp-km_1.0.2.km.gz': (1364, 55, 0, 0),
-    # chapter edits that leave questions out of questionUuids; an item template question added
-    # before its parent became a list question is dropped, but the list question's edit names it
-    'dsw_root_2.8.1.km.gz': (1944, 37, 48, 1),
+    'dmp.eosc.cz_czech-nrp-km_1.0.2.km.gz': (1364, 10, 0, 0),
+    # chapter edits that leave questions out of questionUuids
+    'dsw_root_2.8.1.km.gz': (1945, 20, 48, 0),
     'dsw_smp_1.2.4.km.gz': (359, 0, 0, 0),
 }
 

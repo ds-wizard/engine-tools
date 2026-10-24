@@ -1,7 +1,7 @@
 """Events that turn one knowledge model into another.
 
 Entities are matched by UUID. :func:`diff` produces, in replay order: question type changes
-(the backend accepts only children that fit a question's type, and deletes the rest when the
+(the backend links only children that fit a question's type, and unlinks the rest when the
 type changes), additions (parents before children), moves (an existing entity under a different
 parent), deletions (the backend cascades to contained entities) and edits (only changed fields;
 a type change of a reference or integration converts the entity).
