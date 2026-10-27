@@ -28,6 +28,9 @@ if typing.TYPE_CHECKING:
 _EMPTY_DICT: dict[str, typing.Any] = {}
 _EMPTY_LIST: list[typing.Any] = []
 
+# XlsxWriter cell notation: (row, col) or ('A1',)
+_CellPos = tuple[int, int] | tuple[str]
+
 
 def _b64img2io(b64bytes: str) -> io.BytesIO:
     # strip metadata (e.g. "data:image/jpeg;base64,...")
@@ -37,15 +40,15 @@ def _b64img2io(b64bytes: str) -> io.BytesIO:
     return io.BytesIO(base64.b64decode(b64bytes))
 
 
-def _cell_writer_generic(worksheet: Worksheet, pos_args, item, cell_format):
+def _cell_writer_generic(worksheet: Worksheet, pos_args: _CellPos, item, cell_format):
     worksheet.write(
         *pos_args,
-        **item,
-        cell_format=cell_format,
+        item.get('value'),
+        cell_format,
     )
 
 
-def _cell_writer_string(worksheet: Worksheet, pos_args, item, cell_format):
+def _cell_writer_string(worksheet: Worksheet, pos_args: _CellPos, item, cell_format):
     worksheet.write_string(
         *pos_args,
         string=item.get('value', ''),
@@ -53,7 +56,7 @@ def _cell_writer_string(worksheet: Worksheet, pos_args, item, cell_format):
     )
 
 
-def _cell_writer_number(worksheet: Worksheet, pos_args, item, cell_format):
+def _cell_writer_number(worksheet: Worksheet, pos_args: _CellPos, item, cell_format):
     worksheet.write_number(
         *pos_args,
         number=item.get('value', 0),
@@ -61,7 +64,7 @@ def _cell_writer_number(worksheet: Worksheet, pos_args, item, cell_format):
     )
 
 
-def _cell_writer_datetime(worksheet: Worksheet, pos_args, item, cell_format):
+def _cell_writer_datetime(worksheet: Worksheet, pos_args: _CellPos, item, cell_format):
     try:
         value = dateutil.parser.parse(item['value'])
     except Exception:
@@ -73,7 +76,7 @@ def _cell_writer_datetime(worksheet: Worksheet, pos_args, item, cell_format):
     )
 
 
-def _cell_writer_formula(worksheet: Worksheet, pos_args, item, cell_format):
+def _cell_writer_formula(worksheet: Worksheet, pos_args: _CellPos, item, cell_format):
     worksheet.write_formula(
         *pos_args,
         formula=item.get('value', ''),
@@ -82,7 +85,7 @@ def _cell_writer_formula(worksheet: Worksheet, pos_args, item, cell_format):
     )
 
 
-def _cell_writer_blank(worksheet: Worksheet, pos_args, item, cell_format):
+def _cell_writer_blank(worksheet: Worksheet, pos_args: _CellPos, item, cell_format):
     worksheet.write_blank(
         *pos_args,
         blank=item,
@@ -90,7 +93,7 @@ def _cell_writer_blank(worksheet: Worksheet, pos_args, item, cell_format):
     )
 
 
-def _cell_writer_boolean(worksheet: Worksheet, pos_args, item, cell_format):
+def _cell_writer_boolean(worksheet: Worksheet, pos_args: _CellPos, item, cell_format):
     worksheet.write_boolean(
         *pos_args,
         boolean=item.get('value', False),
@@ -98,7 +101,7 @@ def _cell_writer_boolean(worksheet: Worksheet, pos_args, item, cell_format):
     )
 
 
-def _cell_writer_url(worksheet: Worksheet, pos_args, item, cell_format):
+def _cell_writer_url(worksheet: Worksheet, pos_args: _CellPos, item, cell_format):
     worksheet.write_url(
         *pos_args,
         url=item.get('url', ''),
@@ -285,7 +288,9 @@ class WorkbookBuilder:
     def _add_data_cell(self, worksheet: Worksheet, item: dict):
         subtype = item.get('subtype', '')
         cell_format = self.formats.get(item.get('format', ''))
-        pos_args = [item['cell']] if 'cell' in item else [item.get('row', 0), item.get('col', 0)]
+        pos_args: _CellPos = (
+            (item['cell'],) if 'cell' in item else (item.get('row', 0), item.get('col', 0))
+        )
         item.pop('type', None)
         item.pop('subtype', None)
         item.pop('format', None)
@@ -304,11 +309,9 @@ class WorkbookBuilder:
                     parts.append(self.formats.get(format_name, ''))
                 else:
                     parts.append(p)
-            worksheet.write_rich_string(
-                *pos_args,
-                string_parts=parts,
-                cell_format=cell_format,
-            )
+            if cell_format is not None:
+                parts.append(cell_format)
+            worksheet.write_rich_string(*pos_args, *parts)
 
     def _add_data_row(self, worksheet: Worksheet, item: dict):
         cell_format = self.formats.get(item.get('format', ''))
@@ -320,8 +323,8 @@ class WorkbookBuilder:
             )
         else:
             worksheet.write_row(
-                row=item.get('row', 0),
-                col=item.get('col', 0),
+                item.get('row', 0),
+                item.get('col', 0),
                 data=item.get('data', []),
                 cell_format=cell_format,
             )
@@ -336,8 +339,8 @@ class WorkbookBuilder:
             )
         else:
             worksheet.write_column(
-                row=item.get('row', 0),
-                col=item.get('col', 0),
+                item.get('row', 0),
+                item.get('col', 0),
                 data=item.get('data', []),
                 cell_format=cell_format,
             )
@@ -350,8 +353,8 @@ class WorkbookBuilder:
         start_col = item.get('col', 0)
         for row_index in range(rows):
             worksheet.write_row(
-                row=start_row + row_index,
-                col=start_col,
+                start_row + row_index,
+                start_col,
                 data=grid[row_index],
                 cell_format=cell_format,
             )
@@ -368,8 +371,8 @@ class WorkbookBuilder:
             )
         else:
             worksheet.insert_chart(
-                row=item.get('row', 0),
-                col=item.get('col', 0),
+                item.get('row', 0),
+                item.get('col', 0),
                 chart=chart,
                 options=item.get('options'),
             )
@@ -384,8 +387,8 @@ class WorkbookBuilder:
             )
         else:
             worksheet.write_comment(
-                row=item.get('row', 0),
-                col=item.get('col', 0),
+                item.get('row', 0),
+                item.get('col', 0),
                 comment=item.get('comment', ''),
                 options=item.get('options'),
             )
@@ -400,8 +403,8 @@ class WorkbookBuilder:
             )
         else:
             worksheet.insert_textbox(
-                row=item.get('row', 0),
-                col=item.get('col', 0),
+                item.get('row', 0),
+                item.get('col', 0),
                 text=item.get('text', ''),
                 options=item.get('options'),
             )
@@ -415,8 +418,8 @@ class WorkbookBuilder:
             )
         else:
             worksheet.insert_button(
-                row=item.get('row', 0),
-                col=item.get('col', 0),
+                item.get('row', 0),
+                item.get('col', 0),
                 options=item.get('options'),
             )
 
@@ -430,14 +433,14 @@ class WorkbookBuilder:
         if 'cell' in item:
             worksheet.insert_image(
                 item['cell'],
-                filename=item.get('filename', ''),
+                item.get('filename', ''),
                 options=item.get('options'),
             )
         else:
             worksheet.insert_image(
-                row=item.get('row', 0),
-                col=item.get('col', 0),
-                filename=item.get('filename', ''),
+                item.get('row', 0),
+                item.get('col', 0),
+                item.get('filename', ''),
                 options=item.get('options'),
             )
 
@@ -455,10 +458,10 @@ class WorkbookBuilder:
             )
         else:
             method(
-                first_row=item.get('first_row', 0),
-                first_col=item.get('first_col', 0),
-                last_row=item.get('last_row', 0),
-                last_col=item.get('last_col', 0),
+                item.get('first_row', 0),
+                item.get('first_col', 0),
+                item.get('last_row', 0),
+                item.get('last_col', 0),
                 formula=item.get('formula', ''),
                 cell_format=cell_format,
                 value=item.get('value', 0),
@@ -570,7 +573,12 @@ class WorkbookBuilder:
         if 'print_area' in data:
             area = data['print_area']
             if isinstance(area, dict):
-                worksheet.print_area(**area)
+                worksheet.print_area(
+                    area.get('first_row', 0),
+                    area.get('first_col', 0),
+                    area.get('last_row', 0),
+                    area.get('last_col', 0),
+                )
             else:
                 worksheet.print_area(area)
         if data.get('print_across', False):
@@ -600,8 +608,8 @@ class WorkbookBuilder:
                 worksheet.set_top_left_cell(data['top_left_cell'])
             else:
                 worksheet.set_top_left_cell(
-                    row=data['top_left_cell'].get('row', 0),
-                    col=data['top_left_cell'].get('col', 0),
+                    data['top_left_cell'].get('row', 0),
+                    data['top_left_cell'].get('col', 0),
                 )
         if 'selection' in data:
             if isinstance(data['selection'], str):
@@ -610,23 +618,23 @@ class WorkbookBuilder:
                 first_row = data['selection'].get('first_row', 0)
                 first_col = data['selection'].get('first_col', 0)
                 worksheet.set_selection(
-                    first_row=first_row,
-                    first_col=first_col,
-                    last_row=data['selection'].get('last_row', first_row),
-                    last_col=data['selection'].get('last_col', first_col),
+                    first_row,
+                    first_col,
+                    data['selection'].get('last_row', first_row),
+                    data['selection'].get('last_col', first_col),
                 )
 
     @staticmethod
     def _setup_worksheet_repeats(worksheet: Worksheet, data: dict):
         if 'repeat_rows' in data:
             worksheet.repeat_rows(
-                first_row=data['repeat_rows'].get('first_row', 0),
-                last_row=data['repeat_rows'].get('last_row'),
+                data['repeat_rows'].get('first_row', 0),
+                data['repeat_rows'].get('last_row'),
             )
         if 'repeat_columns' in data:
             worksheet.repeat_columns(
-                first_row=data['repeat_columns'].get('first_col', 0),
-                last_row=data['repeat_columns'].get('last_col'),
+                data['repeat_columns'].get('first_col', 0),
+                data['repeat_columns'].get('last_col'),
             )
         if 'default_row' in data:
             worksheet.set_default_row(
@@ -652,15 +660,15 @@ class WorkbookBuilder:
     def _setup_worksheet_panes(worksheet: Worksheet, data: dict):
         if 'split_panes' in data:
             worksheet.split_panes(
-                x=data['split_panes'].get('x', 0),
-                y=data['split_panes'].get('y', 0),
+                data['split_panes'].get('x', 0),
+                data['split_panes'].get('y', 0),
                 top_row=data['split_panes'].get('top_row', 0),
                 left_col=data['split_panes'].get('left_col', 0),
             )
         if 'freeze_panes' in data:
             worksheet.split_panes(
-                x=data['split_panes'].get('x', 0),
-                y=data['split_panes'].get('y', 0),
+                data['split_panes'].get('x', 0),
+                data['split_panes'].get('y', 0),
                 top_row=data['split_panes'].get('top_row', 0),
                 left_col=data['split_panes'].get('left_col', 0),
             )
@@ -670,13 +678,13 @@ class WorkbookBuilder:
         if 'filter_column_lists' in data:
             for f in data['filter_column_list']:
                 worksheet.filter_column_list(
-                    col=f.get('col', 0),
+                    f.get('col', 0),
                     filters=f.get('filters', _EMPTY_LIST),
                 )
         if 'filter_columns' in data:
             for f in data['filter_column_list']:
                 worksheet.filter_column(
-                    col=f.get('col', 0),
+                    f.get('col', 0),
                     criteria=f.get('criteria', _EMPTY_LIST),
                 )
         if 'autofilter' in data:
@@ -684,10 +692,10 @@ class WorkbookBuilder:
                 worksheet.set_selection(data['autofilter'])
             else:
                 worksheet.autofilter(
-                    first_row=data['autofilter'].get('first_row', 0),
-                    first_col=data['autofilter'].get('first_col', 0),
-                    last_row=data['autofilter'].get('last_row', 0),
-                    last_col=data['autofilter'].get('last_col', 0),
+                    data['autofilter'].get('first_row', 0),
+                    data['autofilter'].get('first_col', 0),
+                    data['autofilter'].get('last_row', 0),
+                    data['autofilter'].get('last_col', 0),
                 )
 
     def _setup_worksheet_merge_ranges(self, worksheet: Worksheet, data: dict):
@@ -702,10 +710,10 @@ class WorkbookBuilder:
                     )
                 else:
                     worksheet.merge_range(
-                        first_row=item.get('first_row', 0),
-                        first_col=item.get('first_col', 0),
-                        last_row=item.get('last_row', 0),
-                        last_col=item.get('last_col', 0),
+                        item.get('first_row', 0),
+                        item.get('first_col', 0),
+                        item.get('last_row', 0),
+                        item.get('last_col', 0),
                         data=item.get('data', ''),
                         cell_format=cell_format,
                     )
@@ -721,10 +729,10 @@ class WorkbookBuilder:
                     )
                 else:
                     worksheet.data_validation(
-                        first_row=item.get('first_row', 0),
-                        first_col=item.get('first_col', 0),
-                        last_row=item.get('last_row', 0),
-                        last_col=item.get('last_col', 0),
+                        item.get('first_row', 0),
+                        item.get('first_col', 0),
+                        item.get('last_row', 0),
+                        item.get('last_col', 0),
                         options=item.get('options', ''),
                     )
 
@@ -740,10 +748,10 @@ class WorkbookBuilder:
                     )
                 else:
                     worksheet.conditional_format(
-                        first_row=item.get('first_row', 0),
-                        first_col=item.get('first_col', 0),
-                        last_row=item.get('last_row', 0),
-                        last_col=item.get('last_col', 0),
+                        item.get('first_row', 0),
+                        item.get('first_col', 0),
+                        item.get('last_row', 0),
+                        item.get('last_col', 0),
                         options=item.get('options', ''),
                     )
 
@@ -761,10 +769,10 @@ class WorkbookBuilder:
                     )
                 else:
                     worksheet.add_table(
-                        first_row=item.get('first_row', 0),
-                        first_col=item.get('first_col', 0),
-                        last_row=item.get('last_row', 0),
-                        last_col=item.get('last_col', 0),
+                        item.get('first_row', 0),
+                        item.get('first_col', 0),
+                        item.get('last_row', 0),
+                        item.get('last_col', 0),
                         options=item.get('options', ''),
                     )
 
@@ -779,8 +787,8 @@ class WorkbookBuilder:
                     )
                 else:
                     worksheet.add_sparkline(
-                        row=item.get('row', 0),
-                        column=item.get('column', 0),
+                        item.get('row', 0),
+                        item.get('col', item.get('column', 0)),
                         options=item.get('options', ''),
                     )
 
@@ -790,7 +798,7 @@ class WorkbookBuilder:
                 if 'format' in item:
                     item['format'] = self.formats.get(item['format'])
                 worksheet.set_row_pixels(
-                    row=item.get('row', 0),
+                    item.get('row', 0),
                     height=item.get('height', 15),
                     cell_format=item.get('format'),
                     options=item.get('options'),
@@ -800,7 +808,7 @@ class WorkbookBuilder:
                 if 'format' in item:
                     item['format'] = self.formats.get(item['format'])
                 worksheet.set_row(
-                    row=item.get('row', 0),
+                    item.get('row', 0),
                     height=item.get('height', 15),
                     cell_format=item.get('format'),
                     options=item.get('options'),
@@ -813,8 +821,8 @@ class WorkbookBuilder:
                     item['format'] = self.formats.get(item['format'])
                 first_col = item.get('first_col', item.get('col', 0))
                 worksheet.set_column_pixels(
-                    first_col=first_col,
-                    last_col=item.get('last_col', first_col),
+                    first_col,
+                    item.get('last_col', first_col),
                     width=item.get('width', 70),
                     cell_format=item.get('format'),
                     options=item.get('options'),
@@ -825,8 +833,8 @@ class WorkbookBuilder:
                     item['format'] = self.formats.get(item['format'])
                 first_col = item.get('first_col', item.get('col', 0))
                 worksheet.set_column(
-                    first_col=first_col,
-                    last_col=item.get('last_col', first_col),
+                    first_col,
+                    item.get('last_col', first_col),
                     width=item.get('width', 70),
                     cell_format=item.get('format'),
                     options=item.get('options'),
