@@ -177,3 +177,6 @@ surrogatepass
 # Generated document contexts (TDK render fixtures)
 Ravi
 zenodo
+
+# Language names (POT header examples)
+Deutsch

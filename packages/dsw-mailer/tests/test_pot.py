@@ -19,6 +19,11 @@ def test_build_pot_from_the_templates():
     assert data == pot.build_pot(TEMPLATES_DIR, 'dsw-mail-templates:5.0.0')
     catalog = polib.pofile(data.decode())
     assert catalog.metadata['Project-Id-Version'] == 'dsw-mail-templates:5.0.0'
+    assert catalog.metadata['Language'] == ''
+    assert catalog.metadata['X-Display-Name'] == ''
+    assert b'"Language: \\n"' in data
+    assert b'"X-Display-Name: \\n"' in data
+    assert data.startswith(b'# Fill in the header before uploading the translation:\n')
     reset = catalog.find('Forgot your password? No problem, that happens to the best of us!')
     assert reset is not None
     assert ('wizard/resetPassword/message.txt.j2', '5') in reset.occurrences

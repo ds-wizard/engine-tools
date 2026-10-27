@@ -3,7 +3,8 @@
 The default templates are rendered from the mailer's own templates directory, so S3 holds only
 their POT, at the instance-level key ``mail-templates/mail.pot``, for the backend to serve for
 translating. The POT is built when the templates are packaged (``dsw-mailer make-pot``), into
-``<templates>/locale/mail.pot``, with ``Project-Id-Version: <kind>:<version>``.
+``<templates>/locale/mail.pot``, with ``Project-Id-Version: <kind>:<version>`` and empty
+``Language`` and ``X-Display-Name`` for the translator.
 
 The mailer uploads it at startup, and on request (``dsw-mailer sync-default-pot``, or the
 ``syncDefaultPot`` Lambda event), storing the version as the object metadata ``version``. It
@@ -38,14 +39,21 @@ VERSION_METADATA = 'version'
 DEFAULT_KIND = 'dsw-mail-templates'
 #: Jinja extensions the templates use, besides i18n
 EXTENSIONS = 'jinja2.ext.do'
+POT_HEADER = ('Fill in the header before uploading the translation:\n'
+              "  Language        the language's code, such as de or pt-BR\n"
+              '  X-Display-Name  its name as people choose it, such as Deutsch')
 
 
 def build_pot(templates_dir: pathlib.Path, project_id_version: str) -> bytes:
     """The POT of every ``*.j2`` template, in file and line order, deterministic."""
     pot = polib.POFile(wrapwidth=0)
+    # the upload reads the language and its name from the header (WEP 27), so the POT
+    # carries both, empty, and says what goes there - as the frontend's UI POT does
+    pot.header = POT_HEADER
     pot.metadata = {
         'Project-Id-Version': project_id_version,
-        'Language': 'en',
+        'Language': '',
+        'X-Display-Name': '',
         'MIME-Version': '1.0',
         'Content-Type': 'text/plain; charset=UTF-8',
         'Content-Transfer-Encoding': '8bit',
