@@ -666,36 +666,40 @@ class WorkbookBuilder:
                 left_col=data['split_panes'].get('left_col', 0),
             )
         if 'freeze_panes' in data:
-            worksheet.split_panes(
-                data['split_panes'].get('x', 0),
-                data['split_panes'].get('y', 0),
-                top_row=data['split_panes'].get('top_row', 0),
-                left_col=data['split_panes'].get('left_col', 0),
-            )
+            if isinstance(data['freeze_panes'], str):
+                worksheet.freeze_panes(data['freeze_panes'])
+            else:
+                worksheet.freeze_panes(
+                    data['freeze_panes'].get('row', 0),
+                    data['freeze_panes'].get('col', 0),
+                    top_row=data['freeze_panes'].get('top_row'),
+                    left_col=data['freeze_panes'].get('left_col'),
+                )
 
     @staticmethod
     def _setup_worksheet_filters(worksheet: Worksheet, data: dict):
-        if 'filter_column_lists' in data:
-            for f in data['filter_column_list']:
-                worksheet.filter_column_list(
-                    f.get('col', 0),
-                    filters=f.get('filters', _EMPTY_LIST),
-                )
-        if 'filter_columns' in data:
-            for f in data['filter_column_list']:
-                worksheet.filter_column(
-                    f.get('col', 0),
-                    criteria=f.get('criteria', _EMPTY_LIST),
-                )
+        # XlsxWriter ignores column filters until the autofilter is set
         if 'autofilter' in data:
             if isinstance(data['autofilter'], str):
-                worksheet.set_selection(data['autofilter'])
+                worksheet.autofilter(data['autofilter'])
             else:
                 worksheet.autofilter(
                     data['autofilter'].get('first_row', 0),
                     data['autofilter'].get('first_col', 0),
                     data['autofilter'].get('last_row', 0),
                     data['autofilter'].get('last_col', 0),
+                )
+        if 'filter_column_lists' in data:
+            for f in data['filter_column_lists']:
+                worksheet.filter_column_list(
+                    f.get('col', 0),
+                    filters=f.get('filters', _EMPTY_LIST),
+                )
+        if 'filter_columns' in data:
+            for f in data['filter_columns']:
+                worksheet.filter_column(
+                    f.get('col', 0),
+                    criteria=f.get('criteria', ''),
                 )
 
     def _setup_worksheet_merge_ranges(self, worksheet: Worksheet, data: dict):
@@ -725,7 +729,7 @@ class WorkbookBuilder:
                 if 'range' in item:
                     worksheet.data_validation(
                         item['range'],
-                        options=item.get('options', ''),
+                        options=item.get('options', {}),
                     )
                 else:
                     worksheet.data_validation(
@@ -733,18 +737,21 @@ class WorkbookBuilder:
                         item.get('first_col', 0),
                         item.get('last_row', 0),
                         item.get('last_col', 0),
-                        options=item.get('options', ''),
+                        options=item.get('options', {}),
                     )
 
     def _setup_worksheet_conditional_formats(self, worksheet: Worksheet, data: dict):
         if 'conditional_formats' in data:
             for item in data['conditional_formats']:
-                if 'format' in item:
-                    item['format'] = self.formats.get(item['format'])
+                options = item.get('options', {})
+                format_name = options.get('format', item.get('format'))
+                if format_name is not None:
+                    options['format'] = self.formats.get(format_name)
+                item['options'] = options
                 if 'range' in item:
                     worksheet.conditional_format(
                         item['range'],
-                        options=item.get('options', ''),
+                        options=item.get('options', {}),
                     )
                 else:
                     worksheet.conditional_format(
@@ -752,7 +759,7 @@ class WorkbookBuilder:
                         item.get('first_col', 0),
                         item.get('last_row', 0),
                         item.get('last_col', 0),
-                        options=item.get('options', ''),
+                        options=item.get('options', {}),
                     )
 
     def _setup_worksheet_tables(self, worksheet: Worksheet, data: dict):
@@ -765,7 +772,7 @@ class WorkbookBuilder:
                 if 'range' in item:
                     worksheet.add_table(
                         item['range'],
-                        options=item.get('options', ''),
+                        options=item.get('options', {}),
                     )
                 else:
                     worksheet.add_table(
@@ -773,7 +780,7 @@ class WorkbookBuilder:
                         item.get('first_col', 0),
                         item.get('last_row', 0),
                         item.get('last_col', 0),
-                        options=item.get('options', ''),
+                        options=item.get('options', {}),
                     )
 
     @staticmethod
@@ -783,13 +790,13 @@ class WorkbookBuilder:
                 if 'cell' in item:
                     worksheet.add_sparkline(
                         item['cell'],
-                        options=item.get('options', ''),
+                        options=item.get('options', {}),
                     )
                 else:
                     worksheet.add_sparkline(
                         item.get('row', 0),
                         item.get('col', item.get('column', 0)),
-                        options=item.get('options', ''),
+                        options=item.get('options', {}),
                     )
 
     def _setup_worksheet_row_sizing(self, worksheet: Worksheet, data: dict):
@@ -844,16 +851,10 @@ class WorkbookBuilder:
     def _setup_worksheet_background(worksheet: Worksheet, data: dict):
         if 'background' in data:
             if 'filename' in data['background']:
-                worksheet.set_background(
-                    source=data['background']['filename'],
-                    is_byte_stream=False,
-                )
+                worksheet.set_background(data['background']['filename'])
             elif 'b64bytes' in data['background']:
                 bytes_io = _b64img2io(data['background']['b64bytes'])
-                worksheet.set_background(
-                    bytes_io,
-                    is_byte_stream=True,
-                )
+                worksheet.set_background(bytes_io)
 
     def _replace_nested_formats(self, data: dict, keys: frozenset[str]):
         if not isinstance(data, dict):
@@ -870,7 +871,6 @@ class WorkbookBuilder:
 
     def build(self, data: dict):
         self._add_workbook_properties(data)
-        self._add_workbook_options(data)
         self._add_workbook_definitions(data)
 
         for vba_project in data.get('vba_projects', _EMPTY_LIST):
@@ -890,6 +890,8 @@ class WorkbookBuilder:
                 self._add_chartsheet(sheet_data)
             else:
                 self._add_worksheet(sheet_data)
+
+        self._add_workbook_options(data)
 
     def cleanup(self):
         for stream in self.byte_streams:
