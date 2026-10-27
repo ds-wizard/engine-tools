@@ -1,4 +1,4 @@
-# cspell:ignore sqref
+# cspell:ignore sqref dxf
 import io
 import pathlib
 import zipfile
@@ -71,3 +71,54 @@ def test_sparkline(tmp_path, key):
         {'row': 0, key: 3, 'options': {'range': 'Sheet1!A1:C1'}},
     ]}})
     assert '<xm:sqref>D1</xm:sqref>' in sheet_xml(workbook)
+
+
+def test_active_sheet(tmp_path):
+    content = WorkbookBuilder.build_to_bytes(
+        tmp_file=tmp_path / 'result.xlsx',
+        input_data={'sheets': [{'name': 'A'}, {'name': 'B'}], 'options': {'active_sheet': 1}},
+    )
+    workbook = zipfile.ZipFile(io.BytesIO(content))
+    assert 'activeTab="1"' in workbook.read('xl/workbook.xml').decode('utf-8')
+
+
+@pytest.mark.parametrize('freeze', ['B3', {'row': 2, 'col': 1}])
+def test_freeze_panes(tmp_path, freeze):
+    workbook = build(tmp_path, {'options': {'freeze_panes': freeze}})
+    assert 'topLeftCell="B3" activePane="bottomRight" state="frozen"' in sheet_xml(workbook)
+
+
+@pytest.mark.parametrize('autofilter', ['A1:C6', {'last_row': 5, 'last_col': 2}])
+def test_filters(tmp_path, autofilter):
+    workbook = build(tmp_path, {'options': {
+        'autofilter': autofilter,
+        'filter_column_lists': [{'col': 0, 'filters': ['x']}],
+        'filter_columns': [{'col': 1, 'criteria': 'x > 5'}],
+    }})
+    xml = sheet_xml(workbook)
+    assert '<autoFilter ref="A1:C6">' in xml
+    assert '<filterColumn colId="0"><filters><filter val="x"/>' in xml
+    assert '<customFilter operator="greaterThan" val="5"/>' in xml
+
+
+@pytest.mark.parametrize('item', [
+    {'range': 'A1:A2', 'options': {'type': 'no_blanks', 'format': 'bold'}},
+    {'range': 'A1:A2', 'format': 'bold', 'options': {'type': 'no_blanks'}},
+])
+def test_conditional_format(tmp_path, item):
+    workbook = build(
+        tmp_path,
+        {'options': {'conditional_formats': [item]}},
+        formats={'bold': {'bold': True}},
+    )
+    assert '<cfRule type="notContainsBlanks" dxfId="0"' in sheet_xml(workbook)
+
+
+def test_ranges_without_options(tmp_path):
+    workbook = build(tmp_path, {'options': {
+        'conditional_formats': [{'range': 'A1:A2'}],
+        'data_validations': [{'range': 'A1'}],
+        'tables': [{'range': 'A1:B3'}],
+        'sparklines': [{'cell': 'D1'}],
+    }})
+    assert 'xl/tables/table1.xml' in workbook.namelist()
