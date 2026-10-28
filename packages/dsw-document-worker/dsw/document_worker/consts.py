@@ -3,8 +3,8 @@ from __future__ import annotations
 from importlib.metadata import PackageNotFoundError, version
 
 
-CMD_CHANNEL = 'DocumentWorker'
-CMD_COMPONENT = 'DocumentWorker'
+CMD_CHANNEL = 'document_worker'
+CMD_COMPONENT = 'document_worker'
 CMD_FUNCTION_GENERATE_POT_FILE = 'generatePotFile'
 COMPONENT_NAME = 'Document Worker'
 DEFAULT_ENCODING = 'utf-8'
