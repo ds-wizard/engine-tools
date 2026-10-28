@@ -11,10 +11,6 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - Lambda handler reads its configuration from AWS AppConfig when `AWS_APP_CONFIG` is set (see `dsw-config`)
 
-### Changed
-
-- Persistent command component (and its notification channel) renamed `data_seeder` → `DataSeeder` (PascalCase), to match the backend; commands still stored as `data_seeder` are no longer picked up
-
 ## [4.34.0]
 
 ### Fixed

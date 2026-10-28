@@ -15,7 +15,7 @@ from conftest import TENANT, mail_locale, po_bytes, ui_locale
 
 def command(recipients: list[dict], **body) -> PersistentCommand:
     return PersistentCommand(
-        uuid='cmd-1', state='NewPersistentCommandState', component='Mailer',
+        uuid='cmd-1', state='NewPersistentCommandState', component='mailer',
         function='sendMail', body={
             'mode': 'wizard', 'template': 'resetPassword', 'recipients': recipients,
             'parameters': {'clientUrl': 'https://wizard.example.org', 'userFirstName': 'Jane',
