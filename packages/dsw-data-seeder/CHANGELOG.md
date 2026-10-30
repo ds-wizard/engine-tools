@@ -11,6 +11,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - Lambda handler reads its configuration from AWS AppConfig when `AWS_APP_CONFIG` is set (see `dsw-config`)
 
+### Changed
+
+- Sentry events carry the same tags as the backend's: `component` is the persistent command component (`data_seeder`), and a command sets `function`, `tenantUuid`, `traceUuid` (the command UUID, the `traceId` of the logs), the user who created it, and its trace; the tenant is the one being seeded, `recipe_name` is `recipeName` and `command_uuid` / `tenant_uuid` are gone
+
 ## [4.34.0]
 
 ### Fixed

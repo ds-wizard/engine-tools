@@ -116,8 +116,8 @@ class Job:
         SentryReporter.set_tags(phase='fetch')
         SentryReporter.set_tags(
             template='?',
-            template_uuid='?',
-            format_uuid='?',
+            templateUuid='?',
+            formatUuid='?',
         )
         if self.tenant_uuid != consts.NULL_UUID:
             LOG.info('Limiting to tenant with UUID: %s', self.tenant_uuid)
@@ -156,8 +156,8 @@ class Job:
                  template_uuid, format_uuid)
         # update Sentry info
         SentryReporter.set_tags(
-            template_uuid=template_uuid,
-            format_uuid=format_uuid,
+            templateUuid=template_uuid,
+            formatUuid=format_uuid,
         )
         # prepare template
         template = TemplateRegistry.get().prepare_template(
@@ -402,7 +402,7 @@ class DocumentWorker(CommandWorker):
         SentryReporter.initialize(
             config=self.config.sentry,
             release=BUILD_INFO.version,
-            prog_name=consts.PROG_NAME,
+            component=consts.CMD_COMPONENT,
             event_level=None,
         )
 
@@ -479,38 +479,30 @@ class DocumentWorker(CommandWorker):
     @staticmethod
     def _work_pot_file(command: PersistentCommand):
         Context.get().update_trace_id(command.uuid)
-        SentryReporter.set_tags(
-            command_uuid=command.uuid,
-            tenant_uuid=command.tenant_uuid,
-            phase='pot',
-        )
+        SentryReporter.set_command(command)
+        SentryReporter.set_tags(phase='pot')
         LOG.info('Running POT file job #%s', command.uuid)
         PotFileJob(command=command).run()
-        SentryReporter.set_tags(
-            command_uuid='-',
-            tenant_uuid='-',
-            phase='done',
-        )
+        SentryReporter.reset_command()
+        SentryReporter.set_tags(phase='done')
         Context.get().reset_ids()
 
     def _work_document(self, command: PersistentCommand):
         document_uuid = command.body['document']['uuid']
         Context.get().update_trace_id(command.uuid)
         Context.get().update_document_id(document_uuid)
+        SentryReporter.set_command(command)
         SentryReporter.set_tags(
-            command_uuid=command.uuid,
-            tenant_uuid=command.tenant_uuid,
-            document_uuid=document_uuid,
+            documentUuid=document_uuid,
             phase='init',
         )
         LOG.info('Running job #%s', command.uuid)
         self.current_job = Job(command=command, document_uuid=document_uuid)
         self.current_job.run()
         self.current_job = None
+        SentryReporter.reset_command()
         SentryReporter.set_tags(
-            command_uuid='-',
-            tenant_uuid='-',
-            document_uuid='-',
+            documentUuid='-',
             phase='done',
         )
         Context.get().reset_ids()

@@ -91,3 +91,7 @@ def test_sentry_defaults():
     assert sentry.workers_dsn is None
     assert sentry.max_breadcrumbs is None
     assert sentry.traces_sample_rate is None
+
+
+def test_sentry_environment_defaults_to_development():
+    assert make_parser().sentry.environment == 'development'
