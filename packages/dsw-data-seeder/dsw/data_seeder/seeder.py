@@ -323,7 +323,7 @@ class DataSeeder(CommandWorker):
         SentryReporter.initialize(
             config=self.cfg.sentry,
             release=BUILD_INFO.version,
-            prog_name=consts.PROG_NAME,
+            component=consts.CMD_COMPONENT,
         )
 
     def _init_extra_connections(self):
@@ -339,7 +339,7 @@ class DataSeeder(CommandWorker):
             )
 
     def _prepare_recipe(self, recipe_name: str):
-        SentryReporter.set_tags(recipe_name=recipe_name)
+        SentryReporter.set_tags(recipeName=recipe_name)
         LOG.info('Loading recipe "%s"', recipe_name)
         self.recipes = SeedRecipe.load_from_dir(self.workdir)
         if recipe_name not in self.recipes:
@@ -375,8 +375,8 @@ class DataSeeder(CommandWorker):
 
     def work(self, command: PersistentCommand):
         Context.get().update_trace_id(command.uuid)
-        SentryReporter.set_tags(command_uuid=command.uuid)
         tenant_uuid: str = command.body['tenantUuid']
+        SentryReporter.set_command(command, tenant_uuid=tenant_uuid)
         recipe_name: str | None = command.body.get('recipe')
         LOG.debug('Processing command: %s (tenant: %s, seed: %s)',
                   command.uuid, tenant_uuid, recipe_name)
@@ -390,7 +390,7 @@ class DataSeeder(CommandWorker):
             attempt=command.attempts,
         )
         Context.get().update_trace_id('-')
-        SentryReporter.set_tags(command_uuid='-')
+        SentryReporter.reset_command()
 
     def process_timeout(self, e: BaseException):
         LOG.error('Failed with timeout', exc_info=e)
@@ -420,7 +420,7 @@ class DataSeeder(CommandWorker):
         self._execute(tenant_uuid=tenant_uuid)
 
     def _execute(self, tenant_uuid: str):
-        SentryReporter.set_tags(tenant_uuid=tenant_uuid)
+        SentryReporter.set_tags(tenantUuid=tenant_uuid)
         # Run SQL scripts
         app_ctx = Context.get().app
         phase = 'DB'
@@ -487,4 +487,3 @@ class DataSeeder(CommandWorker):
                 self.dbs[target].conn_query.connection.commit()
         finally:
             LOG.info('Data seeding done')
-            SentryReporter.set_tags(tenant_uuid='-')

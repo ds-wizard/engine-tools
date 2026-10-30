@@ -14,6 +14,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - The default mail POT (Wizard 5.0): `dsw-mailer make-pot` builds one `mail.pot` of all the templates into `templates/locale/mail.pot` (the image has it), and the mailer keeps it current in S3 at `mail-templates/mail.pot`, with its version as object metadata, at startup and with `dsw-mailer sync-default-pot [--force]` or the Lambda event `{"syncDefaultPot": {...}}`; it never downgrades it unless forced and never blocks mail; `mail.syncDefaultPot` (`MAIL_SYNC_DEFAULT_POT`) turns it off
 
 ### Changed
+- Sentry events carry the same tags as the backend's: `component` is the persistent command component (`mailer`), and a command sets `function`, `tenantUuid`, `traceUuid` (the command UUID, the `traceId` of the logs), the user who created it, and its trace; `command_uuid` / `tenant_uuid` are gone
 
 - Mails are translated with the tenant's mail template locales (Wizard 5.0): one mail is sent per recipient, in the mail template locale whose code matches the recipient's UI locale (exact code, then the base language), otherwise the tenant's default one, otherwise `en`, otherwise built-in English; disabled locales are skipped and a recipient who is not a user gets the default
 - A command with `sendAsOne` sends a single mail to all its recipients in English (the analytics mails); a command without the field, queued before the upgrade, is sent per recipient

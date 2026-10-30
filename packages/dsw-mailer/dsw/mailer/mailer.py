@@ -69,7 +69,7 @@ class Mailer(CommandWorker):
         SentryReporter.initialize(
             config=self.cfg.sentry,
             release=BUILD_INFO.version,
-            prog_name=consts.PROG_NAME,
+            component=consts.CMD_COMPONENT,
         )
 
     @staticmethod
@@ -207,11 +207,8 @@ class Mailer(CommandWorker):
 
     def work(self, command: PersistentCommand):
         # init Sentry info
-        SentryReporter.set_tags(
-            template='?',
-            command_uuid=command.uuid,
-            tenant_uuid=command.tenant_uuid,
-        )
+        SentryReporter.set_command(command)
+        SentryReporter.set_tags(template='?')
         Context.get().update_trace_id(command.uuid)
         # prepare
         requests = self._get_msg_requests(MailerCommand.load(command))
@@ -221,11 +218,8 @@ class Mailer(CommandWorker):
             SentryReporter.set_tags(template=rq.template_name)
             self.send(rq, mail_cfg)
         # reset Sentry info
-        SentryReporter.set_tags(
-            template='-',
-            command_uuid='-',
-            tenant_uuid='-',
-        )
+        SentryReporter.reset_command()
+        SentryReporter.set_tags(template='-')
         Context.get().update_trace_id('-')
 
     def process_timeout(self, e: BaseException):

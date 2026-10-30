@@ -17,6 +17,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `docx-landscape.lua` Pandoc filter (a `landscape` div, or `\landscape` / `\portrait` paragraphs, switch DOCX page orientation)
 
 ### Changed
+- Sentry events carry the same tags as the backend's: `component` is the persistent command component (`document_worker`), and a command sets `function`, `tenantUuid`, `traceUuid` (the command UUID, the `traceId` of the logs), the user who created it, and its trace; the job tags are camelCase (`documentUuid`, `templateUuid`, `formatUuid`) and `command_uuid` / `tenant_uuid` are gone
 
 - Persistent command component (and its notification channel) renamed `doc_worker` → `document_worker`, to match the backend; commands still stored as `doc_worker` are no longer picked up
 - Update to DT metamodel 19.0 (WEP 24): only document contexts of major version 19 are accepted; any other (e.g. of a document queued before the upgrade) fails the document with "Unsupported document context metamodel version X, expected 19.x. Regenerate the document." (`missing` when there is none) and is not reported to Sentry

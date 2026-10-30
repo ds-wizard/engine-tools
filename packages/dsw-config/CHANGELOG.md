@@ -8,8 +8,14 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- `SentryReporter.set_command` / `reset_command` tag events with the persistent command being processed the way the backend does: `function`, `tenantUuid` and `traceUuid` tags, the creator as the user, the command UUID as the trace ID, and `uuid`, `attempts` and `maxAttempts` extras
 
 - `read_config` loads the configuration YAML from AWS AppConfig when `AWS_APP_CONFIG` is set (environment `Default`, profile derived from the file name, overridable by `AWS_APP_CONFIG_ENVIRONMENT` / `AWS_APP_CONFIG_PROFILE`), and from the local file otherwise; a warm Lambda reuses its session and re-polls only after the poll interval
+
+### Changed
+
+- `sentry.environment` (`SENTRY_ENVIRONMENT`) defaults to `development` instead of `production`, as in the backend, so a deployment that does not set it no longer reports as production
+- `SentryReporter.initialize` takes `component` (the `component` tag) instead of `prog_name`
 
 ## [4.34.0]
 

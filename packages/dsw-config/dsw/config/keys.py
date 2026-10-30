@@ -202,7 +202,7 @@ class _SentryKeys(ConfigKeysContainer):
     environment = ConfigKey(
         yaml_path=['sentry', 'environment'],
         var_names=['SENTRY_ENVIRONMENT'],
-        default='production',
+        default='development',
         cast=cast_str,
     )
 
