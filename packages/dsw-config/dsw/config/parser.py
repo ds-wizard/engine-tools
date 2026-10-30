@@ -130,8 +130,12 @@ class DSWConfigParser:
 
     @property
     def cloud(self) -> model.CloudConfig:
+        key = self.keys.multi_tenancy.enabled
+        if not self.has_value_for_key(key):
+            # the section's name before the backend renamed it
+            key = self.keys.cloud.enabled
         return model.CloudConfig(
-            multi_tenant=self.get(self.keys.cloud.enabled),
+            multi_tenant=self.get(key),
         )
 
     @property

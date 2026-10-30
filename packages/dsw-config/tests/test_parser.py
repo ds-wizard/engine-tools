@@ -70,6 +70,17 @@ def test_yaml_boolean():
     assert make_parser().cloud.multi_tenant is False
 
 
+def test_multi_tenancy():
+    assert make_parser('multiTenancy:\n  enabled: true\n').cloud.multi_tenant is True
+    parser = make_parser('multiTenancy:\n  enabled: false\ncloud:\n  enabled: true\n')
+    assert parser.cloud.multi_tenant is False
+
+
+def test_multi_tenancy_env_var_wins_over_cloud(monkeypatch):
+    monkeypatch.setenv('DSW_MULTI_TENANCY_ENABLED', 'true')
+    assert make_parser('cloud:\n  enabled: false\n').cloud.multi_tenant is True
+
+
 def test_sentry_numeric_options():
     parser = make_parser('sentry:\n  maxBreadcrumbs: 100\n  tracesSampleRate: 0.5\n')
     sentry = parser.sentry

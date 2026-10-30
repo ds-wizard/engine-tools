@@ -13,7 +13,7 @@ logging:
   level: INFO
   globalLevel: WARNING
 
-cloud:
+multiTenancy:
   enabled: True
 
 extraDatabases:

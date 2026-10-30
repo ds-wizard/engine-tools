@@ -17,7 +17,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Sentry events carry the same tags as the backend's: `component` is the persistent command component (`mailer`), and a command sets `function`, `tenantUuid`, `traceUuid` (the command UUID, the `traceId` of the logs), the user who created it, and its trace; `command_uuid` / `tenant_uuid` are gone
 
 - Mails are translated with the tenant's mail template locales (Wizard 5.0): one mail is sent per recipient, in the mail template locale whose code matches the recipient's UI locale (exact code, then the base language), otherwise the tenant's default one, otherwise `en`, otherwise built-in English; disabled locales are skipped and a recipient who is not a user gets the default
-- A command with `sendAsOne` sends a single mail to all its recipients in English (the analytics mails); a command without the field, queued before the upgrade, is sent per recipient
+- A command with `sendAsOne` sends a single mail to all its recipients in English; a command without the field, queued before the upgrade, is sent per recipient
 - The compiled `mail.mo` of a mail template locale is stored back to S3 next to its `mail.po` and cached locally until the locale's `updated_at` changes, instead of compiling the PO for every mail
 - A mail template locale that cannot be loaded is reported and the mail is sent in English
 - The `registry` mode is unchanged: English, without locales
@@ -26,6 +26,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Removed
 
+- The `registrationCreatedAnalytics` templates of the Wizard and the registry, which the backend no longer sends
 - The three POT files (`default`, `wizard` and `registry`, built with `pybabel` and `make-header.sh`): `make pot` builds the one `mail.pot`
 - The illustrations color (`style.illustrations_color` in templates, `illustrationsColor` and `styleIllustrationsColor` in the input, the `DEFAULT_ILLUSTRATIONS_COLOR` variable): Wizard 5.0 removed it
 

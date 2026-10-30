@@ -1,8 +1,0 @@
-{% trans %}Hello!{% endtrans %}
-
-{% trans %}Good news — we have a new user in{% endtrans %} ({% if ctx.appTitle %}{{ ctx.appTitle }}, {% endif %}{{ ctx.clientUrl }}):
-
-- {% trans %}Name{% endtrans %}: {{ ctx.userFirstName }} {{ ctx.userLastName }}
-- {% trans %}Email{% endtrans %}: {{ ctx.userEmail }}
-
-{% include '_common/footer.txt.j2' %}
