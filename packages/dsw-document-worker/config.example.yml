@@ -54,6 +54,7 @@ templates:
 #documents:
 #  naming:
 #    strategy: sanitize # uuid|slugify|sanitize
+#  maxSize: 5000000 # bytes per generated document, null for no limit
 
 #externals:
 #  pandoc:

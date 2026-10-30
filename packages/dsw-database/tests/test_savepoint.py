@@ -172,16 +172,6 @@ def test_without_savepoint_the_retry_only_sees_the_aborted_transaction(database)
 
 
 @integration
-def test_missing_tenant_limit_table_means_no_limit(database):
-    with database.conn_query.new_cursor() as cursor:
-        cursor.execute("SELECT to_regclass('tenant_limit_bundle') IS NULL;")
-        if not cursor.fetchone()[0]:
-            pytest.skip('the test database has a tenant_limit_bundle table')
-    assert database.fetch_tenant_limits('00000000-0000-0000-0000-000000000000') is None
-    assert database.conn_query.connection.info.transaction_status != INERROR
-
-
-@integration
 def test_committing_query_leaves_a_usable_connection(database):
     with database.conn_query.savepoint(), database.conn_query.new_cursor() as cursor:
         cursor.execute('SELECT 1;')

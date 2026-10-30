@@ -59,8 +59,6 @@ class Database:
                                   'WHERE d.project_uuid = %s AND d.tenant_uuid = %s;')
     SELECT_PROJECT_SIMPLE = ('SELECT p.* FROM project p '
                              'WHERE p.uuid = %s AND p.tenant_uuid = %s;')
-    SELECT_TENANT_LIMIT = ('SELECT uuid, storage FROM tenant_limit_bundle '
-                           'WHERE uuid = %(tenant_uuid)s LIMIT 1;')
     UPDATE_DOCUMENT_STATE = 'UPDATE document SET state = %s, worker_log = %s WHERE uuid = %s;'
     UPDATE_DOCUMENT_RETRIEVED = 'UPDATE document SET retrieved_at = %s, state = %s WHERE uuid = %s;'
     UPDATE_DOCUMENT_FINISHED = ('UPDATE document SET finished_at = %s, state = %s, '
@@ -175,29 +173,6 @@ class Database:
             if len(result) != 1:
                 return None
             return model.DBDocument.from_dict_row(result[0])
-
-    @tenacity.retry(
-        reraise=True,
-        wait=tenacity.wait_exponential(multiplier=RETRY_QUERY_MULTIPLIER),
-        stop=tenacity.stop_after_attempt(RETRY_QUERY_TRIES),
-        before=tenacity.before_log(LOG, logging.DEBUG),
-        after=tenacity.after_log(LOG, logging.DEBUG),
-    )
-    @_in_savepoint
-    def fetch_tenant_limits(self, tenant_uuid: str) -> model.DBTenantLimits | None:
-        # FAIR Wizard 5.0 computes limits from tenant plans and has no such table;
-        # the backend enforces them, so the worker has no storage limit of its own then
-        if not self._check_table_exists(table_name='tenant_limit_bundle'):
-            return None
-        with self.conn_query.new_cursor(use_dict=True) as cursor:
-            cursor.execute(
-                query=self.SELECT_TENANT_LIMIT,
-                params={'tenant_uuid': tenant_uuid},
-            )
-            result = cursor.fetchall()
-            if len(result) != 1:
-                return None
-            return model.DBTenantLimits.from_dict_row(result[0])
 
     @tenacity.retry(
         reraise=True,
