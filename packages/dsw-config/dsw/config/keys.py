@@ -174,6 +174,15 @@ class _CloudKeys(ConfigKeysContainer):
     )
 
 
+class _MultiTenancyKeys(ConfigKeysContainer):
+    enabled = ConfigKey(
+        yaml_path=['multiTenancy', 'enabled'],
+        var_names=['MULTI_TENANCY_ENABLED'],
+        default=False,
+        cast=cast_bool,
+    )
+
+
 class _SentryKeys(ConfigKeysContainer):
     enabled = ConfigKey(
         yaml_path=['sentry', 'enabled'],
@@ -286,5 +295,6 @@ class ConfigKeys(ConfigKeysContainer):
     database = _DatabaseKeys
     general = _GeneralKeys
     logging = _LoggingKeys
+    multi_tenancy = _MultiTenancyKeys
     s3 = _S3Keys
     sentry = _SentryKeys

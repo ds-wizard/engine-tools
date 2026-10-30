@@ -16,6 +16,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - `sentry.environment` (`SENTRY_ENVIRONMENT`) defaults to `development` instead of `production`, as in the backend, so a deployment that does not set it no longer reports as production
 - `SentryReporter.initialize` takes `component` (the `component` tag) instead of `prog_name`
+- Multi-tenant mode is read from `multiTenancy.enabled` (`MULTI_TENANCY_ENABLED`), the backend's new name for the section; `cloud.enabled` (`CLOUD_ENABLED`) is still read when `multiTenancy.enabled` is not set
 
 ## [4.34.0]
 
