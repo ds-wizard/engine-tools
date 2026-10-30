@@ -6,11 +6,25 @@ from .context import Context
 from .exceptions import JobError
 
 
+# Key of the generateDocument command body with the tenant limits resolved by
+# the backend, e.g. {"storage": 3000000}; without it (or with a null storage)
+# there is no storage limit. It is not part of the document context, so it is
+# removed before rendering and never reaches templates
+COMMAND_LIMITS_KEY = 'limits'
+
+
 class LimitsEnforcer:
 
     @staticmethod
+    def take_storage_limit(doc_context: dict) -> int | None:
+        limits = doc_context.pop(COMMAND_LIMITS_KEY, None)
+        if not isinstance(limits, dict):
+            return None
+        return limits.get('storage')
+
+    @staticmethod
     def check_doc_size(job_id: str, doc_size: int):
-        max_size = Context.get().app.cfg.experimental.max_doc_size
+        max_size = Context.get().app.cfg.doc.max_size
         if max_size is None or doc_size <= max_size:
             return
         raise JobError(

@@ -66,11 +66,11 @@ class Job:
         self.format: Format | None = None
         self.tenant_uuid = self.ctx.tenant_uuid = command.tenant_uuid
         self.doc_uuid: str = document_uuid
-        self.doc_context: dict = command.body
+        self.doc_context: dict = dict(command.body)
         self.doc: DBDocument | None = None
         self.final_file: DocumentFile | None = None
         self.template_config: TemplateConfig | None = None
-        self.tenant_limits = self.ctx.app.db.fetch_tenant_limits(self.tenant_uuid)
+        self.storage_limit = LimitsEnforcer.take_storage_limit(self.doc_context)
 
     @property
     def safe_doc(self) -> DBDocument:
@@ -264,13 +264,12 @@ class Job:
             job_id=self.doc_uuid,
             doc_size=final_file.byte_size,
         )
-        limit_size = None if self.tenant_limits is None else self.tenant_limits.storage
         used_size = self.ctx.app.db.get_currently_used_size(tenant_uuid=self.tenant_uuid)
         LimitsEnforcer.check_size_usage(
             job_id=self.doc_uuid,
             doc_size=final_file.byte_size,
             used_size=used_size,
-            limit_size=limit_size,
+            limit_size=self.storage_limit,
         )
         # finalize
         self.final_file = final_file

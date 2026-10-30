@@ -21,8 +21,6 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   (instead of `organization_id` + `template_id`, `coordinates` is `<id>:<version>`), the
   `{id, minVersion, maxVersion}` package patterns and `workspace_uuid`, and its
   `metamodel_version` is read as `"major.minor"`; `project` gains `workspace_uuid`
-- `fetch_tenant_limits` returns `None` (no limit) when there is no `tenant_limit_bundle` table,
-  as in FAIR Wizard 5.0, which computes limits from tenant plans
 - `fetch_project_simple` returns `None` for a missing project
 - `DBLocale` has the Wizard 5.0 shape of the `locale` table (`code`, `name`, `pot_version`,
   `enabled`, `default_locale`, `official`, timestamps); `organization_id`, `locale_id`,
@@ -30,6 +28,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Removed
 
+- `fetch_tenant_limits` and `DBTenantLimits`: the document worker takes the storage limit from the command body instead of `tenant_limit_bundle`
 - `get_default_locale`: mails no longer fall back to the default UI locale, but to the default
   mail template locale
 

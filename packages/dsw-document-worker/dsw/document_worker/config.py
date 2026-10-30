@@ -44,18 +44,18 @@ class _DocumentsKeys(ConfigKeysContainer):
         default='sanitize',
         cast=cast_str,
     )
+    max_size = ConfigKey(
+        yaml_path=['documents', 'maxSize'],
+        var_names=['DOCUMENTS_MAX_SIZE'],
+        default=5_000_000,
+        cast=cast_optional_int,
+    )
 
 
 class _ExperimentalKeys(ConfigKeysContainer):
     job_timeout = ConfigKey(
         yaml_path=['experimental', 'jobTimeout'],
         var_names=['EXPERIMENTAL_JOB_TIMEOUT'],
-        default=None,
-        cast=cast_optional_int,
-    )
-    max_doc_size = ConfigKey(
-        yaml_path=['experimental', 'maxDocumentSize'],
-        var_names=['EXPERIMENTAL_MAX_DOCUMENT_SIZE'],
         default=None,
         cast=cast_optional_int,
     )
@@ -171,15 +171,16 @@ class DocWorkerConfigKeys(ConfigKeys):
 @dataclasses.dataclass
 class DocumentsConfig(ConfigModel):
     naming_strategy: str
+    max_size: int | None
 
-    def __init__(self, naming_strategy: str):
+    def __init__(self, naming_strategy: str, max_size: int | None):
         self.naming_strategy = consts.DocumentNamingStrategy.get(naming_strategy)
+        self.max_size = max_size
 
 
 @dataclasses.dataclass
 class ExperimentalConfig(ConfigModel):
     job_timeout: int | None
-    max_doc_size: int | None
 
 
 @dataclasses.dataclass
@@ -301,6 +302,7 @@ class DocumentWorkerConfigParser(DSWConfigParser):
     def documents(self) -> DocumentsConfig:
         return DocumentsConfig(
             naming_strategy=self.get(self.keys.documents.naming_strategy),
+            max_size=self.get(self.keys.documents.max_size),
         )
 
     @property
@@ -324,7 +326,6 @@ class DocumentWorkerConfigParser(DSWConfigParser):
     def experimental(self) -> ExperimentalConfig:
         return ExperimentalConfig(
             job_timeout=self.get(self.keys.experimental.job_timeout),
-            max_doc_size=self.get(self.keys.experimental.max_doc_size),
         )
 
     @property

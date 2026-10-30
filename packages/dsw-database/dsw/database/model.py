@@ -302,19 +302,6 @@ class PersistentCommand:
 
 
 @dataclasses.dataclass
-class DBTenantLimits:
-    tenant_uuid: str
-    storage: int | None
-
-    @staticmethod
-    def from_dict_row(data: dict):
-        return DBTenantLimits(
-            tenant_uuid=str(data['uuid']),
-            storage=data['storage'],
-        )
-
-
-@dataclasses.dataclass
 class DBSubmission:
     TABLE_NAME = 'submission'
 
