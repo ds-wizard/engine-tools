@@ -335,8 +335,12 @@ class CommandQueue:
                 # using the connection, so this one must not be touched anymore
                 self._abandon_connection()
                 self.worker.process_timeout(e)
+                if attempt_number < command.max_attempts:
+                    query = self.queries.query_command_error()
+                else:
+                    query = self.queries.query_command_error_stop()
                 self._store_result(
-                    query=self.queries.query_command_error(),
+                    query=query,
                     message=msg,
                     attempts=attempt_number,
                     uuid=command.uuid,
@@ -365,14 +369,16 @@ class CommandQueue:
             )
         except Exception as e:
             if attempt_number < command.max_attempts:
+                query = self.queries.query_command_error()
                 msg = f'Failed with exception [{type(e).__name__}]: {str(e)} (will try again)'
             else:
+                query = self.queries.query_command_error_stop()
                 msg = f'Failed with exception [{type(e).__name__}]: {str(e)}'
             LOG.warning(msg)
             self._rollback_work()
             self.worker.process_exception(e)
             self._store_result(
-                query=self.queries.query_command_error(),
+                query=query,
                 message=msg,
                 attempts=attempt_number,
                 uuid=command.uuid,

@@ -7,6 +7,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- Clear `lambda_invoked` of a failed command that will be tried again, so the backend knows to invoke the worker again; a command out of attempts keeps it
+- Requires a database with the `lambda_invoked` column of `persistent_command`
+
 
 ## [4.34.0]
 

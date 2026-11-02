@@ -64,9 +64,12 @@ class CommandQueries:
 
     @staticmethod
     def query_command_error() -> str:
+        # Clearing lambda_invoked tells the backend to invoke the worker again
+        # once the backoff has passed
         return """
             UPDATE persistent_command
             SET attempts = %(attempts)s,
+                lambda_invoked = FALSE,
                 last_error_message = %(error_message)s,
                 state = 'ErrorPersistentCommandState',
                 updated_at = %(updated_at)s
