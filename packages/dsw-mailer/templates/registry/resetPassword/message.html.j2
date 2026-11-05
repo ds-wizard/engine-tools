@@ -1,8 +1,7 @@
 {% extends '_common/layout.html.j2' %}
 
-{%- set url = ctx.clientUrl ~ "/forgotten-token/" ~ ctx.organizationId ~ "/" ~ ctx.hash -%}
-{%- set orgName = "<strong>" ~ ctx.organizationName ~ "</strong>" -%}
-{%- set orgId = "<code>" ~ ctx.organizationId ~ "</code>" -%}
+{%- set url = ctx.clientUrl ~ "/forgotten-password/" ~ ctx.userUuid ~ "/" ~ ctx.hash -%}
+{%- set userFirstName = ctx.userFirstName -%}
 
 {% block body %}
 <table border="0" cellpadding="0" cellspacing="0" width="100%" class="dswTextBlock" style="min-width: 100%; border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;">
@@ -21,9 +20,9 @@
             <tr>
               <td valign="top" class="dswTextContent" style="padding-top: 0; padding-right: 18px; padding-bottom: 9px; padding-left: 18px; mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; word-break: break-word; color: #212529; font-family: Helvetica; font-size: 14px; line-height: 150%; text-align: left;">
                 <p dir="ltr" style="margin: 10px 0; padding: 0; mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; color: #212529; font-family: Helvetica; font-size: 14px; line-height: 150%; text-align: left;">
-                  {% trans %}Hello!{% endtrans %}<br><br>
-                  {% trans %}Lost the token for {{ orgName }} ({{ orgId }})?{% endtrans %}
-                  {% trans %}No problem, just click the button below to set up a new one.{% endtrans %}
+                  {% trans %}Hello {{ userFirstName }}{% endtrans %},<br><br>
+                  {% trans %}Forgot your password? No problem, that happens to the best of us!{% endtrans %}<br>
+                  {% trans %}You can easily set up a new password by clicking on the button below.{% endtrans %}
                 </p>
               </td>
             </tr>
@@ -48,7 +47,7 @@
           <tbody>
             <tr>
               <td align="center" valign="middle" class="dswButtonContent" style="font-family: Helvetica; font-size: 18px; mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
-                <a class="dswButton " title="Generate a new token" href="{{ url }}" target="_blank" style="font-weight: bold; border: 18px solid #f15a24; border-radius: 2px; letter-spacing: -0.5px; line-height: 100%; text-align: center; text-decoration: none; color: #FFFFFF; mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; display: block;">{% trans %}Generate a new token{% endtrans %}</a>
+                <a class="dswButton " title="{% trans %}Set up a new password{% endtrans %}" href="{{ url }}" target="_blank" style="font-weight: bold; border: 18px solid #f15a24; border-radius: 2px; letter-spacing: -0.5px; line-height: 100%; text-align: center; text-decoration: none; color: #FFFFFF; mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; display: block;">{% trans %}Set up a new password{% endtrans %}</a>
               </td>
             </tr>
           </tbody>

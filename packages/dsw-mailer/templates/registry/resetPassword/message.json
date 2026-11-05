@@ -1,6 +1,6 @@
 {
-  "id": "registry:resetToken",
-  "subject": "Reset Token",
+  "id": "registry:resetPassword",
+  "subject": "Reset Password",
   "subjectPrefix": true,
   "defaultSenderName": "DSW Registry",
   "parts": [

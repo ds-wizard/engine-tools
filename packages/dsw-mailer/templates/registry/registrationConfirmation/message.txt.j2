@@ -1,15 +1,9 @@
-{%- set orgName = "\"" ~ ctx.organizationName ~ "\"" -%}
-{%- set orgId = ctx.organizationId -%}
-{%- set url = (ctx.callbackUrl ~ "/registry/signup/" ~ ctx.organizationId ~ "/" ~ ctx.hash) if ctx.callbackUrl else (ctx.clientUrl ~ "/signup/" ~ ctx.organizationId ~ "/" ~ ctx.hash) -%}
+{%- set userFirstName = ctx.userFirstName -%}
 
-{% trans %}Hello{% endtrans %}
+{% trans %}Hello {{ userFirstName }}{% endtrans %},
 
-{% trans %}For the activation of your account {{ orgName }} ({{ orgId }}), please proceed here{% endtrans %}:
+{% trans %}Your registration is almost done. Just one more step to go.{% endtrans %}
 
-{% if ctx.callbackUrl -%}
-{{ ctx.callbackUrl }}/registry/signup/{{ ctx.organizationId }}/{{ ctx.hash }}
-{%- else -%}
-{{ ctx.clientUrl }}/signup/{{ ctx.organizationId }}/{{ ctx.hash }}
-{%- endif %}
+{% trans %}To activate your account, please proceed here{% endtrans %}: {{ ctx.clientUrl }}/signup/{{ ctx.userUuid }}/{{ ctx.hash }}
 
 {% include '_common/footer.txt.j2' %}
