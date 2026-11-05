@@ -85,6 +85,29 @@ def test_registry_mode_is_unchanged(tmp_path, tenant):
     assert [r.locale_uuid for r in requests] == [None]
 
 
+@pytest.mark.parametrize(('template', 'path', 'subject'), [
+    ('registrationConfirmation', 'signup', 'Registration Confirmation'),
+    ('resetPassword', 'forgotten-password', 'Reset Password'),
+])
+def test_render_registry_template(tmp_path, tenant, context, template, path, subject):
+    # the parameters are those of the backend's registry mailer
+    templates = TemplateRegistry(cfg=types.SimpleNamespace(), workdir=context.app.workdir)
+    rq = requests_for(tmp_path, command(
+        [recipient(None)], mode='registry', template=template,
+        parameters={'userUuid': 'user-1', 'userFirstName': 'Jane', 'userLastName': 'Doe',
+                    'userEmail': 'jane@example.org', 'hash': 'abc',
+                    'clientUrl': 'https://registry.example.org'},
+    ))[0]
+    cfg = types.SimpleNamespace(name='Registry', email='registry@example.org')
+    message = templates.render(rq, cfg, gettext.NullTranslations())
+    link = f'https://registry.example.org/{path}/user-1/abc'
+    assert link in message.plain_body
+    assert f'href="{link}"' in message.html_body
+    assert 'Hello Jane' in message.plain_body
+    assert 'Hello Jane' in message.html_body
+    assert subject in message.subject
+
+
 def test_no_recipients(tmp_path, tenant):
     with pytest.raises(RuntimeError, match='No recipients'):
         requests_for(tmp_path, command([]))
